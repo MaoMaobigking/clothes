@@ -1,0 +1,45 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量（含密钥，别提交）
+.env
+.env.*
+!.env.example
+
+# 冒烟测试截图产物
+.smoke
+
+# 本地数据库文件（已切 MySQL，保留以防旧文件残留）
+server/data.db
+server/*.db
+
+# Python 虚拟环境（ai-server 是练手实验分支，venv 不进版本库）
+venv
+.venv
+__pycache__
+*.pyc
+
+# 工具产物
+.reasonix
+
+# 编辑器
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 日志
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.DS_Store

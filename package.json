@@ -1,0 +1,21 @@
+{
+  "name": "ai-fashion-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI 服装 · Monorepo 根目录",
+  "scripts": {
+    "dev": "npm run dev -w ai-fashion-web",
+    "server": "npm run dev -w ai-fashion-server",
+    "dev:all": "concurrently -n web,api -c cyan,magenta \"npm run dev -w ai-fashion-web\" \"npm run dev -w ai-fashion-server\"",
+    "build": "npm run build -w ai-fashion-web",
+    "preview": "npm run preview -w ai-fashion-web"
+  },
+  "workspaces": [
+    "web",
+    "server"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "playwright": "^1.61.1"
+  }
+}

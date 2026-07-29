@@ -1,0 +1,42 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^(?!z-|transition|scroll-view|view|text|image|button|input)[A-Z](.*)": "@/components/$1/$1.vue"
+    }
+  },
+  "pages": [
+    { "path": "pages/home/home", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/ai/ai", "style": { "navigationBarTitleText": "AI 工作流" } },
+    { "path": "pages/closet/closet", "style": { "navigationBarTitleText": "我的衣橱" } },
+    { "path": "pages/mall/mall", "style": { "navigationBarTitleText": "商城" } },
+    { "path": "pages/me/me", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/create/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/test/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/result/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/free-match/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/scene/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
+  ],
+  "tabBar": {
+    "color": "#9a94a8",
+    "selectedColor": "#2f2a3d",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/home", "text": "首页" },
+      { "pagePath": "pages/ai/ai", "text": "Ai" },
+      { "pagePath": "pages/closet/closet", "text": "衣橱" },
+      { "pagePath": "pages/mall/mall", "text": "商城" },
+      { "pagePath": "pages/me/me", "text": "我的" }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "AI 服装",
+    "navigationBarBackgroundColor": "#ffe6f2",
+    "backgroundColor": "#f0e4ff"
+  }
+}

@@ -1,0 +1,84 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import StepShell from '@/components/StepShell/StepShell.vue'
+import { PREFERENCE_QUESTIONS } from '@/data/questions'
+import { useProfileStore } from '@/stores/profile'
+
+const store = useProfileStore()
+
+const answered = computed(() => Object.keys(store.profile.preferences).length)
+const subtitle = computed(
+  () => `共 ${PREFERENCE_QUESTIONS.length} 题，已答 ${answered.value} 题`,
+)
+</script>
+
+<template>
+  <StepShell title="最后几个小问题" :subtitle="subtitle">
+    <view class="q-list">
+      <view v-for="q in PREFERENCE_QUESTIONS" :key="q.id" class="q-card">
+        <view class="q-title">{{ q.title }}</view>
+        <view class="chips">
+          <view
+            v-for="opt in q.options"
+            :key="opt.id"
+            class="chip"
+            :class="{ on: store.profile.preferences[q.id] === opt.id }"
+            @tap="store.setPreference(q.id, opt.id)"
+          >
+            <text class="chip-emoji">{{ opt.emoji }}</text>
+            {{ opt.label }}
+          </view>
+        </view>
+      </view>
+    </view>
+  </StepShell>
+</template>
+
+<style scoped>
+.q-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+.q-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32rpx;
+  box-shadow: var(--shadow-card);
+}
+.q-title {
+  margin: 0 0 24rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 18rpx 32rpx;
+  border-radius: 999rpx;
+  background: #f4f0fb;
+  color: var(--text-2);
+  font-size: 28rpx;
+  font-weight: 600;
+  border: 4rpx solid transparent;
+  transition: all 0.15s ease;
+}
+.chip:active {
+  transform: scale(0.96);
+}
+.chip.on {
+  background: rgba(255, 126, 179, 0.12);
+  border-color: var(--pink);
+  color: var(--pink-deep);
+}
+.chip-emoji {
+  font-size: 30rpx;
+}
+</style>
