@@ -20,11 +20,17 @@ router.post('/login', async (req, res, next) => {
   }
 })
 
-// POST /api/auth/dev-token → 开发用，生成测试 token
+// POST /api/auth/dev-token → 开发用，走完整登录流程建一个真用户
+// body: { tag } —— 换 tag 就是换一个人，用来手测数据隔离
 if (process.env.NODE_ENV !== 'production') {
-  router.post('/dev-token', (_req, res) => {
-    const token = devToken(1)
-    res.json({ token, note: '开发环境专用，生产环境禁用' })
+  router.post('/dev-token', async (req, res, next) => {
+    try {
+      const { tag } = req.body || {}
+      const result = await devToken(tag || 'dev')
+      res.json({ ...result, note: '开发环境专用，生产环境禁用' })
+    } catch (err) {
+      next(err)
+    }
   })
 }
 

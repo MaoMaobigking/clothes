@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AI 服装 · Node 后端 (Express + SQLite)",
+  "description": "AI 服装 · Node 后端 (Express + MySQL)",
   "scripts": {
-    "dev": "node --experimental-sqlite --env-file=.env index.mjs",
-    "start": "node --experimental-sqlite --env-file=.env index.mjs"
+    "dev": "node --env-file=.env index.mjs",
+    "start": "node --env-file=.env index.mjs",
+    "db:init": "node --env-file=.env scripts/initDb.mjs",
+    "db:check": "node --env-file=.env scripts/checkIsolation.mjs",
+    "check:http": "node --env-file=.env scripts/checkHttp.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

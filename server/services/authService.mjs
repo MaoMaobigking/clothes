@@ -1,43 +1,80 @@
 /*
- * 认证服务
- *  - 微信小程序登录流程：code → openid → JWT
- *  - 当前使用 mock（待接入真实微信 API）
+ * 认证服务（Service）
+ *  - 微信小程序登录流程：code → openid → 查/建用户 → JWT
+ *
+ * 这一版的关键变化：userId 不再写死 1，而是 users 表真实自增出来的 id。
+ * 「真用户」是数据隔离的地基 —— 地基假的，上面所有 WHERE user_id = ? 都在演。
  */
 import { signToken, verifyToken } from '../middleware/auth.mjs'
+import { findOrCreateByOpenid } from '../repositories/userRepo.mjs'
+import { ensureSeeded } from './garmentService.mjs'
+import { createHash } from 'node:crypto'
+
+const WX_APPID = process.env.WX_APPID || ''
+const WX_SECRET = process.env.WX_SECRET || ''
 
 /**
- * 微信登录
- * 真实流程：
- *   1. 前端 wx.login() 拿到 code
- *   2. 后端用 code 调微信接口 https://api.weixin.qq.com/sns/jscode2session
- *   3. 拿到 openid + session_key
- *   4. 查找/创建用户，签发 JWT
+ * code → openid。
+ * 配了 WX_APPID/WX_SECRET 就走微信真接口；没配则用 code 派生一个稳定的假 openid。
  *
- * 当前 mock：直接返回 token（开发用）
+ * 为什么假 openid 也要「稳定」（同一个 code 每次都得到同一个 openid）：
+ * 否则每次登录都建新用户，衣橱看起来每次都被清空 —— 隔离没问题，是登录在漏。
  */
-export async function wxLogin(code) {
-  // TODO: 替换为真实微信 API 调用
-  // const wxRes = await fetch(`https://api.weixin.qq.com/sns/jscode2session?appid=${APPID}&secret=${SECRET}&js_code=${code}&grant_type=authorization_code`)
-  // const { openid } = await wxRes.json()
-
-  // Mock: 用 code 的 hash 模拟 openid
-  const openid = code ? `mock_openid_${Buffer.from(code).toString('hex').slice(0, 16)}` : 'mock_openid_dev'
-  const userId = 1 // TODO: 从 users 表查找/创建
-
-  const token = signToken({ userId, openid })
-  return { token, userId, openid }
+async function resolveOpenid(code) {
+  if (WX_APPID && WX_SECRET) {
+    const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${WX_APPID}&secret=${WX_SECRET}&js_code=${encodeURIComponent(code)}&grant_type=authorization_code`
+    const res = await fetch(url)
+    const data = await res.json()
+    if (!data.openid) {
+      const err = new Error(data.errmsg || '微信登录失败')
+      err.status = 401
+      err.code = 'WX_LOGIN_FAILED'
+      throw err
+    }
+    return data.openid
+  }
+  // 开发态：对 code 取 sha256。
+  //
+  // 这里踩过一个坑，值得记：原来写的是 hex(code).slice(0, 16)，
+  // 而 "devcode_" 这 8 个字符 hex 出来正好 16 位 —— 后面真正用来区分用户的部分
+  // 全被 slice 截掉了，于是所有开发 token 都映射到同一个 openid、同一个用户。
+  // 表面看是「隔离没生效」，实际是登录阶段就把两个人认成了一个人。
+  // 教训：派生标识符别用「截断」，用定长哈希，天然不会因为公共前缀撞车。
+  return 'mock_' + createHash('sha256').update(String(code)).digest('hex').slice(0, 32)
 }
 
 /**
- * 验证 token 并返回用户信息
+ * 登录：拿到 openid → 查库或建号 → 新用户灌种子衣橱 → 签 token
+ * @returns {{token: string, userId: number, openid: string, isNewUser: boolean}}
  */
+export async function wxLogin(code, profile = {}) {
+  const openid = await resolveOpenid(code)
+  const { user, created } = await findOrCreateByOpenid(openid, profile)
+
+  // 新用户给一份初始衣橱，避免进去是白屏。灌种子失败不该挡住登录。
+  if (created) {
+    try {
+      await ensureSeeded(user.id)
+    } catch (err) {
+      console.warn('[auth] 种子衣橱初始化失败:', err.message)
+    }
+  }
+
+  const token = signToken({ userId: user.id, openid })
+  return { token, userId: user.id, openid, isNewUser: created, nickname: user.nickname }
+}
+
+/** 验 token 并返回用户信息 */
 export function checkToken(token) {
   const payload = verifyToken(token)
   if (!payload) return null
   return { userId: payload.userId, openid: payload.openid }
 }
 
-/** 生成开发用 token（调试用） */
-export function devToken(userId = 1) {
-  return signToken({ userId, openid: 'dev_openid' })
+/**
+ * 开发用 token。走完整登录流程（真建用户），
+ * 而不是直接给 userId=1 签一个指向不存在用户的 token —— 那种 token 一写库就撞外键。
+ */
+export async function devToken(tag = 'dev') {
+  return wxLogin(`devcode_${tag}`, { nickname: `开发用户_${tag}` })
 }

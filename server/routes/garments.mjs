@@ -1,48 +1,51 @@
 /*
- * 衣橱路由
- *  - Express Router，挂载于 /api/garments
- *  - 使用 JWT 鉴权，所有接口需登录
- *  - 数据按 userId 隔离（越权控制）
+ * 衣橱路由（Controller）
+ *  - 挂载于 /api/garments，全部接口需登录
+ *  - 只做：取参数 → 调 service → 定 HTTP 状态码
+ *
+ * 越权控制：userId 一律取 req.userId（JWT 解出来的），
+ * 绝不接受请求体里的 userId —— 那等于让客户端自己声明身份。
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import { listGarments, addGarment, deleteGarment, toggleFav } from '../services/garmentService.mjs'
+import * as garmentService from '../services/garmentService.mjs'
 
 const router = Router()
 
-// 所有衣橱接口都需要登录
 router.use(authRequired)
 
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next)
 }
 
-// GET /
+// GET / — 只返回当前用户的衣物
 router.get('/', asyncHandler(async (req, res) => {
-  // TODO: 按 userId 过滤（MySQL 模式下需要 WHERE user_id = req.userId）
-  const items = await listGarments()
+  const items = await garmentService.listGarments(req.userId)
   res.json({ items })
 }))
 
 // POST /
 router.post('/', asyncHandler(async (req, res) => {
-  const partial = { ...(req.body || {}), userId: req.userId }
-  const item = await addGarment(partial)
-  res.json({ item })
+  const body = { ...(req.body || {}) }
+  // 防御性剔除：客户端传什么 userId/user_id 都不算
+  delete body.userId
+  delete body.user_id
+  const item = await garmentService.addGarment(req.userId, body)
+  res.status(201).json({ item })
 }))
 
-// DELETE /:id — 越权控制：检查是否属于当前用户
+// DELETE /:id
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const ok = await deleteGarment(req.params.id)
-  // 返回 404 而非 403，防止枚举攻击
-  if (!ok) return res.status(404).json({ error: 'NOT_FOUND' })
-  res.json({ ok })
+  const ok = await garmentService.deleteGarment(req.userId, req.params.id)
+  // 别人的资源返 404 而不是 403：403 等于告诉攻击者「这个 id 存在」，可被枚举
+  if (!ok) return res.status(404).json({ error: 'NOT_FOUND', message: '衣物不存在' })
+  res.json({ ok: true })
 }))
 
 // POST /:id/fav
 router.post('/:id/fav', asyncHandler(async (req, res) => {
-  const fav = await toggleFav(req.params.id)
-  if (fav === null) return res.status(404).json({ error: 'NOT_FOUND' })
+  const fav = await garmentService.toggleFav(req.userId, req.params.id)
+  if (fav === null) return res.status(404).json({ error: 'NOT_FOUND', message: '衣物不存在' })
   res.json({ fav })
 }))
 

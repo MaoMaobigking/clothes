@@ -21,6 +21,9 @@ venv
 __pycache__
 *.pyc
 
+# RAG 索引缓存（启动时自动重建，不进版本库）
+server/rag_index.json
+
 # 工具产物
 .reasonix
 

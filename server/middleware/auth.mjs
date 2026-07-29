@@ -6,7 +6,22 @@
  */
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'lingxi-dev-secret-change-in-production'
+/**
+ * JWT 密钥必须来自环境变量，没有就直接拒绝启动。
+ *
+ * 原来写的是 `process.env.JWT_SECRET || 'lingxi-dev-secret-...'`。
+ * 这种兜底默认值是真实事故来源：一旦忘配环境变量，线上就在用一个
+ * 写在开源代码里的密钥签 token —— 任何人都能自己签一个 userId=任意值 的
+ * 合法 token，所有 WHERE user_id = ? 的隔离一起失效。
+ * 「启动失败」比「静默用弱密钥跑起来」安全得多。
+ */
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET.length < 16) {
+  throw new Error(
+    '缺少 JWT_SECRET 环境变量（或长度不足 16）。请在 server/.env 中配置，' +
+    '可用 node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))" 生成。',
+  )
+}
 
 /**
  * 签发 JWT
