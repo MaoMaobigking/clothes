@@ -1,30 +1,54 @@
 /**
- * 用户仓库 — 用户查询与创建（当前为 SQLite 占位，待迁移 MySQL）。
+ * 用户仓库层（Repository）
  *
- * 注意：db.mjs 当前未导出 `db` 实例，仅导出函数。
- * 拆分后 db.mjs 需增加 `export { db }`。
+ * 「真用户」的落地点：openid → 查库 → 没有就建 → 返回真 id。
+ * 之前这里全是占位（createUser 硬返 { id: 1 }），所以不管谁登录都是 1 号用户，
+ * 数据隔离在此处就已经死了 —— 后面路由写得再对也没用。
  */
-import { db } from '../db.mjs'
+import { getOne, execute } from '../db/mysql.mjs'
 
-// ---- 占位实现（待 MySQL 后替换） ----
+/** 按微信 openid 查用户；没有返回 null */
+export async function findByOpenid(openid) {
+  return getOne(
+    'SELECT id, openid, nickname, avatar_url, created_at FROM users WHERE openid = ?',
+    [openid],
+  )
+}
 
-/**
- * 按微信 openid 查找用户。
- * @param {string} openid
- * @returns {object|null} 用户对象，当前始终返回 null（未实现）。
- */
-export function findByOpenid(openid) {
-  // TODO: MySQL 上线后实现真实查询
-  return null
+/** 按主键查用户 */
+export async function findById(id) {
+  return getOne(
+    'SELECT id, openid, nickname, avatar_url, created_at FROM users WHERE id = ?',
+    [id],
+  )
+}
+
+/** 创建用户，返回自增出来的真 id */
+export async function createUser(openid, nickname = '衣橱主人', avatarUrl = null) {
+  const result = await execute(
+    'INSERT INTO users (openid, nickname, avatar_url) VALUES (?, ?, ?)',
+    [openid, nickname, avatarUrl],
+  )
+  return { id: result.insertId, openid, nickname, avatar_url: avatarUrl }
 }
 
 /**
- * 创建新用户。
- * @param {string} openid
- * @param {string} nickname
- * @returns {object} 用户对象（当前返回固定占位 id）。
+ * 查找或创建（登录的标准动作）。
+ * @returns {{user: object, created: boolean}} created=true 表示是新用户，
+ *          上层据此决定是否灌种子衣橱。
  */
-export function createUser(openid, nickname) {
-  // TODO: MySQL 上线后实现真实插入
-  return { id: 1, openid, nickname }
+export async function findOrCreateByOpenid(openid, profile = {}) {
+  const existing = await findByOpenid(openid)
+  if (existing) return { user: existing, created: false }
+  try {
+    const user = await createUser(openid, profile.nickname, profile.avatarUrl)
+    return { user, created: true }
+  } catch (err) {
+    // 并发下两个请求同时插同一个 openid，唯一索引会拦住后来的那个。
+    // 这不是错误，回查一次即可（openid 上有 UNIQUE 约束才敢这么写）。
+    if (err.code === 'ER_DUP_ENTRY') {
+      return { user: await findByOpenid(openid), created: false }
+    }
+    throw err
+  }
 }
