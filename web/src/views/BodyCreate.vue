@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import StepIndicator from '@/components/StepIndicator.vue'
 import StepFooter from '@/components/StepFooter.vue'
@@ -14,6 +14,7 @@ import { STEPS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
 
 const router = useRouter()
+const route = useRoute()
 const store = useProfileStore()
 
 // 第几步 -> 对应的步骤组件
@@ -24,19 +25,34 @@ const isLast = computed(() => store.currentStep === store.totalSteps)
 const nextLabel = computed(() => (isLast.value ? '生成风格报告' : '下一步'))
 
 const showAi = ref(false)
+const hint = ref('')
+let hintTimer: number | undefined
+
+function showHint(msg: string) {
+  hint.value = msg
+  window.clearTimeout(hintTimer)
+  hintTimer = window.setTimeout(() => {
+    hint.value = ''
+  }, 1800)
+}
 
 function handleNext() {
-  if (isLast.value) {
-    // 最后一步 -> 弹出 AI 推荐
-    showAi.value = true
-  } else {
-    store.goNext()
-  }
+  if (isLast.value) finishOrWarn()
+  else store.goNext()
 }
 
 function handleSkip() {
-  if (isLast.value) showAi.value = true
+  if (isLast.value) finishOrWarn()
   else store.goNext()
+}
+
+function finishOrWarn() {
+  if (store.isComplete) {
+    store.persist()
+    showAi.value = true
+  } else {
+    showHint(`还剩 ${store.missingCount} 项未完成`)
+  }
 }
 
 function handleBack() {
@@ -51,8 +67,15 @@ function jumpTo(step: number) {
 
 function viewReport() {
   showAi.value = false
+  store.persist()
   router.push('/result')
 }
+
+onMounted(() => {
+  store.loadPersisted()
+  const step = Number(route.query.step)
+  if (step >= 1 && step <= store.totalSteps) store.goto(step)
+})
 </script>
 
 <template>
@@ -86,6 +109,10 @@ function viewReport() {
       @view="viewReport"
       @close="showAi = false"
     />
+
+    <transition name="toast">
+      <div v-if="hint" class="hint-toast">{{ hint }}</div>
+    </transition>
   </div>
 </template>
 
@@ -107,5 +134,29 @@ function viewReport() {
 .slide-leave-to {
   opacity: 0;
   transform: translateX(-24px);
+}
+
+.hint-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(47, 47, 58, 0.86);
+  color: #fff;
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: var(--shadow-float);
+}
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 6px);
 }
 </style>

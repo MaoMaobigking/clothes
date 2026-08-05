@@ -8,7 +8,9 @@ import {
   STEPS,
   STYLE_OPTIONS,
 } from '@/data/questions'
-import type { BodyMetricKey, RadarDimension, UserProfile } from '@/types'
+import type { BodyMetricKey, Gender, HairStyleId, RadarDimension, UserProfile } from '@/types'
+
+const PROFILE_STORAGE_KEY = 'ai-fashion-profile'
 
 /** 体型的初始值：用每一项的 default 填充 */
 function defaultBody(): Record<BodyMetricKey, number> {
@@ -42,6 +44,8 @@ export const useProfileStore = defineStore('profile', () => {
     faceShape: '',
     body: defaultBody(),
     preferences: {},
+    gender: 'female',
+    hairstyle: 'straight',
   })
 
   const totalSteps = STEPS.length
@@ -69,6 +73,55 @@ export const useProfileStore = defineStore('profile', () => {
 
   function setPreference(questionId: string, optionId: string) {
     profile.preferences[questionId] = optionId
+  }
+
+  function setGender(gender: Gender) {
+    profile.gender = gender
+  }
+
+  function setHairstyle(hairstyle: HairStyleId) {
+    profile.hairstyle = hairstyle
+  }
+
+  function persist() {
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+  }
+
+  function loadPersisted() {
+    try {
+      const raw = localStorage.getItem(PROFILE_STORAGE_KEY)
+      if (!raw) return
+      const saved = JSON.parse(raw) as Partial<UserProfile>
+      if (saved.gender === 'female' || saved.gender === 'male') profile.gender = saved.gender
+      if (typeof saved.hairstyle === 'string') profile.hairstyle = saved.hairstyle as HairStyleId
+      if (Array.isArray(saved.styles)) {
+        profile.styles = saved.styles.filter((id: string) =>
+          STYLE_OPTIONS.some((o) => o.id === id),
+        )
+      }
+      if (typeof saved.skinTone === 'string' && SKIN_OPTIONS.some((o) => o.id === saved.skinTone)) {
+        profile.skinTone = saved.skinTone
+      }
+      if (typeof saved.faceShape === 'string' && FACE_OPTIONS.some((o) => o.id === saved.faceShape)) {
+        profile.faceShape = saved.faceShape
+      }
+      if (saved.preferences && typeof saved.preferences === 'object') {
+        const next: Record<string, string> = {}
+        for (const q of PREFERENCE_QUESTIONS) {
+          const optId = saved.preferences[q.id]
+          if (q.options.some((o) => o.id === optId)) next[q.id] = optId
+        }
+        profile.preferences = next
+      }
+      if (saved.body && typeof saved.body === 'object') {
+        BODY_FIELDS.forEach((f) => {
+          const v = Number(saved.body?.[f.key])
+          if (Number.isFinite(v)) profile.body[f.key] = Math.min(f.max, Math.max(f.min, v))
+        })
+      }
+    } catch {
+      /* 忽略损坏的本地数据 */
+    }
   }
 
   /* ---------------- 步骤控制 ---------------- */
@@ -123,6 +176,15 @@ export const useProfileStore = defineStore('profile', () => {
       profile.faceShape !== '' &&
       Object.keys(profile.preferences).length === PREFERENCE_QUESTIONS.length,
   )
+
+  const missingCount = computed(() => {
+    let missing = 0
+    if (profile.styles.length < 3) missing += 1
+    if (profile.skinTone === '') missing += 1
+    if (profile.faceShape === '') missing += 1
+    if (Object.keys(profile.preferences).length < PREFERENCE_QUESTIONS.length) missing += 1
+    return missing
+  })
 
   /* ---------------- 结果页要用的派生数据 ---------------- */
 
@@ -195,6 +257,10 @@ export const useProfileStore = defineStore('profile', () => {
     setFace,
     setBody,
     setPreference,
+    setGender,
+    setHairstyle,
+    persist,
+    loadPersisted,
     goNext,
     goPrev,
     goto,
@@ -202,6 +268,7 @@ export const useProfileStore = defineStore('profile', () => {
     // getters
     canProceed,
     isComplete,
+    missingCount,
     bmi,
     radar,
     styleLabels,

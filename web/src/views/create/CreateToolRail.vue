@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AI_TOOLS } from '@/data/mock'
 
-const emit = defineEmits<{ (e: 'tool', label: string): void }>()
+const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>()
 </script>
 
 <template>
@@ -10,7 +10,8 @@ const emit = defineEmits<{ (e: 'tool', label: string): void }>()
       v-for="t in AI_TOOLS"
       :key="t.key"
       class="tool"
-      @click="emit('tool', t.label)"
+      :class="{ disabled: t.disabled }"
+      @click="emit('tool', t)"
     >
       <span class="t-ico">{{ t.emoji }}</span>
       <span class="t-label">{{ t.label }}</span>
@@ -40,6 +41,13 @@ const emit = defineEmits<{ (e: 'tool', label: string): void }>()
 }
 .tool:active {
   transform: scale(0.92);
+}
+.tool.disabled {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+.tool.disabled:active {
+  transform: none;
 }
 .t-ico {
   font-size: 18px;

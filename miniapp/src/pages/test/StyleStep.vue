@@ -19,23 +19,33 @@ function orderOf(id: string) {
 
 <template>
   <StepShell title="你喜欢哪种穿衣风格？" :subtitle="subtitle">
-    <view class="grid">
-      <OptionCard
-        v-for="opt in STYLE_OPTIONS"
-        :key="opt.id"
-        :option="opt"
-        :selected="store.profile.styles.includes(opt.id)"
-        :order="orderOf(opt.id)"
-        @select="store.toggleStyle"
-      />
-    </view>
+    <scroll-view scroll-x class="rail" :show-scrollbar="false">
+      <view class="rail-inner">
+        <OptionCard
+          v-for="opt in STYLE_OPTIONS"
+          :key="opt.id"
+          class="card"
+          :option="opt"
+          :selected="store.profile.styles.includes(opt.id)"
+          :order="orderOf(opt.id)"
+          @select="store.toggleStyle"
+        />
+      </view>
+    </scroll-view>
   </StepShell>
 </template>
 
 <style scoped>
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.rail {
+  width: 100%;
+  white-space: nowrap;
+}
+.rail-inner {
+  display: inline-flex;
   gap: 24rpx;
+  padding: 4rpx 2rpx 12rpx;
+}
+.card {
+  flex: 0 0 304rpx;
 }
 </style>

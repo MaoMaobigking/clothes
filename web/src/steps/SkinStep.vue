@@ -12,10 +12,11 @@ const store = useProfileStore()
     title="你的肤色更接近？"
     subtitle="对着自然光看手腕内侧，选最接近的一档"
   >
-    <div class="grid">
+    <div class="rail hide-scrollbar">
       <OptionCard
         v-for="opt in SKIN_OPTIONS"
         :key="opt.id"
+        class="card"
         :option="opt"
         :selected="store.profile.skinTone === opt.id"
         @select="store.setSkin"
@@ -25,9 +26,15 @@ const store = useProfileStore()
 </template>
 
 <style scoped>
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.rail {
+  display: flex;
   gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x mandatory;
+}
+.card {
+  flex: 0 0 132px;
+  scroll-snap-align: start;
 }
 </style>

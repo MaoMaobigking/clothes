@@ -8,7 +8,9 @@ import {
   STEPS,
   STYLE_OPTIONS,
 } from '@/data/questions'
-import type { BodyMetricKey, RadarDimension, UserProfile } from '@/types'
+import type { BodyMetricKey, Gender, HairStyleId, RadarDimension, UserProfile } from '@/types'
+
+const PROFILE_STORAGE_KEY = 'ai-fashion-profile'
 
 function defaultBody(): Record<BodyMetricKey, number> {
   return BODY_FIELDS.reduce(
@@ -32,6 +34,8 @@ export const useProfileStore = defineStore('profile', () => {
     faceShape: '',
     body: defaultBody(),
     preferences: {},
+    gender: 'female',
+    hairstyle: 'straight',
   })
   const totalSteps = STEPS.length
 
@@ -44,6 +48,49 @@ export const useProfileStore = defineStore('profile', () => {
   function setFace(id: string) { profile.faceShape = id }
   function setBody(key: BodyMetricKey, value: number) { profile.body[key] = value }
   function setPreference(questionId: string, optionId: string) { profile.preferences[questionId] = optionId }
+  function setGender(gender: Gender) { profile.gender = gender }
+  function setHairstyle(hairstyle: HairStyleId) { profile.hairstyle = hairstyle }
+
+  function persist() {
+    uni.setStorageSync(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+  }
+
+  function loadPersisted() {
+    try {
+      const raw = uni.getStorageSync(PROFILE_STORAGE_KEY)
+      if (!raw) return
+      const saved = typeof raw === 'string' ? JSON.parse(raw) : raw
+      if (saved.gender === 'female' || saved.gender === 'male') profile.gender = saved.gender
+      if (typeof saved.hairstyle === 'string') profile.hairstyle = saved.hairstyle as HairStyleId
+      if (Array.isArray(saved.styles)) {
+        profile.styles = saved.styles.filter((id: string) =>
+          STYLE_OPTIONS.some((o) => o.id === id),
+        )
+      }
+      if (typeof saved.skinTone === 'string' && SKIN_OPTIONS.some((o) => o.id === saved.skinTone)) {
+        profile.skinTone = saved.skinTone
+      }
+      if (typeof saved.faceShape === 'string' && FACE_OPTIONS.some((o) => o.id === saved.faceShape)) {
+        profile.faceShape = saved.faceShape
+      }
+      if (saved.preferences && typeof saved.preferences === 'object') {
+        const next: Record<string, string> = {}
+        for (const q of PREFERENCE_QUESTIONS) {
+          const optId = saved.preferences[q.id]
+          if (q.options.some((o) => o.id === optId)) next[q.id] = optId
+        }
+        profile.preferences = next
+      }
+      if (saved.body && typeof saved.body === 'object') {
+        BODY_FIELDS.forEach((f) => {
+          const v = Number(saved.body[f.key])
+          if (Number.isFinite(v)) profile.body[f.key] = Math.min(f.max, Math.max(f.min, v))
+        })
+      }
+    } catch {
+      /* 忽略损坏的本地数据 */
+    }
+  }
 
   function goNext() { if (currentStep.value < totalSteps) currentStep.value += 1 }
   function goPrev() { if (currentStep.value > 1) currentStep.value -= 1 }
@@ -74,6 +121,15 @@ export const useProfileStore = defineStore('profile', () => {
       profile.faceShape !== '' &&
       Object.keys(profile.preferences).length === PREFERENCE_QUESTIONS.length,
   )
+
+  const missingCount = computed(() => {
+    let missing = 0
+    if (profile.styles.length < 3) missing += 1
+    if (profile.skinTone === '') missing += 1
+    if (profile.faceShape === '') missing += 1
+    if (Object.keys(profile.preferences).length < PREFERENCE_QUESTIONS.length) missing += 1
+    return missing
+  })
 
   const bmi = computed(() => {
     const h = profile.body.height / 100
@@ -110,9 +166,10 @@ export const useProfileStore = defineStore('profile', () => {
 
   return {
     currentStep, profile, totalSteps,
-    toggleStyle, setSkin, setFace, setBody, setPreference,
+    toggleStyle, setSkin, setFace, setBody, setPreference, setGender, setHairstyle,
+    persist, loadPersisted,
     goNext, goPrev, goto, reset,
-    canProceed, isComplete, bmi, radar, styleLabels, skinLabel, faceLabel, summary,
+    canProceed, isComplete, missingCount, bmi, radar, styleLabels, skinLabel, faceLabel, summary,
   }
 })
 

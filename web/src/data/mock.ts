@@ -12,8 +12,17 @@ export const LOGO = '/images/logo.png'
 /** 虚拟形象模特图 */
 export const MODEL_IMAGES = {
   front: '/images/model/front.png', // 个性化创建：白色背心短裤正面全身
+  frontMale: '/images/model/front-male.png', // 个性化创建：男性形象
   outfit: '/images/model/outfit.png', // 自由搭配：已穿搭造型
 }
+
+/** 发型选项，后续接入真实图片时在此扩展 */
+export const HAIR_STYLES: { id: string; label: string; emoji: string }[] = [
+  { id: 'straight', label: '直发', emoji: '💇‍♀️' },
+  { id: 'curly', label: '卷发', emoji: '🦱' },
+  { id: 'bun', label: '丸子头', emoji: '👱‍♀️' },
+  { id: 'short', label: '短发', emoji: '💇‍♂️' },
+]
 
 /* ----------------------------- 衣橱 / 衣物 ----------------------------- */
 
@@ -283,10 +292,10 @@ export const SCENE_MODES: { key: string; label: string; emoji: string; desc: str
 ]
 
 /** 个性化创建页右侧工具 */
-export const AI_TOOLS: { key: string; label: string; emoji: string }[] = [
+export const AI_TOOLS: { key: string; label: string; emoji: string; disabled?: boolean }[] = [
   { key: 'info', label: '基础信息', emoji: '📋' },
   { key: 'gender', label: '更换性别', emoji: '⚧️' },
-  { key: 'face', label: '拍照换脸', emoji: '📷' },
+  { key: 'face', label: '拍照换脸', emoji: '📷', disabled: true },
   { key: 'style', label: '造型优化', emoji: '💇‍♀️' },
   { key: 'body', label: '局部身材', emoji: '📐' },
   { key: 'fav', label: '收藏夹', emoji: '⭐' },

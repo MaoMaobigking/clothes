@@ -9,10 +9,11 @@ const store = useProfileStore()
 
 <template>
   <StepShell title="你的脸型是？" subtitle="扎起头发对镜自拍，看轮廓最像哪种">
-    <div class="grid">
+    <div class="rail hide-scrollbar">
       <OptionCard
         v-for="opt in FACE_OPTIONS"
         :key="opt.id"
+        class="card"
         :option="opt"
         :selected="store.profile.faceShape === opt.id"
         @select="store.setFace"
@@ -22,9 +23,15 @@ const store = useProfileStore()
 </template>
 
 <style scoped>
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.rail {
+  display: flex;
   gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x mandatory;
+}
+.card {
+  flex: 0 0 132px;
+  scroll-snap-align: start;
 }
 </style>

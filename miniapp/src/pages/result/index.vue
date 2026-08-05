@@ -5,12 +5,15 @@ import RadarChart from '@/components/RadarChart/RadarChart.vue'
 import { useProfileStore } from '@/stores/profile'
 import { PREFERENCE_QUESTIONS } from '@/data/questions'
 import { fetchStyleReport, type StyleReport } from '@/api/ai'
+import { buildLocalStyleReport } from '@/data/localReport'
+import { MODEL_IMAGES } from '@/data/mock'
 
 const store = useProfileStore()
 
 const report = ref<StyleReport | null>(null)
 const loading = ref(false)
 const error = ref('')
+const source = ref<'ai' | 'local'>('ai')
 
 /** 组装发给 AI 的可读画像 */
 function buildPayload() {
@@ -32,16 +35,31 @@ function buildPayload() {
 async function generate() {
   loading.value = true
   error.value = ''
+  source.value = 'ai'
   try {
     report.value = await fetchStyleReport(buildPayload())
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
+    report.value = buildLocalStyleReport({
+      styles: store.profile.styles,
+      skinTone: store.profile.skinTone,
+      faceShape: store.profile.faceShape,
+      body: { ...store.profile.body },
+      preferences: { ...store.profile.preferences },
+      gender: store.profile.gender,
+      hairstyle: store.profile.hairstyle,
+    })
+    source.value = 'local'
+    error.value = ''
   } finally {
     loading.value = false
   }
 }
 
-onMounted(generate)
+onMounted(() => {
+  store.loadPersisted()
+  generate()
+})
 
 // AI 有数据就用 AI 的，否则回退到本地示意
 const radar = computed(() =>
@@ -50,12 +68,20 @@ const radar = computed(() =>
 const summary = computed(
   () => report.value?.summary || store.summary || '完成测试即可生成你的专属画像',
 )
+const modelSrc = computed(() =>
+  store.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front,
+)
+const viewerLabel = computed(() =>
+  store.profile.gender === 'male' ? '男性虚拟形象' : '女性虚拟形象',
+)
 
 function save() {
+  store.persist()
   uni.switchTab({ url: '/pages/home/home' })
 }
 function retest() {
   store.reset()
+  store.persist()
   uni.navigateTo({ url: '/pages/test/index' })
 }
 function goBack() {
@@ -84,14 +110,18 @@ function goBack() {
         <text>⚠️ AI 没连上：{{ error }}</text>
         <button class="mini" @tap="generate">重试</button>
       </view>
-      <view v-else-if="report" class="ai-banner ok">
+      <view v-else-if="report && source === 'ai'" class="ai-banner ok">
         <text>✨ 以下由 AI 实时生成</text>
         <button class="mini" @tap="generate">换一份</button>
+      </view>
+      <view v-else-if="report && source === 'local'" class="ai-banner ok">
+        <text>🧭 本地画像生成（AI 未连接）</text>
+        <button class="mini" @tap="generate">重试 AI</button>
       </view>
 
       <!-- 虚拟形象 -->
       <view class="card avatar-card">
-        <AvatarViewer />
+        <AvatarViewer :src="modelSrc" :frames="{ front: modelSrc }" :label="viewerLabel" />
         <view class="summary">{{ summary }}</view>
       </view>
 
