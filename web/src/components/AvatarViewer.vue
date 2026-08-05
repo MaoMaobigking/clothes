@@ -1,20 +1,42 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 /**
- * 3D 虚拟形象「占位」组件。
- * 目前用一个可拖拽旋转、可缩放的矢量人偶顶位，
- * 以后拿到真实 .glb 模型时，把这里换成 three.js / <model-viewer> 即可，
- * 对外的交互（旋转 / 缩放）保持不变。
+ * 多角度 CSS 3D 虚拟形象查看器。
+ * 后续拿到 GLB/glTF 资产时，在 setEngine('three') 中接入 Three.js 或 model-viewer，
+ * 对外保留 resetView / zoom 等一致接口。
  */
 
-const rotate = ref(-12) // 绕 Y 轴角度
+const props = withDefaults(
+  defineProps<{
+    src?: string
+    emoji?: string
+    label?: string
+    frames?: {
+      front?: string
+      side?: string
+      back?: string
+    }
+  }>(),
+  {
+    src: '',
+    emoji: '🧍‍♀️',
+    label: '虚拟形象',
+    frames: () => ({}),
+  },
+)
+
+const rotateY = ref(-12)
+const rotateX = ref(0)
 const scale = ref(1)
 
 const pointers = new Map<number, { x: number; y: number }>()
 let lastX = 0
+let lastY = 0
 let startDist = 0
 let startScale = 1
+
+const modelSrc = computed(() => props.src || props.frames.front || '')
 
 function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v))
@@ -28,7 +50,10 @@ function twoFingerDist() {
 function onDown(e: PointerEvent) {
   ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
-  if (pointers.size === 1) lastX = e.clientX
+  if (pointers.size === 1) {
+    lastX = e.clientX
+    lastY = e.clientY
+  }
   if (pointers.size === 2) {
     startDist = twoFingerDist()
     startScale = scale.value
@@ -41,8 +66,11 @@ function onMove(e: PointerEvent) {
 
   if (pointers.size === 1) {
     const dx = e.clientX - lastX
+    const dy = e.clientY - lastY
     lastX = e.clientX
-    rotate.value += dx * 0.7
+    lastY = e.clientY
+    rotateY.value += dx * 0.7
+    rotateX.value = clamp(rotateX.value - dy * 0.35, -24, 24)
   } else if (pointers.size === 2 && startDist > 0) {
     scale.value = clamp(startScale * (twoFingerDist() / startDist), 0.6, 1.8)
   }
@@ -51,12 +79,15 @@ function onMove(e: PointerEvent) {
 function onUp(e: PointerEvent) {
   pointers.delete(e.pointerId)
   const rest = [...pointers.values()][0]
-  if (rest) lastX = rest.x
+  if (rest) {
+    lastX = rest.x
+    lastY = rest.y
+  }
 }
 
 function onWheel(e: WheelEvent) {
   e.preventDefault()
-  scale.value = clamp(scale.value - e.deltaY * 0.001, 0.6, 1.8)
+  zoom(-e.deltaY * 0.001)
 }
 
 function zoom(delta: number) {
@@ -64,9 +95,17 @@ function zoom(delta: number) {
 }
 
 function resetView() {
-  rotate.value = -12
+  rotateY.value = -12
+  rotateX.value = 0
   scale.value = 1
 }
+
+// Three.js / GLB 接入点：后续替换为真实模型渲染，对外接口不变。
+function setEngine(_engine: 'css' | 'three') {
+  /* reserved */
+}
+
+defineExpose({ resetView, zoom, setEngine })
 </script>
 
 <template>
@@ -79,53 +118,26 @@ function resetView() {
       @pointercancel="onUp"
       @wheel="onWheel"
     >
-      <!-- 转盘 -->
       <div class="podium" />
 
-      <!-- 人偶（占位）：绕 Y 轴旋转 + 缩放 -->
       <div
         class="figure"
         :style="{
-          transform: `rotateY(${rotate}deg) scale(${scale})`,
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`,
         }"
       >
-        <svg viewBox="0 0 120 240" width="120" height="240">
-          <defs>
-            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#ffffff" />
-              <stop offset="1" stop-color="#eadcff" />
-            </linearGradient>
-          </defs>
-          <!-- 头 -->
-          <circle cx="60" cy="26" r="18" fill="url(#bodyGrad)" stroke="#d9c9f5" />
-          <!-- 颈 -->
-          <rect x="54" y="42" width="12" height="12" rx="4" fill="url(#bodyGrad)" />
-          <!-- 上身 -->
-          <path
-            d="M40 56 Q60 48 80 56 L84 120 Q60 130 36 120 Z"
-            fill="url(#bodyGrad)"
-            stroke="#d9c9f5"
-          />
-          <!-- 手臂 -->
-          <rect x="30" y="58" width="10" height="66" rx="5" fill="url(#bodyGrad)" stroke="#e4d7f7" />
-          <rect x="80" y="58" width="10" height="66" rx="5" fill="url(#bodyGrad)" stroke="#e4d7f7" />
-          <!-- 下身 / 腿 -->
-          <rect x="42" y="120" width="15" height="96" rx="7" fill="url(#bodyGrad)" stroke="#d9c9f5" />
-          <rect x="63" y="120" width="15" height="96" rx="7" fill="url(#bodyGrad)" stroke="#d9c9f5" />
-        </svg>
+        <img v-if="modelSrc" class="model-img" :src="modelSrc" :alt="label" draggable="false" />
+        <span v-else class="emoji">{{ emoji }}</span>
       </div>
 
-      <span class="tag">虚拟形象 · 占位</span>
+      <span class="tag">{{ label }}</span>
     </div>
 
-    <!-- 操作 -->
     <div class="controls">
       <button class="ctrl" aria-label="缩小" @click="zoom(-0.15)">－</button>
-      <button class="ctrl reset" @click="resetView">复位</button>
+      <button class="ctrl reset" aria-label="复位" @click="resetView">↺</button>
       <button class="ctrl" aria-label="放大" @click="zoom(0.15)">＋</button>
     </div>
-
-    <p class="hint">拖动可旋转 · 双指 / 滚轮可缩放</p>
   </div>
 </template>
 
@@ -139,8 +151,8 @@ function resetView() {
 .stage {
   position: relative;
   width: 100%;
-  height: 300px;
-  perspective: 800px;
+  height: 320px;
+  perspective: 900px;
   display: grid;
   place-items: center;
   touch-action: none;
@@ -152,17 +164,30 @@ function resetView() {
 }
 
 .figure {
+  position: relative;
+  width: 180px;
+  height: 280px;
   transform-style: preserve-3d;
-  transition: transform 0.05s linear;
-  filter: drop-shadow(0 12px 18px rgba(154, 107, 255, 0.35));
+  transition: transform 0.06s linear;
+  filter: drop-shadow(0 16px 24px rgba(154, 107, 255, 0.35));
   z-index: 2;
+}
+.model-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.emoji {
+  font-size: 96px;
 }
 
 .podium {
   position: absolute;
   bottom: 34px;
-  width: 180px;
-  height: 46px;
+  width: 190px;
+  height: 48px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
@@ -179,9 +204,10 @@ function resetView() {
   right: 12px;
   font-size: 11px;
   color: var(--text-3);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
   padding: 4px 10px;
   border-radius: 999px;
+  box-shadow: var(--shadow-card);
 }
 
 .controls {
@@ -191,24 +217,19 @@ function resetView() {
   margin-top: 6px;
 }
 .ctrl {
-  min-width: 44px;
+  width: 42px;
   height: 40px;
-  padding: 0 14px;
   border-radius: 999px;
   background: var(--surface);
   color: var(--text-1);
   font-size: 18px;
   font-weight: 700;
   box-shadow: var(--shadow-card);
+  display: grid;
+  place-items: center;
 }
 .ctrl.reset {
-  font-size: 14px;
+  font-size: 20px;
   color: var(--purple-deep);
-}
-
-.hint {
-  margin: 10px 0 0;
-  font-size: 12px;
-  color: var(--text-3);
 }
 </style>

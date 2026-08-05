@@ -20,6 +20,7 @@ const saved = ref(false)
 let timer: number | undefined
 
 function save() {
+  store.persist()
   saved.value = true
   window.clearTimeout(timer)
   timer = window.setTimeout(() => {

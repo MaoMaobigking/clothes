@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import AppHeader from '@/components/AppHeader/AppHeader.vue'
 import StepIndicator from '@/components/StepIndicator/StepIndicator.vue'
 import StepFooter from '@/components/StepFooter/StepFooter.vue'
@@ -18,19 +19,40 @@ const isLast = computed(() => store.currentStep === store.totalSteps)
 const nextLabel = computed(() => (isLast.value ? '生成风格报告' : '下一步'))
 
 const showAi = ref(false)
+const hint = ref('')
+let hintTimer: number | undefined
+
+function showHint(msg: string) {
+  hint.value = msg
+  clearTimeout(hintTimer)
+  hintTimer = setTimeout(() => {
+    hint.value = ''
+  }, 1800)
+}
+
+onLoad((options) => {
+  store.loadPersisted()
+  const step = Number(options?.step)
+  if (step >= 1 && step <= store.totalSteps) store.goto(step)
+})
 
 function handleNext() {
-  if (isLast.value) {
-    // 最后一步 -> 弹出 AI 推荐
-    showAi.value = true
-  } else {
-    store.goNext()
-  }
+  if (isLast.value) finishOrWarn()
+  else store.goNext()
 }
 
 function handleSkip() {
-  if (isLast.value) showAi.value = true
+  if (isLast.value) finishOrWarn()
   else store.goNext()
+}
+
+function finishOrWarn() {
+  if (store.isComplete) {
+    store.persist()
+    showAi.value = true
+  } else {
+    showHint(`还剩 ${store.missingCount} 项未完成`)
+  }
 }
 
 function handleBack() {
@@ -45,6 +67,7 @@ function jumpTo(step: number) {
 
 function viewReport() {
   showAi.value = false
+  store.persist()
   uni.navigateTo({ url: '/pages/result/index' })
 }
 </script>
@@ -84,6 +107,8 @@ function viewReport() {
       @view="viewReport"
       @close="showAi = false"
     />
+
+    <view v-if="hint" class="hint-toast">{{ hint }}</view>
   </view>
 </template>
 
@@ -105,5 +130,20 @@ function viewReport() {
 .slide-leave-to {
   opacity: 0;
   transform: translateX(-48rpx);
+}
+
+.hint-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 192rpx;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 18rpx 32rpx;
+  border-radius: 999rpx;
+  background: rgba(47, 47, 58, 0.86);
+  color: #fff;
+  font-size: 26rpx;
+  white-space: nowrap;
+  box-shadow: var(--shadow-float);
 }
 </style>
