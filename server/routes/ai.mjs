@@ -35,7 +35,7 @@ const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, ne
 /* ============ 3.1 结构化输出 ============ */
 
 // POST /style-report
-router.post('/style-report', asyncHandler(async (req, res) => {
+router.post('/style-report', authRequired, asyncHandler(async (req, res) => {
   if (!requireKey(req, res)) return
   const result = await generateReport(req.body?.profile ?? {})
   res.json(result)
@@ -112,7 +112,7 @@ router.post('/chat/tools', async (req, res, next) => {
 
   try {
     // 构建工具执行上下文
-    const garments = await listGarments()
+    const garments = await listGarments(req, userId)
     const context = {
       garments,
       profile: req.body?.profile || {},
