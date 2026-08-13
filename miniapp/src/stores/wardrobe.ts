@@ -5,7 +5,11 @@ import {
   apiAddGarment,
   apiDeleteGarment,
   apiListGarments,
+  apiReorderGarments,
   apiToggleFav,
+  apiToggleFrequentlyWorn,
+  apiUpdateGarment,
+  apiUploadGarments,
   type WardrobeItem,
 } from '@/api/wardrobe'
 
@@ -52,6 +56,45 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
     }
   }
 
+  async function updateItem(id: string, partial: Partial<Garment>) {
+    const index = items.value.findIndex((g) => g.id === id)
+    if (index < 0) return
+    if (usingApi.value) {
+      const updated = await apiUpdateGarment(id, partial)
+      items.value.splice(index, 1, updated)
+      return updated
+    }
+    items.value.splice(index, 1, { ...items.value[index], ...partial })
+    return items.value[index]
+  }
+
+  async function uploadItems(filePaths: string[]) {
+    const uploaded = await apiUploadGarments(filePaths)
+    items.value = [...uploaded, ...items.value]
+    return uploaded
+  }
+
+  async function reorder(ids: string[]) {
+    if (usingApi.value) {
+      items.value = await apiReorderGarments(ids)
+      return
+    }
+    const byId = new Map(items.value.map((item) => [item.id, item]))
+    items.value = ids.map((id) => byId.get(id)).filter(Boolean) as WardrobeItem[]
+  }
+
+  async function toggleFrequentlyWorn(id: string) {
+    if (usingApi.value) {
+      const updated = await apiToggleFrequentlyWorn(id)
+      const index = items.value.findIndex((g) => g.id === id)
+      if (index >= 0) items.value.splice(index, 1, updated)
+      return updated
+    }
+    const item = items.value.find((g) => g.id === id)
+    if (item) item.frequentlyWorn = !item.frequentlyWorn
+    return item
+  }
+
   async function addItem(partial: Partial<Garment>) {
     if (usingApi.value) {
       try { items.value.push(await apiAddGarment(partial)); return } catch { /* fallback */ }
@@ -83,6 +126,7 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
   return {
     items, activeCategory, usingApi, loaded,
     garments, filtered, favoriteGarments, favIds,
-    isFav, toggleFav, addItem, removeItem, setCategory, load,
+    isFav, toggleFav, addItem, updateItem, uploadItems, reorder,
+    toggleFrequentlyWorn, removeItem, setCategory, load,
   }
 })

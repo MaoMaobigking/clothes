@@ -67,6 +67,15 @@ CREATE TABLE IF NOT EXISTS garments (
   season VARCHAR(32),
   image_url VARCHAR(512),
   fav TINYINT(1) DEFAULT 0,
+  primary_color VARCHAR(32) DEFAULT '',
+  secondary_colors JSON NULL,
+  seasons JSON NULL,
+  occasions JSON NULL,
+  frequently_worn TINYINT(1) DEFAULT 0,
+  sort_order INT DEFAULT 0,
+  recognition_status VARCHAR(24) DEFAULT 'confirmed',
+  recognition_source VARCHAR(24) DEFAULT 'manual',
+  uploaded_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_user_id (user_id)
@@ -79,6 +88,12 @@ CREATE TABLE IF NOT EXISTS outfits (
   title VARCHAR(128),
   scene VARCHAR(32),
   reason TEXT,
+  batch_id VARCHAR(64),
+  kind VARCHAR(24) DEFAULT 'generated',
+  is_saved TINYINT(1) DEFAULT 0,
+  season VARCHAR(32),
+  occasion VARCHAR(32),
+  algorithm JSON NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -90,7 +105,21 @@ CREATE TABLE IF NOT EXISTS outfit_items (
   garment_id VARCHAR(64) NOT NULL,
   sort_order INT DEFAULT 0,
   FOREIGN KEY (outfit_id) REFERENCES outfits(id) ON DELETE CASCADE,
-  FOREIGN KEY (garment_id) REFERENCES garments(id)
+  FOREIGN KEY (garment_id) REFERENCES garments(id) ON DELETE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 7. 功能二购物车（独立表，避免与其他模块共用表结构）
+CREATE TABLE IF NOT EXISTS feature2_cart_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  source_outfit_id INT NULL,
+  garment_id VARCHAR(64) NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (source_outfit_id) REFERENCES outfits(id) ON DELETE SET NULL,
+  FOREIGN KEY (garment_id) REFERENCES garments(id) ON DELETE CASCADE,
+  INDEX idx_feature2_cart_user (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 7. AI 顾问会话 ★

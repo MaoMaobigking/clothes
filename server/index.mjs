@@ -11,15 +11,20 @@
  */
 import express from 'express'
 import cors from 'cors'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import { logger } from './middleware/logger.mjs'
 import { errorHandler } from './middleware/errorHandler.mjs'
 import garmentRoutes from './routes/garments.mjs'
 import aiRoutes from './routes/ai.mjs'
 import authRoutes from './routes/auth.mjs'
 import profileRoutes from './routes/profile.mjs'
+import wardrobeRoutes from './routes/wardrobe.mjs'
+import cartRoutes from './routes/cart.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
+const here = dirname(fileURLToPath(import.meta.url))
 
 const PROVIDER = (process.env.AI_PROVIDER || 'openai').toLowerCase()
 const API_KEY = process.env.AI_API_KEY || ''
@@ -31,6 +36,7 @@ const PORT = Number(process.env.PORT || 8787)
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 app.use(logger)
+app.use('/uploads', express.static(join(here, 'uploads')))
 
 /* ============ 健康检查 ============ */
 app.get('/api/health', (_req, res) => {
@@ -42,6 +48,8 @@ app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
+app.use('/api/wardrobe', wardrobeRoutes)
+app.use('/api/cart', cartRoutes)
 
 /* ============ 统一错误处理（必须放在所有路由之后） ============ */
 app.use(errorHandler)

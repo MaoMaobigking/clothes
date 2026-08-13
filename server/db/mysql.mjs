@@ -119,6 +119,7 @@ export async function initDb() {
   try {
     await conn.query(sql)
     await migrateBodyProfiles(conn)
+    await migrateFeatureTwo(conn)
   } finally {
     await conn.end()
   }
@@ -151,6 +152,47 @@ async function migrateBodyProfiles(conn) {
 }
 
 /** 优雅关闭（测试脚本用，否则进程挂着连接不退出） */
+async function ensureColumn(conn, table, name, ddl) {
+  const [rows] = await conn.query(
+    `SELECT COLUMN_NAME AS name
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?`,
+    [DB_NAME, table],
+  )
+  if (rows.some((row) => row.name === name)) return false
+  await conn.query(`ALTER TABLE ${table} ADD COLUMN ${name} ${ddl}`)
+  return true
+}
+
+async function migrateFeatureTwo(conn) {
+  const garmentColumns = [
+    ['primary_color', "VARCHAR(32) DEFAULT ''"],
+    ['secondary_colors', 'JSON NULL'],
+    ['seasons', 'JSON NULL'],
+    ['occasions', 'JSON NULL'],
+    ['frequently_worn', 'TINYINT(1) DEFAULT 0'],
+    ['sort_order', 'INT DEFAULT 0'],
+    ['recognition_status', "VARCHAR(24) DEFAULT 'confirmed'"],
+    ['recognition_source', "VARCHAR(24) DEFAULT 'manual'"],
+    ['uploaded_at', 'TIMESTAMP NULL'],
+  ]
+  for (const [name, ddl] of garmentColumns) {
+    await ensureColumn(conn, 'garments', name, ddl)
+  }
+
+  const outfitColumns = [
+    ['batch_id', 'VARCHAR(64) NULL'],
+    ['kind', "VARCHAR(24) DEFAULT 'generated'"],
+    ['is_saved', 'TINYINT(1) DEFAULT 0'],
+    ['season', 'VARCHAR(32) NULL'],
+    ['occasion', 'VARCHAR(32) NULL'],
+    ['algorithm', 'JSON NULL'],
+  ]
+  for (const [name, ddl] of outfitColumns) {
+    await ensureColumn(conn, 'outfits', name, ddl)
+  }
+}
+
 export async function closeDb() {
   await pool.end()
 }

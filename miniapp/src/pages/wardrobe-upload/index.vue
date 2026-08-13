@@ -1,0 +1,590 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import PageHeader from '@/components/PageHeader/PageHeader.vue'
+import TileImage from '@/components/TileImage/TileImage.vue'
+import { useWardrobeStore } from '@/stores/wardrobe'
+import type { WardrobeItem } from '@/api/wardrobe'
+import {
+  WARDROBE_CATEGORIES,
+  WARDROBE_COLORS,
+  WARDROBE_OCCASIONS,
+  WARDROBE_SEASONS,
+} from '@/data/wardrobeOptions'
+
+interface ReviewDraft {
+  name: string
+  category: string
+  primaryColor: string
+  secondaryColors: string[]
+  seasons: string[]
+  occasions: string[]
+  frequentlyWorn: boolean
+}
+
+const wardrobe = useWardrobeStore()
+const selectedPaths = ref<string[]>([])
+const reviewItems = ref<WardrobeItem[]>([])
+const drafts = ref<Record<string, ReviewDraft>>({})
+const uploading = ref(false)
+
+const remaining = computed(() => Math.max(0, 100 - wardrobe.items.length))
+const canUpload = computed(() => selectedPaths.value.length > 0 && remaining.value > 0)
+
+onMounted(() => wardrobe.load())
+
+function toast(title: string) {
+  uni.showToast({ title, icon: 'none' })
+}
+
+function chooseImages(source: 'album' | 'camera') {
+  if (remaining.value <= 0) {
+    toast('衣橱最多 100 件，请先整理')
+    return
+  }
+  uni.chooseImage({
+    count: Math.min(20, remaining.value),
+    sourceType: [source],
+    success: (res) => {
+      const next = [...selectedPaths.value, ...res.tempFilePaths]
+      selectedPaths.value = next.slice(0, 20)
+    },
+    fail: () => toast('没有选择图片'),
+  })
+}
+
+function removePreview(index: number) {
+  selectedPaths.value.splice(index, 1)
+}
+
+function createDraft(item: WardrobeItem): ReviewDraft {
+  return {
+    name: item.name || '',
+    category: item.category || 'top',
+    primaryColor: item.primaryColor || WARDROBE_COLORS[0].key,
+    secondaryColors: item.secondaryColors?.slice() || [],
+    seasons: item.seasons?.slice() || [],
+    occasions: item.occasions?.slice() || [],
+    frequentlyWorn: Boolean(item.frequentlyWorn),
+  }
+}
+
+async function recognize() {
+  if (!selectedPaths.value.length || uploading.value) return
+  uploading.value = true
+  try {
+    const items = await wardrobe.uploadItems(selectedPaths.value)
+    reviewItems.value = items
+    for (const item of items) drafts.value[item.id] = createDraft(item)
+    selectedPaths.value = []
+    toast(`识别完成，请确认 ${items.length} 件旧衣`)
+  } catch (error) {
+    toast((error as Error).message || '识别失败')
+  } finally {
+    uploading.value = false
+  }
+}
+
+function toggleOption(item: ReviewDraft, field: 'secondaryColors' | 'seasons' | 'occasions', key: string) {
+  const list = item[field]
+  const index = list.indexOf(key)
+  if (index >= 0) list.splice(index, 1)
+  else list.push(key)
+}
+
+async function confirm(item: WardrobeItem) {
+  const draft = drafts.value[item.id]
+  if (!draft || !draft.name.trim()) {
+    toast('请先填写衣物名称')
+    return
+  }
+  await wardrobe.updateItem(item.id, {
+    ...draft,
+    name: draft.name.trim(),
+    recognitionStatus: 'confirmed',
+    recognitionSource: 'manual',
+  })
+  reviewItems.value = reviewItems.value.filter((entry) => entry.id !== item.id)
+  delete drafts.value[item.id]
+  if (reviewItems.value.length === 0) {
+    toast('旧衣已保存到衣橱')
+    setTimeout(() => uni.navigateBack(), 600)
+  }
+}
+
+function resetReview() {
+  reviewItems.value = []
+  drafts.value = {}
+}
+</script>
+
+<template>
+  <view class="page">
+    <PageHeader title="旧衣上传" to="/pages/closet/closet" />
+
+    <scroll-view scroll-y class="body hide-scrollbar">
+      <view v-if="reviewItems.length" class="review-section">
+        <view class="section-head">
+          <view>
+            <view class="section-title">AI 识别建议</view>
+            <view class="section-sub">这是演示识别结果，可逐件修正</view>
+          </view>
+          <view class="text-btn" @tap="resetReview">取消确认</view>
+        </view>
+
+        <view v-for="item in reviewItems" :key="item.id" class="review-card">
+          <view class="review-top">
+            <TileImage
+              class="review-img"
+              :src="item.img"
+              :emoji="item.emoji"
+              :from="item.primaryColor || item.from"
+              :to="item.secondaryColors?.[0] || item.to"
+              ratio="3 / 4"
+              rounded="24rpx"
+            />
+            <view class="review-main">
+              <view class="recognition-badge">演示识别</view>
+              <input
+                v-model="drafts[item.id].name"
+                class="name-input"
+                placeholder="衣物名称"
+                maxlength="24"
+              />
+              <view class="field-label">衣物类型</view>
+              <scroll-view scroll-x class="chips">
+                <view
+                  v-for="category in WARDROBE_CATEGORIES"
+                  :key="category.key"
+                  class="chip"
+                  :class="{ on: drafts[item.id].category === category.key }"
+                  @tap="drafts[item.id].category = category.key"
+                >
+                  {{ category.label }}
+                </view>
+              </scroll-view>
+            </view>
+          </view>
+
+          <view class="field-block">
+            <view class="field-label">主色</view>
+            <scroll-view scroll-x class="colors">
+              <view
+                v-for="color in WARDROBE_COLORS"
+                :key="color.key"
+                class="color"
+                :class="{ on: drafts[item.id].primaryColor === color.key }"
+                :style="{ background: color.color }"
+                @tap="drafts[item.id].primaryColor = color.key"
+              />
+            </scroll-view>
+          </view>
+
+          <view class="field-block">
+            <view class="field-label">辅助色</view>
+            <view class="option-list">
+              <view
+                v-for="color in WARDROBE_COLORS"
+                :key="color.key"
+                class="option"
+                :class="{ on: drafts[item.id].secondaryColors.includes(color.key) }"
+                @tap="toggleOption(drafts[item.id], 'secondaryColors', color.key)"
+              >
+                {{ color.label }}
+              </view>
+            </view>
+          </view>
+
+          <view class="field-block">
+            <view class="field-label">季节</view>
+            <view class="option-list">
+              <view
+                v-for="season in WARDROBE_SEASONS"
+                :key="season.key"
+                class="option"
+                :class="{ on: drafts[item.id].seasons.includes(season.key) }"
+                @tap="toggleOption(drafts[item.id], 'seasons', season.key)"
+              >
+                {{ season.emoji }} {{ season.label }}
+              </view>
+            </view>
+          </view>
+
+          <view class="field-block">
+            <view class="field-label">场合</view>
+            <view class="option-list">
+              <view
+                v-for="occasion in WARDROBE_OCCASIONS"
+                :key="occasion.key"
+                class="option"
+                :class="{ on: drafts[item.id].occasions.includes(occasion.key) }"
+                @tap="toggleOption(drafts[item.id], 'occasions', occasion.key)"
+              >
+                {{ occasion.emoji }} {{ occasion.label }}
+              </view>
+            </view>
+          </view>
+
+          <view class="confirm-row">
+            <view
+              class="frequent"
+              :class="{ on: drafts[item.id].frequentlyWorn }"
+              @tap="drafts[item.id].frequentlyWorn = !drafts[item.id].frequentlyWorn"
+            >
+              {{ drafts[item.id].frequentlyWorn ? '✓ 常穿' : '标记常穿' }}
+            </view>
+            <view class="btn btn-primary confirm-btn" @tap="confirm(item)">确认保存</view>
+          </view>
+        </view>
+      </view>
+
+      <template v-else>
+        <view class="hero">
+          <view class="hero-icon">📷</view>
+          <view class="hero-title">把旧衣拍成穿搭灵感</view>
+          <view class="hero-sub">单次最多 20 张，衣橱最多 100 件</view>
+        </view>
+
+        <view class="upload-grid">
+          <view class="upload-cell" @tap="chooseImages('camera')">
+            <view class="upload-icon">📷</view>
+            <view class="upload-title">拍照</view>
+            <view class="upload-sub">拍一张真实旧衣</view>
+          </view>
+          <view class="upload-cell" @tap="chooseImages('album')">
+            <view class="upload-icon">🖼️</view>
+            <view class="upload-title">从相册选择</view>
+            <view class="upload-sub">可一次选择多张</view>
+          </view>
+        </view>
+
+        <view v-if="selectedPaths.length" class="preview-panel">
+          <view class="section-title">待识别图片</view>
+          <view class="preview-grid">
+            <view v-for="(path, index) in selectedPaths" :key="path" class="preview-item">
+              <image :src="path" mode="aspectFill" class="preview-img" />
+              <view class="remove" @tap="removePreview(index)">×</view>
+            </view>
+          </view>
+        </view>
+      </template>
+    </scroll-view>
+
+    <view v-if="!reviewItems.length" class="footer">
+      <view class="remain">还可上传 {{ remaining }} 件</view>
+      <view
+        class="btn btn-primary footer-btn"
+        :class="{ 'btn-disabled': !canUpload }"
+        @tap="recognize"
+      >
+        {{ uploading ? 'AI 识别中…' : `识别 ${selectedPaths.length || 0} 张旧衣` }}
+      </view>
+    </view>
+
+    <view v-if="uploading" class="loading-mask">
+      <view class="loading-card">
+        <view class="loading-dot" />
+        <view class="loading-title">AI 识别中</view>
+        <view class="loading-sub">正在读取颜色、季节与场合建议</view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<style scoped>
+.page {
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: 12rpx 32rpx 32rpx;
+}
+.hero {
+  margin-top: 20rpx;
+  padding: 54rpx 36rpx;
+  border-radius: var(--radius-lg);
+  background: var(--brand-gradient);
+  box-shadow: var(--shadow-float);
+  color: #fff;
+  text-align: center;
+}
+.hero-icon {
+  font-size: 84rpx;
+}
+.hero-title {
+  margin-top: 20rpx;
+  font-size: 38rpx;
+  font-weight: 800;
+}
+.hero-sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+  margin-top: 28rpx;
+}
+.upload-cell {
+  min-height: 250rpx;
+  padding: 38rpx 24rpx;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+.upload-icon {
+  font-size: 70rpx;
+}
+.upload-title {
+  margin-top: 18rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.upload-sub {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+.preview-panel {
+  margin-top: 28rpx;
+}
+.section-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+.preview-item {
+  position: relative;
+  height: 160rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #f1ecf8;
+}
+.preview-img {
+  width: 100%;
+  height: 100%;
+}
+.remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 0 0 0 16rpx;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 -12rpx 30rpx rgba(150, 120, 200, 0.12);
+}
+.remain {
+  font-size: 24rpx;
+  color: var(--text-3);
+}
+.footer-btn {
+  flex: 1;
+}
+.loading-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40, 26, 54, 0.35);
+}
+.loading-card {
+  width: 420rpx;
+  padding: 48rpx 32rpx;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-float);
+  text-align: center;
+}
+.loading-dot {
+  width: 54rpx;
+  height: 54rpx;
+  margin: 0 auto;
+  border: 8rpx solid #f1d8e6;
+  border-top-color: var(--pink-deep);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-title {
+  margin-top: 22rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+.loading-sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--text-2);
+}
+.review-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-sub {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+.text-btn {
+  font-size: 24rpx;
+  color: var(--pink-deep);
+  font-weight: 700;
+}
+.review-card {
+  padding: 24rpx;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.review-top {
+  display: flex;
+  gap: 20rpx;
+}
+.review-img {
+  width: 230rpx;
+  flex-shrink: 0;
+}
+.review-main {
+  flex: 1;
+  min-width: 0;
+}
+.recognition-badge {
+  align-self: flex-start;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #eef4ff;
+  color: #5f78a8;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+.name-input {
+  height: 72rpx;
+  margin-top: 12rpx;
+  padding: 0 20rpx;
+  border: 1px solid var(--line);
+  border-radius: 18rpx;
+  background: #faf8ff;
+  font-size: 28rpx;
+}
+.field-label {
+  margin-top: 18rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.chips {
+  margin-top: 10rpx;
+  white-space: nowrap;
+}
+.chip,
+.option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 22rpx;
+  border-radius: 999rpx;
+  background: #f4f0fb;
+  color: var(--text-2);
+  font-size: 23rpx;
+  font-weight: 600;
+}
+.chip {
+  margin-right: 10rpx;
+}
+.chip.on,
+.option.on {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+.field-block {
+  margin-top: 22rpx;
+}
+.colors {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 10rpx;
+  white-space: nowrap;
+}
+.color {
+  width: 54rpx;
+  height: 54rpx;
+  flex-shrink: 0;
+  border: 4rpx solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2rpx var(--line);
+}
+.color.on {
+  box-shadow: 0 0 0 4rpx var(--pink);
+}
+.option-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 10rpx;
+}
+.confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+.frequent {
+  flex-shrink: 0;
+  padding: 18rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: 25rpx;
+  font-weight: 700;
+}
+.frequent.on {
+  color: #2e8a6e;
+  border-color: #8fd5c1;
+  background: #e9f9f4;
+}
+.confirm-btn {
+  flex: 1;
+  height: 82rpx;
+  font-size: 27rpx;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+</style>
