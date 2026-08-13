@@ -119,9 +119,12 @@ export async function initDb() {
   try {
     await conn.query(sql)
     await migrateBodyProfiles(conn)
+    await migrateCommunityRoles(conn)
   } finally {
     await conn.end()
   }
+  const { seedCommunityIfNeeded } = await import('../services/communitySeedService.mjs')
+  await seedCommunityIfNeeded()
 }
 
 /**
@@ -147,6 +150,24 @@ async function migrateBodyProfiles(conn) {
     if (!existing.has(name)) {
       await conn.query(`ALTER TABLE body_profiles ADD COLUMN ${name} ${ddl}`)
     }
+  }
+}
+
+/**
+ * 功能六没有修改旧表字段，只有 users.role 需要兼容旧开发库；
+ * 新表由 schema.sql 的 CREATE TABLE IF NOT EXISTS 创建。
+ */
+async function migrateCommunityRoles(conn) {
+  const [rows] = await conn.query(
+    `SELECT COLUMN_NAME AS name
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users'`,
+    [DB_NAME],
+  )
+  if (!rows.some((row) => row.name === 'role')) {
+    await conn.query(
+      "ALTER TABLE users ADD COLUMN role VARCHAR(16) NOT NULL DEFAULT 'user'",
+    )
   }
 }
 

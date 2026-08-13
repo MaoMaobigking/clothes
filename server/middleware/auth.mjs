@@ -25,7 +25,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 16) {
 
 /**
  * 签发 JWT
- * @param {object} payload - { userId, openid }
+ * @param {object} payload - { userId, openid, role }
  * @returns {string} token
  */
 export function signToken(payload) {
@@ -60,6 +60,7 @@ export function authRequired(req, res, next) {
   }
   req.userId = payload.userId
   req.userOpenid = payload.openid
+  req.userRole = payload.role || 'user'
   next()
 }
 
@@ -74,6 +75,7 @@ export function authOptional(req, _res, next) {
     if (payload) {
       req.userId = payload.userId
       req.userOpenid = payload.openid
+      req.userRole = payload.role || 'user'
     }
   }
   next()

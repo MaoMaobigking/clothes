@@ -9,7 +9,8 @@
     "start": "node --env-file=.env index.mjs",
     "db:init": "node --env-file=.env scripts/initDb.mjs",
     "db:check": "node --env-file=.env scripts/checkIsolation.mjs",
-    "check:http": "node --env-file=.env scripts/checkHttp.mjs"
+    "check:http": "node --env-file=.env scripts/checkHttp.mjs",
+    "check:community": "node --env-file=.env scripts/checkCommunity.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

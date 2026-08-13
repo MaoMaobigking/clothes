@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   openid VARCHAR(64) UNIQUE,
   nickname VARCHAR(64),
   avatar_url VARCHAR(512),
+  role VARCHAR(16) NOT NULL DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -49,6 +50,80 @@ CREATE TABLE IF NOT EXISTS style_reports (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   -- 「历史报告」列表页按 user_id + 时间倒序查，加复合索引避免全表扫
   INDEX idx_user_created (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. 功能六：时尚社区内容
+CREATE TABLE IF NOT EXISTS community_contents (
+  id VARCHAR(64) PRIMARY KEY,
+  type ENUM('magazine','tutorial','share','challenge') NOT NULL,
+  author_user_id INT NULL,
+  author_name VARCHAR(64) NOT NULL DEFAULT '',
+  author_avatar VARCHAR(32) NOT NULL DEFAULT '',
+  title VARCHAR(160) NOT NULL,
+  subtitle VARCHAR(255) NOT NULL DEFAULT '',
+  cover_url VARCHAR(512) NOT NULL DEFAULT '',
+  category VARCHAR(32) NOT NULL DEFAULT '',
+  topics JSON NULL,
+  body JSON NULL,
+  published_month CHAR(7) NOT NULL DEFAULT '',
+  status VARCHAR(16) NOT NULL DEFAULT 'published',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_content_type_created (type, created_at),
+  INDEX idx_content_author_created (author_user_id, created_at),
+  INDEX idx_content_category (type, category, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. 功能六：点赞/收藏/举报/完成（单用户单内容只能有一种状态）
+CREATE TABLE IF NOT EXISTS community_interactions (
+  id VARCHAR(64) PRIMARY KEY,
+  content_id VARCHAR(64) NOT NULL,
+  user_id INT NOT NULL,
+  type ENUM('like','favorite','report','complete') NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (content_id) REFERENCES community_contents(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_interaction_user_content_type (user_id, content_id, type),
+  INDEX idx_interaction_content_type (content_id, type, created_at),
+  INDEX idx_interaction_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. 功能六：评论（同一用户可以继续追加评论）
+CREATE TABLE IF NOT EXISTS community_comments (
+  id VARCHAR(64) PRIMARY KEY,
+  content_id VARCHAR(64) NOT NULL,
+  user_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (content_id) REFERENCES community_contents(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_comment_content_created (content_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 13. 功能六：杂志书签和用户笔记
+CREATE TABLE IF NOT EXISTS community_bookmarks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  content_id VARCHAR(64) NOT NULL,
+  user_id INT NOT NULL,
+  note TEXT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (content_id) REFERENCES community_contents(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_bookmark_user_content (user_id, content_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 14. 功能六：学习积分与徽章
+CREATE TABLE IF NOT EXISTS user_achievements (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  achievement_key VARCHAR(64) NOT NULL,
+  title VARCHAR(64) NOT NULL,
+  badge VARCHAR(16) NOT NULL,
+  points INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_achievement_user_key (user_id, achievement_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 4. 衣橱（含前端渐变色字段）
