@@ -41,18 +41,17 @@ interface MenuItem {
 
 const menus: MenuItem[] = [
   { key: 'orders', emoji: '📦', label: '我的订单' },
-  { key: 'outfits', emoji: '👗', label: '我的搭配' },
+  { key: 'outfits', emoji: '👗', label: '我的搭配', route: '/pages/outfits/index' },
   { key: 'diary', emoji: '📔', label: '穿搭日记' },
-  { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/magazine/magazine' },
-  { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/community' },
-  { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/scene' },
+  { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/magazine/index' },
+  { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index' },
+  { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/index' },
   { key: 'setting', emoji: '⚙️', label: '设置' },
 ]
 
 function onMenu(m: MenuItem) {
   if (m.route) {
-    // 目标页面尚未实现，统一走 toast；后续实现后改为 uni.navigateTo({ url: m.route })
-    showToast(`「${m.label}」功能敬请期待～`)
+    uni.navigateTo({ url: m.route })
   } else {
     showToast(`「${m.label}」功能敬请期待～`)
   }

@@ -1,230 +1,579 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, getCurrentInstance, nextTick, ref } from 'vue'
+import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import SegTabs from '@/components/SegTabs/SegTabs.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import SceneWeather from './SceneWeather.vue'
-import { SCENES, OUTFIT_RECOS, SCENE_MODES, WEATHER } from '@/data/mock'
-import { fetchSceneOutfits, type SceneOutfit } from '@/api/ai'
-import { useProfileStore } from '@/stores/profile'
+import {
+  SCENE_FILTERS,
+  SCENE_OPTIONS,
+  SCENE_SEASONS,
+  currentSeason,
+  type SceneFilterKey,
+  type SceneKey,
+  type SceneMode,
+} from '@/data/scene'
+import { MODEL_IMAGES } from '@/data/mock'
+import {
+  buySceneOutfit,
+  fetchScenePlans,
+  getSceneOutfit,
+  saveSceneOutfit,
+  type SavedSceneOutfit,
+  type ScenePlan,
+  type ScenePlanItem,
+  type ScenePlanResult,
+  type SceneWeatherInfo,
+} from '@/api/scene'
+import { useWardrobeStore } from '@/stores/wardrobe'
 
-const profileStore = useProfileStore()
+const wardrobe = useWardrobeStore()
 
-const tab = ref('try') // 'try' | 'ai'
+const selectedScene = ref<SceneKey>('daily')
+const season = ref(currentSeason())
+const mode = ref<SceneMode>('mixed')
+const filterKey = ref<SceneFilterKey>('day')
+const compareMode = ref(false)
+const planIndex = ref(0)
+const loading = ref(false)
+const errorMessage = ref('')
+const result = ref<ScenePlanResult | null>(null)
+const weather = ref<SceneWeatherInfo>({
+  city: '杭州',
+  temp: 20,
+  condition: '多云',
+  icon: '⛅',
+  source: 'fallback',
+})
+const sourceOutfitId = ref('')
 
-/* ---- 轻提示 ---- */
 const toast = ref('')
 let toastTimer: ReturnType<typeof setTimeout> | undefined
-function showToast(msg: string) {
-  toast.value = msg
+function showToast(message: string) {
+  toast.value = message
   if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = ''), 1800)
+  toastTimer = setTimeout(() => {
+    toast.value = ''
+  }, 1800)
 }
 
-/* ---- 本地兜底：OUTFIT_RECOS 轮换 ---- */
-const recoIndex = ref(0)
-const currentReco = computed(() => OUTFIT_RECOS[recoIndex.value])
+const scene = computed(
+  () => SCENE_OPTIONS.find((item) => item.key === selectedScene.value) ?? SCENE_OPTIONS[0],
+)
 
-/* ---- AI 推荐 ---- */
-const aiOutfits = ref<SceneOutfit[] | null>(null)
-const aiIdx = ref(0)
-const aiLoading = ref(false)
-const aiError = ref('')
+const currentPlans = computed<ScenePlan[]>(() => {
+  if (!result.value) return []
+  const pure = result.value.plans.pure[planIndex.value % result.value.plans.pure.length]
+  const mixed = result.value.plans.mixed[planIndex.value % result.value.plans.mixed.length]
+  if (compareMode.value) return [pure, mixed].filter(Boolean)
+  return [mode.value === 'pure' ? pure : mixed].filter(Boolean)
+})
 
-async function generateAi() {
-  aiLoading.value = true
-  aiError.value = ''
+const activePlan = computed<ScenePlan | null>(() => {
+  if (!result.value) return null
+  const plans = result.value.plans[mode.value]
+  return plans[planIndex.value % plans.length] ?? null
+})
+
+const newItems = computed(() =>
+  (activePlan.value?.items ?? []).filter((item) => item.isNew),
+)
+
+const oldItems = computed(() =>
+  (activePlan.value?.items ?? []).filter((item) => !item.isNew),
+)
+
+const filterStyle = computed(() => {
+  const styles: Record<SceneFilterKey, string> = {
+    day: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,207,145,0.22))',
+    night: 'linear-gradient(135deg, rgba(14,15,36,0.52), rgba(82,53,137,0.35))',
+    indoor: 'linear-gradient(135deg, rgba(255,235,220,0.46), rgba(179,165,145,0.2))',
+    outdoor: 'linear-gradient(135deg, rgba(116,196,255,0.28), rgba(182,240,176,0.2))',
+  }
+  return styles[filterKey.value]
+})
+
+async function generate() {
+  loading.value = true
+  errorMessage.value = ''
   try {
-    const outfits = await fetchSceneOutfits({
-      scene: currentScene.value.label,
-      weather: { city: WEATHER.city, temp: WEATHER.temp, condition: WEATHER.condition },
-      profile: { styles: profileStore.styleLabels },
+    const data = await fetchScenePlans({
+      sceneKey: selectedScene.value,
+      season: season.value,
+      weather: weather.value,
     })
-    if (outfits.length) {
-      aiOutfits.value = outfits
-      aiIdx.value = 0
-    } else {
-      aiError.value = 'AI 没返回结果'
-    }
-  } catch (e) {
-    aiError.value = e instanceof Error ? e.message : String(e)
+    result.value = data
+    planIndex.value = 0
+    sourceOutfitId.value = ''
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : String(error)
   } finally {
-    aiLoading.value = false
+    loading.value = false
   }
 }
 
-const usingAi = computed(() => Boolean(aiOutfits.value?.length))
-
-/** 统一给模板用的形状（AI 的没有图，本地的有 img/渐变） */
-interface ShownPiece {
-  name: string
-  emoji: string
-  img?: string
-  from?: string
-  to?: string
+function onWeatherChange(value: SceneWeatherInfo) {
+  weather.value = value
 }
-const shownReco = computed<{ title: string; reason: string; pieces: ShownPiece[] }>(() => {
-  if (aiOutfits.value?.length) {
-    const o = aiOutfits.value[aiIdx.value % aiOutfits.value.length]
-    return { title: o.title, reason: o.reason, pieces: o.pieces.map((p) => ({ name: p.name, emoji: p.emoji })) }
+
+function cyclePlan() {
+  if (!result.value) return
+  const length = result.value.plans[mode.value].length
+  planIndex.value = (planIndex.value + 1) % Math.max(1, length)
+}
+
+function copyText(text: string, successMessage: string) {
+  uni.setClipboardData({
+    data: text,
+    success: () => showToast(successMessage),
+    fail: () => showToast('复制失败，请手动复制'),
+  })
+}
+
+function copyTaokouling(item: ScenePlanItem) {
+  if (!item.taokouling) {
+    showToast('该单品暂未配置淘口令')
+    return
   }
-  const r = currentReco.value
-  return {
-    title: r.title,
-    reason: '',
-    pieces: r.pieces.map((p) => ({ name: p.name, emoji: p.emoji, img: p.img, from: p.from, to: p.to })),
+  copyText(item.taokouling, `已复制「${item.name}」淘口令`)
+}
+
+async function saveTemplate() {
+  if (!activePlan.value || !result.value) return
+  loading.value = true
+  try {
+    const outfit = await saveSceneOutfit({
+      sceneKey: selectedScene.value,
+      title: `${scene.value.label} · ${season.value}`,
+      season: season.value,
+      mode: activePlan.value.mode,
+      filterKey: filterKey.value,
+      weather: weather.value,
+      composition: activePlan.value.items,
+    })
+    sourceOutfitId.value = String(outfit.id)
+    showToast('已保存到我的搭配')
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : '保存失败')
+  } finally {
+    loading.value = false
   }
+}
+
+const shareText = computed(() => {
+  if (!activePlan.value) return `${scene.value.label}场景穿搭`
+  return [
+    `${scene.value.label} · ${season.value}`,
+    `基于 ${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
+    activePlan.value.items.map((item) => item.name).join(' / '),
+    `搭配理由：${activePlan.value.reason}`,
+  ].join('\n')
 })
 
-function onRefresh() {
-  if (usingAi.value && aiIdx.value < aiOutfits.value!.length - 1) {
-    aiIdx.value++ // 先在已生成的几套里翻
-  } else {
-    generateAi() // 翻完 / 还没生成 → 重新让 AI 生成
+function shareScene() {
+  copyText(shareText.value, '分享文案已复制')
+}
+
+const purchaseSummary = ref<{
+  added: {
+    itemId: string
+    name: string
+    price: number
+    taokouling: string
+  }[]
+  ignored: string[]
+} | null>(null)
+
+async function buyAll() {
+  if (!activePlan.value) return
+  if (!newItems.value.length) {
+    showToast('纯旧衣方案没有需要购买的新品')
+    return
+  }
+  loading.value = true
+  try {
+    const summary = await buySceneOutfit(
+      newItems.value.map((item) => item.id),
+      activePlan.value.id,
+    )
+    purchaseSummary.value = summary
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : '加入购物车失败')
+  } finally {
+    loading.value = false
   }
 }
 
-function buyAll() {
-  showToast('已加入购物车，去结算吧 🛍️')
-}
-function matchAll() {
-  uni.navigateTo({ url: '/pages/free-match/index' })
+function goOutfits() {
+  uni.navigateTo({ url: '/pages/outfits/index' })
 }
 
-/* ---- 虚拟试穿：场景单选 ---- */
-const selectedScene = ref(SCENES[0].key)
-const currentScene = computed(
-  () => SCENES.find((s) => s.key === selectedScene.value) ?? SCENES[0],
-)
-const favScenes = ref<Set<string>>(new Set())
-function toggleFav(key: string) {
-  const next = new Set(favScenes.value)
-  if (next.has(key)) next.delete(key)
-  else next.add(key)
-  favScenes.value = next
-}
-function saveLook() {
-  showToast(`已保存「${currentScene.value.label}」造型到穿搭日记 📔`)
+async function hydrateSavedOutfit(outfit: SavedSceneOutfit) {
+  selectedScene.value = outfit.sceneKey
+  season.value = (SCENE_SEASONS as readonly string[]).includes(outfit.season)
+    ? (outfit.season as typeof SCENE_SEASONS[number])
+    : currentSeason()
+  mode.value = outfit.mode
+  filterKey.value = outfit.filterKey
+  weather.value = {
+    city: outfit.weather?.city || '杭州',
+    temp: Number(outfit.weather?.temp) || 20,
+    condition: outfit.weather?.condition || '多云',
+    icon: outfit.weather?.icon || '⛅',
+    source: outfit.weather?.source || 'fallback',
+  }
+  sourceOutfitId.value = String(outfit.id)
+  await generate()
+  const targetMode = result.value?.plans[outfit.mode] ?? []
+  const targetIndex = targetMode.findIndex((plan) =>
+    plan.items.every((item, index) => outfit.composition[index]?.id === item.id),
+  )
+  if (targetIndex >= 0) {
+    planIndex.value = targetIndex
+  }
 }
 
-/* ---- 底部模式单选（默认中间高亮） ---- */
-const selectedMode = ref(SCENE_MODES[1].key)
-const currentModeDesc = computed(
-  () => SCENE_MODES.find((m) => m.key === selectedMode.value)?.desc ?? '',
-)
-
-/* 切到 AI 推荐 tab 时自动生成一次 */
-watch(tab, (t) => {
-  if (t === 'ai' && !aiOutfits.value && !aiLoading.value) generateAi()
+onLoad(async (options) => {
+  await wardrobe.load()
+  const savedId = Number(options?.outfitId)
+  if (Number.isInteger(savedId) && savedId > 0) {
+    try {
+      const outfit = await getSceneOutfit(savedId)
+      await hydrateSavedOutfit(outfit)
+      return
+    } catch (error) {
+      errorMessage.value = error instanceof Error ? error.message : '模板读取失败'
+    }
+  }
+  await generate()
 })
+
+onShareAppMessage(() => ({
+  title: shareText.value,
+  path: `/pages/scene/index?outfitId=${sourceOutfitId.value || ''}`,
+}))
+
+const posterVisible = ref(false)
+const posterMessage = ref('')
+const posterSaving = ref(false)
+const posterPath = ref('')
+
+const posterText = computed(() =>
+  [
+    `${scene.value.label} · ${season.value}`,
+    `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
+    (activePlan.value?.items ?? []).map((item) => item.name).join(' / '),
+  ].join(' · '),
+)
+
+function loadLocalImage(src: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    uni.getImageInfo({ src, success: resolve, fail: reject })
+  })
+}
+
+async function exportPoster() {
+  if (!activePlan.value || posterSaving.value) return
+  posterSaving.value = true
+  posterVisible.value = true
+  posterMessage.value = '正在生成海报…'
+  await nextTick()
+
+  try {
+    const ctx = uni.createCanvasContext('scenePoster')
+    const width = 600
+    const height = 800
+    const palette: Record<SceneFilterKey, [string, string]> = {
+      day: ['#fff5df', '#ffc7d5'],
+      night: ['#17182b', '#4a3576'],
+      indoor: ['#f7ead8', '#c7b39b'],
+      outdoor: ['#cceeff', '#b6e6c0'],
+    }
+    const colors = palette[filterKey.value]
+    const gradient = ctx.createLinearGradient(0, 0, width, height)
+    gradient.addColorStop(0, colors[0])
+    gradient.addColorStop(1, colors[1])
+    ctx.setFillStyle(gradient)
+    ctx.fillRect(0, 0, width, height)
+    ctx.setFillStyle(filterStyle.value)
+    ctx.fillRect(0, 0, width, height)
+
+    try {
+      const model = await loadLocalImage(MODEL_IMAGES.front)
+      ctx.drawImage(model.path, 230, 170, 140, 360)
+    } catch {
+      ctx.setFillStyle('#ffffff')
+      ctx.setFontSize(90)
+      ctx.fillText('🧍‍♀️', 270, 390)
+    }
+
+    ctx.setFillStyle('#ffffff')
+    ctx.setFontSize(38)
+    ctx.setTextAlign('center')
+    ctx.fillText(scene.value.label, width / 2, 90)
+    ctx.setFontSize(24)
+    ctx.fillText(
+      `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
+      width / 2,
+      130,
+    )
+    ctx.setFontSize(20)
+    activePlan.value.items.slice(0, 8).forEach((item, index) => {
+      ctx.fillText(`· ${item.name}`, width / 2, 570 + index * 34)
+    })
+    ctx.draw(false, () => {
+      uni.canvasToTempFilePath({
+        canvasId: 'scenePoster',
+        success: async (canvasResult) => {
+          posterPath.value = canvasResult.tempFilePath
+          uni.saveImageToPhotosAlbum({
+            filePath: canvasResult.tempFilePath,
+            success: () => {
+              posterMessage.value = '海报已保存到相册'
+            },
+            fail: () => {
+              copyText(shareText.value, '当前端不支持保存，已复制分享文案')
+              posterMessage.value = '当前端不支持保存，已复制分享文案'
+            },
+          })
+        },
+        fail: () => {
+          copyText(shareText.value, '海报生成失败，已复制分享文案')
+          posterMessage.value = '海报生成失败，已复制分享文案'
+        },
+      }, getCurrentInstance()?.proxy)
+    })
+  } catch {
+    posterMessage.value = '海报生成失败，可复制分享文案'
+  } finally {
+    posterSaving.value = false
+  }
+}
 </script>
 
 <template>
   <view class="page">
-    <PageHeader title="情景模拟" to="/pages/home/home">
+    <PageHeader title="场景模拟" to="/pages/home/home">
       <template #right>
-        <button class="diary-btn" @tap="showToast('穿搭日记开发中 📔')">📔 穿搭日记</button>
+        <button class="header-action" @tap="goOutfits">我的搭配</button>
       </template>
     </PageHeader>
 
-    <view class="body scroll-y hide-scrollbar">
-      <SegTabs
-        v-model="tab"
-        :tabs="[
-          { key: 'try', label: '虚拟试穿' },
-          { key: 'ai', label: 'AI推荐' },
-        ]"
-      />
+    <scroll-view class="body" scroll-y>
+      <SceneWeather v-model="weather" @change="onWeatherChange" />
 
-      <SceneWeather />
+      <view class="control-card">
+        <view class="section-head">
+          <text class="section-title">选择场景</text>
+          <text class="section-sub">{{ scene.keywords.join(' · ') }}</text>
+        </view>
+        <view class="scene-grid">
+          <button
+            v-for="item in SCENE_OPTIONS"
+            :key="item.key"
+            class="scene-option"
+            :class="{ on: selectedScene === item.key }"
+            @tap="selectedScene = item.key"
+          >
+            <text class="scene-emoji">{{ item.emoji }}</text>
+            <text class="scene-label">{{ item.label }}</text>
+          </button>
+        </view>
 
-      <!-- 虚拟试穿 -->
-      <template v-if="tab === 'try'">
-        <view>
-          <view class="sec-title">穿搭适用场景选择</view>
-          <view class="scene-chips">
+        <view class="control-row">
+          <text class="control-label">季节</text>
+          <view class="season-chips">
             <button
-              v-for="s in SCENES"
-              :key="s.key"
-              class="scene-chip"
-              :class="{ on: selectedScene === s.key }"
-              @tap="selectedScene = s.key"
+              v-for="item in SCENE_SEASONS"
+              :key="item"
+              class="mini-chip"
+              :class="{ on: season === item }"
+              @tap="season = item"
             >
-              <text class="sc-emoji">{{ s.emoji }}</text>
-              <text class="sc-label">{{ s.label }}</text>
+              {{ item }}
             </button>
           </view>
         </view>
 
-        <view>
-          <view class="sec-title">场景造型预览</view>
-          <view class="preview-grid">
-            <view
-              v-for="s in SCENES"
-              :key="s.key"
-              class="preview-item"
-              :class="{ on: selectedScene === s.key }"
-              @tap="selectedScene = s.key"
+        <view class="control-row">
+          <text class="control-label">模式</text>
+          <view class="mode-switch">
+            <button
+              class="mode-button"
+              :class="{ on: mode === 'pure' }"
+              @tap="mode = 'pure'"
             >
-              <TileImage :src="s.img" from="#ffd6e8" to="#c9b8ff" :emoji="s.emoji" ratio="3 / 4" :label="s.label" />
-              <view class="pv-acts" @tap.stop>
-                <button class="pv-icon" :class="{ liked: favScenes.has(s.key) }" @tap="toggleFav(s.key)">
-                  {{ favScenes.has(s.key) ? '❤️' : '🤍' }}
+              仅旧衣
+            </button>
+            <button
+              class="mode-button"
+              :class="{ on: mode === 'mixed' }"
+              @tap="mode = 'mixed'"
+            >
+              新旧混搭
+            </button>
+          </view>
+        </view>
+
+        <button class="btn btn-primary generate-btn" :class="{ busy: loading }" @tap="generate">
+          {{ loading ? '正在生成…' : '生成场景穿搭' }}
+        </button>
+        <text v-if="errorMessage" class="error-message">{{ errorMessage }}</text>
+      </view>
+
+      <view v-if="result" class="result-area">
+        <view class="active-banner">
+          <text class="active-title">
+            已为你激活 {{ result.activatedGarmentCount }} 件旧衣
+          </text>
+          <text class="active-sub">
+            生成 3 套纯旧衣与 3 套新旧混搭方案
+          </text>
+        </view>
+
+        <view class="filter-row">
+          <button
+            v-for="item in SCENE_FILTERS"
+            :key="item.key"
+            class="filter-chip"
+            :class="{ on: filterKey === item.key }"
+            @tap="filterKey = item.key"
+          >
+            {{ item.label }}
+          </button>
+          <button
+            class="filter-chip compare"
+            :class="{ on: compareMode }"
+            @tap="compareMode = !compareMode"
+          >
+            对比旧衣
+          </button>
+        </view>
+
+        <view class="plan-actions">
+          <button class="plan-action" @tap="cyclePlan">换一套</button>
+          <text class="plan-count">{{ planIndex + 1 }} / {{ result.plans[mode].length }}</text>
+        </view>
+
+        <view class="plan-grid" :class="{ compare: compareMode }">
+          <view v-for="plan in currentPlans" :key="plan.id" class="plan-card">
+            <view class="stage">
+              <image
+                v-if="scene.img"
+                class="stage-image"
+                :src="scene.img"
+                mode="aspectFill"
+              />
+              <view class="stage-placeholder">
+                <text>{{ scene.emoji }}</text>
+              </view>
+              <view class="stage-filter" :style="{ background: filterStyle }" />
+              <image class="stage-model" :src="MODEL_IMAGES.front" mode="aspectFit" />
+              <view class="stage-caption">
+                <text class="caption-scene">{{ scene.label }}</text>
+                <text class="caption-weather">
+                  {{ weather.city }} · {{ weather.condition }} · {{ weather.temp }}℃
+                </text>
+              </view>
+            </view>
+
+            <view class="plan-head">
+              <view class="plan-title-wrap">
+                <text class="plan-title">{{ plan.title }}</text>
+                <text class="plan-tag">{{ plan.mode === 'pure' ? '纯旧衣' : '新旧混搭' }}</text>
+              </view>
+              <text class="plan-reason">{{ plan.reason }}</text>
+            </view>
+
+            <view class="item-grid">
+              <view v-for="item in plan.items" :key="item.id" class="item">
+                <TileImage
+                  :src="item.imageUrl"
+                  :from="item.from"
+                  :to="item.to"
+                  :emoji="item.emoji"
+                  ratio="1 / 1"
+                  rounded="12px"
+                />
+                <text class="item-name">{{ item.name }}</text>
+                <text class="item-tag">{{ item.isNew ? '新增单品' : '衣橱旧衣' }}</text>
+                <text v-if="item.isNew" class="item-price">¥{{ item.price.toFixed(2) }}</text>
+              </view>
+            </view>
+
+            <view v-if="plan.mode === 'mixed'" class="new-panel">
+              <text class="new-title">新品购买</text>
+              <view
+                v-for="item in plan.items.filter((piece) => piece.isNew)"
+                :key="item.id"
+                class="new-row"
+              >
+                <text class="new-name">{{ item.name }}</text>
+                <button
+                  v-if="item.taokouling"
+                  class="copy-button"
+                  @tap="copyTaokouling(item)"
+                >
+                  复制淘口令
                 </button>
-                <button class="pv-icon" @tap="saveLook">⭐</button>
               </view>
             </view>
           </view>
-          <button class="btn btn-primary save-btn" @tap="saveLook">保存这套造型</button>
         </view>
-      </template>
 
-      <!-- AI 推荐 -->
-      <template v-else>
-        <view>
-          <view class="reco-head">
-            <view class="sec-title">AI 搭配方式推荐</view>
-            <button class="refresh" :class="{ spin: aiLoading }" aria-label="换一套" @tap="onRefresh">🔄</button>
+        <view class="difference-note">
+          <text class="difference-title">旧衣与新衣差异</text>
+          <text class="difference-text">
+            旧衣：{{ oldItems.map((item) => item.name).join('、') || '本套方案没有独立旧衣单列' }}
+          </text>
+          <text class="difference-text">
+            新增：{{ newItems.map((item) => item.name).join('、') || '无新增单品' }}
+          </text>
+        </view>
+
+        <view class="action-grid">
+          <button class="action-button" @tap="saveTemplate">保存模板</button>
+          <button class="action-button" @tap="shareScene">分享</button>
+          <button class="action-button" @tap="exportPoster">保存海报</button>
+          <button class="action-button primary" @tap="buyAll">一键购买</button>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view v-if="purchaseSummary" class="modal-mask" @tap="purchaseSummary = null">
+      <view class="modal-sheet" @tap.stop>
+        <text class="modal-title">已加入购物车</text>
+        <view
+          v-for="item in purchaseSummary.added"
+          :key="item.itemId"
+          class="purchase-row"
+        >
+          <view class="purchase-info">
+            <text class="purchase-name">{{ item.name }}</text>
+            <text class="purchase-price">¥{{ item.price.toFixed(2) }}</text>
           </view>
-
-          <!-- 状态 -->
-          <text v-if="aiLoading" class="status load">🤖 AI 正在按天气 + 你的风格生成搭配…</text>
-          <text v-else-if="usingAi" class="status ok">✨ 由 AI 实时生成（点 🔄 换一套）</text>
-          <text v-else-if="aiError" class="status err">⚠️ {{ aiError }}（先看本地示意，点 🔄 重试）</text>
-
-          <text class="reco-sub">{{ shownReco.title }}</text>
-          <text v-if="shownReco.reason" class="reco-reason">{{ shownReco.reason }}</text>
-
-          <view class="reco-grid">
-            <view v-for="(p, i) in shownReco.pieces" :key="i" class="reco-item">
-              <TileImage :src="p.img" :from="p.from" :to="p.to" :emoji="p.emoji" ratio="1 / 1" rounded="14px" />
-              <text class="reco-name">{{ p.name }}</text>
-            </view>
-          </view>
-        </view>
-
-        <view class="cta">
-          <button class="btn cta-ghost" @tap="buyAll">🛍️ 一键购买</button>
-          <button class="btn btn-primary cta-primary" @tap="matchAll">🧥 一键搭配</button>
-        </view>
-      </template>
-
-      <!-- 底部：穿搭搭配方式选择 -->
-      <view class="modes">
-        <view class="sec-title modes-title">穿搭搭配方式选择</view>
-        <text class="mode-desc">{{ currentModeDesc }}</text>
-        <view class="mode-chips">
-          <button
-            v-for="m in SCENE_MODES"
-            :key="m.key"
-            class="mode-chip"
-            :class="{ on: selectedMode === m.key }"
-            @tap="selectedMode = m.key"
-          >
-            <text class="mc-emoji">{{ m.emoji }}</text>
-            <text class="mc-label">{{ m.label }}</text>
+          <button class="copy-button" @tap="copyText(item.taokouling, '淘口令已复制')">
+            复制淘口令
           </button>
         </view>
+        <button class="btn btn-primary modal-close" @tap="purchaseSummary = null">完成</button>
+      </view>
+    </view>
+
+    <view v-if="posterVisible" class="modal-mask" @tap="posterVisible = false">
+      <view class="poster-sheet" @tap.stop>
+        <text class="modal-title">场景海报</text>
+        <view class="poster-preview" :class="`filter-${filterKey}`">
+          <text class="poster-scene">{{ scene.label }}</text>
+          <text class="poster-weather">
+            {{ weather.city }} · {{ weather.condition }} · {{ weather.temp }}℃
+          </text>
+          <image class="poster-model" :src="MODEL_IMAGES.front" mode="aspectFit" />
+          <text class="poster-caption">{{ posterText }}</text>
+        </view>
+        <canvas canvas-id="scenePoster" id="scenePoster" class="poster-canvas" />
+        <text class="poster-message">{{ posterMessage }}</text>
+        <button class="btn btn-primary modal-close" @tap="posterVisible = false">关闭</button>
       </view>
     </view>
 
@@ -241,240 +590,517 @@ watch(tab, (t) => {
 .body {
   flex: 1;
   min-height: 0;
-  padding: 12px 16px 16px;
+  padding: 12px 16px 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.diary-btn {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--purple-deep);
-  background: rgba(255, 255, 255, 0.7);
+.header-action {
   padding: 6px 12px;
   border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--purple-deep);
+  font-size: 12px;
+  font-weight: 700;
   box-shadow: var(--shadow-card);
   white-space: nowrap;
 }
 
-.sec-title {
-  margin: 0 0 10px;
+.control-card,
+.result-area,
+.difference-note {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.section-title {
   font-size: 16px;
   font-weight: 800;
   color: var(--text-1);
 }
-
-.scene-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.scene-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 14px;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
+.section-sub {
+  font-size: 12px;
   color: var(--text-2);
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: var(--shadow-card);
-  transition: all 0.15s ease;
 }
-.scene-chip.on {
-  background: var(--brand-gradient);
-  color: var(--text-on-brand);
-  box-shadow: 0 6px 14px rgba(177, 140, 255, 0.4);
-}
-.sc-emoji {
-  font-size: 15px;
-}
-
-.preview-grid {
+.scene-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 9px;
 }
-.preview-item {
-  position: relative;
-  border-radius: var(--radius);
-  transition: transform 0.15s ease;
-}
-.preview-item.on {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(177, 140, 255, 0.35);
-  outline: 2px solid var(--purple);
-  border-radius: var(--radius);
-}
-.pv-acts {
-  position: absolute;
-  top: 6px;
-  right: 6px;
+.scene-option {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-.pv-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 4px;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--text-2);
   font-size: 13px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: var(--shadow-card);
+  font-weight: 700;
+  transition: all 0.15s ease;
 }
-.pv-icon.liked {
-  background: #fff;
+.scene-option.on {
+  color: var(--text-on-brand);
+  background: var(--brand-gradient);
+  box-shadow: 0 5px 14px rgba(177, 140, 255, 0.35);
 }
-.save-btn {
-  height: 46px;
-  width: 100%;
-  margin-top: 14px;
+.scene-emoji {
+  font-size: 24px;
+}
+.scene-label {
+  line-height: 1.2;
 }
 
-.reco-head {
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.control-label {
+  width: 42px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.season-chips,
+.mode-switch {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+.mini-chip,
+.mode-button {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+.mini-chip.on,
+.mode-button.on {
+  color: var(--text-on-brand);
+  background: var(--brand-gradient);
+}
+.generate-btn {
+  height: 46px;
+}
+.generate-btn.busy {
+  opacity: 0.7;
+}
+.error-message {
+  color: #d9694f;
+  font-size: 12px;
+  text-align: center;
+}
+
+.active-banner {
+  background: var(--brand-gradient);
+  border-radius: var(--radius);
+  padding: 12px;
+  color: var(--text-on-brand);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.active-title {
+  font-size: 15px;
+  font-weight: 800;
+}
+.active-sub {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.filter-chip {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+.filter-chip.on {
+  color: var(--text-on-brand);
+  background: var(--brand-gradient);
+}
+.filter-chip.compare.on {
+  background: var(--pink-deep);
+}
+
+.plan-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.refresh {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  transition: transform 0.2s ease;
-}
-.refresh.spin {
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.status {
-  margin: 8px 2px 4px;
+.plan-action {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  color: var(--purple-deep);
   font-size: 12px;
+  font-weight: 700;
+}
+.plan-count {
+  font-size: 12px;
+  color: var(--text-2);
   font-weight: 600;
 }
-.status.load {
-  color: var(--purple-deep);
-}
-.status.ok {
-  color: var(--pink-deep);
-}
-.status.err {
-  color: #d9694f;
-}
-.reco-sub {
-  margin: 6px 2px 4px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-1);
-}
-.reco-reason {
-  margin: 0 2px 12px;
-  font-size: 12px;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-.reco-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-.reco-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.reco-name {
-  font-size: 11px;
-  color: var(--text-2);
-  text-align: center;
-}
 
-.cta {
-  display: flex;
+.plan-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
-.cta-ghost,
-.cta-primary {
+.plan-grid.compare {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.plan-card {
+  min-width: 0;
+  background: var(--surface-soft);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stage {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(150deg, #c9ecff, #b8b0ff 55%, #ffc9e8);
+}
+.stage-image,
+.stage-placeholder,
+.stage-filter,
+.stage-model,
+.stage-caption {
+  position: absolute;
+  inset: 0;
+}
+.stage-image {
+  width: 100%;
+  height: 100%;
+}
+.stage-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 74px;
+}
+.stage-filter {
+  pointer-events: none;
+}
+.stage-model {
+  left: 50%;
+  width: 58%;
+  height: 82%;
+  top: 9%;
+  transform: translateX(-50%);
+}
+.stage-caption {
+  inset: auto 0 0;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  background: rgba(30, 24, 42, 0.35);
+  z-index: 2;
+}
+.caption-scene {
+  font-size: 13px;
+  font-weight: 800;
+}
+.caption-weather {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.plan-head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.plan-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.plan-title {
   flex: 1;
-  height: 50px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-1);
+  line-height: 1.35;
+}
+.plan-tag {
+  flex-shrink: 0;
+  padding: 4px 8px;
   border-radius: var(--radius-pill);
-  font-size: 15px;
+  background: var(--brand-gradient);
+  color: #fff;
+  font-size: 10px;
   font-weight: 700;
 }
-.cta-ghost {
+.plan-reason {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+.item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.item-name {
+  font-size: 10px;
+  color: var(--text-1);
+  line-height: 1.25;
+  min-height: 25px;
+}
+.item-tag {
+  align-self: flex-start;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: rgba(177, 140, 255, 0.14);
+  color: var(--purple-deep);
+  font-size: 9px;
+  font-weight: 700;
+}
+.item-price {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--pink-deep);
+}
+
+.new-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: var(--surface);
+  border-radius: 9px;
+  padding: 9px;
+}
+.new-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.new-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.new-name {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.copy-button {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.difference-note {
+  gap: 7px;
+}
+.difference-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.difference-text {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.action-button {
+  min-width: 0;
+  height: 40px;
+  padding: 0 5px;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--text-1);
   box-shadow: var(--shadow-card);
+  font-size: 11px;
+  font-weight: 700;
+}
+.action-button.primary {
+  color: #fff;
+  background: var(--brand-gradient);
 }
 
-.modes {
-  margin-top: 4px;
-  background: var(--surface-soft);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  box-shadow: var(--shadow-card);
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(40, 24, 48, 0.38);
+  display: flex;
+  align-items: flex-end;
 }
-.modes-title {
-  margin: 0 0 8px;
+.modal-sheet,
+.poster-sheet {
+  width: 100%;
+  max-height: 88%;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.mode-desc {
-  margin: 0 0 12px;
-  font-size: 13px;
-  color: var(--text-2);
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-1);
   text-align: center;
-  line-height: 1.5;
 }
-.mode-chips {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.purchase-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
-.mode-chip {
+.purchase-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.purchase-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.purchase-price {
+  font-size: 12px;
+  color: var(--pink-deep);
+  font-weight: 700;
+}
+.modal-close {
+  height: 42px;
+}
+
+.poster-preview {
+  position: relative;
+  height: 430px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: linear-gradient(150deg, #fff5df, #ffc7d5);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 12px 4px;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--text-2);
-  font-size: 13px;
+  padding: 28px 20px 16px;
+}
+.poster-preview.filter-night {
+  background: linear-gradient(150deg, #17182b, #4a3576);
+}
+.poster-preview.filter-indoor {
+  background: linear-gradient(150deg, #f7ead8, #c7b39b);
+}
+.poster-preview.filter-outdoor {
+  background: linear-gradient(150deg, #cceeff, #b6e6c0);
+}
+.poster-scene {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.poster-weather {
+  margin-top: 6px;
+  font-size: 14px;
   font-weight: 600;
-  transition: all 0.15s ease;
+  color: #fff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
 }
-.mode-chip.on {
-  background: var(--brand-gradient);
-  color: var(--text-on-brand);
-  box-shadow: 0 6px 14px rgba(177, 140, 255, 0.4);
+.poster-model {
+  flex: 1;
+  width: 58%;
+  margin: 4px 0;
 }
-.mc-emoji {
-  font-size: 20px;
+.poster-caption {
+  width: 100%;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.poster-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 600px;
+  height: 800px;
+}
+.poster-message {
+  font-size: 12px;
+  color: var(--text-2);
+  text-align: center;
 }
 
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 80px;
+  bottom: 72px;
   transform: translateX(-50%);
-  background: rgba(40, 30, 55, 0.9);
-  color: #fff;
-  font-size: 13px;
+  z-index: 80;
+  max-width: 86%;
   padding: 10px 18px;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-float);
-  z-index: 50;
+  background: rgba(40, 24, 48, 0.88);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
+  box-shadow: var(--shadow-float);
 }
 </style>

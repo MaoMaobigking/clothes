@@ -1,28 +1,211 @@
 <script setup lang="ts">
-import { WEATHER } from '@/data/mock'
+import { computed, ref, watch } from 'vue'
+import { fetchSceneWeather, type SceneWeatherInfo } from '@/api/scene'
+import { MANUAL_WEATHER } from '@/data/scene'
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: SceneWeatherInfo
+  }>(),
+  {
+    modelValue: () => ({
+      city: '杭州',
+      temp: 20,
+      condition: '多云',
+      icon: '⛅',
+      source: 'fallback',
+    }),
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: SceneWeatherInfo): void
+  (e: 'change', value: SceneWeatherInfo): void
+}>()
+
+const weather = ref<SceneWeatherInfo>({ ...props.modelValue })
+const locating = ref(false)
+const editing = ref(false)
+const locationMessage = ref('')
+const manualCityIndex = ref(0)
+const manualConditionIndex = ref(0)
+const manualTemp = ref(String(props.modelValue.temp || 20))
+
+const CONDITIONS = [
+  { condition: '晴', icon: '☀️' },
+  { condition: '多云', icon: '⛅' },
+  { condition: '阴', icon: '☁️' },
+  { condition: '小雨', icon: '🌦️' },
+  { condition: '大雨', icon: '🌧️' },
+]
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    weather.value = { ...value }
+    manualTemp.value = String(value.temp || 20)
+    const cityIndex = MANUAL_WEATHER.findIndex((item) => item.city === value.city)
+    if (cityIndex >= 0) manualCityIndex.value = cityIndex
+    const conditionIndex = CONDITIONS.findIndex((item) => item.condition === value.condition)
+    if (conditionIndex >= 0) manualConditionIndex.value = conditionIndex
+  },
+  { deep: true },
+)
+
+function publish(value: SceneWeatherInfo) {
+  weather.value = { ...value }
+  emit('update:modelValue', weather.value)
+  emit('change', weather.value)
+}
+
+function requestLocation() {
+  if (locating.value) return
+  locating.value = true
+  locationMessage.value = '正在申请定位…'
+  uni.getLocation({
+    type: 'gcj02',
+    success: async (location) => {
+      try {
+        const located = await fetchSceneWeather({
+          latitude: location.latitude,
+          longitude: location.longitude,
+        })
+        publish(located)
+        editing.value = false
+        locationMessage.value = located.source === 'located'
+          ? '已使用实时定位与天气'
+          : '天气接口未配置，使用定位城市演示天气'
+      } catch {
+        publish({ ...weather.value, source: 'manual' })
+        editing.value = true
+        locationMessage.value = '天气接口失败，请手动选择'
+      } finally {
+        locating.value = false
+      }
+    },
+    fail: () => {
+      locating.value = false
+      editing.value = true
+      locationMessage.value = '未获得定位权限，可手动选择'
+    },
+  })
+}
+
+function openManual() {
+  editing.value = !editing.value
+  if (!locationMessage.value) locationMessage.value = '手动选择城市与天气'
+}
+
+function onCityChange(event: any) {
+  const index = Number(event.detail?.value ?? 0)
+  const selected = MANUAL_WEATHER[index] ?? MANUAL_WEATHER[0]
+  manualCityIndex.value = index
+  manualTemp.value = String(selected.temp)
+  const conditionIndex = CONDITIONS.findIndex((item) => item.condition === selected.condition)
+  manualConditionIndex.value = Math.max(0, conditionIndex)
+  publish({
+    ...weather.value,
+    city: selected.city,
+    temp: selected.temp,
+    condition: selected.condition,
+    icon: selected.icon,
+    source: 'manual',
+  })
+}
+
+function onConditionChange(event: any) {
+  const index = Number(event.detail?.value ?? 0)
+  const selected = CONDITIONS[index] ?? CONDITIONS[0]
+  manualConditionIndex.value = index
+  publish({
+    ...weather.value,
+    condition: selected.condition,
+    icon: selected.icon,
+    source: 'manual',
+  })
+}
+
+function onTempInput(event: any) {
+  manualTemp.value = String(event.detail?.value ?? '')
+  const temp = Number(manualTemp.value)
+  if (Number.isFinite(temp)) {
+    publish({ ...weather.value, temp, source: 'manual' })
+  }
+}
+
+const sourceLabel = computed(() => {
+  if (weather.value.source === 'located') return '实时定位'
+  if (weather.value.source === 'fallback') return '定位城市演示天气'
+  return '手动选择'
+})
+
+const dateLabel = new Date().toLocaleDateString('zh-CN', {
+  month: 'long',
+  day: 'numeric',
+  weekday: 'short',
+})
+
+defineExpose({ requestLocation })
 </script>
 
 <template>
   <view class="weather-card">
     <view class="wc-top">
       <view class="wc-place">
-        <text class="wc-city">📍 {{ WEATHER.city }}</text>
-        <text class="wc-date">{{ WEATHER.date }} · {{ WEATHER.weekday }}</text>
+        <text class="wc-city">📍 {{ weather.city }}</text>
+        <text class="wc-date">{{ dateLabel }} · {{ sourceLabel }}</text>
       </view>
-      <text v-if="WEATHER.alert" class="wc-alert">⚠️ {{ WEATHER.alert }}</text>
+      <view class="wc-actions">
+        <button class="wc-locate" :class="{ busy: locating }" @tap="requestLocation">
+          {{ locating ? '定位中' : '重新定位' }}
+        </button>
+        <button class="wc-manual" @tap="openManual">手动选择</button>
+      </view>
     </view>
 
     <view class="wc-now">
-      <text class="wc-icon">{{ WEATHER.icon }}</text>
-      <text class="wc-temp">{{ WEATHER.temp }}°</text>
-      <text class="wc-cond">{{ WEATHER.condition }}</text>
+      <text class="wc-icon">{{ weather.icon }}</text>
+      <text class="wc-temp">{{ weather.temp }}°</text>
+      <text class="wc-cond">{{ weather.condition }}</text>
     </view>
 
-    <view class="wc-forecast">
-      <view v-for="d in WEATHER.forecast" :key="d.day" class="wc-day">
-        <text class="wc-day-name">{{ d.day }}</text>
-        <text class="wc-day-icon">{{ d.icon }}</text>
-        <text class="wc-day-temp">{{ d.high }}° / {{ d.low }}°</text>
+    <text v-if="locationMessage" class="wc-message">{{ locationMessage }}</text>
+
+    <view v-if="editing" class="manual-panel">
+      <view class="manual-row">
+        <text class="manual-label">城市</text>
+        <picker
+          class="manual-picker"
+          mode="selector"
+          :range="MANUAL_WEATHER.map((item) => item.city)"
+          :value="manualCityIndex"
+          @change="onCityChange"
+        >
+          <view class="picker-value">{{ weather.city }} ›</view>
+        </picker>
+      </view>
+      <view class="manual-row">
+        <text class="manual-label">天气</text>
+        <picker
+          class="manual-picker"
+          mode="selector"
+          :range="CONDITIONS.map((item) => `${item.icon} ${item.condition}`)"
+          :value="manualConditionIndex"
+          @change="onConditionChange"
+        >
+          <view class="picker-value">{{ weather.icon }} {{ weather.condition }} ›</view>
+        </picker>
+      </view>
+      <view class="manual-row">
+        <text class="manual-label">温度</text>
+        <input
+          class="manual-input"
+          type="number"
+          :value="manualTemp"
+          placeholder="输入温度"
+          @input="onTempInput"
+        />
+        <text class="manual-unit">℃</text>
       </view>
     </view>
   </view>
@@ -50,6 +233,7 @@ import { WEATHER } from '@/data/mock'
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 .wc-city {
   font-size: 14px;
@@ -59,15 +243,22 @@ import { WEATHER } from '@/data/mock'
   font-size: 12px;
   color: var(--text-2);
 }
-.wc-alert {
+.wc-actions {
+  display: flex;
+  gap: 8px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #ff7a90, #e0504f);
-  color: #fff;
+}
+.wc-locate,
+.wc-manual {
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--purple-deep);
   font-size: 12px;
   font-weight: 700;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 4px 10px rgba(224, 80, 79, 0.4);
+}
+.wc-locate.busy {
+  opacity: 0.65;
 }
 
 .wc-now {
@@ -89,33 +280,52 @@ import { WEATHER } from '@/data/mock'
   margin-bottom: 6px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-1);
+}
+.wc-message {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--purple-deep);
 }
 
-.wc-forecast {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.wc-day {
-  background: rgba(255, 255, 255, 0.55);
-  border-radius: var(--radius);
-  padding: 10px 4px;
+.manual-panel {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.58);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.manual-row {
+  display: flex;
   align-items: center;
-  gap: 4px;
+  min-height: 34px;
 }
-.wc-day-name {
-  font-size: 12px;
-  color: var(--text-2);
-}
-.wc-day-icon {
-  font-size: 22px;
-}
-.wc-day-temp {
-  font-size: 12px;
+.manual-label {
+  width: 46px;
+  flex-shrink: 0;
+  font-size: 13px;
   font-weight: 700;
+}
+.manual-picker {
+  flex: 1;
+}
+.picker-value {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-1);
+}
+.manual-input {
+  flex: 1;
+  height: 34px;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.manual-unit {
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 700;
 }
 </style>
