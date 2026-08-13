@@ -12,6 +12,7 @@ const props = withDefaults(
     src?: string
     emoji?: string
     label?: string
+    initialView?: 'front' | 'back'
     frames?: {
       front?: string
       side?: string
@@ -22,6 +23,7 @@ const props = withDefaults(
     src: '',
     emoji: '🧍‍♀️',
     label: '虚拟形象',
+    initialView: 'front',
     frames: () => ({}),
   },
 )
@@ -29,13 +31,20 @@ const props = withDefaults(
 const rotateY = ref(-12)
 const rotateX = ref(0)
 const scale = ref(1)
+const viewMode = ref<'front' | 'back'>(props.initialView)
 
 let lastX = 0
 let lastY = 0
 let startDist = 0
 let startScale = 1
 
-const modelSrc = computed(() => props.src || props.frames.front || '')
+const modelSrc = computed(() => {
+  if (viewMode.value === 'back') return props.frames.back || props.src || props.frames.front || ''
+  return props.src || props.frames.front || ''
+})
+const displayLabel = computed(() =>
+  viewMode.value === 'back' ? `${props.label} · 背面演示` : props.label,
+)
 
 function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v))
@@ -93,12 +102,16 @@ function resetView() {
   scale.value = 1
 }
 
+function setView(view: 'front' | 'back') {
+  viewMode.value = view
+}
+
 // Three.js / GLB 接入点：后续替换为真实模型渲染，对外接口不变。
 function setEngine(_engine: 'css' | 'three') {
   /* reserved */
 }
 
-defineExpose({ resetView, zoom, setEngine })
+defineExpose({ resetView, zoom, setEngine, setView })
 </script>
 
 <template>
@@ -115,20 +128,36 @@ defineExpose({ resetView, zoom, setEngine })
       <view
         class="figure"
         :style="{
-          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`,
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale}) ${viewMode === 'back' ? 'scaleX(-1)' : ''}`,
         }"
       >
         <image v-if="modelSrc" class="model-img" :src="modelSrc" :alt="label" mode="aspectFit" />
         <text v-else class="emoji">{{ emoji }}</text>
       </view>
 
-      <text class="tag">{{ label }}</text>
+      <text class="tag">{{ displayLabel }}</text>
     </view>
 
     <view class="controls">
       <view class="ctrl" aria-label="缩小" @tap="zoom(-0.15)">－</view>
       <view class="ctrl reset" aria-label="复位" @tap="resetView">↺</view>
       <view class="ctrl" aria-label="放大" @tap="zoom(0.15)">＋</view>
+    </view>
+    <view class="view-switch">
+      <view
+        class="view-option"
+        :class="{ on: viewMode === 'front' }"
+        @tap="setView('front')"
+      >
+        正面
+      </view>
+      <view
+        class="view-option"
+        :class="{ on: viewMode === 'back' }"
+        @tap="setView('back')"
+      >
+        背面
+      </view>
     </view>
   </view>
 </template>
@@ -200,6 +229,31 @@ defineExpose({ resetView, zoom, setEngine })
   align-items: center;
   gap: 24rpx;
   margin-top: 12rpx;
+}
+.view-switch {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 18rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 999rpx;
+  padding: 6rpx;
+  box-shadow: var(--shadow-card);
+}
+.view-option {
+  min-width: 112rpx;
+  height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.view-option.on {
+  color: #fff;
+  background: var(--brand-gradient);
 }
 .ctrl {
   width: 84rpx;

@@ -13,7 +13,7 @@ export interface LocalProfileInput {
   faceShape: string
   body: Record<string, number>
   preferences: Record<string, string>
-  gender: Gender
+  gender: Gender | ''
   hairstyle: HairStyleId
 }
 
@@ -51,10 +51,10 @@ export function buildLocalStyleReport(input: LocalProfileInput): StyleReport {
   const w = Number(input.body.weight) || 52
   const bmi = Math.round((w / (h / 100) ** 2) * 10) / 10
 
-  const styleScore = Math.round(40 + (styleLabels.length / STYLE_OPTIONS.length) * 60)
+  const styleScore = Math.round(40 + (Math.min(styleLabels.length, 3) / 3) * 60)
   const skinIndex = SKIN_OPTIONS.findIndex((o) => o.id === input.skinTone)
-  const skinScore = skinIndex < 0 ? 60 : 92 - skinIndex * 8
-  const faceScore = FACE_SCORE[input.faceShape] ?? 70
+  const skinScore = skinIndex < 0 ? 0 : 92 - skinIndex * 8
+  const faceScore = FACE_SCORE[input.faceShape] ?? 0
   const bodyScore = clamp(Math.round(100 - Math.abs(bmi - 21) * 4), 40, 100)
   const prefScore = Math.round(
     (Object.keys(input.preferences).length / PREFERENCE_QUESTIONS.length) * 100,
@@ -62,10 +62,10 @@ export function buildLocalStyleReport(input: LocalProfileInput): StyleReport {
 
   const radar: AiRadarDim[] = [
     { name: '风格', value: styleScore },
-    { name: '肤色', value: skinScore },
-    { name: '脸型', value: faceScore },
+    { name: '肤色', value: skinScore, incomplete: !input.skinTone },
+    { name: '脸型', value: faceScore, incomplete: !input.faceShape },
     { name: '体型', value: bodyScore },
-    { name: '偏好', value: prefScore },
+    { name: '偏好', value: prefScore, incomplete: Object.keys(input.preferences).length < PREFERENCE_QUESTIONS.length },
   ]
 
   const palette = PALETTE[mainStyle] || PALETTE['简约通勤']

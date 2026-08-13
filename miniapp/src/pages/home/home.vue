@@ -13,8 +13,7 @@ const cart = useCartStore()
 const picks = MALL_PRODUCTS.slice(0, 4)
 
 function createAvatar() {
-  if (profile.isComplete) uni.navigateTo({ url: '/pages/create/index' })
-  else uni.navigateTo({ url: '/pages/test/index' })
+  uni.navigateTo({ url: '/pages/body-create/index' })
 }
 
 function goFeature(route: string) {

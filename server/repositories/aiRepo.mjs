@@ -22,9 +22,13 @@ export async function saveStyleReport(userId, answers, result) {
 
 /** 报告列表（不带 result 正文，列表页不需要，省流量） */
 export async function listStyleReports(userId, limit = 20) {
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100))
   return getAll(
-    'SELECT id, created_at FROM style_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
-    [userId, Number(limit)],
+    `SELECT id, created_at FROM style_reports
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+      LIMIT ${safeLimit}`,
+    [userId],
   )
 }
 

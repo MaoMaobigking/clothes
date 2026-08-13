@@ -20,6 +20,7 @@ import {
 } from '../services/aiService.mjs'
 import { searchRAG, buildRAGPrompt, initRAG } from '../services/ragService.mjs'
 import { listGarments } from '../services/garmentService.mjs'
+import { saveStyleReport, listStyleReports, findStyleReport } from '../repositories/aiRepo.mjs'
 
 const router = Router()
 
@@ -37,9 +38,27 @@ const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, ne
 
 // POST /style-report
 router.post('/style-report', authRequired, asyncHandler(async (req, res) => {
-  if (!requireKey(req, res)) return
   const result = await generateReport(req.body?.profile ?? {})
-  res.json(result)
+  const answers = req.body?.answers ?? req.body?.profile ?? {}
+  const reportId = await saveStyleReport(req.userId, answers, result)
+  res.json({ ...result, reportId })
+}))
+
+// GET /style-reports — 历史报告列表
+router.get('/style-reports', authRequired, asyncHandler(async (req, res) => {
+  const items = await listStyleReports(req.userId)
+  res.json({ items })
+}))
+
+// GET /style-reports/:id — 读取本人历史报告
+router.get('/style-reports/:id', authRequired, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'INVALID_REPORT_ID', message: '报告 ID 不合法' })
+  }
+  const report = await findStyleReport(req.userId, id)
+  if (!report) return res.status(404).json({ error: 'NOT_FOUND', message: '报告不存在' })
+  res.json({ report })
 }))
 
 // POST /scene-outfits

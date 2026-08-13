@@ -308,7 +308,7 @@ export const AI_FEATURES: {
   to: string
   route: string
 }[] = [
-  { key: 'create', label: '个性化创建', desc: '打造你的专属虚拟形象', emoji: '🧍‍♀️', from: '#ffd6e8', to: '#d6a0ff', route: '/pages/create/index' },
+  { key: 'create', label: '个性化创建', desc: '打造你的专属虚拟形象', emoji: '🧍‍♀️', from: '#ffd6e8', to: '#d6a0ff', route: '/pages/body-create/index' },
   { key: 'stylist', label: 'AI 穿搭顾问', desc: '在线问穿搭，实时回答', emoji: '🤖', from: '#c9f0e6', to: '#7fd0c0', route: '/pages/stylist/index' },
   { key: 'free', label: '自由搭配', desc: '给形象自由换装试穿', emoji: '🧥', from: '#c9d8ff', to: '#9ab0ff', route: '/pages/free-match/index' },
   { key: 'scene', label: '情景模拟', desc: '看天气 + AI 一键搭配', emoji: '🌦️', from: '#c9ecff', to: '#8fc9f0', route: '/pages/scene/index' },

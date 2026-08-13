@@ -11,7 +11,11 @@ defineProps<{
       <view class="title">{{ title }}</view>
       <view v-if="subtitle" class="subtitle">{{ subtitle }}</view>
     </view>
-    <slot />
+    <scroll-view scroll-y class="content" :show-scrollbar="false">
+      <view class="content-inner">
+        <slot />
+      </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -19,10 +23,13 @@ defineProps<{
 .step-shell {
   flex: 1;
   min-height: 0;
-  padding: 8rpx 32rpx 40rpx;
+  padding: 8rpx 32rpx 0;
+  display: flex;
+  flex-direction: column;
 }
 .head {
   margin-bottom: 32rpx;
+  flex-shrink: 0;
 }
 .title {
   font-size: 44rpx;
@@ -34,5 +41,13 @@ defineProps<{
   margin-top: 12rpx;
   font-size: 26rpx;
   color: var(--text-2);
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+.content-inner {
+  padding-bottom: 40rpx;
 }
 </style>

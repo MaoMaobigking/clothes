@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS body_profiles (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
+  gender VARCHAR(16),
+  styles JSON,
   skin VARCHAR(32),
   face VARCHAR(32),
   body_type VARCHAR(32),
@@ -26,11 +28,15 @@ CREATE TABLE IF NOT EXISTS body_profiles (
   bmi DECIMAL(4,1),
   bust DECIMAL(5,1),
   waist DECIMAL(5,1),
+  hips DECIMAL(5,1),
+  shoulder DECIMAL(5,1),
   thigh DECIMAL(5,1),
   calf DECIMAL(5,1),
   preferences JSON,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_body_user_created (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. AI 风格报告 ★

@@ -53,9 +53,91 @@ function resizeChart() {
 // #ifdef MP-WEIXIN
 function drawCanvas() {
   if (!canvasRef.value) return
-  // 小程序 canvas 简化绘制 — 留作后续完善
-  const ctx = (uni.createCanvasContext) ? uni.createCanvasContext('radarCanvas', null as any) : null
-  // 小程序 canvas API 留空，用 H5 ECharts 即可满足当前演示需求
+  const ctx = uni.createCanvasContext('radarCanvas')
+  const width = 320
+  const height = 260
+  const centerX = width / 2
+  const centerY = height / 2 + 4
+  const radius = 104
+  const levels = 4
+  const dimensions = props.dimensions.length ? props.dimensions : []
+
+  ctx.clearRect(0, 0, width, height)
+  ctx.setLineWidth(1)
+
+  // 同心网格
+  for (let level = 1; level <= levels; level += 1) {
+    const current = (radius * level) / levels
+    ctx.beginPath()
+    for (let i = 0; i <= dimensions.length; i += 1) {
+      const angle = (Math.PI * 2 * i) / Math.max(dimensions.length, 1) - Math.PI / 2
+      const x = centerX + Math.cos(angle) * current
+      const y = centerY + Math.sin(angle) * current
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.setStrokeStyle('rgba(154, 107, 255, 0.2)')
+    ctx.stroke()
+  }
+
+  // 轴和标签
+  for (let i = 0; i < dimensions.length; i += 1) {
+    const angle = (Math.PI * 2 * i) / dimensions.length - Math.PI / 2
+    const x = centerX + Math.cos(angle) * radius
+    const y = centerY + Math.sin(angle) * radius
+    ctx.beginPath()
+    ctx.moveTo(centerX, centerY)
+    ctx.lineTo(x, y)
+    ctx.setStrokeStyle('rgba(154, 107, 255, 0.2)')
+    ctx.stroke()
+
+    const label = dimensions[i].incomplete
+      ? `${dimensions[i].name}·未完善`
+      : dimensions[i].name
+    const labelX = centerX + Math.cos(angle) * (radius + 24)
+    const labelY = centerY + Math.sin(angle) * (radius + 24) + 4
+    ctx.setFontSize(11)
+    ctx.setFillStyle('#6b6580')
+    ctx.setTextAlign(
+      Math.abs(Math.cos(angle)) < 0.25 ? 'center' : Math.cos(angle) > 0 ? 'left' : 'right',
+    )
+    ctx.fillText(label, labelX, labelY)
+  }
+
+  if (dimensions.length) {
+    const points = dimensions.map((d, i) => {
+      const angle = (Math.PI * 2 * i) / dimensions.length - Math.PI / 2
+      const value = Math.max(0, Math.min(100, Number(d.value) || 0))
+      const current = (radius * value) / 100
+      return {
+        x: centerX + Math.cos(angle) * current,
+        y: centerY + Math.sin(angle) * current,
+        value,
+        incomplete: d.incomplete,
+      }
+    })
+
+    ctx.beginPath()
+    points.forEach((point, index) => {
+      if (index === 0) ctx.moveTo(point.x, point.y)
+      else ctx.lineTo(point.x, point.y)
+    })
+    ctx.closePath()
+    ctx.setFillStyle('rgba(255, 143, 192, 0.25)')
+    ctx.fill()
+    ctx.setStrokeStyle('#b18cff')
+    ctx.setLineWidth(2)
+    ctx.stroke()
+
+    points.forEach((point) => {
+      ctx.beginPath()
+      ctx.arc(point.x, point.y, 4, 0, Math.PI * 2)
+      ctx.setFillStyle(point.incomplete ? '#b7b0c6' : '#ff5c9d')
+      ctx.fill()
+    })
+  }
+
+  ctx.draw()
 }
 // #endif
 
@@ -90,7 +172,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- H5: ECharts 渲染 -->
   <!-- #ifdef H5 -->
-  <view ref="containerRef" class="radar" />
+  <div ref="containerRef" class="radar" />
   <!-- #endif -->
   
   <!-- 小程序: Canvas 2D 手绘 -->
