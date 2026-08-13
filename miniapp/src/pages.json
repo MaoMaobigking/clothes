@@ -19,6 +19,13 @@
     { "path": "pages/scene/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/magazine-detail/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/teach-detail/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/share-editor/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/share-detail/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/my-favorites/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/achievements/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/admin/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
   ],
   "tabBar": {

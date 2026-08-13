@@ -4,9 +4,10 @@ import uni from '@dcloudio/vite-plugin-uni'
 export default defineConfig({
   plugins: [uni()],
   server: {
+    port: Number(process.env.H5_PORT || 5173),
     proxy: {
       '/api': {
-        target: 'http://localhost:8787',
+        target: process.env.API_PROXY_TARGET || 'http://localhost:8787',
         changeOrigin: true,
       },
     },

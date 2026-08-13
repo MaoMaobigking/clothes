@@ -6,7 +6,7 @@
  * 「真用户」是数据隔离的地基 —— 地基假的，上面所有 WHERE user_id = ? 都在演。
  */
 import { signToken, verifyToken } from '../middleware/auth.mjs'
-import { findOrCreateByOpenid } from '../repositories/userRepo.mjs'
+import { findOrCreateByOpenid, setUserRole } from '../repositories/userRepo.mjs'
 import { ensureSeeded } from './garmentService.mjs'
 import { createHash } from 'node:crypto'
 
@@ -60,15 +60,23 @@ export async function wxLogin(code, profile = {}) {
     }
   }
 
-  const token = signToken({ userId: user.id, openid })
-  return { token, userId: user.id, openid, isNewUser: created, nickname: user.nickname }
+  const role = user.role || 'user'
+  const token = signToken({ userId: user.id, openid, role })
+  return {
+    token,
+    userId: user.id,
+    openid,
+    role,
+    isNewUser: created,
+    nickname: user.nickname,
+  }
 }
 
 /** 验 token 并返回用户信息 */
 export function checkToken(token) {
   const payload = verifyToken(token)
   if (!payload) return null
-  return { userId: payload.userId, openid: payload.openid }
+  return { userId: payload.userId, openid: payload.openid, role: payload.role || 'user' }
 }
 
 /**
@@ -77,4 +85,34 @@ export function checkToken(token) {
  */
 export async function devToken(tag = 'dev') {
   return wxLogin(`devcode_${tag}`, { nickname: `开发用户_${tag}` })
+}
+
+/**
+ * 轻量管理员登录。演示阶段使用环境变量中的独立密码，
+ * 不暴露普通账号选择器，也不接真实管理员系统。
+ */
+export async function adminLogin(password) {
+  const expected = process.env.ADMIN_PASSWORD
+  if (process.env.NODE_ENV === 'production' && !expected) {
+    const err = new Error('生产环境未配置 ADMIN_PASSWORD')
+    err.status = 503
+    err.code = 'ADMIN_NOT_CONFIGURED'
+    throw err
+  }
+  const expectedPassword = expected || 'lingxi-admin-demo'
+  if (!password || password !== expectedPassword) {
+    const err = new Error('管理员密码不正确')
+    err.status = 401
+    err.code = 'ADMIN_LOGIN_FAILED'
+    throw err
+  }
+
+  const openid = 'lingxi_admin'
+  const { user } = await findOrCreateByOpenid(openid, {
+    nickname: '灵犀管理员',
+    role: 'admin',
+  })
+  if (user.role !== 'admin') await setUserRole(user.id, 'admin')
+  const token = signToken({ userId: user.id, openid, role: 'admin' })
+  return { token, userId: user.id, role: 'admin', nickname: user.nickname }
 }

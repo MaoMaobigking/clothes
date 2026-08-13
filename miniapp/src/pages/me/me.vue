@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 // easycom 自动解析 TileImage / SectionTitle / BottomNav，也可显式导入
 import TileImage from '@/components/TileImage/TileImage.vue'
 import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
@@ -7,10 +7,16 @@ import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import { useProfileStore } from '@/stores/profile'
+import { fetchAchievements, type AchievementSummary } from '@/api/community'
 
 const wardrobe = useWardrobeStore()
 const cart = useCartStore()
 const profile = useProfileStore()
+const achievements = ref<AchievementSummary>({
+  points: 0,
+  badges: [],
+  completed: [],
+})
 
 /** 轻提示（页面内小气泡） */
 const toast = ref('')
@@ -28,8 +34,11 @@ const stats = [
 ]
 
 function goAvatar() {
-  // 原 Web 路由 /create、/test 在 miniapp 中尚未实现，先以 toast 提示
-  showToast(profile.isComplete ? '进入个性化创建（页面开发中）' : '去创建形象（页面开发中）')
+  uni.navigateTo({ url: '/pages/body-create/index' })
+}
+
+function goAchievements() {
+  uni.navigateTo({ url: '/pages/achievements/index' })
 }
 
 interface MenuItem {
@@ -43,20 +52,30 @@ const menus: MenuItem[] = [
   { key: 'orders', emoji: '📦', label: '我的订单' },
   { key: 'outfits', emoji: '👗', label: '我的搭配' },
   { key: 'diary', emoji: '📔', label: '穿搭日记' },
-  { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/magazine/magazine' },
-  { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/community' },
+  { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/community/index?tab=magazine' },
+  { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index?tab=share' },
+  { key: 'favorites', emoji: '⭐', label: '我的收藏', route: '/pages/my-favorites/index' },
+  { key: 'achievements', emoji: '🏅', label: '学习成就', route: '/pages/achievements/index' },
+  { key: 'admin', emoji: '📊', label: '管理员看板', route: '/pages/admin/index' },
   { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/scene' },
   { key: 'setting', emoji: '⚙️', label: '设置' },
 ]
 
 function onMenu(m: MenuItem) {
   if (m.route) {
-    // 目标页面尚未实现，统一走 toast；后续实现后改为 uni.navigateTo({ url: m.route })
-    showToast(`「${m.label}」功能敬请期待～`)
+    uni.navigateTo({ url: m.route })
   } else {
     showToast(`「${m.label}」功能敬请期待～`)
   }
 }
+
+onMounted(async () => {
+  try {
+    achievements.value = await fetchAchievements()
+  } catch {
+    // 个人中心不应因学习数据加载失败而阻塞
+  }
+})
 </script>
 
 <template>
@@ -100,6 +119,29 @@ function onMenu(m: MenuItem) {
             <view class="btn btn-primary ac-btn" hover-class="btn-hover" @tap="goAvatar">
               {{ profile.isComplete ? '进入个性化创建' : '去创建形象' }}
             </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 学习数据 -->
+      <view>
+        <SectionTitle title="学习记录" />
+        <view class="learning-card" @tap="goAchievements">
+          <view class="learning-points">
+            <text class="learning-number">{{ achievements.points }}</text>
+            <text class="learning-label">学习积分</text>
+          </view>
+          <view class="learning-progress">
+            <view class="learning-line">
+              <view
+                class="learning-fill"
+                :style="{ width: `${Math.min(100, Math.round(achievements.completed.length / 4 * 100))}%` }"
+              />
+            </view>
+            <text class="learning-meta">
+              已完成 {{ achievements.completed.length }} 个教程
+              <text v-if="achievements.badges.length"> · {{ achievements.badges.length }} 枚徽章</text>
+            </text>
           </view>
         </view>
       </view>
@@ -236,6 +278,58 @@ function onMenu(m: MenuItem) {
   padding: 28rpx;
   box-shadow: var(--shadow-card);
   margin-top: 20rpx;
+}
+
+/* 学习记录 */
+.learning-card {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  padding: 28rpx;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  margin-top: 20rpx;
+}
+.learning-points {
+  flex: 0 0 124rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+.learning-number {
+  font-size: 48rpx;
+  line-height: 1;
+  font-weight: 900;
+  color: var(--pink-deep);
+}
+.learning-label {
+  font-size: 22rpx;
+  color: var(--text-2);
+}
+.learning-progress {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+.learning-line {
+  width: 100%;
+  height: 14rpx;
+  border-radius: var(--radius-pill);
+  background: #e8e2ef;
+  overflow: hidden;
+}
+.learning-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+}
+.learning-meta {
+  font-size: 24rpx;
+  color: var(--text-2);
 }
 .avatar-thumb {
   width: 176rpx;
