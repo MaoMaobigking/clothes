@@ -19,7 +19,7 @@ function navigateTo(url: string) {
       </view>
 
       <!-- 主推 banner -->
-      <view class="banner" @tap="navigateTo('/pages/create/index')">
+      <view class="banner" @tap="navigateTo('/pages/body-create/index')">
         <text class="banner-emoji">🧍‍♀️</text>
         <view class="banner-text">
           <text class="banner-title">打造你的专属虚拟形象</text>

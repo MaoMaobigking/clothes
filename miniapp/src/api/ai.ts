@@ -1,8 +1,10 @@
-/* 调后端 AI 接口（uni-app 适配版，用 uni.request 替代 fetch） */
+/* 调后端 AI 接口（统一经过 http.ts 建立开发用户身份） */
+import { request } from './http'
 
 export interface AiRadarDim {
   name: string
   value: number
+  incomplete?: boolean
 }
 
 export interface AiRecommendation {
@@ -18,6 +20,8 @@ export interface StyleReport {
   palette: string[]
   recommendations: AiRecommendation[]
   tips: string[]
+  source?: 'ai' | 'rule'
+  aiError?: string
 }
 
 /** 发给后端的用户画像（可读文案，方便大模型理解） */
@@ -30,29 +34,14 @@ export interface ProfilePayload {
   preferences: Record<string, string>
 }
 
-function request<T>(options: { url: string; method?: string; data?: any }): Promise<T> {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: options.url,
-      method: (options.method || 'GET') as any,
-      data: options.data,
-      header: { 'Content-Type': 'application/json' },
-      success: (res) => {
-        if (res.statusCode >= 400) {
-          const err = (res.data as any)?.message || `请求失败（${res.statusCode}）`
-          reject(new Error(err))
-        } else resolve(res.data as T)
-      },
-      fail: (err) => reject(err),
-    })
-  })
-}
-
-export async function fetchStyleReport(profile: ProfilePayload): Promise<StyleReport> {
+export async function fetchStyleReport(
+  profile: ProfilePayload,
+  answers?: unknown,
+): Promise<StyleReport> {
   return request<StyleReport>({
     url: '/api/style-report',
     method: 'POST',
-    data: { profile },
+    data: { profile, answers },
   })
 }
 

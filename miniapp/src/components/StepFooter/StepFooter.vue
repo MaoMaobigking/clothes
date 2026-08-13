@@ -5,11 +5,13 @@ withDefaults(
     total: number
     canNext: boolean
     nextLabel?: string
+    skipLabel?: string
     showPrev?: boolean
     showSkip?: boolean
   }>(),
   {
     nextLabel: '下一步',
+    skipLabel: '跳过',
     showPrev: true,
     showSkip: true,
   },
@@ -52,7 +54,7 @@ const emit = defineEmits<{
       </view>
 
       <view v-if="showSkip" class="skip" @tap="emit('skip')">
-        跳过
+        {{ skipLabel }}
       </view>
     </view>
   </view>

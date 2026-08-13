@@ -3,6 +3,7 @@ import type {
   Option,
   PreferenceQuestion,
   StepMeta,
+  VisualBodyId,
 } from '@/types'
 
 /** 5 个步骤的定义（顶部进度 & 步骤指示都用它） */
@@ -44,12 +45,29 @@ export const FACE_OPTIONS: Option[] = [
   { id: 'diamond', label: '菱形脸', desc: '颧骨突出', emoji: '💎', color: '#e0d4ff' },
 ]
 
+/** 视觉体型：单选，必填 */
+export const VISUAL_BODY_OPTIONS: {
+  id: VisualBodyId
+  label: string
+  desc: string
+  emoji: string
+  color: string
+}[] = [
+  { id: 'hourglass', label: '沙漏型', desc: '肩臀接近，腰线明显', emoji: '⏳', color: '#ffd1e8' },
+  { id: 'pear', label: '梨形', desc: '下半身比上半身更丰满', emoji: '🍐', color: '#d7f0d1' },
+  { id: 'rectangle', label: '矩形', desc: '肩、腰、臀比例接近', emoji: '▭', color: '#cfe0ff' },
+  { id: 'apple', label: '苹果形', desc: '腰腹较圆，四肢相对纤细', emoji: '🍎', color: '#ffe4c9' },
+  { id: 'inverted-triangle', label: '倒三角', desc: '肩部较宽，下半身偏窄', emoji: '🔻', color: '#e5dcff' },
+]
+
 /** 体型测试：数值测量项 */
 export const BODY_FIELDS: BodyField[] = [
   { key: 'height', label: '身高', unit: 'cm', min: 140, max: 200, step: 1, default: 165 },
   { key: 'weight', label: '体重', unit: 'kg', min: 35, max: 120, step: 1, default: 52 },
   { key: 'bust', label: '胸围', unit: 'cm', min: 60, max: 130, step: 1, default: 84 },
   { key: 'waist', label: '腰围', unit: 'cm', min: 50, max: 120, step: 1, default: 66 },
+  { key: 'hip', label: '臀围', unit: 'cm', min: 60, max: 140, step: 1, default: 90 },
+  { key: 'shoulder', label: '肩宽', unit: 'cm', min: 25, max: 65, step: 1, default: 39 },
   { key: 'thigh', label: '大腿围', unit: 'cm', min: 35, max: 80, step: 1, default: 52 },
   { key: 'calf', label: '小腿围', unit: 'cm', min: 25, max: 55, step: 1, default: 34 },
 ]

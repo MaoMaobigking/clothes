@@ -27,6 +27,9 @@ server/rag_index.json
 # 工具产物
 .reasonix
 
+# 会话交接文档（本地调错用，含环境细节与未决讨论，不入库）
+.handoff/
+
 # 微信小程序：本机私有配置（每个开发者各自生成，共享忽略规则）
 project.private.config.json
 

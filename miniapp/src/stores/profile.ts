@@ -7,8 +7,16 @@ import {
   SKIN_OPTIONS,
   STEPS,
   STYLE_OPTIONS,
+  VISUAL_BODY_OPTIONS,
 } from '@/data/questions'
-import type { BodyMetricKey, Gender, HairStyleId, RadarDimension, UserProfile } from '@/types'
+import type {
+  BodyMetricKey,
+  Gender,
+  HairStyleId,
+  RadarDimension,
+  UserProfile,
+  VisualBodyId,
+} from '@/types'
 
 const PROFILE_STORAGE_KEY = 'ai-fashion-profile'
 
@@ -22,6 +30,15 @@ function defaultBody(): Record<BodyMetricKey, number> {
   )
 }
 
+function defaultProgress() {
+  return {
+    genderSelected: false,
+    visualBodySelected: false,
+    heightTouched: false,
+    weightTouched: false,
+  }
+}
+
 const FACE_SCORE: Record<string, number> = {
   oval: 95, heart: 88, diamond: 84, square: 80, round: 78, long: 76,
 }
@@ -33,26 +50,86 @@ export const useProfileStore = defineStore('profile', () => {
     skinTone: '',
     faceShape: '',
     body: defaultBody(),
+    visualBody: '',
     preferences: {},
-    gender: 'female',
+    gender: '',
     hairstyle: 'straight',
+    progress: defaultProgress(),
   })
   const totalSteps = STEPS.length
 
   function toggleStyle(id: string) {
     const i = profile.styles.indexOf(id)
     if (i >= 0) profile.styles.splice(i, 1)
-    else profile.styles.push(id)
+    else if (profile.styles.length < 3) profile.styles.push(id)
   }
   function setSkin(id: string) { profile.skinTone = id }
   function setFace(id: string) { profile.faceShape = id }
-  function setBody(key: BodyMetricKey, value: number) { profile.body[key] = value }
+  function setBody(key: BodyMetricKey, value: number) {
+    profile.body[key] = value
+    if (key === 'height') profile.progress.heightTouched = true
+    if (key === 'weight') profile.progress.weightTouched = true
+  }
+  function setVisualBody(id: VisualBodyId) {
+    profile.visualBody = id
+    profile.progress.visualBodySelected = true
+  }
   function setPreference(questionId: string, optionId: string) { profile.preferences[questionId] = optionId }
-  function setGender(gender: Gender) { profile.gender = gender }
+  function setGender(gender: Gender) {
+    profile.gender = gender
+    profile.progress.genderSelected = true
+  }
   function setHairstyle(hairstyle: HairStyleId) { profile.hairstyle = hairstyle }
 
   function persist() {
     uni.setStorageSync(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+  }
+
+  function applyRemoteProfile(remote: any) {
+    if (!remote || typeof remote !== 'object') return
+    if (Array.isArray(remote.styles)) {
+      profile.styles = remote.styles
+        .filter((id: string) => STYLE_OPTIONS.some((option) => option.id === id))
+        .slice(0, 3)
+    }
+    if (remote.gender === 'female' || remote.gender === 'male') {
+      profile.gender = remote.gender
+      profile.progress.genderSelected = true
+    }
+    if (typeof remote.skin === 'string') profile.skinTone = remote.skin
+    if (typeof remote.face === 'string') profile.faceShape = remote.face
+    if (typeof remote.visualBody === 'string' &&
+        VISUAL_BODY_OPTIONS.some((option) => option.id === remote.visualBody)) {
+      profile.visualBody = remote.visualBody
+      profile.progress.visualBodySelected = true
+    }
+
+    const numeric = [
+      ['height', 'height'],
+      ['weight', 'weight'],
+      ['bust', 'bust'],
+      ['waist', 'waist'],
+      ['hip', 'hips'],
+      ['shoulder', 'shoulder'],
+      ['thigh', 'thigh'],
+      ['calf', 'calf'],
+    ] as const
+    numeric.forEach(([profileKey, remoteKey]) => {
+      const value = Number(remote[remoteKey])
+      if (Number.isFinite(value)) profile.body[profileKey] = value
+    })
+    if (Number.isFinite(Number(remote.height))) profile.progress.heightTouched = true
+    if (Number.isFinite(Number(remote.weight))) profile.progress.weightTouched = true
+
+    if (remote.preferences && typeof remote.preferences === 'object') {
+      const next: Record<string, string> = {}
+      for (const question of PREFERENCE_QUESTIONS) {
+        const optionId = remote.preferences[question.id]
+        if (question.options.some((option) => option.id === optionId)) next[question.id] = optionId
+      }
+      profile.preferences = next
+    }
+    persist()
   }
 
   function loadPersisted() {
@@ -60,7 +137,10 @@ export const useProfileStore = defineStore('profile', () => {
       const raw = uni.getStorageSync(PROFILE_STORAGE_KEY)
       if (!raw) return
       const saved = typeof raw === 'string' ? JSON.parse(raw) : raw
-      if (saved.gender === 'female' || saved.gender === 'male') profile.gender = saved.gender
+      if (saved.gender === 'female' || saved.gender === 'male') {
+        profile.gender = saved.gender
+        profile.progress.genderSelected = true
+      }
       if (typeof saved.hairstyle === 'string') profile.hairstyle = saved.hairstyle as HairStyleId
       if (Array.isArray(saved.styles)) {
         profile.styles = saved.styles.filter((id: string) =>
@@ -73,6 +153,11 @@ export const useProfileStore = defineStore('profile', () => {
       if (typeof saved.faceShape === 'string' && FACE_OPTIONS.some((o) => o.id === saved.faceShape)) {
         profile.faceShape = saved.faceShape
       }
+      if (typeof saved.visualBody === 'string' &&
+          VISUAL_BODY_OPTIONS.some((o) => o.id === saved.visualBody)) {
+        profile.visualBody = saved.visualBody as VisualBodyId
+        profile.progress.visualBodySelected = true
+      }
       if (saved.preferences && typeof saved.preferences === 'object') {
         const next: Record<string, string> = {}
         for (const q of PREFERENCE_QUESTIONS) {
@@ -82,10 +167,18 @@ export const useProfileStore = defineStore('profile', () => {
         profile.preferences = next
       }
       if (saved.body && typeof saved.body === 'object') {
+        profile.progress.heightTouched = true
+        profile.progress.weightTouched = true
         BODY_FIELDS.forEach((f) => {
           const v = Number(saved.body[f.key])
           if (Number.isFinite(v)) profile.body[f.key] = Math.min(f.max, Math.max(f.min, v))
         })
+      }
+      if (saved.progress && typeof saved.progress === 'object') {
+        profile.progress.genderSelected = profile.progress.genderSelected || Boolean(saved.progress.genderSelected)
+        profile.progress.visualBodySelected = profile.progress.visualBodySelected || Boolean(saved.progress.visualBodySelected)
+        profile.progress.heightTouched = profile.progress.heightTouched || Boolean(saved.progress.heightTouched)
+        profile.progress.weightTouched = profile.progress.weightTouched || Boolean(saved.progress.weightTouched)
       }
     } catch {
       /* 忽略损坏的本地数据 */
@@ -101,34 +194,57 @@ export const useProfileStore = defineStore('profile', () => {
     profile.skinTone = ''
     profile.faceShape = ''
     profile.body = defaultBody()
+    profile.visualBody = ''
     profile.preferences = {}
+    profile.gender = ''
+    profile.progress = defaultProgress()
   }
 
   const canProceed = computed(() => {
     switch (currentStep.value) {
-      case 1: return profile.styles.length >= 3
+      case 1: return profile.styles.length === 3
       case 2: return profile.skinTone !== ''
       case 3: return profile.faceShape !== ''
-      case 4: return true
-      case 5: return Object.keys(profile.preferences).length === PREFERENCE_QUESTIONS.length
+      case 4: return bodyReady.value
+      case 5: return answeredPreferences.value >= 3
       default: return false
     }
   })
 
-  const isComplete = computed(
-    () =>
-      profile.styles.length >= 3 && profile.skinTone !== '' &&
-      profile.faceShape !== '' &&
-      Object.keys(profile.preferences).length === PREFERENCE_QUESTIONS.length,
+  const answeredPreferences = computed(() => Object.keys(profile.preferences).length)
+  const bodyReady = computed(() =>
+    profile.progress.genderSelected &&
+    profile.progress.visualBodySelected &&
+    profile.progress.heightTouched &&
+    profile.progress.weightTouched,
+  )
+
+  const isComplete = computed(() =>
+    profile.styles.length === 3 &&
+    bodyReady.value &&
+    answeredPreferences.value >= 3,
   )
 
   const missingCount = computed(() => {
     let missing = 0
     if (profile.styles.length < 3) missing += 1
-    if (profile.skinTone === '') missing += 1
-    if (profile.faceShape === '') missing += 1
-    if (Object.keys(profile.preferences).length < PREFERENCE_QUESTIONS.length) missing += 1
+    if (!bodyReady.value) missing += 1
+    if (answeredPreferences.value < 3) missing += 1
     return missing
+  })
+
+  const incompleteDimensions = computed<RadarDimension[]>(() => {
+    const list: RadarDimension[] = []
+    if (!profile.skinTone) list.push({ name: '肤色', value: 0, incomplete: true })
+    if (!profile.faceShape) list.push({ name: '脸型', value: 0, incomplete: true })
+    if (answeredPreferences.value < PREFERENCE_QUESTIONS.length) {
+      list.push({
+        name: '偏好',
+        value: answeredPreferences.value,
+        incomplete: true,
+      })
+    }
+    return list
   })
 
   const bmi = computed(() => {
@@ -138,18 +254,18 @@ export const useProfileStore = defineStore('profile', () => {
   })
 
   const radar = computed<RadarDimension[]>(() => {
-    const styleScore = Math.round(40 + (profile.styles.length / STYLE_OPTIONS.length) * 60)
+    const styleScore = Math.round(40 + (profile.styles.length / 3) * 60)
     const skinIndex = SKIN_OPTIONS.findIndex((o) => o.id === profile.skinTone)
-    const skinScore = skinIndex < 0 ? 60 : 92 - skinIndex * 8
-    const faceScore = FACE_SCORE[profile.faceShape] ?? 70
+    const skinScore = skinIndex < 0 ? 0 : 92 - skinIndex * 8
+    const faceScore = FACE_SCORE[profile.faceShape] ?? 0
     const bodyScore = clamp(Math.round(100 - Math.abs(bmi.value - 21) * 4), 40, 100)
-    const prefScore = Math.round((Object.keys(profile.preferences).length / PREFERENCE_QUESTIONS.length) * 100)
+    const prefScore = Math.round((answeredPreferences.value / PREFERENCE_QUESTIONS.length) * 100)
     return [
       { name: '风格', value: styleScore },
-      { name: '肤色', value: skinScore },
-      { name: '脸型', value: faceScore },
+      { name: '肤色', value: skinScore, incomplete: !profile.skinTone },
+      { name: '脸型', value: faceScore, incomplete: !profile.faceShape },
       { name: '体型', value: bodyScore },
-      { name: '偏好', value: prefScore },
+      { name: '偏好', value: prefScore, incomplete: answeredPreferences.value < PREFERENCE_QUESTIONS.length },
     ]
   })
 
@@ -158,18 +274,25 @@ export const useProfileStore = defineStore('profile', () => {
   )
   const skinLabel = computed(() => SKIN_OPTIONS.find((o) => o.id === profile.skinTone)?.label ?? '')
   const faceLabel = computed(() => FACE_OPTIONS.find((o) => o.id === profile.faceShape)?.label ?? '')
+  const visualBodyLabel = computed(() =>
+    VISUAL_BODY_OPTIONS.find((o) => o.id === profile.visualBody)?.label ?? '',
+  )
   const summary = computed(() => {
     if (!isComplete.value) return ''
     const main = styleLabels.value[0] ?? '百搭'
-    return `${skinLabel.value} · ${faceLabel.value} · 偏爱「${main}」的你`
+    return [skinLabel.value, faceLabel.value, `偏爱「${main}」的你`]
+      .filter(Boolean)
+      .join(' · ')
   })
 
   return {
     currentStep, profile, totalSteps,
-    toggleStyle, setSkin, setFace, setBody, setPreference, setGender, setHairstyle,
+    toggleStyle, setSkin, setFace, setBody, setVisualBody, setPreference, setGender, setHairstyle,
     persist, loadPersisted,
+    applyRemoteProfile,
     goNext, goPrev, goto, reset,
-    canProceed, isComplete, missingCount, bmi, radar, styleLabels, skinLabel, faceLabel, summary,
+    canProceed, isComplete, answeredPreferences, bodyReady, missingCount,
+    incompleteDimensions, bmi, radar, styleLabels, skinLabel, faceLabel, visualBodyLabel, summary,
   }
 })
 

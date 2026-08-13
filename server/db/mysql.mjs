@@ -118,8 +118,35 @@ export async function initDb() {
   })
   try {
     await conn.query(sql)
+    await migrateBodyProfiles(conn)
   } finally {
     await conn.end()
+  }
+}
+
+/**
+ * schema.sql 的 CREATE TABLE IF NOT EXISTS 不会改已存在的旧表。
+ * 这里补齐功能一新增的体型字段，保证已有开发库也能平滑升级。
+ */
+async function migrateBodyProfiles(conn) {
+  const columns = [
+    ['gender', 'VARCHAR(16) NULL'],
+    ['styles', 'JSON NULL'],
+    ['hips', 'DECIMAL(5,1) NULL'],
+    ['shoulder', 'DECIMAL(5,1) NULL'],
+    ['updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'],
+  ]
+  const [rows] = await conn.query(
+    `SELECT COLUMN_NAME AS name
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'body_profiles'`,
+    [DB_NAME],
+  )
+  const existing = new Set(rows.map((row) => row.name))
+  for (const [name, ddl] of columns) {
+    if (!existing.has(name)) {
+      await conn.query(`ALTER TABLE body_profiles ADD COLUMN ${name} ${ddl}`)
+    }
   }
 }
 

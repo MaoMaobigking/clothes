@@ -20,7 +20,9 @@ npm run build:mp-weixin
 
 1. 启动微信开发者工具，扫码登录
 2. 点击「导入项目」
-3. 项目目录选择：`e:\ai服装\miniapp\dist\build\mp-weixin`
+3. 项目目录选择二选一：
+   - 直接打开仓库根目录：`e:\ai服装`（已配置 `miniprogramRoot`）
+   - 或打开编译产物：`e:\ai服装\miniapp\dist\build\mp-weixin`
 4. AppID 填入你的小程序 AppID（或选择「测试号」）
 5. 点击「导入」
 

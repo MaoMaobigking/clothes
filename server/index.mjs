@@ -16,6 +16,7 @@ import { errorHandler } from './middleware/errorHandler.mjs'
 import garmentRoutes from './routes/garments.mjs'
 import aiRoutes from './routes/ai.mjs'
 import authRoutes from './routes/auth.mjs'
+import profileRoutes from './routes/profile.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
@@ -40,6 +41,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
 app.use('/api/auth', authRoutes)
+app.use('/api/profile', profileRoutes)
 
 /* ============ 统一错误处理（必须放在所有路由之后） ============ */
 app.use(errorHandler)

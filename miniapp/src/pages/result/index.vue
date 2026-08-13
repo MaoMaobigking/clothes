@@ -5,6 +5,14 @@ import RadarChart from '@/components/RadarChart/RadarChart.vue'
 import { useProfileStore } from '@/stores/profile'
 import { PREFERENCE_QUESTIONS } from '@/data/questions'
 import { fetchStyleReport, type StyleReport } from '@/api/ai'
+import {
+  fetchCurrentProfile,
+  fetchStyleReports,
+  fetchStyleReportById,
+  saveCurrentProfile,
+  toProfilePayload,
+  type StyleReportListItem,
+} from '@/api/profile'
 import { buildLocalStyleReport } from '@/data/localReport'
 import { MODEL_IMAGES } from '@/data/mock'
 
@@ -13,7 +21,9 @@ const store = useProfileStore()
 const report = ref<StyleReport | null>(null)
 const loading = ref(false)
 const error = ref('')
-const source = ref<'ai' | 'local'>('ai')
+const source = ref<'ai' | 'rule'>('ai')
+const history = ref<StyleReportListItem[]>([])
+const historyLoading = ref(false)
 
 /** 组装发给 AI 的可读画像 */
 function buildPayload() {
@@ -37,7 +47,15 @@ async function generate() {
   error.value = ''
   source.value = 'ai'
   try {
-    report.value = await fetchStyleReport(buildPayload())
+    if (store.isComplete) {
+      await saveCurrentProfile(store.profile)
+    }
+    report.value = await fetchStyleReport(
+      buildPayload(),
+      toProfilePayload(store.profile),
+    )
+    source.value = report.value.source || 'ai'
+    await refreshHistory()
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
     report.value = buildLocalStyleReport({
@@ -49,22 +67,72 @@ async function generate() {
       gender: store.profile.gender,
       hairstyle: store.profile.hairstyle,
     })
-    source.value = 'local'
+    source.value = 'rule'
     error.value = ''
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
+async function refreshHistory() {
+  historyLoading.value = true
+  try {
+    history.value = await fetchStyleReports()
+  } catch {
+    history.value = []
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+async function loadReport(id: number) {
+  historyLoading.value = true
+  try {
+    const record = await fetchStyleReportById(id)
+    const result = typeof record.result === 'string'
+      ? JSON.parse(record.result)
+      : record.result
+    report.value = result || null
+    source.value = report.value?.source === 'rule' ? 'rule' : 'ai'
+    error.value = ''
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+onMounted(async () => {
   store.loadPersisted()
-  generate()
+  if (!store.isComplete) {
+    uni.redirectTo({ url: '/pages/test/index' })
+    return
+  }
+
+  const pending = uni.getStorageSync('ai-fashion-pending-report')
+  uni.removeStorageSync('ai-fashion-pending-report')
+  try {
+    const remote = await fetchCurrentProfile()
+    if (remote) store.applyRemoteProfile(remote)
+  } catch {
+    /* 后端不可用时继续使用本地画像 */
+  }
+
+  if (pending) {
+    await generate()
+    return
+  }
+
+  await refreshHistory()
+  if (history.value[0]) {
+    await loadReport(history.value[0].id)
+  } else if (store.isComplete) {
+    await generate()
+  }
 })
 
 // AI 有数据就用 AI 的，否则回退到本地示意
-const radar = computed(() =>
-  report.value?.radar?.length ? report.value.radar : store.radar,
-)
+const radar = computed(() => store.radar)
 const summary = computed(
   () => report.value?.summary || store.summary || '完成测试即可生成你的专属画像',
 )
@@ -74,6 +142,13 @@ const modelSrc = computed(() =>
 const viewerLabel = computed(() =>
   store.profile.gender === 'male' ? '男性虚拟形象' : '女性虚拟形象',
 )
+
+function formatDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
 function save() {
   store.persist()
@@ -114,14 +189,36 @@ function goBack() {
         <text>✨ 以下由 AI 实时生成</text>
         <button class="mini" @tap="generate">换一份</button>
       </view>
-      <view v-else-if="report && source === 'local'" class="ai-banner ok">
-        <text>🧭 本地画像生成（AI 未连接）</text>
+      <view v-else-if="report && source === 'rule'" class="ai-banner ok">
+        <text>🧭 基础规则版（AI 未连接）</text>
         <button class="mini" @tap="generate">重试 AI</button>
+      </view>
+
+      <view v-if="history.length" class="history">
+        <view class="history-title">
+          历史报告
+          <text v-if="historyLoading" class="history-loading">读取中…</text>
+        </view>
+        <scroll-view scroll-x class="history-list" :show-scrollbar="false">
+          <view
+            v-for="item in history"
+            :key="item.id"
+            class="history-item"
+            @tap="loadReport(item.id)"
+          >
+            <text class="history-time">{{ formatDate(item.created_at) }}</text>
+            <text class="history-go">查看</text>
+          </view>
+        </scroll-view>
       </view>
 
       <!-- 虚拟形象 -->
       <view class="card avatar-card">
-        <AvatarViewer :src="modelSrc" :frames="{ front: modelSrc }" :label="viewerLabel" />
+        <AvatarViewer
+          :src="modelSrc"
+          :frames="{ front: modelSrc, back: modelSrc }"
+          :label="viewerLabel"
+        />
         <view class="summary">{{ summary }}</view>
       </view>
 
@@ -129,6 +226,16 @@ function goBack() {
       <view class="card">
         <view class="sec-title">🧭 我的画像雷达</view>
         <RadarChart :dimensions="radar" />
+        <view v-if="store.incompleteDimensions.length" class="incomplete-list">
+          <view
+            v-for="dim in store.incompleteDimensions"
+            :key="dim.name"
+            class="incomplete-item"
+          >
+            <text class="dot">•</text>
+            <text>{{ dim.name }}：该维度未完善</text>
+          </view>
+        </view>
       </view>
 
       <!-- 推荐配色 -->
@@ -287,6 +394,68 @@ function goBack() {
   border-radius: var(--radius-lg);
   padding: 36rpx;
   box-shadow: var(--shadow-card);
+}
+.history {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1rpx solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius);
+  padding: 20rpx 24rpx;
+}
+.history-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 25rpx;
+  font-weight: 800;
+  color: var(--text-1);
+  margin-bottom: 14rpx;
+}
+.history-loading {
+  font-size: 21rpx;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.history-list {
+  width: 100%;
+  white-space: nowrap;
+}
+.history-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx 20rpx;
+  margin-right: 14rpx;
+  background: var(--surface);
+  border-radius: 999rpx;
+  box-shadow: var(--shadow-card);
+}
+.history-time {
+  font-size: 21rpx;
+  color: var(--text-2);
+}
+.history-go {
+  font-size: 21rpx;
+  font-weight: 800;
+  color: var(--purple-deep);
+}
+.incomplete-list {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.incomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: 24rpx;
+  color: var(--text-2);
+}
+.incomplete-item .dot {
+  color: var(--pink-deep);
+  font-weight: 900;
 }
 .avatar-card {
   padding-top: 16rpx;

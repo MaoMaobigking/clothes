@@ -1,18 +1,27 @@
 <script setup lang="ts">
 import StepShell from '@/components/StepShell/StepShell.vue'
-import { BODY_FIELDS } from '@/data/questions'
+import {
+  BODY_FIELDS,
+  VISUAL_BODY_OPTIONS,
+} from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
-import type { BodyMetricKey } from '@/types'
+import type { BodyMetricKey, Gender } from '@/types'
 
 const store = useProfileStore()
 
-function onInput(key: BodyMetricKey, e: Event) {
-  store.setBody(key, Number((e.target as HTMLInputElement).value))
+function onSliderChange(key: BodyMetricKey, event: any) {
+  const value = Number(event?.detail?.value ?? event?.target?.value)
+  if (Number.isFinite(value)) store.setBody(key, value)
 }
 
-/** 滑块已拖到的百分比，用来给轨道上色 */
-function percent(key: BodyMetricKey, min: number, max: number) {
-  return ((store.profile.body[key] - min) / (max - min)) * 100
+function chooseGender(gender: Gender) {
+  store.setGender(gender)
+}
+
+function requiredMet(key: BodyMetricKey) {
+  if (key === 'height') return store.profile.progress.heightTouched
+  if (key === 'weight') return store.profile.progress.weightTouched
+  return true
 }
 
 const bmiTip = (bmi: number) => {
@@ -24,32 +33,100 @@ const bmiTip = (bmi: number) => {
 </script>
 
 <template>
-  <StepShell title="填写你的身形数据" subtitle="拖动滑块即可，用于精准推荐版型尺码">
-    <view class="fields">
-      <view v-for="f in BODY_FIELDS" :key="f.key" class="field">
-        <view class="row">
-          <text class="name">{{ f.label }}</text>
-          <text class="value">
-            {{ store.profile.body[f.key] }}
-            <text class="unit">{{ f.unit }}</text>
-          </text>
+  <StepShell
+    title="描述你的身形"
+    subtitle="先选视觉体型，再确认性别、身高和体重"
+  >
+    <view class="section">
+      <view class="section-title">视觉体型</view>
+      <view class="body-options">
+        <view
+          v-for="opt in VISUAL_BODY_OPTIONS"
+          :key="opt.id"
+          class="body-option"
+          :class="{ on: store.profile.visualBody === opt.id }"
+          @tap="store.setVisualBody(opt.id)"
+        >
+          <view
+            class="body-preview"
+            :style="{ background: opt.color }"
+          >
+            <text class="body-emoji">{{ opt.emoji }}</text>
+          </view>
+          <text class="body-label">{{ opt.label }}</text>
+          <text class="body-desc">{{ opt.desc }}</text>
+          <view v-if="store.profile.visualBody === opt.id" class="check">✓</view>
         </view>
-        <input
-          class="slider"
-          type="range"
-          :min="f.min"
-          :max="f.max"
-          :step="f.step"
-          :value="store.profile.body[f.key]"
-          :style="{
-            '--pct': percent(f.key, f.min, f.max) + '%',
-          }"
-          @input="onInput(f.key, $event)"
-        />
       </view>
     </view>
 
-    <!-- BMI 实时反馈 -->
+    <view class="section">
+      <view class="section-title">性别</view>
+      <view class="gender-options">
+        <view
+          class="gender-option"
+          :class="{ on: store.profile.gender === 'female' }"
+          @tap="chooseGender('female')"
+        >
+          <text class="gender-emoji">👩</text>
+          <text>女</text>
+        </view>
+        <view
+          class="gender-option"
+          :class="{ on: store.profile.gender === 'male' }"
+          @tap="chooseGender('male')"
+        >
+          <text class="gender-emoji">👨</text>
+          <text>男</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">
+        身高与体重
+        <text class="required">必填</text>
+      </view>
+      <view class="fields">
+        <view
+          v-for="f in BODY_FIELDS"
+          :key="f.key"
+          class="field"
+          :class="{ optional: !requiredMet(f.key) }"
+        >
+          <view class="row">
+            <text class="name">
+              {{ f.label }}
+              <text
+                v-if="f.key === 'height' || f.key === 'weight'"
+                class="required-dot"
+              >
+                *
+              </text>
+              <text v-if="requiredMet(f.key)" class="done-dot">✓</text>
+            </text>
+            <text class="value">
+              {{ store.profile.body[f.key] }}
+              <text class="unit">{{ f.unit }}</text>
+            </text>
+          </view>
+          <slider
+            class="slider"
+            :min="f.min"
+            :max="f.max"
+            :step="f.step"
+            :value="store.profile.body[f.key]"
+            :activeColor="f.key === 'height' || f.key === 'weight' ? '#ff5c9d' : '#b892ff'"
+            backgroundColor="#ece7f5"
+            block-color="#ffffff"
+            :block-size="22"
+            @change="onSliderChange(f.key, $event)"
+          />
+        </view>
+      </view>
+      <view class="optional-hint">胸围、腰围、臀围、肩宽及其他围度为可选项。</view>
+    </view>
+
     <view class="bmi-card">
       <view class="bmi-left">
         <text class="bmi-label">你的 BMI</text>
@@ -61,19 +138,124 @@ const bmiTip = (bmi: number) => {
 </template>
 
 <style scoped>
-.fields {
+.section {
+  margin-bottom: 30rpx;
+}
+.section-title {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: var(--text-1);
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.required {
+  font-size: 20rpx;
+  color: var(--pink-deep);
+  background: rgba(255, 92, 157, 0.12);
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+}
+
+.body-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18rpx;
+}
+.body-option {
+  position: relative;
+  background: var(--surface);
+  border: 3rpx solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 20rpx 14rpx;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  gap: 36rpx;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.body-option:active {
+  transform: scale(0.96);
+}
+.body-option.on {
+  border-color: var(--pink);
+}
+.body-preview {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 28rpx;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12rpx;
+}
+.body-emoji {
+  font-size: 46rpx;
+}
+.body-label {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.body-desc {
+  font-size: 20rpx;
+  color: var(--text-3);
+  margin-top: 8rpx;
+  line-height: 1.35;
+}
+.check {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gender-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+.gender-option {
+  height: 108rpx;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 3rpx solid var(--line);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  color: var(--text-2);
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.gender-option.on {
+  border-color: var(--pink);
+  color: var(--pink-deep);
+  background: rgba(255, 126, 179, 0.09);
+}
+.gender-emoji {
+  font-size: 40rpx;
+}
+
+.fields {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 36rpx 32rpx;
+  padding: 8rpx 30rpx 32rpx;
   box-shadow: var(--shadow-card);
 }
 .field {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+  padding-top: 26rpx;
 }
 .row {
   display: flex;
@@ -81,70 +263,54 @@ const bmiTip = (bmi: number) => {
   align-items: baseline;
 }
 .name {
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: 28rpx;
+  font-weight: 700;
   color: var(--text-1);
 }
+.required-dot {
+  color: var(--pink-deep);
+  margin-left: 4rpx;
+}
+.done-dot {
+  color: var(--mint-deep);
+  margin-left: 10rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+}
 .value {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 800;
   color: var(--purple-deep);
 }
 .unit {
-  font-size: 24rpx;
-  font-weight: 600;
-  font-style: normal;
+  font-size: 22rpx;
   color: var(--text-3);
   margin-left: 4rpx;
 }
 
-/* 滑块：用 --pct 给已划过的轨道上色 */
 .slider {
-  -webkit-appearance: none;
-  appearance: none;
   width: 100%;
-  height: 16rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(
-    to right,
-    var(--pink) 0%,
-    var(--purple) var(--pct),
-    #ece7f5 var(--pct),
-    #ece7f5 100%
-  );
-  outline: none;
+  margin-top: 18rpx;
+  min-height: 48rpx;
 }
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: #fff;
-  border: 6rpx solid var(--pink);
-  box-shadow: 0 6rpx 16rpx rgba(255, 126, 179, 0.5);
-  cursor: pointer;
-}
-.slider::-moz-range-thumb {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: #fff;
-  border: 6rpx solid var(--pink);
-  box-shadow: 0 6rpx 16rpx rgba(255, 126, 179, 0.5);
-  cursor: pointer;
+
+.optional-hint {
+  margin-top: 18rpx;
+  font-size: 22rpx;
+  color: var(--text-3);
+  text-align: right;
 }
 
 .bmi-card {
-  margin-top: 32rpx;
   background: var(--brand-gradient);
   border-radius: var(--radius);
-  padding: 32rpx 36rpx;
+  padding: 30rpx 34rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: #fff;
   box-shadow: var(--shadow-float);
+  margin-top: 4rpx;
 }
 .bmi-left {
   display: flex;
@@ -156,12 +322,12 @@ const bmiTip = (bmi: number) => {
   opacity: 0.9;
 }
 .bmi-num {
-  font-size: 56rpx;
+  font-size: 52rpx;
   font-weight: 800;
 }
 .bmi-tag {
   background: rgba(255, 255, 255, 0.25);
-  padding: 12rpx 28rpx;
+  padding: 12rpx 26rpx;
   border-radius: 999rpx;
   font-size: 28rpx;
   font-weight: 700;

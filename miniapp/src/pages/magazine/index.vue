@@ -145,8 +145,12 @@ function showTip(msg: string) {
   flex-direction: column;
   gap: 32rpx;
 }
-/* 可滚动的 flex 列里，子项不要被压缩（否则 3:4 大封面会塌成一条） */
-.body > * {
+/* 可滚动的 flex 列里，子项不要被压缩（否则 3:4 大封面会塌成一条）
+   注：小程序 WXSS 不支持 `*` 通配符，改用显式子类 */
+.body > .cover,
+.body > .grid,
+.body > .idea-hint,
+.body > .row {
   flex-shrink: 0;
 }
 

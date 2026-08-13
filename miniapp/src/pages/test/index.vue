@@ -17,6 +17,8 @@ const store = useProfileStore()
 
 const isLast = computed(() => store.currentStep === store.totalSteps)
 const nextLabel = computed(() => (isLast.value ? '生成风格报告' : '下一步'))
+const canSkip = computed(() => [2, 3, 5].includes(store.currentStep))
+const skipLabel = computed(() => (store.currentStep === 5 ? '跳过未答题并生成' : '跳过'))
 
 const showAi = ref(false)
 const hint = ref('')
@@ -51,7 +53,13 @@ function finishOrWarn() {
     store.persist()
     showAi.value = true
   } else {
-    showHint(`还剩 ${store.missingCount} 项未完成`)
+    const msg =
+      store.currentStep === 1
+        ? '风格需选满 3 项'
+        : store.currentStep === 4
+          ? '请确认性别、视觉体型、身高和体重'
+          : '请至少答满 3 道偏好题'
+    showHint(msg)
   }
 }
 
@@ -68,6 +76,7 @@ function jumpTo(step: number) {
 function viewReport() {
   showAi.value = false
   store.persist()
+  uni.setStorageSync('ai-fashion-pending-report', '1')
   uni.navigateTo({ url: '/pages/result/index' })
 }
 </script>
@@ -97,6 +106,8 @@ function viewReport() {
       :total="store.totalSteps"
       :can-next="store.canProceed"
       :next-label="nextLabel"
+      :show-skip="canSkip"
+      :skip-label="skipLabel"
       @prev="store.goPrev"
       @next="handleNext"
       @skip="handleSkip"
