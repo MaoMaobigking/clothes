@@ -6,6 +6,10 @@ import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import SegTabs from '@/components/SegTabs/SegTabs.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { MODEL_IMAGES, type Garment } from '@/data/mock'
+import {
+  garmentToAccessoryContext,
+  setAccessoryPageContext,
+} from '@/utils/accessoryContext'
 
 const wardrobe = useWardrobeStore()
 
@@ -98,6 +102,20 @@ const displayList = computed(() => {
 function goCreate() {
   uni.navigateTo({ url: '/pages/create/index' })
 }
+
+function goAccessory() {
+  const outfit = selected.value.length ? selected.value : wardrobe.garments.slice(0, 5)
+  if (!outfit.length) {
+    showToast('先选择一件服装')
+    return
+  }
+  setAccessoryPageContext({
+    source: 'outfit',
+    title: selected.value.length ? '当前自由搭配' : '衣橱推荐服装',
+    outfit: outfit.map(garmentToAccessoryContext),
+  })
+  uni.navigateTo({ url: '/pages/accessory/index' })
+}
 </script>
 
 <template>
@@ -105,6 +123,7 @@ function goCreate() {
     <PageHeader title="自由搭配" to="/pages/home/home">
       <template #right>
         <view class="head-actions">
+          <button class="head-ico" aria-label="配配饰" @tap="goAccessory">💎</button>
           <button class="head-ico" aria-label="收藏" @tap="showToast('已收藏本套造型 ★')">★</button>
           <button class="head-ico" aria-label="保存" @tap="showToast('穿搭已保存 💾')">💾</button>
         </view>

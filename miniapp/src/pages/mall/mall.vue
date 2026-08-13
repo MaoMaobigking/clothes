@@ -5,6 +5,10 @@ import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { MALL_CATEGORIES, MALL_PRODUCTS, type MallProduct } from '@/data/mock'
 import { useCartStore } from '@/stores/cart'
 import MallDetailSheet from './MallDetailSheet.vue'
+import {
+  mallProductToAccessoryContext,
+  setAccessoryPageContext,
+} from '@/utils/accessoryContext'
 
 const cart = useCartStore()
 
@@ -38,6 +42,17 @@ function addFromSheet() {
   cart.add(detail.value.id)
   showToast('已加入购物车 🛒')
   detail.value = null
+}
+
+function goAccessoryFromSheet() {
+  if (!detail.value) return
+  setAccessoryPageContext({
+    source: 'mall',
+    title: detail.value.name,
+    outfit: [mallProductToAccessoryContext(detail.value)],
+  })
+  detail.value = null
+  uni.navigateTo({ url: '/pages/accessory/index' })
 }
 
 function goFreeMatch() {
@@ -130,6 +145,7 @@ function goFreeMatch() {
       @close="detail = null"
       @fav="detail && cart.toggle(detail.id)"
       @add="addFromSheet"
+      @accessory="goAccessoryFromSheet"
     />
   </view>
 </template>

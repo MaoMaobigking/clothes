@@ -15,6 +15,10 @@ import {
   type OutfitBatch,
 } from '@/api/wardrobe'
 import { categoryLabel, occasionLabel, seasonLabel } from '@/data/wardrobeOptions'
+import {
+  garmentToAccessoryContext,
+  setAccessoryPageContext,
+} from '@/utils/accessoryContext'
 
 interface ReplaceTarget {
   outfitId: number
@@ -140,6 +144,16 @@ function closeShare() {
   shareTarget.value = null
 }
 
+function goAccessory(outfit: Outfit) {
+  setAccessoryPageContext({
+    source: 'outfit',
+    title: outfit.title,
+    outfit: outfit.items.map((entry) => garmentToAccessoryContext(entry.garment)),
+    sourceId: String(outfit.id),
+  })
+  uni.navigateTo({ url: '/pages/accessory/index' })
+}
+
 function copyShareText() {
   if (!shareTarget.value) return
   const names = shareTarget.value.items.map((entry) => entry.garment.name).join('、')
@@ -235,6 +249,10 @@ function saveSharePoster() {
               <view class="plan-action" @tap="openShare(outfit)">
                 <text class="action-icon">↗</text>
                 <text>分享</text>
+              </view>
+              <view class="plan-action" @tap="goAccessory(outfit)">
+                <text class="action-icon">💎</text>
+                <text>配饰</text>
               </view>
             </view>
           </view>
@@ -505,7 +523,7 @@ function saveSharePoster() {
 }
 .plan-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10rpx;
   margin-top: 18rpx;
 }

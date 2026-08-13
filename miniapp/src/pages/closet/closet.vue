@@ -14,6 +14,10 @@ import {
   categoryLabel,
   seasonLabel,
 } from '@/data/wardrobeOptions'
+import {
+  garmentToAccessoryContext,
+  setAccessoryPageContext,
+} from '@/utils/accessoryContext'
 
 const wardrobe = useWardrobeStore()
 const tab = ref<'today' | 'mine'>('today')
@@ -153,6 +157,15 @@ function openHistory(item: Outfit) {
 function maskClose(event: any) {
   if (event.target === event.currentTarget) sortOpen.value = false
 }
+
+function goAccessory(item: WardrobeItem) {
+  setAccessoryPageContext({
+    source: 'garment',
+    title: item.name,
+    outfit: [garmentToAccessoryContext(item)],
+  })
+  uni.navigateTo({ url: '/pages/accessory/index' })
+}
 </script>
 
 <template>
@@ -226,6 +239,7 @@ function maskClose(event: any) {
             />
             <view v-if="item.frequentlyWorn" class="frequent-badge">常穿</view>
             <view v-if="item.recognitionStatus === 'suggested'" class="suggested-badge">待确认</view>
+            <view class="accessory-entry" @tap="goAccessory(item)">配饰</view>
             <view class="cell-name">{{ item.name }}</view>
             <view class="cell-meta">
               {{ categoryLabel(item.category) }} · {{ seasonLabel(item.seasons?.[0]) }}
@@ -517,6 +531,19 @@ function maskClose(event: any) {
 .suggested-badge {
   top: 64rpx;
   color: #5f78a8;
+}
+.accessory-entry {
+  position: absolute;
+  right: 22rpx;
+  top: 22rpx;
+  z-index: 4;
+  padding: 7rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--purple-deep);
+  font-size: 19rpx;
+  font-weight: 800;
+  box-shadow: var(--shadow-card);
 }
 .cell-name {
   margin: 14rpx 4rpx 2rpx;

@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'fav'): void
   (e: 'add'): void
+  (e: 'accessory'): void
 }>()
 </script>
 
@@ -46,6 +47,9 @@ const emit = defineEmits<{
       <view class="actions">
         <view class="btn btn-ghost" @tap="emit('close')">
           <text>再逛逛</text>
+        </view>
+        <view class="btn btn-ghost" @tap="emit('accessory')">
+          <text>配配饰</text>
         </view>
         <view class="btn btn-primary" @tap="emit('add')">
           <text>加入购物车</text>
