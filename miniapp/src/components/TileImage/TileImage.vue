@@ -15,6 +15,11 @@ const props = withDefaults(
     /** 图片填充方式 */
     fit?: 'cover' | 'contain'
     alt?: string
+    /**
+     * 撑满父容器高度（父容器需有确定高度）。
+     * 默认 false，保持原有「高度由内容撑开」的行为，不影响已有页面。
+     */
+    fill?: boolean
   }>(),
   {
     from: '#ffd1e8',
@@ -26,6 +31,7 @@ const props = withDefaults(
     src: '',
     fit: 'cover',
     alt: '',
+    fill: false,
   },
 )
 
@@ -41,13 +47,14 @@ watch(
 <template>
   <view
     class="tile"
+    :class="{ 'tile-fill': fill }"
     :style="{
       background: `linear-gradient(140deg, ${from}, ${to})`,
       borderRadius: rounded,
     }"
   >
     <!-- aspect-ratio 用 padding-top hack 模拟 -->
-    <view class="tile-inner">
+    <view class="tile-inner" :class="{ 'tile-fill': fill }">
       <image
         v-if="src && !failed"
         class="img"
@@ -74,6 +81,10 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* fill 模式下撑满父容器，供左图右文这类需要图片占满整列的卡片使用 */
+.tile-fill {
+  height: 100%;
 }
 /* 用 aspect-ratio 在 H5 生效；小程序用 JS 动态 padding */
 /* 注意：这里简化为直接依赖 CSS aspect-ratio（H5可用，小程序需后续处理） */

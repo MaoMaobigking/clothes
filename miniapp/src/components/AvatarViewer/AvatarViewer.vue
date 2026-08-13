@@ -18,6 +18,14 @@ const props = withDefaults(
       side?: string
       back?: string
     }
+    overlay?: {
+      slot: string
+      emoji?: string
+      from?: string
+      to?: string
+      imageUrl?: string
+      enabled?: boolean
+    } | null
   }>(),
   {
     src: '',
@@ -25,6 +33,7 @@ const props = withDefaults(
     label: '虚拟形象',
     initialView: 'front',
     frames: () => ({}),
+    overlay: null,
   },
 )
 
@@ -133,6 +142,22 @@ defineExpose({ resetView, zoom, setEngine, setView })
       >
         <image v-if="modelSrc" class="model-img" :src="modelSrc" :alt="label" mode="aspectFit" />
         <text v-else class="emoji">{{ emoji }}</text>
+        <view
+          v-if="overlay?.enabled && viewMode === 'front'"
+          class="accessory-overlay"
+          :class="`slot-${overlay.slot}`"
+          :style="{
+            background: `linear-gradient(140deg, ${overlay.from || '#ffffff'}, ${overlay.to || '#e6e0ef'})`,
+          }"
+        >
+          <image
+            v-if="overlay.imageUrl"
+            class="accessory-overlay-img"
+            :src="overlay.imageUrl"
+            mode="aspectFit"
+          />
+          <text v-else class="accessory-overlay-emoji">{{ overlay.emoji || '✨' }}</text>
+        </view>
       </view>
 
       <text class="tag">{{ displayLabel }}</text>
@@ -195,6 +220,59 @@ defineExpose({ resetView, zoom, setEngine, setView })
 }
 .emoji {
   font-size: 192rpx;
+}
+
+.accessory-overlay {
+  position: absolute;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 4rpx solid rgba(255, 255, 255, 0.86);
+  box-shadow: 0 8rpx 22rpx rgba(70, 50, 110, 0.28);
+  transform: translateX(-50%);
+}
+.slot-jewelry {
+  top: 20%;
+  width: 54rpx;
+  height: 54rpx;
+  border-radius: 50%;
+}
+.slot-hat {
+  top: -3%;
+  width: 150rpx;
+  height: 82rpx;
+  border-radius: 48% 48% 20rpx 20rpx;
+}
+.slot-scarf {
+  top: 31%;
+  width: 126rpx;
+  height: 60rpx;
+  border-radius: 999rpx;
+}
+.slot-belt {
+  top: 63%;
+  width: 134rpx;
+  height: 28rpx;
+  border-radius: 999rpx;
+}
+.slot-shoes {
+  bottom: 1%;
+  top: auto;
+  width: 146rpx;
+  height: 54rpx;
+  border-radius: 999rpx 999rpx 28rpx 28rpx;
+}
+.accessory-overlay-img {
+  width: 100%;
+  height: 100%;
+}
+.accessory-overlay-emoji {
+  font-size: 38rpx;
+  line-height: 1;
+  transform: scale(1.2);
 }
 
 .podium {

@@ -165,3 +165,61 @@ CREATE TABLE IF NOT EXISTS ai_logs (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_scene_created (scene, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. 配饰目录（全局目录，所有用户共享推荐候选）
+CREATE TABLE IF NOT EXISTS accessories (
+  id VARCHAR(64) PRIMARY KEY,
+  category ENUM('jewelry','hat','scarf','belt','shoes') NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  brand VARCHAR(64),
+  price DECIMAL(8,2) NOT NULL,
+  original_price DECIMAL(8,2),
+  discount_price DECIMAL(8,2),
+  image_url VARCHAR(512),
+  tryon_slot VARCHAR(32),
+  tryon_enabled TINYINT(1) NOT NULL DEFAULT 0,
+  primary_color VARCHAR(16),
+  secondary_color VARCHAR(16),
+  seasons JSON,
+  occasions JSON,
+  styles JSON,
+  keywords JSON,
+  taobao_url VARCHAR(1024),
+  taokouling VARCHAR(128),
+  favorite_count INT NOT NULL DEFAULT 0,
+  base_popularity DECIMAL(4,1) NOT NULL DEFAULT 3.5,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_accessory_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. 配饰评分（按用户隔离，用户可重新评分）
+CREATE TABLE IF NOT EXISTS accessory_ratings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  accessory_id VARCHAR(64) NOT NULL,
+  score TINYINT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user_accessory (user_id, accessory_id),
+  CONSTRAINT fk_accessory_rating_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_accessory_rating_accessory
+    FOREIGN KEY (accessory_id) REFERENCES accessories(id) ON DELETE CASCADE,
+  INDEX idx_accessory_rating_accessory (accessory_id, score)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. 购物车（配饰与衣橱衣物都可写入）
+CREATE TABLE IF NOT EXISTS cart_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  item_type ENUM('garment','accessory') NOT NULL,
+  item_id VARCHAR(64) NOT NULL,
+  quantity INT UNSIGNED NOT NULL DEFAULT 1,
+  source_outfit_id VARCHAR(64),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_cart_user_item (user_id, item_type, item_id),
+  CONSTRAINT fk_cart_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_cart_user (user_id, item_type, item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

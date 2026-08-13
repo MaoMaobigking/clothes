@@ -10,7 +10,7 @@ export const API_BASE_URL = (() => {
   return ''
   // #endif
   // #ifndef H5
-  return 'http://127.0.0.1:8788'
+  return 'http://127.0.0.1:8787'
   // #endif
 })()
 

@@ -21,6 +21,9 @@ import authRoutes from './routes/auth.mjs'
 import profileRoutes from './routes/profile.mjs'
 import wardrobeRoutes from './routes/wardrobe.mjs'
 import cartRoutes from './routes/cart.mjs'
+import accessoryRoutes from './routes/accessories.mjs'
+import accessoryCartRoutes from './routes/accessoryCart.mjs'
+import { ensureAccessories } from './services/accessoryService.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
@@ -46,6 +49,8 @@ app.get('/api/health', (_req, res) => {
 /* ============ 路由挂载 ============ */
 app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
+app.use('/api/accessories', accessoryRoutes)
+app.use('/api/accessory-cart', accessoryCartRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/wardrobe', wardrobeRoutes)
@@ -66,6 +71,10 @@ async function bootstrap() {
     await initDb()
     await ping()
     console.log(`✅ MySQL 已连接并建表: ${dbHost}/${DB_NAME}`)
+    const accessorySeed = await ensureAccessories()
+    if (accessorySeed.inserted > 0) {
+      console.log(`✅ 配饰目录已初始化: ${accessorySeed.inserted} 件`)
+    }
   } catch (err) {
     console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${err.message}`)
     console.error('   排查：1) 容器是否启动 docker ps  2) .env 里 MYSQL_PORT/PASSWORD 是否对\n')
