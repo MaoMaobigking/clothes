@@ -10,7 +10,7 @@ export const API_BASE_URL = (() => {
   return ''
   // #endif
   // #ifndef H5
-  return 'http://127.0.0.1:8787'
+  return 'http://127.0.0.1:8788'
   // #endif
 })()
 
@@ -19,7 +19,7 @@ const DEV_TAG_KEY = 'ai-fashion-dev-tag'
 
 interface RequestOptions {
   url: string
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   data?: any
   header?: Record<string, string>
   withAuth?: boolean
@@ -46,7 +46,7 @@ function rawRequest<T>(options: RequestOptions): Promise<T> {
   return new Promise((resolve, reject) => {
     uni.request({
       url: `${API_BASE_URL}${options.url}`,
-      method: options.method || 'GET',
+      method: (options.method || 'GET') as any,
       data: options.data,
       header: {
         'Content-Type': 'application/json',
@@ -102,4 +102,44 @@ export async function request<T>(options: RequestOptions): Promise<T> {
     await ensureToken()
     return rawRequest<T>(options)
   }
+}
+
+export async function uploadFile<T>(options: {
+  url: string
+  filePath: string
+  name?: string
+  formData?: Record<string, string>
+}): Promise<T> {
+  await ensureToken()
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: `${API_BASE_URL}${options.url}`,
+      filePath: options.filePath,
+      name: options.name || 'file',
+      formData: options.formData || {},
+      header: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+      success: (res) => {
+        let payload = res.data as any
+        if (typeof payload === 'string') {
+          try {
+            payload = JSON.parse(payload)
+          } catch {
+            payload = {}
+          }
+        }
+        if (res.statusCode >= 400) {
+          const message = payload?.message || payload?.error || `上传失败（${res.statusCode}）`
+          const error = new Error(message) as Error & { statusCode?: number; code?: string }
+          error.statusCode = res.statusCode
+          error.code = payload?.error
+          reject(error)
+          return
+        }
+        resolve(payload as T)
+      },
+      fail: (err) => reject(new Error(err.errMsg || '图片上传失败')),
+    })
+  })
 }

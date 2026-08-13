@@ -38,6 +38,20 @@ router.post('/', asyncHandler(async (req, res) => {
   res.status(201).json({ item })
 }))
 
+router.put('/reorder', asyncHandler(async (req, res) => {
+  const ids = Array.isArray(req.body?.ids) ? req.body.ids : []
+  const items = await garmentService.reorderGarments(req.userId, ids)
+  res.json({ items })
+}))
+
+router.patch('/:id', asyncHandler(async (req, res) => {
+  const body = { ...(req.body || {}) }
+  delete body.userId
+  delete body.user_id
+  const item = await garmentService.updateGarment(req.userId, req.params.id, body)
+  res.json({ item })
+}))
+
 // DELETE /:id
 //路径参数 :id：:id 是一个占位符。当前端请求 DELETE /api/garments/123 时，:id 就会自动匹配并提取出 "123"。
 router.delete('/:id', asyncHandler(async (req, res) => {
@@ -52,6 +66,11 @@ router.post('/:id/fav', asyncHandler(async (req, res) => {
   const fav = await garmentService.toggleFav(req.userId, req.params.id)
   if (fav === null) return res.status(404).json({ error: 'NOT_FOUND', message: '衣物不存在' })
   res.json({ fav })
+}))
+
+router.post('/:id/frequently-worn', asyncHandler(async (req, res) => {
+  const item = await garmentService.toggleFrequentlyWorn(req.userId, req.params.id)
+  res.json({ item })
 }))
 
 export default router

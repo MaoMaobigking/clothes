@@ -17,6 +17,9 @@
     { "path": "pages/result/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/free-match/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/scene/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/wardrobe-upload/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/wardrobe-match/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/outfit-result/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }

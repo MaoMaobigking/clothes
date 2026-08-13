@@ -32,9 +32,18 @@ export interface Garment {
   from: string
   to: string
   price: number
-  season: '春夏' | '秋冬' | '四季'
+  season: string
   img: string
   tags?: string[]
+  primaryColor?: string
+  secondaryColors?: string[]
+  seasons?: string[]
+  occasions?: string[]
+  frequentlyWorn?: boolean
+  sortOrder?: number
+  recognitionStatus?: string
+  recognitionSource?: string
+  uploadedAt?: string
 }
 type RawGarment = Omit<Garment, 'img'>
 
@@ -312,7 +321,7 @@ export const AI_FEATURES: {
   { key: 'stylist', label: 'AI 穿搭顾问', desc: '在线问穿搭，实时回答', emoji: '🤖', from: '#c9f0e6', to: '#7fd0c0', route: '/pages/stylist/index' },
   { key: 'free', label: '自由搭配', desc: '给形象自由换装试穿', emoji: '🧥', from: '#c9d8ff', to: '#9ab0ff', route: '/pages/free-match/index' },
   { key: 'scene', label: '情景模拟', desc: '看天气 + AI 一键搭配', emoji: '🌦️', from: '#c9ecff', to: '#8fc9f0', route: '/pages/scene/index' },
-  { key: 'renew', label: '旧衣新生', desc: '旧衣服焕发新搭法', emoji: '♻️', from: '#d6f0d9', to: '#9fceb0', route: '/pages/scene/index' },
+  { key: 'renew', label: '旧衣新生', desc: '旧衣服焕发新搭法', emoji: '♻️', from: '#d6f0d9', to: '#9fceb0', route: '/pages/wardrobe-upload/index' },
   { key: 'magazine', label: '时尚杂志', desc: '灵感 & 穿搭思路', emoji: '📖', from: '#f3e0d6', to: '#d8b08f', route: '/pages/magazine/index' },
   { key: 'community', label: '时尚社群', desc: '和同好交流穿搭', emoji: '💬', from: '#efe0f0', to: '#c29ad6', route: '/pages/community/index' },
 ]

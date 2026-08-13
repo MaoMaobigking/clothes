@@ -1,216 +1,360 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import BottomNav from '@/components/BottomNav/BottomNav.vue'
-import ProductCard from '@/components/ProductCard/ProductCard.vue'
-import { CLOSET_CATEGORIES, GARMENTS } from '@/data/mock'
+import TileImage from '@/components/TileImage/TileImage.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
+import {
+  apiGenerateOutfits,
+  apiListOutfits,
+  type Outfit,
+  type WardrobeItem,
+} from '@/api/wardrobe'
+import {
+  WARDROBE_CATEGORIES,
+  categoryLabel,
+  seasonLabel,
+} from '@/data/wardrobeOptions'
 
 const wardrobe = useWardrobeStore()
-
-/** 品牌横条：从初始衣物里去重出品牌 */
-const brands = Array.from(new Set(GARMENTS.map((g) => g.brand)))
-
-/** 管理模式（显示删除按钮） */
+const tab = ref<'today' | 'mine'>('today')
+const activeCategory = ref('all')
 const manage = ref(false)
+const generating = ref(false)
+const history = ref<Outfit[]>([])
+const sortOpen = ref(false)
+const sortItems = ref<WardrobeItem[]>([])
+const dragIndex = ref(-1)
+const dragOffset = ref(0)
+const dragStartY = ref(0)
+const rowHeight = uni.upx2px(126)
 
-/** 添加衣物弹层 */
-const showAdd = ref(false)
-const addCats = CLOSET_CATEGORIES.filter((c) => c.key !== 'all')
-const emojiChoices = ['👕', '👚', '🧥', '👖', '👗', '🥻', '👟', '🥿', '👜', '🧢', '💍', '🧣']
-const form = ref({ name: '', emoji: '👕', category: 'top' })
+const filtered = computed(() =>
+  activeCategory.value === 'all'
+    ? wardrobe.items
+    : wardrobe.items.filter((item) => item.category === activeCategory.value),
+)
 
-function openAdd() {
-  form.value = { name: '', emoji: '👕', category: wardrobe.activeCategory === 'all' ? 'top' : wardrobe.activeCategory }
-  showAdd.value = true
+onMounted(async () => {
+  await wardrobe.load()
+  await loadHistory()
+})
+
+function toast(title: string) {
+  uni.showToast({ title, icon: 'none' })
 }
 
-async function submitAdd() {
-  if (!form.value.name.trim()) return
-  await wardrobe.addItem({ ...form.value, name: form.value.name.trim() })
-  showAdd.value = false
-}
-
-/** mask 点击关闭：仅点击 mask 自身（非 sheet 区域）才关闭 */
-function onMaskTap(e: any) {
-  if (e.target === e.currentTarget) {
-    showAdd.value = false
+async function loadHistory() {
+  try {
+    history.value = await apiListOutfits(true)
+  } catch {
+    history.value = []
   }
+}
+
+function goUpload() {
+  uni.navigateTo({ url: '/pages/wardrobe-upload/index' })
+}
+
+function goManual() {
+  uni.navigateTo({ url: '/pages/wardrobe-match/index' })
+}
+
+async function generateNow() {
+  if (generating.value) return
+  if (wardrobe.items.length < 2) {
+    toast('先上传至少 2 件旧衣')
+    return
+  }
+  generating.value = true
+  try {
+    const batch = await apiGenerateOutfits()
+    uni.navigateTo({ url: `/pages/outfit-result/index?batchId=${batch.id}` })
+  } catch (error) {
+    toast((error as Error).message || '生成失败')
+  } finally {
+    generating.value = false
+  }
+}
+
+async function toggleFrequent(id: string) {
+  try {
+    await wardrobe.toggleFrequentlyWorn(id)
+  } catch {
+    toast('标记常穿失败')
+  }
+}
+
+async function removeItem(id: string) {
+  uni.showModal({
+    title: '删除旧衣',
+    content: '删除后会同时从搭配历史中移除，确定继续吗？',
+    success: async (result) => {
+      if (!result.confirm) return
+      await wardrobe.removeItem(id)
+      toast('已删除')
+    },
+  })
+}
+
+function openSort() {
+  sortItems.value = [...wardrobe.items]
+  dragIndex.value = -1
+  dragOffset.value = 0
+  sortOpen.value = true
+}
+
+function startDrag(event: TouchEvent, index: number) {
+  dragIndex.value = index
+  dragOffset.value = 0
+  dragStartY.value = event.touches[0].clientY
+}
+
+function moveDrag(event: TouchEvent) {
+  if (dragIndex.value < 0) return
+  dragOffset.value = event.touches[0].clientY - dragStartY.value
+}
+
+function endDrag() {
+  if (dragIndex.value < 0) return
+  const offset = dragOffset.value
+  const sourceIndex = dragIndex.value
+  const target = Math.max(
+    0,
+    Math.min(
+      sortItems.value.length - 1,
+      Math.round((sourceIndex * rowHeight + offset) / rowHeight),
+    ),
+  )
+  if (target !== sourceIndex) {
+    const next = [...sortItems.value]
+    const [moved] = next.splice(sourceIndex, 1)
+    next.splice(target, 0, moved)
+    sortItems.value = next
+  }
+  dragIndex.value = -1
+  dragOffset.value = 0
+}
+
+async function saveSort() {
+  const ids = sortItems.value.map((item) => item.id)
+  try {
+    await wardrobe.reorder(ids)
+    sortOpen.value = false
+    toast('衣柜顺序已保存')
+  } catch {
+    toast('保存排序失败')
+  }
+}
+
+function openHistory(item: Outfit) {
+  uni.navigateTo({ url: `/pages/outfit-result/index?batchId=${item.batchId}` })
+}
+
+function maskClose(event: any) {
+  if (event.target === event.currentTarget) sortOpen.value = false
 }
 </script>
 
 <template>
   <view class="page">
     <view class="topbar">
-      <view class="title-wrap">
-        <view class="title">我的衣橱</view>
-        <text class="db" :class="{ on: wardrobe.usingApi }">
-          {{ wardrobe.usingApi ? '● 数据库已连' : '○ 本地模式' }}
-        </text>
+      <view>
+        <view class="title">旧衣新穿</view>
+        <view class="subtitle">让衣柜里的旧衣服重新搭起来</view>
       </view>
-      <view class="head-right">
-        <text class="count">共 {{ wardrobe.filtered.length }} 件</text>
-        <view class="icon-btn" :class="{ active: manage }" hover-class="icon-btn-hover" @tap="manage = !manage">
+      <view class="top-actions">
+        <view class="icon-btn" :class="{ active: manage }" @tap="manage = !manage">
           {{ manage ? '完成' : '管理' }}
         </view>
-        <view class="icon-btn add" hover-class="icon-btn-add-hover" @tap="openAdd">＋</view>
+        <view class="icon-btn add" @tap="goUpload">＋</view>
       </view>
     </view>
 
-    <!-- 品牌横条 -->
-    <view class="brands hide-scrollbar">
-      <text v-for="b in brands" :key="b" class="brand-chip">{{ b }}</text>
+    <view class="seg">
+      <view class="seg-item" :class="{ on: tab === 'today' }" @tap="tab = 'today'">
+        今日搭配
+      </view>
+      <view class="seg-item" :class="{ on: tab === 'mine' }" @tap="tab = 'mine'">
+        我的搭配
+      </view>
     </view>
 
-    <view class="layout">
-      <!-- 左侧分类 -->
-      <view class="cats hide-scrollbar">
-        <view
-          v-for="c in CLOSET_CATEGORIES"
-          :key="c.key"
-          class="cat"
-          :class="{ on: wardrobe.activeCategory === c.key }"
-          hover-class="cat-hover"
-          @tap="wardrobe.setCategory(c.key)"
-        >
-          <text class="cat-emoji">{{ c.emoji }}</text>
-          <text class="cat-label">{{ c.label }}</text>
+    <view v-if="tab === 'today'" class="today-panel">
+      <view class="action-card">
+        <view>
+          <view class="action-title">一键生成今日穿搭</view>
+          <view class="action-sub">优先使用靠前和常穿的 30 件旧衣</view>
         </view>
+        <view class="btn btn-primary action-btn" @tap="generateNow">
+          {{ generating ? '生成中…' : '生成 3 套' }}
+        </view>
+        <view class="manual-link" @tap="goManual">手动调整搭配 →</view>
       </view>
 
-      <!-- 右侧衣物网格 -->
-      <view class="grid-wrap scroll-y hide-scrollbar">
-        <view v-if="wardrobe.filtered.length" class="grid">
-          <view v-for="g in wardrobe.filtered" :key="g.id" class="cell">
-            <ProductCard
-              :title="g.name"
-              :emoji="g.emoji"
-              :from="g.from"
-              :to="g.to"
-              :src="g.img"
-              :tag="g.brand"
-              :fav="wardrobe.isFav(g.id)"
+      <view class="filter-row">
+        <scroll-view scroll-x class="filters hide-scrollbar">
+          <view
+            class="filter"
+            :class="{ on: activeCategory === 'all' }"
+            @tap="activeCategory = 'all'"
+          >
+            全部
+          </view>
+          <view
+            v-for="category in WARDROBE_CATEGORIES"
+            :key="category.key"
+            class="filter"
+            :class="{ on: activeCategory === category.key }"
+            @tap="activeCategory = category.key"
+          >
+            {{ category.label }}
+          </view>
+        </scroll-view>
+        <view v-if="manage" class="sort-link" @tap="openSort">拖动排序</view>
+      </view>
+
+      <scroll-view scroll-y class="grid-scroll hide-scrollbar">
+        <view v-if="filtered.length" class="grid">
+          <view v-for="item in filtered" :key="item.id" class="cell">
+            <TileImage
+              :src="item.img"
+              :from="item.primaryColor || item.from"
+              :to="item.secondaryColors?.[0] || item.to"
+              :emoji="item.emoji"
               ratio="3 / 4"
-              @fav="wardrobe.toggleFav(g.id)"
+              rounded="24rpx"
             />
-            <view v-if="manage" class="del" hover-class="del-hover" @tap="wardrobe.removeItem(g.id)">×</view>
+            <view v-if="item.frequentlyWorn" class="frequent-badge">常穿</view>
+            <view v-if="item.recognitionStatus === 'suggested'" class="suggested-badge">待确认</view>
+            <view class="cell-name">{{ item.name }}</view>
+            <view class="cell-meta">
+              {{ categoryLabel(item.category) }} · {{ seasonLabel(item.seasons?.[0]) }}
+            </view>
+            <view v-if="manage" class="cell-controls">
+              <view class="cell-control" @tap="toggleFrequent(item.id)">
+                {{ item.frequentlyWorn ? '取消常穿' : '设为常穿' }}
+              </view>
+              <view class="cell-control danger" @tap="removeItem(item.id)">删除</view>
+            </view>
           </view>
         </view>
         <view v-else class="empty">
-          <text class="empty-emoji">🗂️</text>
-          <view class="empty-text">这个分类还没有衣物，点右上 ＋ 添加</view>
+          <view class="empty-emoji">🧺</view>
+          <view class="empty-title">衣橱还是空的</view>
+          <view class="empty-sub">先上传几张真实旧衣照片</view>
+          <view class="btn btn-primary empty-btn" @tap="goUpload">上传旧衣</view>
         </view>
-      </view>
+      </scroll-view>
+    </view>
+
+    <view v-else class="history-panel">
+      <scroll-view scroll-y class="history-scroll hide-scrollbar">
+        <view v-if="history.length" class="history-list">
+          <view v-for="item in history" :key="item.id" class="history-card" @tap="openHistory(item)">
+            <view class="history-top">
+              <view>
+                <view class="history-title">{{ item.title }}</view>
+                <view class="history-time">{{ item.createdAt }}</view>
+              </view>
+              <view class="history-go">查看 →</view>
+            </view>
+            <view class="history-items">
+              <TileImage
+                v-for="entry in item.items.slice(0, 5)"
+                :key="entry.id"
+                class="history-thumb"
+                :src="entry.garment.img"
+                :emoji="entry.garment.emoji"
+                :from="entry.garment.primaryColor || entry.garment.from"
+                :to="entry.garment.secondaryColors?.[0] || entry.garment.to"
+                ratio="1 / 1"
+                rounded="18rpx"
+              />
+            </view>
+            <view class="history-names">
+              {{ item.items.map((entry) => entry.garment.name).join('、') }}
+            </view>
+          </view>
+        </view>
+        <view v-else class="empty history-empty">
+          <view class="empty-emoji">☆</view>
+          <view class="empty-title">还没有收藏搭配</view>
+          <view class="empty-sub">在搭配结果页点“收藏”即可回看</view>
+        </view>
+      </scroll-view>
     </view>
 
     <BottomNav active="closet" />
 
-    <!-- 添加衣物弹层 -->
-    <transition name="sheet">
-      <view v-if="showAdd" class="mask" @tap="onMaskTap">
-        <view class="sheet">
-          <view class="grip" />
-          <view class="sheet-title">添加衣物</view>
-
-          <view class="field">
-            <text class="lbl">名称</text>
-            <input v-model="form.name" class="input" placeholder="例如：米色针织开衫" maxlength="20" />
-          </view>
-
-          <view class="field">
-            <text class="lbl">图标</text>
-            <view class="emojis">
-              <view
-                v-for="e in emojiChoices"
-                :key="e"
-                class="emoji-pick"
-                :class="{ on: form.emoji === e }"
-                hover-class="emoji-pick-hover"
-                @tap="form.emoji = e"
-              >
-                {{ e }}
-              </view>
-            </view>
-          </view>
-
-          <view class="field">
-            <text class="lbl">分类</text>
-            <view class="cats-pick hide-scrollbar">
-              <view
-                v-for="c in addCats"
-                :key="c.key"
-                class="cat-pick"
-                :class="{ on: form.category === c.key }"
-                hover-class="cat-pick-hover"
-                @tap="form.category = c.key"
-              >
-                {{ c.label }}
-              </view>
-            </view>
-          </view>
-
+    <view v-if="sortOpen" class="mask" @tap="maskClose">
+      <view class="sort-sheet" @tap.stop>
+        <view class="sheet-title">拖动排序</view>
+        <view class="sheet-sub">拖动单品行调整优先级，点击保存后生效</view>
+        <scroll-view scroll-y class="sort-list">
           <view
-            class="btn btn-primary submit"
-            :class="{ 'btn-disabled': !form.name.trim() }"
-            @tap="submitAdd"
+            v-for="(item, index) in sortItems"
+            :key="item.id"
+            class="sort-row"
+            :class="{ dragging: dragIndex === index }"
+            :style="{ transform: dragIndex === index ? `translateY(${dragOffset}px)` : 'none' }"
+            @touchstart="startDrag($event, index)"
+            @touchmove="moveDrag"
+            @touchend="endDrag"
           >
-            添加到衣橱
+            <view class="drag-handle">≡</view>
+            <TileImage
+              class="sort-thumb"
+              :src="item.img"
+              :emoji="item.emoji"
+              :from="item.primaryColor || item.from"
+              :to="item.secondaryColors?.[0] || item.to"
+              ratio="1 / 1"
+              rounded="16rpx"
+            />
+            <view class="sort-info">
+              <view class="sort-name">{{ item.name }}</view>
+              <view class="sort-meta">{{ categoryLabel(item.category) }}</view>
+            </view>
+            <view class="sort-index">{{ index + 1 }}</view>
           </view>
-        </view>
+        </scroll-view>
+        <view class="btn btn-primary sort-save" @tap="saveSort">保存排序</view>
       </view>
-    </transition>
+    </view>
   </view>
 </template>
 
 <style scoped>
 .page {
-  height: 100%;
+  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
-
 .topbar {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 0px) + 24rpx) 32rpx 16rpx;
+  padding: calc(env(safe-area-inset-top, 0px) + 24rpx) 32rpx 14rpx;
 }
-
-.title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
 .title {
-  margin: 0;
   font-size: 44rpx;
   font-weight: 800;
   color: var(--text-1);
-  line-height: 1.2;
 }
-
-.db {
-  font-size: 22rpx;
-  font-weight: 700;
+.subtitle {
+  margin-top: 4rpx;
+  font-size: 23rpx;
   color: var(--text-3);
 }
-
-.db.on {
-  color: #37b98a;
-}
-
-.head-right {
+.top-actions {
   display: flex;
   align-items: center;
   gap: 16rpx;
 }
-
-.count {
-  font-size: 24rpx;
-  color: var(--text-3);
-}
-
 .icon-btn {
   height: 64rpx;
   padding: 0 24rpx;
@@ -218,311 +362,360 @@ function onMaskTap(e: any) {
   background: var(--surface);
   box-shadow: var(--shadow-card);
   color: var(--text-2);
-  font-size: 26rpx;
+  font-size: 25rpx;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .icon-btn.active {
   color: var(--pink-deep);
 }
-
 .icon-btn.add {
   width: 64rpx;
   padding: 0;
-  font-size: 40rpx;
-  color: #fff;
   background: var(--brand-gradient);
+  color: #fff;
+  font-size: 40rpx;
 }
-
-/* hover 态（小程序不支持 :active，用 hover-class 配合） */
-.icon-btn-hover {
-  opacity: 0.7;
-}
-
-.icon-btn-add-hover {
-  opacity: 0.8;
-  transform: scale(0.95);
-}
-
-/* 品牌横条 */
-.brands {
+.seg {
   flex-shrink: 0;
   display: flex;
-  gap: 16rpx;
-  padding: 8rpx 32rpx 20rpx;
-  overflow-x: auto;
+  gap: 10rpx;
+  margin: 4rpx 32rpx 18rpx;
+  padding: 8rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow-card);
 }
-
-.brand-chip {
-  flex-shrink: 0;
-  padding: 12rpx 28rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface-soft);
-  border: 1px solid var(--line);
-  font-size: 24rpx;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+.seg-item {
+  flex: 1;
+  text-align: center;
+  padding: 15rpx 10rpx;
+  border-radius: 999rpx;
   color: var(--text-2);
-  white-space: nowrap;
+  font-size: 27rpx;
+  font-weight: 700;
 }
-
-/* 左侧分类 + 右侧网格 */
-.layout {
+.seg-item.on {
+  background: var(--brand-gradient);
+  color: #fff;
+  box-shadow: 0 12rpx 28rpx rgba(177, 140, 255, 0.4);
+}
+.today-panel {
   flex: 1;
   min-height: 0;
   display: flex;
-}
-
-.cats {
-  flex: 0 0 152rpx;
-  overflow-y: auto;
-  padding: 12rpx 0 24rpx;
-  display: flex;
   flex-direction: column;
-  gap: 8rpx;
 }
-
-.cat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
-  padding: 24rpx 8rpx;
-  color: var(--text-2);
-  border-radius: 0 28rpx 28rpx 0;
+.action-card {
+  flex-shrink: 0;
   position: relative;
-  transition: all 0.15s ease;
-}
-
-.cat.on {
-  background: var(--surface);
-  color: var(--pink-deep);
-  box-shadow: var(--shadow-card);
-}
-
-.cat.on::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8rpx;
-  height: 44rpx;
-  border-radius: 0 8rpx 8rpx 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin: 0 32rpx 18rpx;
+  padding: 26rpx;
+  border-radius: var(--radius);
   background: var(--brand-gradient);
+  box-shadow: var(--shadow-float);
+  color: #fff;
 }
-
-.cat-hover {
-  opacity: 0.7;
+.action-title {
+  font-size: 31rpx;
+  font-weight: 800;
 }
-
-.cat-emoji {
-  font-size: 40rpx;
+.action-sub {
+  margin-top: 8rpx;
+  max-width: 390rpx;
+  font-size: 21rpx;
+  opacity: 0.9;
+  line-height: 1.4;
 }
-
-.cat-label {
+.action-btn {
+  flex-shrink: 0;
+  height: 76rpx;
+  padding: 0 22rpx;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--purple-deep);
   font-size: 24rpx;
-  font-weight: 600;
+  box-shadow: 0 10rpx 20rpx rgba(80, 45, 120, 0.24);
 }
-
-/* 右侧网格 */
-.grid-wrap {
+.manual-link {
+  position: absolute;
+  left: 26rpx;
+  bottom: 12rpx;
+  font-size: 21rpx;
+  font-weight: 700;
+  opacity: 0.9;
+}
+.filter-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 0 32rpx 16rpx;
+}
+.filters {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
-  padding: 8rpx 32rpx 32rpx 24rpx;
+  white-space: nowrap;
 }
-
+.filter {
+  display: inline-flex;
+  margin-right: 12rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  background: var(--surface-soft);
+  box-shadow: var(--shadow-card);
+  color: var(--text-2);
+  font-size: 23rpx;
+  font-weight: 700;
+}
+.filter.on {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+.sort-link {
+  flex-shrink: 0;
+  color: var(--purple-deep);
+  font-size: 23rpx;
+  font-weight: 700;
+}
+.grid-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 0 32rpx 28rpx;
+}
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24rpx;
+  gap: 20rpx;
 }
-
 .cell {
   position: relative;
+  padding: 12rpx;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
-
-.del {
+.frequent-badge,
+.suggested-badge {
   position: absolute;
-  top: -12rpx;
-  left: -12rpx;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: #ff5c6a;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 800;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 20rpx rgba(255, 92, 106, 0.5);
+  top: 22rpx;
+  left: 22rpx;
   z-index: 3;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 19rpx;
+  font-weight: 800;
 }
-
-.del-hover {
-  transform: scale(0.9);
+.frequent-badge {
+  color: #2e8a6e;
 }
-
-/* 空状态 */
-.empty {
-  padding-top: 160rpx;
-  text-align: center;
+.suggested-badge {
+  top: 64rpx;
+  color: #5f78a8;
+}
+.cell-name {
+  margin: 14rpx 4rpx 2rpx;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cell-meta {
+  margin: 4rpx 4rpx 10rpx;
+  font-size: 20rpx;
   color: var(--text-3);
 }
-
+.cell-controls {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 4rpx;
+}
+.cell-control {
+  flex: 1;
+  padding: 10rpx 4rpx;
+  border-radius: 14rpx;
+  background: #f4f0fb;
+  color: var(--text-2);
+  font-size: 20rpx;
+  font-weight: 700;
+  text-align: center;
+}
+.cell-control.danger {
+  color: #d04c5b;
+}
+.history-panel {
+  flex: 1;
+  min-height: 0;
+  padding: 0 32rpx 28rpx;
+}
+.history-scroll {
+  height: 100%;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+.history-card {
+  padding: 24rpx;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.history-title {
+  font-size: 30rpx;
+  font-weight: 800;
+}
+.history-time {
+  margin-top: 5rpx;
+  color: var(--text-3);
+  font-size: 20rpx;
+}
+.history-go {
+  flex-shrink: 0;
+  color: var(--pink-deep);
+  font-size: 23rpx;
+  font-weight: 700;
+}
+.history-items {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+.history-thumb {
+  border-radius: 18rpx;
+}
+.history-names {
+  margin-top: 16rpx;
+  color: var(--text-2);
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+.empty {
+  padding-top: 140rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  color: var(--text-3);
+}
+.history-empty {
+  padding-top: 110rpx;
+}
 .empty-emoji {
   font-size: 88rpx;
 }
-
-.empty-text {
-  margin-top: 16rpx;
-  font-size: 26rpx;
-}
-
-/* 添加弹层 */
-.mask {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 40;
-  background: rgba(40, 24, 48, 0.35);
-  display: flex;
-  align-items: flex-end;
-}
-
-.sheet {
-  width: 100%;
-  background: var(--surface);
-  border-radius: 48rpx 48rpx 0 0;
-  padding: 20rpx 36rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
-  box-shadow: var(--shadow-float);
-  display: flex;
-  flex-direction: column;
-  gap: 28rpx;
-}
-
-.grip {
-  width: 80rpx;
-  height: 8rpx;
-  border-radius: 999rpx;
-  background: var(--line);
-  margin: 4rpx auto 4rpx;
-}
-
-.sheet-title {
-  margin: 0;
-  font-size: 36rpx;
-  font-weight: 800;
-  line-height: 1.3;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.lbl {
-  font-size: 26rpx;
+.empty-title {
+  font-size: 28rpx;
   font-weight: 700;
-  color: var(--text-2);
-}
-
-.input {
-  height: 88rpx;
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background: #faf8ff;
-  padding: 0 28rpx;
-  font-size: 30rpx;
   color: var(--text-1);
 }
-
-.emojis {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
+.empty-sub {
+  font-size: 23rpx;
 }
-
-.emoji-pick {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 24rpx;
-  background: #f4f0fb;
-  font-size: 40rpx;
+.empty-btn {
+  margin-top: 16rpx;
+  height: 82rpx;
+  padding: 0 40rpx;
+  font-size: 27rpx;
+}
+.mask {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(35, 24, 48, 0.36);
+}
+.sort-sheet {
+  width: 100%;
+  max-height: 82vh;
+  padding: 30rpx 30rpx calc(30rpx + env(safe-area-inset-bottom, 0px));
+  border-radius: 44rpx 44rpx 0 0;
+  background: #fff;
+  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.24);
+}
+.sheet-title {
+  font-size: 34rpx;
+  font-weight: 800;
+}
+.sheet-sub {
+  margin-top: 8rpx;
+  color: var(--text-3);
+  font-size: 22rpx;
+}
+.sort-list {
+  max-height: 60vh;
+  margin-top: 24rpx;
+}
+.sort-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 2px solid transparent;
-  box-sizing: border-box;
+  gap: 14rpx;
+  min-height: 112rpx;
+  margin-bottom: 12rpx;
+  padding: 10rpx 14rpx;
+  border-radius: 22rpx;
+  background: #faf7ff;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.12s ease, opacity 0.12s ease;
 }
-
-.emoji-pick.on {
-  border-color: var(--pink);
+.sort-row.dragging {
+  z-index: 5;
+  opacity: 0.86;
   background: #fff;
 }
-
-.emoji-pick-hover {
-  opacity: 0.7;
+.drag-handle {
+  width: 40rpx;
+  color: var(--text-3);
+  font-size: 42rpx;
+  text-align: center;
 }
-
-.cats-pick {
-  display: flex;
-  gap: 16rpx;
-  overflow-x: auto;
-  padding-bottom: 4rpx;
-}
-
-.cat-pick {
+.sort-thumb {
+  width: 76rpx;
   flex-shrink: 0;
-  padding: 16rpx 28rpx;
-  border-radius: 999rpx;
-  background: #f4f0fb;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: var(--text-2);
 }
-
-.cat-pick.on {
-  background: var(--brand-gradient);
-  color: #fff;
+.sort-info {
+  flex: 1;
+  min-width: 0;
 }
-
-.cat-pick-hover {
-  opacity: 0.7;
+.sort-name {
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.submit {
-  width: 100%;
-  margin-top: 8rpx;
+.sort-meta {
+  margin-top: 5rpx;
+  color: var(--text-3);
+  font-size: 20rpx;
 }
-
-/* transition 动画 */
-.sheet-enter-active,
-.sheet-leave-active {
-  transition: opacity 0.2s ease;
+.sort-index {
+  flex-shrink: 0;
+  color: var(--purple-deep);
+  font-size: 24rpx;
+  font-weight: 800;
 }
-
-.sheet-enter-active .sheet,
-.sheet-leave-active .sheet {
-  transition: transform 0.25s ease;
+.sort-save {
+  margin-top: 24rpx;
 }
-
-.sheet-enter-from,
-.sheet-leave-to {
-  opacity: 0;
-}
-
-.sheet-enter-from .sheet,
-.sheet-leave-to .sheet {
-  transform: translateY(100%);
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>
