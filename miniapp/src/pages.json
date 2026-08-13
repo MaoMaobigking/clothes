@@ -17,6 +17,7 @@
     { "path": "pages/result/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/free-match/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/scene/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/outfits/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }

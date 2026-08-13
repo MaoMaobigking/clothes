@@ -136,3 +136,56 @@ CREATE TABLE IF NOT EXISTS ai_logs (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_scene_created (scene, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. 场景商城目录（人工维护，供新旧混搭方案选择新品）
+CREATE TABLE IF NOT EXISTS scene_catalog (
+  id VARCHAR(64) PRIMARY KEY,
+  scene_key VARCHAR(32) NOT NULL,
+  category VARCHAR(32) NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  price DECIMAL(8,2) NOT NULL,
+  image_url VARCHAR(512),
+  taobao_url VARCHAR(1024),
+  taokouling VARCHAR(128) NOT NULL,
+  season VARCHAR(16),
+  keywords JSON,
+  `from` VARCHAR(10) DEFAULT '#ffd1e8',
+  `to` VARCHAR(10) DEFAULT '#c9b8ff',
+  emoji VARCHAR(8) DEFAULT '👗',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_scene_catalog_scene (scene_key),
+  INDEX idx_scene_catalog_category (scene_key, category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. 场景方案快照（保存为“我的搭配”模板，按用户隔离）
+CREATE TABLE IF NOT EXISTS scene_outfits (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  scene_key VARCHAR(32) NOT NULL,
+  title VARCHAR(128) NOT NULL,
+  season VARCHAR(16),
+  mode ENUM('pure','mixed') NOT NULL,
+  filter_key VARCHAR(16) NOT NULL,
+  weather JSON,
+  composition JSON NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_scene_outfit_user_created (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. 购物车（场景新品与普通衣橱商品统一入口）
+-- 功能三和功能四共用这张表；item_type 后续可按业务扩展。
+CREATE TABLE IF NOT EXISTS cart_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  item_type ENUM('garment','accessory') NOT NULL,
+  item_id VARCHAR(64) NOT NULL,
+  quantity INT UNSIGNED NOT NULL DEFAULT 1,
+  source_outfit_id VARCHAR(64),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_cart_user_item (user_id, item_type, item_id),
+  CONSTRAINT fk_cart_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_cart_user (user_id, item_type, item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

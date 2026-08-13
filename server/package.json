@@ -9,6 +9,7 @@
     "start": "node --env-file=.env index.mjs",
     "db:init": "node --env-file=.env scripts/initDb.mjs",
     "db:check": "node --env-file=.env scripts/checkIsolation.mjs",
+    "check:scene": "node --env-file=.env scripts/checkScene.mjs",
     "check:http": "node --env-file=.env scripts/checkHttp.mjs"
   },
   "dependencies": {

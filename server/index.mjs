@@ -17,6 +17,8 @@ import garmentRoutes from './routes/garments.mjs'
 import aiRoutes from './routes/ai.mjs'
 import authRoutes from './routes/auth.mjs'
 import profileRoutes from './routes/profile.mjs'
+import sceneRoutes from './routes/scene.mjs'
+import { ensureSceneCatalog } from './services/sceneService.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
@@ -42,6 +44,7 @@ app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
+app.use('/api/scene', sceneRoutes)
 
 /* ============ 统一错误处理（必须放在所有路由之后） ============ */
 app.use(errorHandler)
@@ -58,6 +61,8 @@ async function bootstrap() {
     await initDb()
     await ping()
     console.log(`✅ MySQL 已连接并建表: ${dbHost}/${DB_NAME}`)
+    await ensureSceneCatalog()
+    console.log('✅ 场景商城目录已初始化')
   } catch (err) {
     console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${err.message}`)
     console.error('   排查：1) 容器是否启动 docker ps  2) .env 里 MYSQL_PORT/PASSWORD 是否对\n')
