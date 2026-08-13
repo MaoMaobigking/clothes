@@ -116,7 +116,7 @@ const crossCart = await req('/cart', { token: b.token })
 check('B 的购物车不受 A 影响', crossCart.status === 200 && crossCart.data?.items?.length === 0)
 
 console.log('\n[5] 真实照片上传与演示识别')
-const mainUploadDir = join(here, '..', '..', '..', '..', 'server', 'uploads', 'garments')
+const mainUploadDir = join(here, '..', 'uploads', 'garments')
 const files = readdirSync(mainUploadDir).filter((name) => /\.(png|jpe?g|webp)$/i.test(name))
 if (files.length) {
   const bytes = readFileSync(join(mainUploadDir, files[0]))
