@@ -27,6 +27,9 @@ server/rag_index.json
 # 工具产物
 .reasonix
 
+# 微信小程序：本机私有配置（每个开发者各自生成，共享忽略规则）
+project.private.config.json
+
 # 编辑器
 .vscode/*
 !.vscode/extensions.json

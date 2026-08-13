@@ -8,6 +8,7 @@
  *  - POST /chat/tools     → 手写 tool-calling 对话（3.3）
  */
 import { Router } from 'express'
+import { authRequired } from '../middleware/auth.mjs'
 import {
   generateReport,
   generateSceneOutfits,
