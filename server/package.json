@@ -9,6 +9,9 @@
     "start": "node --env-file=.env index.mjs",
     "db:init": "node --env-file=.env scripts/initDb.mjs",
     "db:check": "node --env-file=.env scripts/checkIsolation.mjs",
+    "check:custom": "node --env-file=.env scripts/checkCustom.mjs",
+    "check:custom:http": "node --env-file=.env scripts/checkCustomHttp.mjs",
+    "custom:seed": "node --env-file=.env scripts/seedCustomDemo.mjs",
     "check:http": "node --env-file=.env scripts/checkHttp.mjs"
   },
   "dependencies": {
@@ -16,6 +19,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
-    "mysql2": "^3.23.1"
+    "mysql2": "^3.23.1",
+    "multer": "^2.2.0"
   }
 }

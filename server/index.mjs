@@ -11,15 +11,20 @@
  */
 import express from 'express'
 import cors from 'cors'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { logger } from './middleware/logger.mjs'
 import { errorHandler } from './middleware/errorHandler.mjs'
 import garmentRoutes from './routes/garments.mjs'
 import aiRoutes from './routes/ai.mjs'
 import authRoutes from './routes/auth.mjs'
 import profileRoutes from './routes/profile.mjs'
+import customRoutes from './routes/custom.mjs'
+import { ensureDesigners } from './services/customService.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
+const here = dirname(fileURLToPath(import.meta.url))
 
 const PROVIDER = (process.env.AI_PROVIDER || 'openai').toLowerCase()
 const API_KEY = process.env.AI_API_KEY || ''
@@ -31,6 +36,7 @@ const PORT = Number(process.env.PORT || 8787)
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 app.use(logger)
+app.use('/uploads', express.static(join(here, 'uploads')))
 
 /* ============ 健康检查 ============ */
 app.get('/api/health', (_req, res) => {
@@ -42,6 +48,7 @@ app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
+app.use('/api/custom', customRoutes)
 
 /* ============ 统一错误处理（必须放在所有路由之后） ============ */
 app.use(errorHandler)
@@ -58,6 +65,10 @@ async function bootstrap() {
     await initDb()
     await ping()
     console.log(`✅ MySQL 已连接并建表: ${dbHost}/${DB_NAME}`)
+    const designerSeed = await ensureDesigners()
+    if (designerSeed.inserted > 0) {
+      console.log(`✅ 定制设计师目录已初始化: ${designerSeed.inserted} 位`)
+    }
   } catch (err) {
     console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${err.message}`)
     console.error('   排查：1) 容器是否启动 docker ps  2) .env 里 MYSQL_PORT/PASSWORD 是否对\n')

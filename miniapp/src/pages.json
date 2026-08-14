@@ -19,6 +19,10 @@
     { "path": "pages/scene/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/custom/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/custom/category", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/custom/orders", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/custom/order", "style": { "navigationStyle": "custom" } },
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
   ],
   "tabBar": {
