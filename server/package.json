@@ -15,7 +15,8 @@
     "check:scene": "node --env-file=.env scripts/checkScene.mjs",
     "check:custom": "node --env-file=.env scripts/checkCustom.mjs",
     "check:custom:http": "node --env-file=.env scripts/checkCustomHttp.mjs",
-    "custom:seed": "node --env-file=.env scripts/seedCustomDemo.mjs"
+    "custom:seed": "node --env-file=.env scripts/seedCustomDemo.mjs",
+    "check:community": "node --env-file=.env scripts/checkCommunity.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

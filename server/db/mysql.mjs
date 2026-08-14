@@ -121,9 +121,12 @@ export async function initDb() {
     await migrateBodyProfiles(conn)
     await migrateFeatureTwo(conn)
     await migrateCustomTables(conn)
+    await migrateCommunityRoles(conn)
   } finally {
     await conn.end()
   }
+  const { seedCommunityIfNeeded } = await import('../services/communitySeedService.mjs')
+  await seedCommunityIfNeeded()
 }
 
 /**
@@ -172,6 +175,24 @@ async function migrateCustomTables(conn) {
     if (!existing.has(name)) {
       await conn.query(`ALTER TABLE users ADD COLUMN ${name} ${ddl}`)
     }
+  }
+}
+
+/**
+ * 功能六需要 users.role 兼容旧开发库。
+ * 功能五已经补齐 role 与 membership_level，这里保留旧版本兜底。
+ */
+async function migrateCommunityRoles(conn) {
+  const [rows] = await conn.query(
+    `SELECT COLUMN_NAME AS name
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users'`,
+    [DB_NAME],
+  )
+  if (!rows.some((row) => row.name === 'role')) {
+    await conn.query(
+      "ALTER TABLE users ADD COLUMN role VARCHAR(32) NOT NULL DEFAULT 'user'",
+    )
   }
 }
 

@@ -4,7 +4,12 @@
  *  - POST /dev-token 开发用（仅非生产环境）
  */
 import { Router } from 'express'
-import { wxLogin, devToken, checkToken } from '../services/authService.mjs'
+import {
+  wxLogin,
+  devToken,
+  checkToken,
+  adminLogin,
+} from '../services/authService.mjs'
 
 const router = Router()
 
@@ -33,6 +38,16 @@ if (process.env.NODE_ENV !== 'production') {
     }
   })
 }
+
+// POST /api/auth/admin-login → 功能六轻量管理员看板
+router.post('/admin-login', async (req, res, next) => {
+  try {
+    const result = await adminLogin(req.body?.password)
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
 
 // GET /api/auth/me → 检查当前 token 是否有效
 router.get('/me', (req, res) => {

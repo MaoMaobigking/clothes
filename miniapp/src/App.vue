@@ -47,6 +47,7 @@ view,
 text,
 button,
 input,
+textarea,
 scroll-view {
   box-sizing: border-box;
 }

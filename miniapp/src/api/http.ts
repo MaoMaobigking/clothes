@@ -33,6 +33,10 @@ function setToken(token: string) {
   uni.setStorageSync(TOKEN_KEY, token)
 }
 
+export function setAuthToken(token: string) {
+  setToken(token)
+}
+
 function getDevTag() {
   let tag = uni.getStorageSync(DEV_TAG_KEY)
   if (!tag) {
