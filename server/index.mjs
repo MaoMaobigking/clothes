@@ -26,6 +26,8 @@ import accessoryCartRoutes from './routes/accessoryCart.mjs'
 import { ensureAccessories } from './services/accessoryService.mjs'
 import sceneRoutes from './routes/scene.mjs'
 import { ensureSceneCatalog } from './services/sceneService.mjs'
+import customRoutes from './routes/custom.mjs'
+import { ensureDesigners } from './services/customService.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
@@ -58,6 +60,7 @@ app.use('/api/profile', profileRoutes)
 app.use('/api/wardrobe', wardrobeRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/scene', sceneRoutes)
+app.use('/api/custom', customRoutes)
 
 /* ============ 统一错误处理（必须放在所有路由之后） ============ */
 app.use(errorHandler)
@@ -80,6 +83,10 @@ async function bootstrap() {
     }
     await ensureSceneCatalog()
     console.log('✅ 场景商城目录已初始化')
+    const designerSeed = await ensureDesigners()
+    if (designerSeed.inserted > 0) {
+      console.log(`✅ 定制设计师目录已初始化: ${designerSeed.inserted} 位`)
+    }
   } catch (err) {
     console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${err.message}`)
     console.error('   排查：1) 容器是否启动 docker ps  2) .env 里 MYSQL_PORT/PASSWORD 是否对\n')
