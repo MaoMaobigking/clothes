@@ -21,6 +21,7 @@
     { "path": "pages/wardrobe-match/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/outfit-result/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/accessory/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/outfits/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
