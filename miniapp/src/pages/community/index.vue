@@ -1,114 +1,346 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
-import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
-import { POSTS, HOT_TOPICS } from '@/data/mock'
+import {
+  fetchCommunityContents,
+  toggleCommunityInteraction,
+  type CommunityContent,
+  type CommunityContentType,
+} from '@/api/community'
 
-// 精选 banner：取前 2 条
-const banners = POSTS.slice(0, 2)
+const TABS: { key: CommunityContentType; label: string }[] = [
+  { key: 'magazine', label: '杂志推送' },
+  { key: 'tutorial', label: '穿搭教程' },
+  { key: 'share', label: '用户分享' },
+  { key: 'challenge', label: '话题挑战' },
+]
 
-// 瀑布感：给每条帖子分配一个高度比例（循环取用）
-const RATIOS = ['3 / 4', '1 / 1', '4 / 5', '3 / 5', '5 / 6', '4 / 3']
-function ratioOf(index: number): string {
-  return RATIOS[index % RATIOS.length]
+const activeTab = ref<CommunityContentType>('magazine')
+const loading = ref(false)
+const loadError = ref('')
+const topicFilter = ref('')
+const activeCategory = ref('全部')
+const contentByType = reactive<Record<CommunityContentType, CommunityContent[]>>({
+  magazine: [],
+  tutorial: [],
+  share: [],
+  challenge: [],
+})
+
+const categories = ['全部', '新手入门', '高级技巧', '场景穿搭', '配饰搭配']
+
+const visibleTutorials = computed(() =>
+  activeCategory.value === '全部'
+    ? contentByType.tutorial
+    : contentByType.tutorial.filter((item) => item.category === activeCategory.value),
+)
+
+const verifiedTutorials = computed(() =>
+  contentByType.tutorial.filter((item) => item.body.verified),
+)
+
+const visibleShares = computed(() =>
+  topicFilter.value
+    ? contentByType.share.filter((item) => item.topics.includes(topicFilter.value))
+    : contentByType.share,
+)
+
+onLoad((options) => {
+  const tab = options?.tab
+  if (TABS.some((item) => item.key === tab)) activeTab.value = tab as CommunityContentType
+})
+
+onShow(() => {
+  void loadCurrentTab()
+})
+
+onMounted(() => {
+  void loadCurrentTab()
+})
+
+async function loadCurrentTab() {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const filters =
+      activeTab.value === 'tutorial'
+        ? { category: activeCategory.value === '全部' ? '' : activeCategory.value }
+        : activeTab.value === 'share'
+          ? { topic: topicFilter.value }
+          : {}
+    const items = await fetchCommunityContents(activeTab.value, filters)
+    contentByType[activeTab.value] = items
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '内容加载失败'
+  } finally {
+    loading.value = false
+  }
 }
 
-// 本地点赞：记录被点亮的帖子 id（不写回 mock）
-const liked = ref<Set<string>>(new Set())
-function isLiked(id: string): boolean {
-  return liked.value.has(id)
+function switchTab(tab: CommunityContentType) {
+  activeTab.value = tab
+  if (tab !== 'share') topicFilter.value = ''
+  void loadCurrentTab()
 }
-function toggleLike(id: string): void {
-  const next = new Set(liked.value)
-  if (next.has(id)) next.delete(id)
-  else next.add(id)
-  liked.value = next
+
+function setCategory(category: string) {
+  activeCategory.value = category
+  void loadCurrentTab()
 }
-function likeCount(id: string, base: number): number {
-  return base + (liked.value.has(id) ? 1 : 0)
+
+function openContent(item: CommunityContent) {
+  if (item.type === 'magazine') {
+    uni.navigateTo({ url: `/pages/magazine-detail/index?id=${encodeURIComponent(item.id)}` })
+  } else if (item.type === 'tutorial') {
+    uni.navigateTo({ url: `/pages/teach-detail/index?id=${encodeURIComponent(item.id)}` })
+  } else {
+    uni.navigateTo({ url: `/pages/share-detail/index?id=${encodeURIComponent(item.id)}` })
+  }
+}
+
+function publishShare() {
+  uni.navigateTo({ url: '/pages/share-editor/index' })
+}
+
+async function toggleAction(
+  item: CommunityContent,
+  action: 'like' | 'favorite' | 'report',
+) {
+  try {
+    const result = await toggleCommunityInteraction(item.id, action)
+    Object.assign(item, result.content)
+    if (action === 'report' && result.active) {
+      contentByType.share = contentByType.share.filter((post) => post.id !== item.id)
+    }
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '操作失败',
+      icon: 'none',
+    })
+  }
+}
+
+function joinChallenge(challenge: CommunityContent) {
+  topicFilter.value = challenge.topics[0] || ''
+  activeTab.value = 'share'
+  void loadCurrentTab()
+}
+
+function clearTopic() {
+  topicFilter.value = ''
+  void loadCurrentTab()
+}
+
+function showCooperationTip() {
+  uni.showToast({
+    title: '合作邀约已记录，后续可联系演示博主',
+    icon: 'none',
+  })
 }
 </script>
 
 <template>
   <view class="page">
-    <PageHeader title="时尚社群" to="/home">
+    <PageHeader title="时尚社区" to="/pages/home/home">
       <template #right>
-        <view class="city">杭州 ▾</view>
+        <view class="publish" @tap="publishShare">发布</view>
       </template>
     </PageHeader>
 
+    <view class="tabs">
+      <view
+        v-for="tab in TABS"
+        :key="tab.key"
+        class="tab"
+        :class="{ on: activeTab === tab.key }"
+        @tap="switchTab(tab.key)"
+      >
+        {{ tab.label }}
+      </view>
+    </view>
+
     <view class="body scroll-y hide-scrollbar">
-      <!-- 搜索框（仅样式） -->
-      <view class="search">
-        <text class="s-ico">🔍</text>
-        <text class="s-ph">搜索穿搭灵感、话题、达人</text>
+      <view v-if="loading" class="state">正在读取社区内容...</view>
+      <view v-else-if="loadError" class="state error">
+        {{ loadError }}
+        <view class="retry" @tap="loadCurrentTab">重新加载</view>
       </view>
 
-      <!-- 热门推荐 banner -->
-      <view>
-        <SectionTitle title="热门推荐" />
-        <view class="banners">
-          <view v-for="b in banners" :key="b.id" class="banner">
-            <view class="b-text">
-              <text class="b-topic">#{{ b.topic }}</text>
-              <view class="b-title">{{ b.text }}</view>
-              <text class="b-author">{{ b.avatar }} {{ b.author }}</text>
+      <template v-else>
+        <template v-if="activeTab === 'magazine'">
+          <view class="section-head">
+            <view>
+              <view class="section-title">杂志推送</view>
+              <view class="section-sub">按月更新的电子杂志与专题</view>
             </view>
-            <TileImage
-              :src="b.img"
-              :from="b.from"
-              :to="b.to"
-              :emoji="b.emoji"
-              ratio="1 / 1"
-              rounded="var(--radius)"
-              class="b-img"
-            />
           </view>
-        </view>
-      </view>
-
-      <!-- 热门话题 chips（横滑） -->
-      <view>
-        <SectionTitle title="热门话题" />
-        <view class="topics hide-scrollbar">
-          <text v-for="t in HOT_TOPICS" :key="t" class="chip">{{ t }}</text>
-        </view>
-      </view>
-
-      <!-- 信息流：瀑布流 2 列 -->
-      <view>
-        <SectionTitle title="穿搭广场" />
-        <view class="feed">
-          <view v-for="(p, i) in POSTS" :key="p.id" class="post">
-            <TileImage
-              :src="p.img"
-              :from="p.from"
-              :to="p.to"
-              :emoji="p.emoji"
-              :ratio="ratioOf(i)"
-              rounded="var(--radius)"
-            />
-            <view class="p-text">{{ p.text }}</view>
-            <view class="p-foot">
-              <view class="p-author">
-                <text class="p-avatar">{{ p.avatar }}</text>
-                <text class="p-name">{{ p.author }}</text>
+          <view class="magazine-grid">
+            <view
+              v-for="(item, index) in contentByType.magazine"
+              :key="item.id"
+              class="magazine-card"
+              :class="{ feature: index === 0 }"
+              @tap="openContent(item)"
+            >
+              <TileImage
+                :src="item.coverUrl"
+                emoji="📖"
+                from="#f3e0d6"
+                to="#c98fb0"
+                ratio="3 / 4"
+                rounded="12px"
+              />
+              <view class="magazine-meta">
+                <text class="magazine-month">{{ item.publishedMonth }}</text>
+                <view class="magazine-title">{{ item.title }}</view>
+                <view class="magazine-subtitle">{{ item.subtitle }}</view>
               </view>
-              <view class="p-stats">
+            </view>
+          </view>
+        </template>
+
+        <template v-else-if="activeTab === 'tutorial'">
+          <view v-if="verifiedTutorials.length" class="blogger-strip">
+            <view>
+              <view class="blogger-title">认证博主独家教程</view>
+              <view class="blogger-sub">{{ verifiedTutorials.length }} 位演示博主在线发布</view>
+            </view>
+            <view class="cooperation" @tap="showCooperationTip">合作邀约</view>
+          </view>
+          <view class="category-row">
+            <view
+              v-for="category in categories"
+              :key="category"
+              class="category-chip"
+              :class="{ on: activeCategory === category }"
+              @tap="setCategory(category)"
+            >
+              {{ category }}
+            </view>
+          </view>
+          <view class="tutorial-grid">
+            <view
+              v-for="item in visibleTutorials"
+              :key="item.id"
+              class="tutorial-card"
+              @tap="openContent(item)"
+            >
+              <TileImage
+                :src="item.coverUrl"
+                :emoji="item.authorAvatar"
+                from="#d6e4f0"
+                to="#9ab6d8"
+                ratio="16 / 10"
+                rounded="12px"
+              />
+              <text class="tutorial-category">{{ item.category }}</text>
+              <text v-if="item.body.verified" class="verified-mark">认证博主</text>
+              <view class="card-title">{{ item.title }}</view>
+              <view class="tutorial-meta">
+                {{ item.body.duration || '图文教程' }}
+                <text v-if="item.completed" class="completed-mark">已完成</text>
+              </view>
+            </view>
+          </view>
+        </template>
+
+        <template v-else-if="activeTab === 'share'">
+          <view class="share-toolbar">
+            <view class="share-head">
+              <view class="section-title">穿搭广场</view>
+              <view class="section-sub">点赞、评论与收藏都会真实保存</view>
+            </view>
+            <view class="share-button" @tap="publishShare">上传穿搭</view>
+          </view>
+          <view v-if="topicFilter" class="active-topic">
+            正在参加 {{ topicFilter }}
+            <text class="clear-topic" @tap="clearTopic">清除</text>
+          </view>
+          <view v-if="!visibleShares.length" class="state">这个话题下还没有内容</view>
+          <view class="feed">
+            <view
+              v-for="(item, index) in visibleShares"
+              :key="item.id"
+              class="share-card"
+              @tap="openContent(item)"
+            >
+              <TileImage
+                :src="item.coverUrl"
+                :emoji="item.authorAvatar"
+                from="#ffd6e8"
+                to="#c9b8ff"
+                :ratio="index % 3 === 0 ? '3 / 4' : index % 2 === 0 ? '1 / 1' : '4 / 5'"
+                rounded="12px"
+              />
+              <view class="share-author">
+                <text class="author-avatar">{{ item.authorAvatar }}</text>
+                <text class="author-name">{{ item.authorName }}</text>
+              </view>
+              <view class="share-caption">{{ item.title }}</view>
+              <view class="share-topics">
+                <text v-for="topic in item.topics" :key="topic" class="topic">{{ topic }}</text>
+              </view>
+              <view class="share-actions">
                 <view
-                  class="p-like"
-                  :class="{ on: isLiked(p.id) }"
-                  @tap="toggleLike(p.id)"
+                  class="action"
+                  :class="{ on: item.liked }"
+                  @tap.stop="toggleAction(item, 'like')"
                 >
-                  {{ isLiked(p.id) ? '❤️' : '🤍' }} {{ likeCount(p.id, p.likes) }}
+                  {{ item.liked ? '❤️' : '🤍' }} {{ item.likeCount }}
                 </view>
-                <text class="p-cmt">💬 {{ p.comments }}</text>
+                <view class="action" @tap.stop="openContent(item)">
+                  💬 {{ item.commentCount }}
+                </view>
+                <view
+                  class="action"
+                  :class="{ on: item.favorited }"
+                  @tap.stop="toggleAction(item, 'favorite')"
+                >
+                  {{ item.favorited ? '⭐' : '☆' }} {{ item.favoriteCount }}
+                </view>
+                <view class="action subtle" @tap.stop="toggleAction(item, 'report')">举报</view>
               </view>
             </view>
           </view>
-        </view>
-      </view>
+        </template>
+
+        <template v-else>
+          <view class="section-head">
+            <view>
+              <view class="section-title">话题挑战</view>
+              <view class="section-sub">完成挑战，让真实穿搭被看见</view>
+            </view>
+          </view>
+          <view class="challenge-list">
+            <view
+              v-for="item in contentByType.challenge"
+              :key="item.id"
+              class="challenge-card"
+            >
+              <TileImage
+                :src="item.coverUrl"
+                :emoji="item.authorAvatar"
+                from="#e3f0e6"
+                to="#9fceb0"
+                ratio="16 / 9"
+                rounded="12px"
+              />
+              <text class="challenge-category">{{ item.category }}</text>
+              <view class="card-title">{{ item.title }}</view>
+              <view class="challenge-subtitle">{{ item.subtitle }}</view>
+              <view class="challenge-body">
+                {{ item.body.description }}
+              </view>
+              <view class="challenge-footer">
+                <text class="participants">{{ item.participantCount }} 人已参与</text>
+                <view class="join-button" @tap="joinChallenge(item)">去参加</view>
+              </view>
+            </view>
+          </view>
+        </template>
+      </template>
     </view>
   </view>
 </template>
@@ -119,176 +351,313 @@ function likeCount(id: string, base: number): number {
   display: flex;
   flex-direction: column;
 }
+.publish {
+  min-width: 72rpx;
+  height: 64rpx;
+  padding: 0 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
+}
+.tabs {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8rpx;
+  margin: 0 32rpx 20rpx;
+  padding: 8rpx;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-card);
+}
+.tab {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+  font-size: 26rpx;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tab.on {
+  background: var(--brand-gradient);
+  color: #fff;
+}
 .body {
   flex: 1;
   min-height: 0;
-  padding: 24rpx 32rpx 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 32rpx;
+  padding: 8rpx 32rpx 44rpx;
 }
-
-.city {
+.state {
+  padding: 64rpx 24rpx;
+  text-align: center;
+  color: var(--text-2);
   font-size: 26rpx;
-  font-weight: 700;
-  color: var(--pink-deep);
-  background: rgba(255, 255, 255, 0.75);
-  border-radius: var(--radius-pill);
-  padding: 12rpx 24rpx;
-  box-shadow: var(--shadow-card);
-  white-space: nowrap;
 }
-
-/* 搜索框 */
-.search {
+.state.error {
+  color: #d45a78;
+}
+.retry {
+  margin-top: 20rpx;
+  color: var(--purple-deep);
+  font-weight: 700;
+}
+.section-head,
+.share-toolbar {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  background: var(--surface);
-  border-radius: var(--radius-pill);
-  padding: 22rpx 32rpx;
-  box-shadow: var(--shadow-card);
-}
-.s-ico {
-  font-size: 30rpx;
-}
-.s-ph {
-  font-size: 28rpx;
-  color: var(--text-3);
-}
-
-/* 热门话题 chips */
-.topics {
-  display: flex;
+  justify-content: space-between;
   gap: 20rpx;
-  overflow-x: auto;
-  margin-top: 20rpx;
-  padding-bottom: 4rpx;
+  margin: 18rpx 0 22rpx;
 }
-.chip {
-  flex: 0 0 auto;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: var(--purple-deep);
-  background: var(--surface-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  padding: 14rpx 28rpx;
-  white-space: nowrap;
-}
-
-/* 精选 banner */
-.banners {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-  margin-top: 20rpx;
-}
-.banner {
-  display: flex;
-  align-items: stretch;
-  gap: 24rpx;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 24rpx;
-  box-shadow: var(--shadow-card);
-}
-.b-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-.b-topic {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: var(--pink-deep);
-}
-.b-title {
-  margin: 0;
-  flex: 1;
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 1.5;
+.section-title {
+  font-size: 32rpx;
+  font-weight: 800;
   color: var(--text-1);
 }
-.b-author {
-  font-size: 24rpx;
-  color: var(--text-2);
+.section-sub {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-3);
 }
-.b-img {
-  width: 184rpx;
+.share-button,
+.join-button {
   flex-shrink: 0;
+  height: 64rpx;
+  padding: 0 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
 }
-
-/* 瀑布流信息流 */
-.feed {
-  column-count: 2;
-  column-gap: 24rpx;
-  margin-top: 20rpx;
+.magazine-grid,
+.tutorial-grid,
+.feed,
+.challenge-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24rpx;
 }
-.post {
-  break-inside: avoid;
-  display: inline-block;
-  width: 100%;
-  margin-bottom: 24rpx;
+.magazine-card,
+.tutorial-card,
+.share-card,
+.challenge-card {
+  min-width: 0;
   background: var(--surface);
-  border-radius: var(--radius);
+  border-radius: 12px;
   padding: 16rpx;
   box-shadow: var(--shadow-card);
 }
-.p-text {
-  margin: 16rpx 4rpx 0;
+.magazine-card.feature {
+  grid-column: 1 / -1;
+}
+.magazine-meta {
+  padding: 16rpx 4rpx 4rpx;
+}
+.magazine-month,
+.tutorial-category,
+.challenge-category {
+  display: block;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--purple-deep);
+}
+.magazine-title,
+.card-title {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  line-height: 1.4;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.magazine-subtitle,
+.challenge-subtitle {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.category-row {
+  display: flex;
+  gap: 12rpx;
+  overflow-x: auto;
+  margin: 18rpx 0 22rpx;
+  padding-bottom: 4rpx;
+}
+.blogger-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin: 18rpx 0 4rpx;
+  padding: 22rpx;
+  border-radius: 12px;
+  background: rgba(169, 220, 214, 0.28);
+}
+.blogger-title {
   font-size: 26rpx;
-  line-height: 1.5;
+  font-weight: 800;
+  color: #3d716b;
+}
+.blogger-sub {
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  color: #618d86;
+}
+.cooperation {
+  flex-shrink: 0;
+  height: 60rpx;
+  padding: 0 22rpx;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--mint);
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+.category-chip {
+  flex: 0 0 auto;
+  height: 60rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  color: var(--text-2);
+  font-size: 24rpx;
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
+}
+.category-chip.on {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+.tutorial-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+.verified-mark {
+  display: inline-block;
+  margin-top: 10rpx;
+  margin-right: 8rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--mint-deep);
+}
+.completed-mark {
+  color: var(--mint-deep);
+  font-weight: 700;
+}
+.active-topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18rpx;
+  padding: 18rpx 22rpx;
+  border-radius: var(--radius);
+  background: rgba(169, 220, 214, 0.25);
+  color: #477a72;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+.clear-topic {
+  color: var(--purple-deep);
+}
+.share-author {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+.author-avatar {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  font-size: 26rpx;
+}
+.author-name {
+  font-size: 22rpx;
+  color: var(--text-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.share-caption {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.45;
+  font-weight: 700;
   color: var(--text-1);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.p-foot {
+.share-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+.topic {
+  font-size: 20rpx;
+  color: var(--purple-deep);
+}
+.share-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6rpx;
+  margin-top: 14rpx;
+}
+.action {
+  font-size: 22rpx;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.action.on {
+  color: var(--pink-deep);
+}
+.action.subtle {
+  color: var(--text-3);
+}
+.challenge-body {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.challenge-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12rpx;
-  margin: 16rpx 4rpx 4rpx;
+  margin-top: 16rpx;
 }
-.p-author {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-  min-width: 0;
-}
-.p-avatar {
-  font-size: 30rpx;
-}
-.p-name {
-  font-size: 22rpx;
-  color: var(--text-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.p-stats {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  flex-shrink: 0;
-}
-.p-like {
-  font-size: 22rpx;
-  color: var(--text-2);
-  transition: transform 0.12s ease;
-}
-.p-like.on {
-  color: var(--pink-deep);
-}
-.p-like:active {
-  transform: scale(1.2);
-}
-.p-cmt {
+.participants {
   font-size: 22rpx;
   color: var(--text-3);
 }

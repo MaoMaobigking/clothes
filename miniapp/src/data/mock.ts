@@ -323,7 +323,7 @@ export const AI_FEATURES: {
   { key: 'scene', label: '情景模拟', desc: '看天气 + AI 一键搭配', emoji: '🌦️', from: '#c9ecff', to: '#8fc9f0', route: '/pages/scene/index' },
   { key: 'renew', label: '旧衣新生', desc: '旧衣服焕发新搭法', emoji: '♻️', from: '#d6f0d9', to: '#9fceb0', route: '/pages/wardrobe-upload/index' },
   { key: 'accessory', label: '配饰推荐', desc: '按当前服装挑首饰鞋帽', emoji: '💎', from: '#f3e0d6', to: '#d8b08f', route: '/pages/accessory/index' },
-  { key: 'magazine', label: '时尚杂志', desc: '灵感 & 穿搭思路', emoji: '📖', from: '#f3e0d6', to: '#d8b08f', route: '/pages/magazine/index' },
-  { key: 'community', label: '时尚社群', desc: '和同好交流穿搭', emoji: '💬', from: '#efe0f0', to: '#c29ad6', route: '/pages/community/index' },
+  { key: 'magazine', label: '时尚杂志', desc: '灵感 & 穿搭思路', emoji: '📖', from: '#f3e0d6', to: '#d8b08f', route: '/pages/community/index?tab=magazine' },
+  { key: 'community', label: '时尚社群', desc: '和同好交流穿搭', emoji: '💬', from: '#efe0f0', to: '#c29ad6', route: '/pages/community/index?tab=share' },
   { key: 'custom', label: '差异化定制', desc: '量体裁衣与设计师沟通', emoji: '🧵', from: '#f8d8c7', to: '#d7a7df', route: '/pages/custom/index' },
 ]
