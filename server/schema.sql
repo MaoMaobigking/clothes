@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
   openid VARCHAR(64) UNIQUE,
   nickname VARCHAR(64),
   avatar_url VARCHAR(512),
+  role VARCHAR(32) NOT NULL DEFAULT 'user',
+  membership_level VARCHAR(32) NOT NULL DEFAULT 'standard',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -135,4 +137,87 @@ CREATE TABLE IF NOT EXISTS ai_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_scene_created (scene, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. 定制服务设计师目录
+CREATE TABLE IF NOT EXISTS designers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  designer_key VARCHAR(32) NOT NULL UNIQUE,
+  name VARCHAR(64) NOT NULL,
+  avatar_url VARCHAR(512),
+  specialty VARCHAR(128),
+  bio VARCHAR(512),
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. 定制咨询
+CREATE TABLE IF NOT EXISTS custom_inquiries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  service_type VARCHAR(32) NOT NULL,
+  requirements TEXT NOT NULL,
+  budget VARCHAR(64),
+  size_notes VARCHAR(512),
+  reference_images JSON,
+  status ENUM('submitted','contacted') NOT NULL DEFAULT 'submitted',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_custom_inquiry_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. 预约量体记录
+CREATE TABLE IF NOT EXISTS custom_measurements (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  service_type VARCHAR(32) NOT NULL,
+  height DECIMAL(5,1) NOT NULL,
+  weight DECIMAL(5,1) NOT NULL,
+  bust DECIMAL(5,1) NOT NULL,
+  waist DECIMAL(5,1) NOT NULL,
+  hips DECIMAL(5,1) NOT NULL,
+  shoulder DECIMAL(5,1) NOT NULL,
+  front_image VARCHAR(512) NOT NULL,
+  side_image VARCHAR(512) NOT NULL,
+  back_image VARCHAR(512),
+  detail_images JSON,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_custom_measurement_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 13. 定制申请与进度
+CREATE TABLE IF NOT EXISTS custom_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  service_type VARCHAR(32) NOT NULL,
+  source ENUM('inquiry','measurement') NOT NULL DEFAULT 'inquiry',
+  requirements JSON,
+  reference_images JSON,
+  measurement_id INT NULL,
+  status ENUM('submitted','design','sample','production','shipped') NOT NULL DEFAULT 'submitted',
+  designer_id INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (measurement_id) REFERENCES custom_measurements(id) ON DELETE SET NULL,
+  FOREIGN KEY (designer_id) REFERENCES designers(id) ON DELETE SET NULL,
+  INDEX idx_custom_request_user (user_id, status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 14. 设计师一对一 IM
+CREATE TABLE IF NOT EXISTS custom_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  request_id INT NOT NULL,
+  user_id INT NOT NULL,
+  sender ENUM('user','designer','system') NOT NULL,
+  designer_id INT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (request_id) REFERENCES custom_requests(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (designer_id) REFERENCES designers(id) ON DELETE SET NULL,
+  INDEX idx_custom_message_request (request_id, created_at),
+  INDEX idx_custom_message_user (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
