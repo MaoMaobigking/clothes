@@ -325,4 +325,5 @@ export const AI_FEATURES: {
   { key: 'accessory', label: '配饰推荐', desc: '按当前服装挑首饰鞋帽', emoji: '💎', from: '#f3e0d6', to: '#d8b08f', route: '/pages/accessory/index' },
   { key: 'magazine', label: '时尚杂志', desc: '灵感 & 穿搭思路', emoji: '📖', from: '#f3e0d6', to: '#d8b08f', route: '/pages/magazine/index' },
   { key: 'community', label: '时尚社群', desc: '和同好交流穿搭', emoji: '💬', from: '#efe0f0', to: '#c29ad6', route: '/pages/community/index' },
+  { key: 'custom', label: '差异化定制', desc: '量体裁衣与设计师沟通', emoji: '🧵', from: '#f8d8c7', to: '#d7a7df', route: '/pages/custom/index' },
 ]

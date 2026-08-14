@@ -46,6 +46,7 @@ const menus: MenuItem[] = [
   { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/magazine/index' },
   { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index' },
   { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/index' },
+  { key: 'custom', emoji: '🧵', label: '差异化定制', route: '/pages/custom/index' },
   { key: 'setting', emoji: '⚙️', label: '设置' },
 ]
 

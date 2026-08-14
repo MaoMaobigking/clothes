@@ -120,6 +120,7 @@ export async function initDb() {
     await conn.query(sql)
     await migrateBodyProfiles(conn)
     await migrateFeatureTwo(conn)
+    await migrateCustomTables(conn)
   } finally {
     await conn.end()
   }
@@ -147,6 +148,29 @@ async function migrateBodyProfiles(conn) {
   for (const [name, ddl] of columns) {
     if (!existing.has(name)) {
       await conn.query(`ALTER TABLE body_profiles ADD COLUMN ${name} ${ddl}`)
+    }
+  }
+}
+
+/**
+ * 功能五给 users 表新增角色和会员等级。旧库中的 users 已存在时，
+ * CREATE TABLE IF NOT EXISTS 不会自动补列，这里和功能一的体型迁移走同一策略。
+ */
+async function migrateCustomTables(conn) {
+  const columns = [
+    ['role', "VARCHAR(32) NOT NULL DEFAULT 'user'"],
+    ['membership_level', "VARCHAR(32) NOT NULL DEFAULT 'standard'"],
+  ]
+  const [rows] = await conn.query(
+    `SELECT COLUMN_NAME AS name
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users'`,
+    [DB_NAME],
+  )
+  const existing = new Set(rows.map((row) => row.name))
+  for (const [name, ddl] of columns) {
+    if (!existing.has(name)) {
+      await conn.query(`ALTER TABLE users ADD COLUMN ${name} ${ddl}`)
     }
   }
 }

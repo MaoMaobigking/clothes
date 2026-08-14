@@ -12,7 +12,10 @@
     "check:http": "node --env-file=.env scripts/checkHttp.mjs",
     "check:feature2": "node --env-file=.env scripts/checkFeature2.mjs",
     "check:accessory": "node --env-file=.env scripts/checkAccessories.mjs",
-    "check:scene": "node --env-file=.env scripts/checkScene.mjs"
+    "check:scene": "node --env-file=.env scripts/checkScene.mjs",
+    "check:custom": "node --env-file=.env scripts/checkCustom.mjs",
+    "check:custom:http": "node --env-file=.env scripts/checkCustomHttp.mjs",
+    "custom:seed": "node --env-file=.env scripts/seedCustomDemo.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
