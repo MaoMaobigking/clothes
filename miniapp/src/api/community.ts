@@ -1,4 +1,4 @@
-import { request, setAuthToken } from './http'
+import { request } from './http'
 
 export type CommunityContentType =
   | 'magazine'
@@ -198,22 +198,6 @@ export async function fetchAchievements(): Promise<AchievementSummary> {
   return request({
     url: '/api/community/achievements',
   })
-}
-
-export async function adminLogin(password: string) {
-  const data = await request<{
-    token: string
-    userId: number
-    role: 'admin'
-    nickname: string
-  }>({
-    url: '/api/auth/admin-login',
-    method: 'POST',
-    data: { password },
-    withAuth: false,
-  })
-  setAuthToken(data.token)
-  return data
 }
 
 export async function fetchAdminDashboard(): Promise<AdminDashboard> {
