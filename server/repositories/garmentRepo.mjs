@@ -83,6 +83,18 @@ export async function findGarment(userId, id) {
   return rowToGarment(row)
 }
 
+export async function listGarmentsByIds(userId, ids) {
+  if (!ids.length) return []
+  const placeholders = ids.map(() => '?').join(', ')
+  const rows = await getAll(
+    `SELECT ${SELECT_COLS}
+       FROM garments
+      WHERE user_id = ? AND id IN (${placeholders})`,
+    [userId, ...ids],
+  )
+  return rows.map(rowToGarment)
+}
+
 /**
  * 新增衣物。userId 由调用方从 JWT 传入，绝不从请求体读
  * （从 body 读 user_id 等于让客户端自己声明身份，是典型越权口子）。
