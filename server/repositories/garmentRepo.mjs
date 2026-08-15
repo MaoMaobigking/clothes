@@ -148,7 +148,12 @@ export async function addGarment(userId, partial = {}) {
 /** 删除。返回 false 表示「不存在 或 不是你的」，上层统一返 404 */
 export async function deleteGarment(userId, id) {
   await execute('DELETE FROM outfit_items WHERE garment_id = ?', [id])
-  await execute('DELETE FROM feature2_cart_items WHERE garment_id = ?', [id])
+  // cart_items.item_id 是多态列（garment/accessory/catalog 共用），没有外键级联，
+  // 必须显式清，否则衣物删了购物车里还留一行查不到明细的孤儿。
+  await execute(
+    "DELETE FROM cart_items WHERE item_type = 'garment' AND item_id = ? AND user_id = ?",
+    [id, userId],
+  )
   const result = await execute(
     'DELETE FROM garments WHERE id = ? AND user_id = ?',
     [id, userId],

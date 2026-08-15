@@ -84,9 +84,10 @@ router.post('/buy', asyncHandler(async (req, res) => {
   res.json(result)
 }))
 
+// 购物车已统一到 /api/cart（规格 §4.5 §13）。这里保留为只读别名，
+// 返回体与 /api/cart 完全一致，新前端代码请直接用 /api/cart。
 router.get('/cart', asyncHandler(async (req, res) => {
-  const items = await listCart(req.userId)
-  res.json({ items })
+  res.json(await listCart(req.userId))
 }))
 
 export default router

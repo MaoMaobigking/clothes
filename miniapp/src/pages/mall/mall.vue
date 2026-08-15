@@ -1,16 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { MALL_CATEGORIES, MALL_PRODUCTS, type MallProduct } from '@/data/mock'
 import { useCartStore } from '@/stores/cart'
+import { useWishlistStore } from '@/stores/wishlist'
 import MallDetailSheet from './MallDetailSheet.vue'
 import {
   mallProductToAccessoryContext,
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
 
+// 购物车徽标与入口走真实服务端购物车（规格 §4.5 §13）
 const cart = useCartStore()
+// 商城商品来自 data/mock.ts，服务端目录里没有对应记录，
+// 所以爱心只能是本地心愿单，不能冒充落库的购物车。
+const wishlist = useWishlistStore()
+
+onMounted(() => {
+  cart.load()
+})
 
 const activeCat = ref(MALL_CATEGORIES[0].key)
 const detail = ref<MallProduct | null>(null)
@@ -31,17 +40,26 @@ function showToast(msg: string) {
   toastTimer = setTimeout(() => (toast.value = ''), 1600)
 }
 
+/*
+ * 商城商品是演示目录（data/mock.ts），服务端 accessories / scene_catalog
+ * 里没有对应记录，直接加购只会拿到 404。所以这里只收进本地心愿单，
+ * 并把人指向真实可购买的配饰页 —— 不假装加进了落库的购物车。
+ */
 function buyAll() {
   const items = filtered.value
-  items.forEach((p) => cart.add(p.id))
-  showToast(`已把 ${items.length} 件${catLabel.value}加入购物车 🛒`)
+  items.forEach((p) => wishlist.add(p.id))
+  showToast(`已收藏 ${items.length} 件${catLabel.value}，去配饰页可真实加购`)
 }
 
 function addFromSheet() {
   if (!detail.value) return
-  cart.add(detail.value.id)
-  showToast('已加入购物车 🛒')
+  wishlist.add(detail.value.id)
+  showToast('已收藏，去配饰页可真实加购 ✨')
   detail.value = null
+}
+
+function goCart() {
+  uni.navigateTo({ url: '/pages/cart/index' })
 }
 
 function goAccessoryFromSheet() {
@@ -66,7 +84,7 @@ function goFreeMatch() {
     <view class="topbar">
       <view class="row1">
         <text class="title">{{ catLabel }}</text>
-        <view class="cart" aria-label="购物车" @tap="showToast('购物车功能开发中～')">
+        <view class="cart" aria-label="购物车" @tap="goCart">
           <text>🛒</text>
           <text v-if="cart.count" class="badge">{{ cart.count }}</text>
         </view>
@@ -112,8 +130,8 @@ function goFreeMatch() {
           :to="p.to"
           :tag="p.tag"
           :src="p.img"
-          :fav="cart.has(p.id)"
-          @fav="cart.toggle(p.id)"
+          :fav="wishlist.has(p.id)"
+          @fav="wishlist.toggle(p.id)"
           @click="detail = p"
         />
       </view>
@@ -141,9 +159,9 @@ function goFreeMatch() {
     <!-- 商品详情底部弹层 -->
     <MallDetailSheet
       :product="detail"
-      :fav="detail ? cart.has(detail.id) : false"
+      :fav="detail ? wishlist.has(detail.id) : false"
       @close="detail = null"
-      @fav="detail && cart.toggle(detail.id)"
+      @fav="detail && wishlist.toggle(detail.id)"
       @add="addFromSheet"
       @accessory="goAccessoryFromSheet"
     />

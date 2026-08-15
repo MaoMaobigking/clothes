@@ -276,4 +276,84 @@ async function migrateAccounts(conn) {
   }
 }
 
+/**
+ * 规格 §4.5 §13：购物车统一到单张 cart_items。
+ *
+ * 三件事，都必须幂等（每次启动都会跑）：
+ *   1. item_type 枚举加 'catalog'，用来装 scene_catalog 的场景新品。
+ *   2. 把功能二旧表 feature2_cart_items 的存量搬进来，然后 DROP 掉旧表。
+ *      幂等靠「表没了」本身保证：下次启动查不到表，整段直接跳过，
+ *      不会把数量重复累加。schema.sql 里也已删掉这张表的 CREATE，
+ *      否则会变成「建表→搬空→删表」每次启动空转一轮。
+ *   3. 修历史脏数据：功能四曾把 scene_catalog 的 id 以 item_type='garment'
+ *      写进来，而功能三按 garment 去 garments 查明细查不到，这些行会被
+ *      静默丢掉。这里按 id 是否命中 scene_catalog 改判成 'catalog'。
+ *
+ * 第 3 步必须排在第 1 步之后 —— 'catalog' 不在旧枚举里，先改数据会被 MySQL
+ * 截断成空串。
+ */
+async function migrateCart(conn) {
+  const [typeRows] = await conn.query(
+    `SELECT COLUMN_TYPE AS type
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'cart_items' AND COLUMN_NAME = 'item_type'`,
+    [DB_NAME],
+  )
+  if (!typeRows.length) return
+  if (!typeRows[0].type.includes("'catalog'")) {
+    await conn.query(
+      `ALTER TABLE cart_items
+        MODIFY COLUMN item_type ENUM('garment','accessory','catalog') NOT NULL`,
+    )
+  }
+
+  const [legacy] = await conn.query(
+    `SELECT TABLE_NAME AS name
+       FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'feature2_cart_items'`,
+    [DB_NAME],
+  )
+  if (legacy.length) {
+    // 旧表允许同一件衣物按 source_outfit_id 存多行，新表 (user,type,item) 唯一，
+    // 所以先按新表主键聚合再插入，避免同一批 INSERT 内部自撞。
+    await conn.query(
+      `INSERT INTO cart_items (user_id, item_type, item_id, quantity, source_outfit_id)
+       SELECT f.user_id, 'garment', f.garment_id,
+              LEAST(99, SUM(f.quantity)),
+              CAST(MIN(f.source_outfit_id) AS CHAR)
+         FROM feature2_cart_items f
+         JOIN garments g ON g.id = f.garment_id AND g.user_id = f.user_id
+        GROUP BY f.user_id, f.garment_id
+       ON DUPLICATE KEY UPDATE
+         quantity = LEAST(99, cart_items.quantity + VALUES(quantity)),
+         source_outfit_id = COALESCE(cart_items.source_outfit_id, VALUES(source_outfit_id))`,
+    )
+    await conn.query('DROP TABLE feature2_cart_items')
+  }
+
+  // 只改「在 scene_catalog 里、且不是该用户真实衣物」的行。
+  // 多一道 garments 的 LEFT JOIN 是防御性的：万一两张目录 id 撞车，
+  // 真实衣物优先，不能被误判成场景新品。
+  await conn.query(
+    `UPDATE cart_items c
+       JOIN scene_catalog sc ON sc.id = c.item_id
+       LEFT JOIN garments g ON g.id = c.item_id AND g.user_id = c.user_id
+        SET c.item_type = 'catalog'
+      WHERE c.item_type = 'garment' AND g.id IS NULL`,
+  )
+}
+
+/**
+ * 只给 scripts/checkCart.mjs 用：单独跑一次购物车迁移，验证幂等性。
+ * 业务代码不要调用 —— 迁移的正常入口是 initDb()。
+ */
+export async function migrateCartForCheck() {
+  const conn = await mysql.createConnection({ ...DB_CONFIG, database: DB_NAME })
+  try {
+    await migrateCart(conn)
+  } finally {
+    await conn.end()
+  }
+}
+
 export { pool, DB_NAME }

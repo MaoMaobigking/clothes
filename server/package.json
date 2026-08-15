@@ -19,6 +19,7 @@
     "custom:seed": "node --env-file=.env scripts/seedCustomDemo.mjs",
     "check:community": "node --env-file=.env scripts/checkCommunity.mjs",
     "check:auth": "node --env-file=.env scripts/checkAuth.mjs",
+    "check:cart": "node --env-file=.env scripts/checkCart.mjs",
     "seed:demo": "node --env-file=.env scripts/seedDemoAccounts.mjs"
   },
   "dependencies": {

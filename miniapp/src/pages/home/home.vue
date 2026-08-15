@@ -5,10 +5,10 @@ import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { AI_FEATURES, OUTFIT_RECOS, MALL_PRODUCTS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
 import { useProfileStore } from '@/stores/profile'
-import { useCartStore } from '@/stores/cart'
+import { useWishlistStore } from '@/stores/wishlist'
 
 const profile = useProfileStore()
-const cart = useCartStore()
+const wishlist = useWishlistStore()
 
 const picks = MALL_PRODUCTS.slice(0, 4)
 
@@ -130,8 +130,8 @@ function goMall() {
             :from="p.from"
             :to="p.to"
             :src="p.img"
-            :fav="cart.has(p.id)"
-            @fav="cart.toggle(p.id)"
+            :fav="wishlist.has(p.id)"
+            @fav="wishlist.toggle(p.id)"
             @click="goMall"
           />
         </view>
