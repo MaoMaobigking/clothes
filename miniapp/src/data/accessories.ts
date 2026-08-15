@@ -203,7 +203,7 @@ export function saveLocalAccessoryRating(id: string, score: number) {
 
 function scoreItem(item: LocalAccessory, outfit: AccessoryContextItem[], ratings: Record<string, number>) {
   const anchor = outfit[0] || {}
-  const seasons = outfit.map((piece) => piece.season).filter(Boolean)
+  const seasons = outfit.map((piece) => piece.season).filter((season): season is string => !!season)
   const occasions = outfit.flatMap((piece) => piece.occasions || [])
   const styles = outfit.flatMap((piece) => piece.styles || [])
   const colorHits = (outfit.flatMap((piece) => piece.colors || []).length)

@@ -121,12 +121,24 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
 
   function setCategory(key: string) { activeCategory.value = key }
 
+  /**
+   * 退出登录 / 切换账号时回到初始态。
+   * setup 语法的 store 没有内置 $reset，得自己写；不清的话
+   * 上一个人的衣橱会留在内存里，下一个人进衣橱页会先看到别人的衣服。
+   */
+  function reset() {
+    items.value = fallbackItems()
+    activeCategory.value = 'all'
+    usingApi.value = false
+    loaded.value = false
+  }
+
   load()
 
   return {
     items, activeCategory, usingApi, loaded,
     garments, filtered, favoriteGarments, favIds,
     isFav, toggleFav, addItem, updateItem, uploadItems, reorder,
-    toggleFrequentlyWorn, removeItem, setCategory, load,
+    toggleFrequentlyWorn, removeItem, setCategory, load, reset,
   }
 })
