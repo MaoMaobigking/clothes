@@ -122,6 +122,8 @@ export async function initDb() {
     await migrateFeatureTwo(conn)
     await migrateCustomTables(conn)
     await migrateCommunityRoles(conn)
+    await migrateAccounts(conn)
+    await migrateCart(conn)
   } finally {
     await conn.end()
   }
@@ -240,6 +242,38 @@ async function migrateFeatureTwo(conn) {
 
 export async function closeDb() {
   await pool.end()
+}
+
+/** 索引是否存在（唯一索引不能用 ADD 重复执行，先查 information_schema） */
+async function hasIndex(conn, table, indexName) {
+  const [rows] = await conn.query(
+    `SELECT INDEX_NAME AS name
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?`,
+    [DB_NAME, table, indexName],
+  )
+  return rows.length > 0
+}
+
+/**
+ * 规格 §5：账号密码登录与四类预置演示账号。
+ * 旧开发库的 users 已存在，CREATE TABLE IF NOT EXISTS 不会补列，这里增量补。
+ *
+ * account 上的唯一索引单独建：多个普通微信用户的 account 都是 NULL，
+ * MySQL 的唯一索引允许多个 NULL，所以不会互相撞车。
+ */
+async function migrateAccounts(conn) {
+  const columns = [
+    ['account', 'VARCHAR(64) NULL'],
+    ['password_hash', 'VARCHAR(160) NULL'],
+    ['demo_kind', 'VARCHAR(32) NULL'],
+  ]
+  for (const [name, ddl] of columns) {
+    await ensureColumn(conn, 'users', name, ddl)
+  }
+  if (!(await hasIndex(conn, 'users', 'uq_users_account'))) {
+    await conn.query('ALTER TABLE users ADD UNIQUE KEY uq_users_account (account)')
+  }
 }
 
 export { pool, DB_NAME }

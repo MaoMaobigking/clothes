@@ -5,20 +5,34 @@
  * 之前这里全是占位（createUser 硬返 { id: 1 }），所以不管谁登录都是 1 号用户，
  * 数据隔离在此处就已经死了 —— 后面路由写得再对也没用。
  */
-import { getOne, execute } from '../db/mysql.mjs'
+import { getOne, getAll, execute } from '../db/mysql.mjs'
 
 /** 按微信 openid 查用户；没有返回 null */
 export async function findByOpenid(openid) {
   return getOne(
-    'SELECT id, openid, nickname, avatar_url, created_at FROM users WHERE openid = ?',
+    `SELECT id, openid, account, password_hash, nickname, avatar_url,
+            role, membership_level, demo_kind, created_at
+       FROM users WHERE openid = ?`,
     [openid],
+  )
+}
+
+/** 按登录账号名查用户（规格 §5.2 的预置账号登录）；没有返回 null */
+export async function findByAccount(account) {
+  return getOne(
+    `SELECT id, openid, account, password_hash, nickname, avatar_url,
+            role, membership_level, demo_kind, created_at
+       FROM users WHERE account = ?`,
+    [account],
   )
 }
 
 /** 按主键查用户 */
 export async function findById(id) {
   return getOne(
-    'SELECT id, openid, nickname, avatar_url, created_at FROM users WHERE id = ?',
+    `SELECT id, openid, account, nickname, avatar_url,
+            role, membership_level, demo_kind, created_at
+       FROM users WHERE id = ?`,
     [id],
   )
 }
@@ -69,4 +83,30 @@ export async function setUserRole(id, role) {
     [role, id],
   )
   return result.affectedRows > 0
+}
+
+/**
+ * 给用户绑定登录账号与密码哈希（预置演示账号用）。
+ * 幂等：重复调用只是覆盖同样的值。
+ */
+export async function setAccountCredentials(id, { account, passwordHash, demoKind, nickname, role }) {
+  const fields = []
+  const params = []
+  if (account !== undefined) { fields.push('account = ?'); params.push(account) }
+  if (passwordHash !== undefined) { fields.push('password_hash = ?'); params.push(passwordHash) }
+  if (demoKind !== undefined) { fields.push('demo_kind = ?'); params.push(demoKind) }
+  if (nickname !== undefined) { fields.push('nickname = ?'); params.push(nickname) }
+  if (role !== undefined) { fields.push('role = ?'); params.push(role) }
+  if (!fields.length) return false
+  params.push(id)
+  const result = await execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params)
+  return result.affectedRows > 0
+}
+
+/** 列出所有预置演示账号（H5 兜底的账号选择器用，不返回密码哈希） */
+export async function listDemoUsers() {
+  return getAll(
+    `SELECT id, account, nickname, role, demo_kind
+       FROM users WHERE demo_kind IS NOT NULL ORDER BY id ASC`,
+  )
 }

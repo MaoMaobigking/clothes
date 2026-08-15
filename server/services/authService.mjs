@@ -6,9 +6,15 @@
  * 「真用户」是数据隔离的地基 —— 地基假的，上面所有 WHERE user_id = ? 都在演。
  */
 import { signToken, verifyToken } from '../middleware/auth.mjs'
-import { findOrCreateByOpenid, setUserRole } from '../repositories/userRepo.mjs'
+import {
+  findOrCreateByOpenid,
+  findByAccount,
+  listDemoUsers,
+  setAccountCredentials,
+  setUserRole,
+} from '../repositories/userRepo.mjs'
 import { ensureSeeded } from './garmentService.mjs'
-import { createHash } from 'node:crypto'
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 
 const WX_APPID = process.env.WX_APPID || ''
 const WX_SECRET = process.env.WX_SECRET || ''
@@ -115,4 +121,154 @@ export async function adminLogin(password) {
   if (user.role !== 'admin') await setUserRole(user.id, 'admin')
   const token = signToken({ userId: user.id, openid, role: 'admin' })
   return { token, userId: user.id, role: 'admin', nickname: user.nickname }
+}
+
+/* ============ 规格 §5：账号密码登录与预置演示账号 ============ */
+
+/**
+ * 密码哈希：scrypt + 每账号随机 salt，存成 `salt:hash`。
+ * 不用裸 sha256 —— 演示账号密码短且可猜，加盐慢哈希才不至于一撞就穿。
+ */
+function hashPassword(password) {
+  const salt = randomBytes(16).toString('hex')
+  return `${salt}:${scryptSync(String(password), salt, 32).toString('hex')}`
+}
+
+function verifyPassword(password, stored) {
+  const [salt, expected] = String(stored || '').split(':')
+  if (!salt || !expected) return false
+  const actual = scryptSync(String(password), salt, 32)
+  const expectedBuf = Buffer.from(expected, 'hex')
+  // 长度不等时 timingSafeEqual 会直接抛，先挡一层
+  if (actual.length !== expectedBuf.length) return false
+  return timingSafeEqual(actual, expectedBuf)
+}
+
+/**
+ * 四类预置演示账号（规格 §5.2）。
+ * openid 固定，所以每次启动都是同一批用户，衣橱和报告不会漂。
+ * 密码可用环境变量覆盖，默认值只用于本地演示。
+ */
+export const DEMO_ACCOUNTS = [
+  {
+    kind: 'female',
+    account: 'demo_female',
+    openid: 'lingxi_demo_female',
+    nickname: '演示用户 · 小灵',
+    role: 'user',
+    label: '演示女性账号',
+    description: '已完成五步测试、真实衣橱、历史搭配、购物车、定制申请',
+    envKey: 'DEMO_FEMALE_PASSWORD',
+    defaultPassword: 'demo-female-2026',
+  },
+  {
+    kind: 'male',
+    account: 'demo_male',
+    openid: 'lingxi_demo_male',
+    nickname: '演示用户 · 阿犀',
+    role: 'user',
+    label: '演示男性账号',
+    description: '已完成画像、真实衣橱、场景搭配示例',
+    envKey: 'DEMO_MALE_PASSWORD',
+    defaultPassword: 'demo-male-2026',
+  },
+  {
+    kind: 'blank',
+    account: 'demo_blank',
+    openid: 'lingxi_demo_blank',
+    nickname: '全新用户',
+    role: 'user',
+    label: '空白新账号',
+    description: '无画像、无衣橱，用于演示从零开始的完整流程',
+    envKey: 'DEMO_BLANK_PASSWORD',
+    defaultPassword: 'demo-blank-2026',
+  },
+  {
+    kind: 'admin',
+    account: 'demo_admin',
+    openid: 'lingxi_admin',
+    nickname: '灵犀管理员',
+    role: 'admin',
+    label: '管理员账号',
+    description: '查看数据看板和演示进度',
+    envKey: 'ADMIN_PASSWORD',
+    defaultPassword: 'lingxi-admin-demo',
+  },
+]
+
+export function demoPasswordOf(entry) {
+  return process.env[entry.envKey] || entry.defaultPassword
+}
+
+/**
+ * 幂等创建四类演示账号并绑定密码。
+ * 已存在的账号只覆盖密码哈希和角色，不动它已有的衣橱与报告
+ * —— 现场重跑一次不该把演示数据洗掉。
+ */
+export async function ensureDemoAccounts() {
+  const created = []
+  for (const entry of DEMO_ACCOUNTS) {
+    const { user } = await findOrCreateByOpenid(entry.openid, {
+      nickname: entry.nickname,
+      role: entry.role,
+    })
+    await setAccountCredentials(user.id, {
+      account: entry.account,
+      passwordHash: hashPassword(demoPasswordOf(entry)),
+      demoKind: entry.kind,
+      nickname: entry.nickname,
+      role: entry.role,
+    })
+    created.push({ ...entry, userId: user.id })
+  }
+  return created
+}
+
+/** 账号密码登录（规格 §5.1） */
+export async function passwordLogin(account, password) {
+  const name = String(account || '').trim()
+  if (!name || !password) {
+    const err = new Error('请输入账号和密码')
+    err.status = 400
+    err.code = 'MISSING_CREDENTIALS'
+    throw err
+  }
+  const user = await findByAccount(name)
+  // 账号不存在与密码错误返回同一个提示，不给撞库留信息
+  if (!user || !verifyPassword(password, user.password_hash)) {
+    const err = new Error('账号或密码不正确')
+    err.status = 401
+    err.code = 'LOGIN_FAILED'
+    throw err
+  }
+  const role = user.role || 'user'
+  return {
+    token: signToken({ userId: user.id, openid: user.openid, role }),
+    userId: user.id,
+    openid: user.openid,
+    account: user.account,
+    role,
+    nickname: user.nickname,
+    demoKind: user.demo_kind || null,
+    isNewUser: false,
+  }
+}
+
+/** H5 兜底演示入口用的账号清单；生产环境不返回密码 */
+export async function listDemoAccounts() {
+  const rows = await listDemoUsers()
+  const meta = new Map(DEMO_ACCOUNTS.map((entry) => [entry.kind, entry]))
+  const exposePassword = process.env.NODE_ENV !== 'production'
+  return rows.map((row) => {
+    const entry = meta.get(row.demo_kind)
+    return {
+      account: row.account,
+      nickname: row.nickname,
+      role: row.role,
+      kind: row.demo_kind,
+      label: entry?.label || row.nickname,
+      description: entry?.description || '',
+      password: exposePassword && entry ? demoPasswordOf(entry) : undefined,
+    }
+  })
 }
