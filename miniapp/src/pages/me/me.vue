@@ -54,6 +54,7 @@ interface MenuItem {
 
 const menus: MenuItem[] = [
   { key: 'orders', emoji: '📦', label: '我的订单' },
+  { key: 'cart', emoji: '🛒', label: '购物车', route: '/pages/cart/index' },
   { key: 'outfits', emoji: '👗', label: '我的搭配', route: '/pages/outfits/index' },
   { key: 'diary', emoji: '📔', label: '穿搭日记' },
   { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/community/index?tab=magazine' },
@@ -93,6 +94,8 @@ function confirmLogout() {
 }
 
 onMounted(async () => {
+  // 购物车统计要走服务端（规格 §4.5），不加载就永远显示 0
+  cart.load(true)
   try {
     achievements.value = await fetchAchievements()
   } catch {

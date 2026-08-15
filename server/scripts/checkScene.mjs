@@ -77,8 +77,15 @@ const bought = await buyOutfit(a.userId, newIds, plan.id)
 const afterCart = await getOne('SELECT COUNT(*) AS n FROM cart_items WHERE user_id = ?', [a.userId])
 check('购买返回的新品数量正确', bought.added.length === newIds.length)
 check('cart_items 行数真实增加', Number(afterCart.n) === Number(beforeCart.n) + newIds.length)
-check('购物车接口能看到刚购买的新品', (await listCart(a.userId)).some((item) => item.itemId === newIds[0]))
-check('B 购物车没有 A 购买的新品', (await listCart(b.userId)).every((item) => item.itemId !== newIds[0]))
+// 购物车统一后 listCart 返回 { items, count, totalPrice }，新品是 item_type='catalog'
+const aCart = await listCart(a.userId)
+const bCart = await listCart(b.userId)
+check('购物车接口能看到刚购买的新品', aCart.items.some((item) => item.itemId === newIds[0]))
+check(
+  '新品以 catalog 类型入车且明细可解析',
+  aCart.items.every((item) => item.itemType !== 'catalog' || item.available),
+)
+check('B 购物车没有 A 购买的新品', bCart.items.every((item) => item.itemId !== newIds[0]))
 
 console.log(
   failed === 0

@@ -18,6 +18,7 @@ import {
 import { LOGIN_PAGE, clearToken, getToken, setAuthToken } from '@/api/http'
 import { useProfileStore } from './profile'
 import { useWardrobeStore } from './wardrobe'
+import { useCartStore } from './cart'
 
 const SESSION_KEY = 'ai-fashion-session'
 
@@ -72,6 +73,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       useProfileStore().reset()
       useWardrobeStore().reset()
+      // 购物车按人落库，不清会让新账号先看到上一个人的车再被刷新覆盖
+      useCartStore().reset()
     } catch {
       // store 尚未初始化时忽略
     }

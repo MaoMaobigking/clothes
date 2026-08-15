@@ -13,8 +13,7 @@ import { DEMO_ACCOUNTS, ensureDemoAccounts } from './authService.mjs'
 import * as garmentService from './garmentService.mjs'
 import * as profileService from './profileService.mjs'
 import * as outfitService from './outfitService.mjs'
-import * as feature2Cart from './cartService.mjs'
-import * as accessoryCart from './accessoryCartService.mjs'
+import * as cartService from './cartService.mjs'
 import * as aiRepo from '../repositories/aiRepo.mjs'
 import * as profileRepo from '../repositories/profileRepo.mjs'
 import * as customRepo from '../repositories/customRepo.mjs'
@@ -126,39 +125,29 @@ async function seedOutfits(userId, { saveFirst }) {
 }
 
 /**
- * 购物车预置。
+ * 购物车预置（规格 §5.4 演示女性账号「真实衣橱、历史搭配、购物车」）。
  *
- * 当前项目里购物车是两套并存的过渡状态：
- *   功能二 /api/cart          → feature2_cart_items（整套搭配拆成旧衣单品）
- *   功能三 /api/accessory-cart → cart_items（配饰与衣物混装）
- * 两边各灌一条，保证演示账号在两个入口都看得到数据。
- * 等购物车统一到单张 cart_items 之后，这里应该只剩一条路径。
+ * 购物车已统一到单张 cart_items（规格 §4.5 §13），这里只剩一条写入路径。
+ * 灌两类数据，正好覆盖两个演示点：
+ *   - 整套搭配拆成的旧衣单品 → 演示「来源搭配」标记
+ *   - 一件全局配饰           → 演示配饰购物车与搭配优惠价
+ *
+ * 先查再写：现场手动改过的购物车不会被下次启动覆盖。
  */
 async function seedCart(userId, outfits) {
+  const existing = await cartService.listCart(userId)
+  if (existing.items.length) return
+
   const first = outfits[0]
   if (first?.id) {
-    const feature2 = await feature2Cart.listCart(userId)
-    if (!feature2.length) {
-      await feature2Cart.addOutfitToCart(userId, first.id)
-    }
+    await cartService.addOutfitToCart(userId, first.id)
   }
 
-  const accessoryView = await accessoryCart.listCart(userId)
-  if (accessoryView.items.length) return
-  const payload = []
-  if (first?.items?.length) {
-    payload.push(
-      ...first.items.slice(0, 2).map((entry) => ({
-        itemType: 'garment',
-        itemId: entry.garment.id,
-        sourceOutfitId: String(first.id),
-      })),
-    )
-  }
   // 配饰目录是全局的，加一件方便直接演示搭配优惠价
   const accessory = await getOne('SELECT id FROM accessories ORDER BY id ASC LIMIT 1')
-  if (accessory) payload.push({ itemType: 'accessory', itemId: accessory.id })
-  if (payload.length) await accessoryCart.addBatch(userId, payload)
+  if (accessory) {
+    await cartService.addItem(userId, { itemType: 'accessory', itemId: accessory.id })
+  }
 }
 
 async function seedCustomRequest(userId) {
@@ -202,7 +191,6 @@ async function seedMale(userId) {
 /** 清空某个演示账号的业务数据（比赛前重置用），不删用户本身 */
 async function resetUserData(userId) {
   await execute('DELETE FROM cart_items WHERE user_id = ?', [userId])
-  await execute('DELETE FROM feature2_cart_items WHERE user_id = ?', [userId])
   await execute(
     'DELETE oi FROM outfit_items oi JOIN outfits o ON o.id = oi.outfit_id WHERE o.user_id = ?',
     [userId],

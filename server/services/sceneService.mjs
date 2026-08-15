@@ -8,12 +8,13 @@
  */
 import { listGarments } from './garmentService.mjs'
 import { getLatestProfile } from './profileService.mjs'
+// 购物车已统一到 cartService（规格 §4.5 §13）。场景新品以 item_type='catalog'
+// 入车，不再冒充 garment —— 那是历史脏数据被功能三静默丢弃的根因。
+import { addCatalogItems, listCart } from './cartService.mjs'
 import {
-  addCatalogItemsToCart,
   ensureSceneCatalog,
   findCatalogByIds,
   findSceneOutfit,
-  listCart,
   listCatalog,
   listSceneOutfits,
   saveSceneOutfit,
@@ -466,7 +467,7 @@ export async function buyOutfit(userId, itemIds, sourceOutfitId) {
     error.code = 'EMPTY_CART'
     throw error
   }
-  return addCatalogItemsToCart(userId, cleanIds, sourceOutfitId)
+  return addCatalogItems(userId, cleanIds, sourceOutfitId)
 }
 
 export {

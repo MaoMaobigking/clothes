@@ -7,7 +7,6 @@ import OutfitPreview from '@/components/OutfitPreview/OutfitPreview.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import {
-  apiAddOutfitToCart,
   apiGetOutfitBatch,
   apiReplaceOutfitItem,
   apiSaveOutfit,
@@ -126,11 +125,15 @@ async function saveOutfit(outfit: Outfit) {
   }
 }
 
+/**
+ * 整套方案拆成单品入车（规格 §4.5 §8.9）。
+ * 拆分和来源搭配都由服务端完成，store 直接以接口返回的整车为准，
+ * 不再往本地 id 数组里塞一份 —— 那份数据刷新就没，和落库的车对不上。
+ */
 async function addToCart(outfit: Outfit) {
   try {
-    await apiAddOutfitToCart(outfit.id)
-    outfit.items.forEach((entry) => cart.add(entry.garment.id))
-    toast('整套方案已拆成单品加入购物车')
+    const added = await cart.addOutfit(outfit.id)
+    toast(added > 0 ? `整套方案已拆成 ${added} 件加入购物车` : '整套方案已在购物车中')
   } catch (error) {
     toast((error as Error).message || '加入购物车失败')
   }

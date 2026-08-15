@@ -176,64 +176,13 @@ export async function findSceneOutfit(userId, id) {
 }
 
 /**
- * 将场景新品写入当前用户购物车。
+ * 场景购物车读写 —— 已移除，统一到 cart_items 单一数据域（规格 §4.5 §13）。
  *
- * 前端只传 itemId；价格、名称、淘口令都从 scene_catalog 重新读，
- * 不让客户端伪造购买价格或详情。
+ * 写：services/cartService.mjs 的 addCatalogItems()，item_type='catalog'。
+ * 读：services/cartService.mjs 的 listCart()。
+ *
+ * 原实现以 item_type='garment' 写 scene_catalog 的 id，而功能三按 garment
+ * 去 garments 查明细查不到，那些行会被 .filter(Boolean) 静默丢掉 ——
+ * 用户加购成功但购物车里看不到。db/mysql.mjs 的 migrateCart() 负责把
+ * 存量脏数据改判成 'catalog'。别把这个写法加回来。
  */
-export async function addCatalogItemsToCart(userId, itemIds, sourceOutfitId) {
-  if (!itemIds.length) return []
-  const catalog = await findCatalogByIds(itemIds)
-  const foundIds = new Set(catalog.map((item) => item.id))
-
-  await withTransaction(async (conn) => {
-    for (const item of catalog) {
-      await conn.execute(
-        `INSERT INTO cart_items
-          (user_id, item_type, item_id, quantity, source_outfit_id)
-         VALUES (?, 'garment', ?, 1, ?)
-         ON DUPLICATE KEY UPDATE
-           quantity = quantity + 1,
-           source_outfit_id = COALESCE(VALUES(source_outfit_id), source_outfit_id)`,
-        [userId, item.id, sourceOutfitId || null],
-      )
-    }
-  })
-
-  return {
-    added: catalog.map((item) => ({
-      itemId: item.id,
-      name: item.name,
-      price: item.price,
-      taokouling: item.taokouling,
-    })),
-    ignored: itemIds.filter((id) => !foundIds.has(id)),
-  }
-}
-
-export async function listCart(userId) {
-  const rows = await getAll(
-    `SELECT c.id, c.item_type, c.item_id, c.quantity, c.source_outfit_id,
-            c.created_at, c.updated_at,
-            sc.name AS catalog_name, sc.price AS catalog_price,
-            sc.taokouling AS catalog_taokouling
-       FROM cart_items c
-       LEFT JOIN scene_catalog sc
-         ON c.item_type = 'garment' AND sc.id = c.item_id
-      WHERE c.user_id = ?
-      ORDER BY c.id DESC`,
-    [userId],
-  )
-  return rows.map((row) => ({
-    id: row.id,
-    itemType: row.item_type,
-    itemId: row.item_id,
-    quantity: row.quantity,
-    sourceOutfitId: row.source_outfit_id,
-    name: row.catalog_name || row.item_id,
-    price: row.catalog_price === null ? null : Number(row.catalog_price),
-    taokouling: row.catalog_taokouling || '',
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  }))
-}

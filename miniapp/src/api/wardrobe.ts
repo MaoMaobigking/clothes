@@ -181,10 +181,8 @@ export async function apiReplaceOutfitItem(
   return normalizeOutfit(d.item)
 }
 
-export async function apiAddOutfitToCart(outfitId: number): Promise<number> {
-  const d = await request<{ items: Array<{ quantity: number }> }>({
-    url: `/api/cart/outfits/${outfitId}`,
-    method: 'POST',
-  })
-  return d.items.reduce((sum, item) => sum + item.quantity, 0)
-}
+/**
+ * 整套搭配加入购物车 —— 已移到 api/cart.ts 的 addOutfitToCart()。
+ * 购物车统一后（规格 §4.5 §13）请用 stores/cart.ts 的 addOutfit()，
+ * 它会把返回的整车同步进 store，徽标和购物车页才对得上。
+ */
