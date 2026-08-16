@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
 import StepShell from '@/components/StepShell/StepShell.vue'
 import {
   BODY_FIELDS,
@@ -8,6 +9,9 @@ import { useProfileStore } from '@/stores/profile'
 import type { BodyMetricKey, Gender } from '@/types'
 
 const store = useProfileStore()
+
+/** 体型小图缺素材时回落到色块 + emoji（规格 §7.4） */
+const imgFailed = reactive<Record<string, boolean>>({})
 
 function onSliderChange(key: BodyMetricKey, event: any) {
   const value = Number(event?.detail?.value ?? event?.target?.value)
@@ -51,7 +55,14 @@ const bmiTip = (bmi: number) => {
             class="body-preview"
             :style="{ background: opt.color }"
           >
-            <text class="body-emoji">{{ opt.emoji }}</text>
+            <image
+              v-if="opt.img && !imgFailed[opt.id]"
+              class="body-preview-img"
+              :src="opt.img"
+              mode="aspectFill"
+              @error="imgFailed[opt.id] = true"
+            />
+            <text v-else class="body-emoji">{{ opt.emoji }}</text>
           </view>
           <text class="body-label">{{ opt.label }}</text>
           <text class="body-desc">{{ opt.desc }}</text>
@@ -189,6 +200,11 @@ const bmiTip = (bmi: number) => {
   display: grid;
   place-items: center;
   margin-bottom: 12rpx;
+  overflow: hidden;
+}
+.body-preview-img {
+  width: 100%;
+  height: 100%;
 }
 .body-emoji {
   font-size: 46rpx;
