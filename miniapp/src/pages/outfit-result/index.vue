@@ -4,6 +4,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import OutfitPreview from '@/components/OutfitPreview/OutfitPreview.vue'
+import OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import {
@@ -33,6 +34,7 @@ const replacing = ref<ReplaceTarget | null>(null)
 const replaceDraft = ref('')
 const algorithmTarget = ref<Outfit | null>(null)
 const shareTarget = ref<Outfit | null>(null)
+const posterRef = ref<InstanceType<typeof OutfitPoster> | null>(null)
 
 const outfits = computed(() => batch.value?.outfits || [])
 const leftItems = computed(() =>
@@ -168,8 +170,8 @@ function copyShareText() {
 
 function saveSharePoster() {
   if (!shareTarget.value) return
-  // 小程序内支持长按海报保存；H5 下先给出可复制文案作为稳定兜底。
-  toast('请长按分享卡片保存，或复制上方文案')
+  // 真导出走 OutfitPoster 的 canvas（规格 §8.9），不再是假保存提示
+  posterRef.value?.savePoster()
 }
 </script>
 
@@ -335,23 +337,7 @@ function saveSharePoster() {
     <view v-if="shareTarget" class="mask" @tap="closeShare">
       <view class="sheet share-sheet" @tap.stop>
         <view class="sheet-title">分享搭配</view>
-        <view class="poster">
-          <view class="poster-top">{{ shareTarget.title }}</view>
-          <view class="poster-items">
-            <TileImage
-              v-for="entry in shareTarget.items"
-              :key="entry.id"
-              class="poster-thumb"
-              :src="entry.garment.img"
-              :emoji="entry.garment.emoji"
-              :from="entry.garment.primaryColor || entry.garment.from"
-              :to="entry.garment.secondaryColors?.[0] || entry.garment.to"
-              ratio="1 / 1"
-              rounded="16rpx"
-            />
-          </view>
-          <view class="poster-bottom">AI 旧衣智能搭配</view>
-        </view>
+        <OutfitPoster ref="posterRef" :outfit="shareTarget" />
         <view class="share-actions">
           <view class="btn btn-ghost share-btn" @tap="saveSharePoster">保存图片</view>
           <view class="btn btn-primary share-btn" @tap="copyShareText">复制分享文案</view>
@@ -653,32 +639,6 @@ function saveSharePoster() {
 .share-sheet {
   display: flex;
   flex-direction: column;
-}
-.poster {
-  margin-top: 24rpx;
-  padding: 28rpx;
-  border-radius: var(--radius);
-  background: var(--brand-gradient);
-  color: #fff;
-}
-.poster-top {
-  font-size: 32rpx;
-  font-weight: 800;
-}
-.poster-items {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14rpx;
-  margin-top: 24rpx;
-}
-.poster-thumb {
-  border: 4rpx solid rgba(255, 255, 255, 0.7);
-}
-.poster-bottom {
-  margin-top: 24rpx;
-  text-align: right;
-  font-size: 22rpx;
-  font-weight: 700;
 }
 .share-actions {
   display: flex;
