@@ -188,7 +188,13 @@ async function seedMale(userId) {
   await seedOutfits(userId, { saveFirst: true })
 }
 
-/** 清空某个演示账号的业务数据（比赛前重置用），不删用户本身 */
+/**
+ * 清空某个演示账号的业务数据（比赛前重置用），不删用户本身。
+ *
+ * 这里必须覆盖「所有按 user_id 存的东西」，漏一张表就意味着重置之后
+ * 上一场演示的痕迹还留在页面上 —— 场景模板会出现在「我的搭配」里，
+ * 社区点赞和积分会让看板统计对不上（规格 §15）。
+ */
 async function resetUserData(userId) {
   await execute('DELETE FROM cart_items WHERE user_id = ?', [userId])
   await execute(
@@ -199,9 +205,18 @@ async function resetUserData(userId) {
   await execute('DELETE FROM garments WHERE user_id = ?', [userId])
   await execute('DELETE FROM style_reports WHERE user_id = ?', [userId])
   await execute('DELETE FROM body_profiles WHERE user_id = ?', [userId])
+  // 功能四：场景模板（「我的搭配」里的场景那一组）
+  await execute('DELETE FROM scene_outfits WHERE user_id = ?', [userId])
+  // 功能五：量体数据要排在申请之后删，外键指向 custom_requests
   await execute('DELETE FROM custom_messages WHERE user_id = ?', [userId])
   await execute('DELETE FROM custom_requests WHERE user_id = ?', [userId])
+  await execute('DELETE FROM custom_measurements WHERE user_id = ?', [userId])
   await execute('DELETE FROM custom_inquiries WHERE user_id = ?', [userId])
+  // 功能六：互动、评论、书签、积分徽章
+  await execute('DELETE FROM community_interactions WHERE user_id = ?', [userId])
+  await execute('DELETE FROM community_comments WHERE user_id = ?', [userId])
+  await execute('DELETE FROM community_bookmarks WHERE user_id = ?', [userId])
+  await execute('DELETE FROM user_achievements WHERE user_id = ?', [userId])
 }
 
 /**

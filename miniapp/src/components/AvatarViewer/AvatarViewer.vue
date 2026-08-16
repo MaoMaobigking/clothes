@@ -60,6 +60,18 @@ const displayLabel = computed(() =>
   viewMode.value === 'back' ? `${props.label} · 背面演示` : props.label,
 )
 
+/*
+ * 试戴素材缺图时退回 emoji（规格 §4.3 §14）。
+ *
+ * 配饰目录里的 imageUrl 是「约定好的路径」，图片还没到位很正常。
+ * 没有这层兜底的话，路径一填上，试戴层就变成一块空白 —— 比先前的 emoji 还糟。
+ */
+const overlayFailed = ref('')
+const overlayImage = computed(() => {
+  const url = props.overlay?.imageUrl || ''
+  return url && overlayFailed.value !== url ? url : ''
+})
+
 function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v))
 }
@@ -339,10 +351,11 @@ defineExpose({ resetView, zoom, setEngine, setView })
           }"
         >
           <image
-            v-if="overlay?.imageUrl"
+            v-if="overlayImage"
             class="accessory-overlay-img"
-            :src="overlay.imageUrl"
+            :src="overlayImage"
             mode="aspectFit"
+            @error="overlayFailed = overlayImage"
           />
           <text v-else class="accessory-overlay-emoji">{{ overlay?.emoji || '✨' }}</text>
         </view>
