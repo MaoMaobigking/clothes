@@ -16,6 +16,10 @@ import { getToken, redirectToLogin } from '@/api/http'
 
 export default {
   onLaunch() {
+    // 底部导航用的是自定义 BottomNav，原生 tab 栏只留 pages.json 里的声明供
+    // switchTab 路由用，栏本身要藏掉，否则屏幕底部会出现两条（详见 BottomNav.vue）
+    setTimeout(() => uni.hideTabBar({ animation: false, fail: () => {} }), 0)
+
     if (!getToken()) {
       redirectToLogin()
       return

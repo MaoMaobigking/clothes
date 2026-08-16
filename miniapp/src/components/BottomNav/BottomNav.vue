@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 interface Tab {
   key: string
   label: string
@@ -13,10 +15,25 @@ const tabs: Tab[] = [
   { key: 'me', label: '我的', route: '/pages/me/me' },
 ]
 
-defineProps<{ active: string }>()
+const props = defineProps<{ active: string }>()
+
+/*
+ * 藏掉原生 tab 栏。
+ *
+ * pages.json 里的 tabBar 声明不能删 —— uni.switchTab 只认声明过的页面，
+ * 删了这 5 个页面之间就跳不动了。但原生 tab 栏会和这个自定义导航同时显示，
+ * 屏幕底部就出现两条。所以声明留着只为路由，栏本身藏起来。
+ */
+function hideNativeTabBar() {
+  uni.hideTabBar({ animation: false, fail: () => {} })
+}
+
+onMounted(hideNativeTabBar)
 
 function go(t: Tab) {
-  uni.switchTab({ url: t.route })
+  if (t.key === props.active) return
+  // switchTab 之后原生栏可能被重新显示出来，跳完再藏一次
+  uni.switchTab({ url: t.route, complete: hideNativeTabBar })
 }
 </script>
 
