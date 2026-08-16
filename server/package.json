@@ -20,7 +20,8 @@
     "check:community": "node --env-file=.env scripts/checkCommunity.mjs",
     "check:auth": "node --env-file=.env scripts/checkAuth.mjs",
     "check:cart": "node --env-file=.env scripts/checkCart.mjs",
-    "seed:demo": "node --env-file=.env scripts/seedDemoAccounts.mjs"
+    "seed:demo": "node --env-file=.env scripts/seedDemoAccounts.mjs",
+    "seed:all": "node --env-file=.env scripts/seedAll.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
