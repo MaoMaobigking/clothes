@@ -1,18 +1,46 @@
 <script setup lang="ts">
 /*
- * 搭配海报导出（规格 §8.9「分享：生成当前搭配海报，支持保存图片」）。
+ * 搭配海报导出（规格 §8.9「生成当前搭配海报，支持保存图片」、
+ * §10.10「海报包含真实搭配、场景背景和滤镜」）。
  *
  * 以前这里只有一句 toast「请长按分享卡片保存」，实际上什么都没生成。
- * 现在用 canvas 真画一张：标题 + 真实衣物照片网格 + 日期 + 水印，
+ * 现在用 canvas 真画一张：场景底图 + 当前滤镜 + 真实衣物照片网格 + 日期 + 水印，
  * 再按端分流保存 —— 小程序走相册，H5 走浏览器下载，失败都有明确提示。
+ *
+ * 功能二不传 background / overlay 就是原来的品牌渐变底；
+ * 功能四把场景底图和滤镜传进来，海报里就有场景和滤镜（§10.9 导出保留当前滤镜）。
  *
  * 用的是 uni 的旧版 canvas API（createCanvasContext + draw + canvasToTempFilePath），
  * 因为 type="2d" 在 H5 端和小程序端行为不一致，旧版两端都能跑。
  */
-import { getCurrentInstance, ref, watch } from 'vue'
-import type { Outfit } from '@/api/wardrobe'
+import { computed, getCurrentInstance, ref, watch } from 'vue'
+import type { OutfitPiece } from '@/utils/outfitPieces'
 
-const props = defineProps<{ outfit: Outfit | null }>()
+const props = withDefaults(
+  defineProps<{
+    title: string
+    pieces: OutfitPiece[]
+    subtitle?: string
+    /** 页脚左侧文字，一般是日期 */
+    footnote?: string
+    /** 场景底图（功能四）。画不出来就退回 gradient，不让整张海报失败 */
+    background?: string
+    /** 底色渐变，两个 hex */
+    gradient?: [string, string]
+    /** 滤镜遮罩，两段 rgba，和页面上的 stage-filter 同一组值 */
+    overlay?: [string, string] | null
+    /** 文件名，H5 下载用 */
+    fileName?: string
+  }>(),
+  {
+    subtitle: '',
+    footnote: '',
+    background: '',
+    gradient: () => ['#fff1f7', '#ece2ff'],
+    overlay: null,
+    fileName: '',
+  },
+)
 
 const CANVAS_ID = 'outfit-poster-canvas'
 /** 画布逻辑尺寸（CSS px）。导出时按 2 倍输出，保证清晰度。 */
@@ -38,11 +66,23 @@ function ellipsis(text: string, max: number) {
   return value.length > max ? `${value.slice(0, max)}…` : value
 }
 
-function formatDate(value?: string) {
-  const date = value ? new Date(value) : new Date()
-  const d = Number.isNaN(date.getTime()) ? new Date() : date
+function today() {
+  const d = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`
+}
+
+/**
+ * 底色偏暗就用浅色字。
+ * 夜晚滤镜的底是 #17182b，再用原来的深灰字等于什么都看不见。
+ */
+function isDarkColor(hex: string) {
+  const value = String(hex || '').replace('#', '')
+  if (value.length < 6) return false
+  const r = parseInt(value.slice(0, 2), 16)
+  const g = parseInt(value.slice(2, 4), 16)
+  const b = parseInt(value.slice(4, 6), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000 < 140
 }
 
 /**
@@ -77,39 +117,67 @@ function roundRectPath(ctx: any, x: number, y: number, w: number, h: number, r: 
 }
 
 async function draw(): Promise<void> {
-  const outfit = props.outfit
-  if (!outfit) return
+  if (!props.pieces.length && !props.title) return
   drawing.value = true
   drawError.value = ''
   try {
-    const items = outfit.items.slice(0, MAX_ITEMS)
-    const paths = await Promise.all(items.map((entry) => toLocalPath(entry.garment.img)))
+    const items = props.pieces.slice(0, MAX_ITEMS)
+    const [paths, bgPath] = await Promise.all([
+      Promise.all(items.map((piece) => toLocalPath(piece.img))),
+      toLocalPath(props.background),
+    ])
 
     const ctx: any = uni.createCanvasContext(CANVAS_ID, (instance as any)?.proxy || instance)
 
-    // 底：品牌渐变
-    const bg = ctx.createLinearGradient(0, 0, W, H)
-    bg.addColorStop(0, '#fff1f7')
-    bg.addColorStop(1, '#ece2ff')
-    ctx.setFillStyle(bg)
-    ctx.fillRect(0, 0, W, H)
+    // 底：场景照片优先，缺素材退回渐变（§4.3 不塞无关图片）
+    if (bgPath) {
+      ctx.drawImage(bgPath, 0, 0, W, H)
+      // 照片上直接压字读不清，铺一层暗色蒙版
+      ctx.setFillStyle('rgba(28, 20, 44, 0.42)')
+      ctx.fillRect(0, 0, W, H)
+    } else {
+      const bg = ctx.createLinearGradient(0, 0, W, H)
+      bg.addColorStop(0, props.gradient[0])
+      bg.addColorStop(1, props.gradient[1])
+      ctx.setFillStyle(bg)
+      ctx.fillRect(0, 0, W, H)
+    }
+
+    // 当前滤镜（§10.9：导出保留页面上看到的那一层）
+    if (props.overlay) {
+      const filter = ctx.createLinearGradient(0, 0, W, H)
+      filter.addColorStop(0, props.overlay[0])
+      filter.addColorStop(1, props.overlay[1])
+      ctx.setFillStyle(filter)
+      ctx.fillRect(0, 0, W, H)
+    }
+
+    const dark = Boolean(bgPath) || isDarkColor(props.gradient[0]) || isDarkColor(props.gradient[1])
+    const ink = {
+      title: dark ? '#ffffff' : '#2f2a3d',
+      sub: dark ? 'rgba(255,255,255,0.82)' : '#6b6580',
+      item: dark ? 'rgba(255,255,255,0.9)' : '#4a4360',
+      accent: dark ? '#ffd9f0' : '#9a6bff',
+      foot: dark ? 'rgba(255,255,255,0.66)' : '#a8a2ba',
+    }
 
     // 标题
-    ctx.setFillStyle('#2f2a3d')
+    ctx.setFillStyle(ink.title)
     ctx.setFontSize(19)
     ctx.setTextAlign('left')
-    ctx.fillText(ellipsis(outfit.title, 12), PAD, PAD + 20)
+    ctx.fillText(ellipsis(props.title, 12), PAD, PAD + 20)
 
-    // 副标题：场景 / 场合
-    ctx.setFillStyle('#6b6580')
-    ctx.setFontSize(11)
-    const sub = [outfit.scene, outfit.occasion].filter(Boolean).join(' · ')
-    if (sub) ctx.fillText(ellipsis(sub, 26), PAD, PAD + 40)
+    // 副标题：场景 / 天气 / 场合
+    if (props.subtitle) {
+      ctx.setFillStyle(ink.sub)
+      ctx.setFontSize(11)
+      ctx.fillText(ellipsis(props.subtitle, 26), PAD, PAD + 40)
+    }
 
     // 衣物网格
     const cell = (W - PAD * 2 - GAP * (COLS - 1)) / COLS
     const gridTop = PAD + 56
-    items.forEach((entry, index) => {
+    items.forEach((piece, index) => {
       const col = index % COLS
       const row = Math.floor(index / COLS)
       const x = PAD + col * (cell + GAP)
@@ -129,25 +197,25 @@ async function draw(): Promise<void> {
         ctx.restore()
       } else {
         // 没照片就用这件衣服自己的配色画占位，不塞无关图片（规格 §4.3）
-        ctx.setFillStyle(entry.garment.primaryColor || entry.garment.from || '#e9e1f7')
+        ctx.setFillStyle(piece.from || '#e9e1f7')
         roundRectPath(ctx, x + 6, y + 6, cell - 12, cell - 12, 6)
         ctx.fill()
       }
 
-      ctx.setFillStyle('#4a4360')
+      ctx.setFillStyle(ink.item)
       ctx.setFontSize(10)
       ctx.setTextAlign('center')
-      ctx.fillText(ellipsis(entry.garment.name, 6), x + cell / 2, y + cell + 15)
+      ctx.fillText(ellipsis(piece.name, 6), x + cell / 2, y + cell + 15)
       ctx.setTextAlign('left')
     })
 
     // 页脚：日期 + 水印
-    ctx.setFillStyle('#9a6bff')
+    ctx.setFillStyle(ink.accent)
     ctx.setFontSize(11)
-    ctx.fillText(formatDate(outfit.createdAt), PAD, H - PAD - 14)
-    ctx.setFillStyle('#a8a2ba')
+    ctx.fillText(props.footnote || today(), PAD, H - PAD - 14)
+    ctx.setFillStyle(ink.foot)
     ctx.setFontSize(10)
-    ctx.fillText('灵犀 AI 穿搭 · 旧衣智能搭配', PAD, H - PAD)
+    ctx.fillText('灵犀 AI 穿搭 · 真实衣物搭配', PAD, H - PAD)
 
     await new Promise<void>((resolve) => {
       ctx.draw(false, () => setTimeout(resolve, 80))
@@ -176,7 +244,7 @@ function canvasToFile(): Promise<string> {
 }
 
 async function savePoster() {
-  if (!props.outfit || saving.value) return
+  if (saving.value) return
   saving.value = true
   try {
     await draw()
@@ -218,7 +286,7 @@ async function savePoster() {
     try {
       const link = document.createElement('a')
       link.href = filePath
-      link.download = `${props.outfit.title || '搭配海报'}.png`
+      link.download = `${props.fileName || props.title || '搭配海报'}.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -235,11 +303,20 @@ async function savePoster() {
   }
 }
 
-// 换一套搭配就重画预览
+/** 换搭配、换滤镜、换场景都要重画 */
+const signature = computed(() =>
+  [
+    props.title,
+    props.background,
+    props.overlay?.join('|') || '',
+    props.pieces.map((piece) => piece.id).join(','),
+  ].join('#'),
+)
+
 watch(
-  () => props.outfit?.id,
-  (id) => {
-    if (id) setTimeout(draw, 50)
+  signature,
+  (value) => {
+    if (value) setTimeout(draw, 50)
   },
   { immediate: true },
 )

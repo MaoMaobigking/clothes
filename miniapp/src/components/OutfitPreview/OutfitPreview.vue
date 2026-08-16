@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
+import { computed, ref, watch } from 'vue'
 import { MODEL_IMAGES } from '@/data/mock'
 import { categoryLabel } from '@/data/wardrobeOptions'
-import type { Outfit } from '@/api/wardrobe'
+import type { OutfitPiece } from '@/utils/outfitPieces'
 
-const props = defineProps<{ outfit: Outfit }>()
+const props = withDefaults(
+  defineProps<{
+    /** 要叠到人台上的真实单品，见 utils/outfitPieces.ts */
+    pieces: OutfitPiece[]
+    /** 场景底图（功能四）。不传就用品牌渐变底（功能二） */
+    background?: string
+    /** 底图缺素材时的中性占位（§4.3），不补卡通图 */
+    backgroundEmoji?: string
+    /** 滤镜遮罩，CSS background 值。功能四切滤镜只改这一层，衣物不动（§10.9） */
+    filterStyle?: string
+    /** 人台图，默认女款正面 */
+    model?: string
+    caption?: string
+    height?: string
+  }>(),
+  {
+    background: '',
+    backgroundEmoji: '',
+    filterStyle: '',
+    model: MODEL_IMAGES.front,
+    caption: '真实旧衣组合演示',
+    height: '540rpx',
+  },
+)
 
 /**
- * 全身效果图的叠加位（规格 §8.8）。
+ * 全身效果图的叠加位（规格 §8.8 §10.7）。
  *
  * 以前是 6 个固定角标位，谁先来占谁 —— 鞋可能贴在胸口，帽子挂在腿边。
  * 现在按品类给高度：帽子在头、上衣在胸、下装在腿、鞋在脚，
@@ -32,8 +54,8 @@ const MIN_GAP = 15
 
 const overlays = computed(() => {
   const used: Record<'left' | 'right', number[]> = { left: [], right: [] }
-  return props.outfit.items.map((item, index) => {
-    const slot = SLOTS[item.garment.category] || {
+  return props.pieces.map((piece, index) => {
+    const slot = SLOTS[piece.category] || {
       top: FALLBACK.top + index * MIN_GAP,
       side: FALLBACK.side,
     }
@@ -43,8 +65,8 @@ const overlays = computed(() => {
     }
     used[slot.side].push(top)
     return {
-      ...item,
-      label: categoryLabel(item.garment.category),
+      ...piece,
+      label: categoryLabel(piece.category),
       style: {
         top: `${Math.min(top, 84)}%`,
         [slot.side]: '3%',
@@ -52,19 +74,38 @@ const overlays = computed(() => {
     }
   })
 })
+
+// 缺素材时退回中性底，不显示裂图（§4.3）
+const bgFailed = ref(false)
+const modelFailed = ref(false)
+watch(() => props.background, () => (bgFailed.value = false))
+watch(() => props.model, () => (modelFailed.value = false))
 </script>
 
 <template>
-  <view class="preview">
-    <TileImage
-      class="model"
-      :src="MODEL_IMAGES.front"
-      from="#ffe3ef"
-      to="#e7d4ff"
-      emoji="🧍‍♀️"
-      ratio="3 / 4"
-      fit="contain"
+  <view class="preview" :style="{ height }">
+    <image
+      v-if="background && !bgFailed"
+      class="layer bg"
+      :src="background"
+      mode="aspectFill"
+      @error="bgFailed = true"
     />
+    <view v-else-if="backgroundEmoji" class="layer bg-emoji">
+      <text>{{ backgroundEmoji }}</text>
+    </view>
+
+    <view v-if="filterStyle" class="layer filter" :style="{ background: filterStyle }" />
+
+    <image
+      v-if="!modelFailed"
+      class="model"
+      :src="model"
+      mode="aspectFit"
+      @error="modelFailed = true"
+    />
+    <text v-else class="model-fallback">🧍‍♀️</text>
+
     <view
       v-for="overlay in overlays"
       :key="overlay.id"
@@ -72,27 +113,64 @@ const overlays = computed(() => {
       :style="overlay.style"
     >
       <image
-        :src="overlay.garment.img"
+        v-if="overlay.img"
+        :src="overlay.img"
         mode="aspectFill"
         class="overlay-img"
       />
+      <view
+        v-else
+        class="overlay-img placeholder"
+        :style="{ background: `linear-gradient(140deg, ${overlay.from}, ${overlay.to})` }"
+      >
+        <text>{{ overlay.emoji }}</text>
+      </view>
       <text class="overlay-tag">{{ overlay.label }}</text>
     </view>
-    <view class="caption">真实旧衣组合演示</view>
+
+    <view v-if="caption" class="caption">{{ caption }}</view>
   </view>
 </template>
 
 <style scoped>
 .preview {
   position: relative;
-  height: 540rpx;
   border-radius: var(--radius);
   overflow: hidden;
   background: linear-gradient(155deg, #fff4f8, #f3ebff);
 }
-.model {
+.layer {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.bg-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 108rpx;
+  background: linear-gradient(150deg, #e9f2ff, #f3e8ff);
+}
+.filter {
+  z-index: 1;
+  pointer-events: none;
+}
+.model,
+.model-fallback {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  width: 60%;
+  height: 84%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+.model-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120rpx;
 }
 .overlay {
   position: absolute;
@@ -108,6 +186,12 @@ const overlays = computed(() => {
 .overlay-img {
   width: 100%;
   height: 100%;
+}
+.overlay-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
 }
 .overlay-tag {
   position: absolute;
@@ -125,6 +209,7 @@ const overlays = computed(() => {
   position: absolute;
   left: 16rpx;
   bottom: 14rpx;
+  right: 16rpx;
   z-index: 4;
   padding: 8rpx 18rpx;
   border-radius: 999rpx;
@@ -132,5 +217,8 @@ const overlays = computed(() => {
   color: #fff;
   font-size: 20rpx;
   font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 </style>

@@ -19,6 +19,7 @@ import {
   garmentToAccessoryContext,
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
+import { piecesFromOutfit } from '@/utils/outfitPieces'
 
 interface ReplaceTarget {
   outfitId: number
@@ -37,6 +38,21 @@ const shareTarget = ref<Outfit | null>(null)
 const posterRef = ref<InstanceType<typeof OutfitPoster> | null>(null)
 
 const outfits = computed(() => batch.value?.outfits || [])
+
+// 海报副标题与日期：以前由 OutfitPoster 从 Outfit 里自己抠，
+// 组件通用化后由调用方给（功能四给的是场景 + 天气）
+const posterSubtitle = computed(() => {
+  const target = shareTarget.value
+  if (!target) return ''
+  return [target.scene, target.occasion].filter(Boolean).join(' · ')
+})
+const posterDate = computed(() => {
+  const raw = shareTarget.value?.createdAt
+  const date = raw ? new Date(raw) : new Date()
+  const d = Number.isNaN(date.getTime()) ? new Date() : date
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`
+})
 const leftItems = computed(() =>
   wardrobe.items
     .map((item, index) => ({ item, index: index + 1 }))
@@ -210,7 +226,7 @@ function saveSharePoster() {
       <scroll-view scroll-y class="right-column hide-scrollbar">
         <view v-if="outfits.length" class="plans">
           <view v-for="outfit in outfits" :key="outfit.id" class="plan">
-            <OutfitPreview :outfit="outfit" />
+            <OutfitPreview :pieces="piecesFromOutfit(outfit)" />
             <view class="plan-head">
               <view>
                 <view class="plan-title">{{ outfit.title }}</view>
@@ -337,7 +353,13 @@ function saveSharePoster() {
     <view v-if="shareTarget" class="mask" @tap="closeShare">
       <view class="sheet share-sheet" @tap.stop>
         <view class="sheet-title">分享搭配</view>
-        <OutfitPoster ref="posterRef" :outfit="shareTarget" />
+        <OutfitPoster
+          ref="posterRef"
+          :title="shareTarget.title"
+          :subtitle="posterSubtitle"
+          :pieces="piecesFromOutfit(shareTarget)"
+          :footnote="posterDate"
+        />
         <view class="share-actions">
           <view class="btn btn-ghost share-btn" @tap="saveSharePoster">保存图片</view>
           <view class="btn btn-primary share-btn" @tap="copyShareText">复制分享文案</view>

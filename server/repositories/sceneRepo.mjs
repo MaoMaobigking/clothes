@@ -104,12 +104,14 @@ export async function ensureSceneCatalog() {
   return items.length
 }
 
+const CATALOG_COLUMNS = `id, scene_key, category, name, price, image_url, taobao_url,
+            taokouling, season, keywords, \`from\`, \`to\`, emoji`
+
 export async function listCatalog(sceneKey) {
   const params = sceneKey ? [sceneKey] : []
   const where = sceneKey ? 'WHERE scene_key = ?' : ''
   const rows = await getAll(
-    `SELECT id, scene_key, category, name, price, image_url, taobao_url,
-            taokouling, season, keywords, \`from\`, \`to\`, emoji
+    `SELECT ${CATALOG_COLUMNS}
        FROM scene_catalog
        ${where}
       ORDER BY scene_key, category, id`,
@@ -118,12 +120,54 @@ export async function listCatalog(sceneKey) {
   return rows.map(mapCatalog)
 }
 
+/**
+ * 商城列表用的目录查询（规格 §4.4 §10.6）。
+ *
+ * 和 listCatalog() 的区别只有排序维度：商城按品类逛，场景按场景选品。
+ * 商城不另起商品表，就是这张目录换个入口，价格与淘口令只有一份来源。
+ */
+export async function listCatalogProducts({ category, sceneKey } = {}) {
+  const where = []
+  const params = []
+  if (category) {
+    where.push('category = ?')
+    params.push(category)
+  }
+  if (sceneKey) {
+    where.push('scene_key = ?')
+    params.push(sceneKey)
+  }
+  const rows = await getAll(
+    `SELECT ${CATALOG_COLUMNS}
+       FROM scene_catalog
+       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      ORDER BY category, price, id`,
+    params,
+  )
+  return rows.map(mapCatalog)
+}
+
+/** 商城分类面板：品类 + 件数，避免前端为了算数量把整表拉一遍 */
+export async function listCatalogCategories() {
+  const rows = await getAll(
+    `SELECT category, COUNT(*) AS total
+       FROM scene_catalog
+      GROUP BY category
+      ORDER BY category`,
+  )
+  return rows.map((row) => ({ key: row.category, total: Number(row.total) }))
+}
+
+export async function findCatalogById(id) {
+  const [item] = await findCatalogByIds([String(id || '')].filter(Boolean))
+  return item || null
+}
+
 export async function findCatalogByIds(ids) {
   if (!ids.length) return []
   const placeholders = ids.map(() => '?').join(', ')
   const rows = await getAll(
-    `SELECT id, scene_key, category, name, price, image_url, taobao_url,
-            taokouling, season, keywords, \`from\`, \`to\`, emoji
+    `SELECT ${CATALOG_COLUMNS}
        FROM scene_catalog
       WHERE id IN (${placeholders})
       ORDER BY id`,

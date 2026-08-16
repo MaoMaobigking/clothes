@@ -2,7 +2,8 @@
  * 功能四数据层与业务层验收
  *
  * 用法：cd server && npm run check:scene
- * 验证六场景、纯旧衣/新旧混搭、新品淘口令、保存模板隔离、购物车落库。
+ * 验证六场景、纯旧衣/新旧混搭、新品淘口令、保存模板隔离、购物车落库、
+ * 以及商城目录（复用 scene_catalog）的淘口令与 catalog 入车。
  */
 import { wxLogin } from '../services/authService.mjs'
 import {
@@ -15,6 +16,8 @@ import {
   listSceneOutfits,
   saveOutfit,
 } from '../services/sceneService.mjs'
+import { listProducts } from '../services/mallService.mjs'
+import { addItem } from '../services/cartService.mjs'
 import { closeDb, getOne, initDb } from '../db/mysql.mjs'
 
 let failed = 0
@@ -86,6 +89,34 @@ check(
   aCart.items.every((item) => item.itemType !== 'catalog' || item.available),
 )
 check('B 购物车没有 A 购买的新品', bCart.items.every((item) => item.itemId !== newIds[0]))
+
+console.log('\n【5】商城目录（§4.4 §10.6）')
+const mall = await listProducts({})
+check('商城目录非空', mall.items.length > 0, `${mall.items.length} 件`)
+check('分类面板非空', mall.categories.length > 0, mall.categories.map((c) => c.label).join('/'))
+check(
+  '每件商品都带淘口令',
+  mall.items.every((item) => Boolean(item.taokouling)),
+  mall.items.filter((item) => !item.taokouling).map((item) => item.id).join(',') || '无缺失',
+)
+check('每件商品都带淘宝链接', mall.items.every((item) => Boolean(item.taobaoUrl)))
+const byCategory = await listProducts({ category: mall.categories[0].key })
+check(
+  '按品类筛选只返回该品类',
+  byCategory.items.length > 0 &&
+    byCategory.items.every((item) => item.category === mall.categories[0].key),
+)
+check('筛选后分类面板仍是全量', byCategory.categories.length === mall.categories.length)
+
+console.log('\n【6】商城商品入车（catalog 类型）')
+const mallProduct = mall.items[0]
+await addItem(a.userId, { itemType: 'catalog', itemId: mallProduct.id })
+const cartAfterMall = await listCart(a.userId)
+const mallRow = cartAfterMall.items.find((item) => item.itemId === mallProduct.id)
+check('商城商品能在 /api/cart 查出', Boolean(mallRow), mallProduct.id)
+check('入车行的类型是 catalog', mallRow?.itemType === 'catalog')
+check('入车行明细可解析（价格与淘口令来自服务端）',
+  Boolean(mallRow?.available) && mallRow?.price === mallProduct.price && Boolean(mallRow?.taokouling))
 
 console.log(
   failed === 0
