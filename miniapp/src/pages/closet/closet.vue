@@ -260,6 +260,12 @@ function goAccessory(item: WardrobeItem) {
             </view>
           </view>
         </view>
+        <view v-else-if="wardrobe.loadError" class="empty">
+          <view class="empty-emoji">⚠️</view>
+          <view class="empty-title">衣橱加载失败</view>
+          <view class="empty-sub">{{ wardrobe.loadError }}</view>
+          <view class="btn btn-primary empty-btn" @tap="wardrobe.load()">重新加载</view>
+        </view>
         <view v-else class="empty">
           <view class="empty-emoji">🧺</view>
           <view class="empty-title">衣橱还是空的</view>
