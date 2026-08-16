@@ -98,30 +98,14 @@ export const GARMENTS: Garment[] = GARMENTS_RAW.map((g) => ({
 
 /* ----------------------------- 时尚杂志 ----------------------------- */
 
-export interface Magazine {
-  id: string
-  title: string
-  subtitle: string
-  emoji: string
-  from: string
-  to: string
-  tag: string
-  img: string
-}
-type RawMagazine = Omit<Magazine, 'img'>
-
-const MAGAZINES_RAW: RawMagazine[] = [
-  { id: 'z1', title: 'BAZAAR', subtitle: '超现实主义 100 年', emoji: '🎩', from: '#e9e2d6', to: '#b7a98f', tag: '本期封面' },
-  { id: 'z2', title: 'VOGUE', subtitle: '春夏高定秀场解析', emoji: '👗', from: '#f3d9e4', to: '#c98fb0', tag: '秀场' },
-  { id: 'z3', title: 'ELLE', subtitle: '通勤穿搭的 10 个公式', emoji: '💼', from: '#d6e4f0', to: '#8fa9c9', tag: '干货' },
-  { id: 'z4', title: 'GQ', subtitle: '机能风的正确打开方式', emoji: '🧥', from: '#d9ece6', to: '#7fc0b0', tag: '风格' },
-  { id: 'z5', title: 'NYLON', subtitle: 'Y2K 复古回潮', emoji: '🕶️', from: '#efe0f0', to: '#c29ad6', tag: '趋势' },
-  { id: 'z6', title: 'KINFOLK', subtitle: '莫兰迪配色搭配指南', emoji: '🫧', from: '#e8e6e1', to: '#b3aea3', tag: '配色' },
-]
-export const MAGAZINES: Magazine[] = MAGAZINES_RAW.map((m) => ({
-  ...m,
-  img: `/static/images/magazine/${m.id}.png`,
-}))
+/*
+ * MAGAZINES 已删除（批次 7，规格 §12.3 §12.4）。
+ *
+ * 六本写死的假期刊，唯一读它的 pages/magazine/index.vue 已下线成跳转壳。
+ * 杂志内容现在来自服务端 community_contents，入口是「时尚社群」的
+ * 杂志推送 tab（api/community.ts）。别把 mock 版加回来 ——
+ * 两套杂志数据并存时，没人分得清页面上看到的是哪一份。
+ */
 
 /* ----------------------------- 时尚社群 ----------------------------- */
 
