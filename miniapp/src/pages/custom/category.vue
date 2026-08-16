@@ -2,6 +2,7 @@
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
+import TileImage from '@/components/TileImage/TileImage.vue'
 import { CUSTOM_STEPS, getCustomCategory, type CustomCategory } from '@/data/custom'
 import {
   fetchCustomSummary,
@@ -235,8 +236,17 @@ async function upgradeVip() {
 
     <scroll-view scroll-y class="body hide-scrollbar">
       <view class="hero">
+        <!-- 缺素材时退回色块 + emoji，不塞人台图充数（§4.3） -->
         <view class="hero-image">
-          <image :src="category.image" mode="aspectFit" />
+          <TileImage
+            :src="category.image"
+            :emoji="category.emoji"
+            from="#ffe6f2"
+            to="#e7dcff"
+            fit="contain"
+            fill
+            rounded="26rpx"
+          />
         </view>
         <view class="hero-copy">
           <text class="hero-emoji">{{ category.emoji }}</text>
@@ -261,7 +271,14 @@ async function upgradeVip() {
         <view class="cases">
           <view v-for="item in category.cases" :key="item.title" class="case">
             <view class="case-image">
-              <image :src="item.image" mode="aspectFill" />
+              <TileImage
+                :src="item.image"
+                :emoji="item.emoji"
+                from="#ffe6f2"
+                to="#d7ecff"
+                fill
+                rounded="24rpx"
+              />
             </view>
             <view class="case-copy">
               <view class="case-title-row">
