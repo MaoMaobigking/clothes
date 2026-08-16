@@ -266,6 +266,25 @@ function setView(view: 'front' | 'back') {
   viewMode.value = view
 }
 
+/* ---------------- 背面试戴（规格 §9.5） ---------------- */
+
+/**
+ * 这些槽位的配饰绕身体一圈或戴在头脚上，背面看得见；
+ * 首饰（项链 / 耳环 / 戒指）只有正面素材，切到背面必须明说，不能静默消失。
+ */
+const BACK_VISIBLE_SLOTS = ['hat', 'scarf', 'belt', 'shoes']
+
+const overlayVisible = computed(() => {
+  if (!props.overlay?.enabled) return false
+  if (viewMode.value === 'front') return true
+  return BACK_VISIBLE_SLOTS.includes(props.overlay.slot)
+})
+
+/** 开着试戴、但当前槽位没有背面素材 */
+const backUnavailable = computed(
+  () => viewMode.value === 'back' && !!props.overlay?.enabled && !overlayVisible.value,
+)
+
 // Three.js / GLB 接入点：后续替换为真实模型渲染，对外接口不变。
 function setEngine(_engine: 'css' | 'three') {
   /* reserved */
@@ -312,25 +331,26 @@ defineExpose({ resetView, zoom, setEngine, setView })
         />
         <text v-else class="emoji">{{ emoji }}</text>
         <view
-          v-if="overlay?.enabled && viewMode === 'front'"
+          v-if="overlayVisible"
           class="accessory-overlay"
-          :class="`slot-${overlay.slot}`"
+          :class="[`slot-${overlay?.slot}`, { mirrored: viewMode === 'back' }]"
           :style="{
-            background: `linear-gradient(140deg, ${overlay.from || '#ffffff'}, ${overlay.to || '#e6e0ef'})`,
+            background: `linear-gradient(140deg, ${overlay?.from || '#ffffff'}, ${overlay?.to || '#e6e0ef'})`,
           }"
         >
           <image
-            v-if="overlay.imageUrl"
+            v-if="overlay?.imageUrl"
             class="accessory-overlay-img"
             :src="overlay.imageUrl"
             mode="aspectFit"
           />
-          <text v-else class="accessory-overlay-emoji">{{ overlay.emoji || '✨' }}</text>
+          <text v-else class="accessory-overlay-emoji">{{ overlay?.emoji || '✨' }}</text>
         </view>
       </view>
 
       <text class="tag">{{ displayLabel }}</text>
       <text v-if="specText" class="spec">{{ specText }}</text>
+      <text v-if="backUnavailable" class="back-missing">该配饰暂无背面试戴素材</text>
     </view>
 
     <view class="controls">
@@ -419,6 +439,10 @@ defineExpose({ resetView, zoom, setEngine, setView })
   box-shadow: 0 8rpx 22rpx rgba(70, 50, 110, 0.28);
   transform: translateX(-50%);
 }
+/* 背面视角整个人台是镜像的，配饰再反一次才不会左右颠倒 */
+.accessory-overlay.mirrored {
+  transform: translateX(-50%) scaleX(-1);
+}
 .slot-jewelry {
   top: 20%;
   width: 54rpx;
@@ -497,6 +521,22 @@ defineExpose({ resetView, zoom, setEngine, setView })
   color: var(--purple-deep);
   background: rgba(255, 255, 255, 0.78);
   padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  box-shadow: var(--shadow-card);
+}
+
+/* 背面没有对应素材时的明示，宁可占块地方也别让配饰静默消失（§9.5） */
+.back-missing {
+  position: absolute;
+  top: 88rpx;
+  right: 24rpx;
+  z-index: 6;
+  max-width: 62%;
+  font-size: 21rpx;
+  font-weight: 700;
+  color: #d9694f;
+  background: rgba(255, 243, 240, 0.94);
+  padding: 10rpx 20rpx;
   border-radius: 999rpx;
   box-shadow: var(--shadow-card);
 }
