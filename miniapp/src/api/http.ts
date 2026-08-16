@@ -74,24 +74,49 @@ export function isAuthError(error: unknown): boolean {
  * 两层防抖：一层是 redirecting 标志（一次 401 风暴里只跳一次），
  * 一层是判断当前栈顶已经是登录页就不跳 —— 登录页自己也会发请求，
  * 少了这层判断会在登录页上无限 reLaunch 自己。
+ *
+ * 还有一层是时机：微信小程序在 App.onLaunch 阶段首页还没创建完，
+ * 这时候 reLaunch 会被直接吞掉，首页也不再渲染，表现就是整屏白屏。
+ * 所以先等页面栈起来再跳。
  */
 let redirecting = false
+
+function whenPageStackReady(run: () => void, retry = 0) {
+  let ready = false
+  try {
+    ready = typeof getCurrentPages === 'function' && getCurrentPages().length > 0
+  } catch {
+    ready = false
+  }
+  // 最多等 20 × 50ms；等不到就硬跳，总好过卡在没有身份的页面上
+  if (!ready && retry < 20) {
+    setTimeout(() => whenPageStackReady(run, retry + 1), 50)
+    return
+  }
+  run()
+}
+
 export function redirectToLogin() {
   if (redirecting) return
-  try {
-    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
-    const top = pages[pages.length - 1] as any
-    const route: string = top?.route || top?.$page?.route || ''
-    if (route && `/${route}`.replace(/\/index$/, '/index') === LOGIN_PAGE) return
-  } catch {
-    // 取不到页面栈时宁可跳一次，也好过卡在没有身份的页面上
-  }
   redirecting = true
-  uni.reLaunch({
-    url: LOGIN_PAGE,
-    complete: () => {
-      setTimeout(() => (redirecting = false), 300)
-    },
+  whenPageStackReady(() => {
+    try {
+      const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+      const top = pages[pages.length - 1] as any
+      const route: string = top?.route || top?.$page?.route || ''
+      if (route && `/${route}` === LOGIN_PAGE) {
+        redirecting = false
+        return
+      }
+    } catch {
+      // 取不到页面栈时宁可跳一次
+    }
+    uni.reLaunch({
+      url: LOGIN_PAGE,
+      complete: () => {
+        setTimeout(() => (redirecting = false), 300)
+      },
+    })
   })
 }
 

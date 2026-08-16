@@ -5,16 +5,19 @@
  * 请求层已经不再自动建号，所以启动时没有 token 就必须先去登录页，
  * 否则首页一挂载就是一串 401。
  *
+ * 跳转统一走 redirectToLogin()：小程序 onLaunch 阶段首页还没创建完，
+ * 在那时候直接 reLaunch 会被吞掉、整屏白屏，redirectToLogin 里等页面栈就绪再跳。
+ *
  * 有 token 也只是「本地有」——服务重启换了 JWT 密钥、或者库被重置过，
  * token 就成了空壳。这里异步验一次；验不过时请求层的 401 拦截会把人送回登录页。
  */
 import { fetchMe } from '@/api/auth'
-import { LOGIN_PAGE, getToken } from '@/api/http'
+import { getToken, redirectToLogin } from '@/api/http'
 
 export default {
   onLaunch() {
     if (!getToken()) {
-      uni.reLaunch({ url: LOGIN_PAGE })
+      redirectToLogin()
       return
     }
     fetchMe().catch(() => {
