@@ -30,7 +30,15 @@ const sortItems = ref<WardrobeItem[]>([])
 const dragIndex = ref(-1)
 const dragOffset = ref(0)
 const dragStartY = ref(0)
-const rowHeight = uni.upx2px(126)
+/*
+ * 拖拽排序的行间距。
+ *
+ * 这个常量必须等于 .sort-row 的「高度 + margin-bottom」，否则每拖过一行就
+ * 累积一点误差，列表越长偏得越远。CSS 那边写死 height: 114rpx + margin-bottom: 12rpx，
+ * 改一边记得改另一边。
+ */
+const ROW_PITCH_RPX = 126
+const rowHeight = uni.upx2px(ROW_PITCH_RPX)
 
 const filtered = computed(() =>
   activeCategory.value === 'all'
@@ -693,7 +701,8 @@ function goAccessory(item: WardrobeItem) {
   display: flex;
   align-items: center;
   gap: 14rpx;
-  min-height: 112rpx;
+  /* 高度 + margin-bottom 必须等于 closet.vue 里的 ROW_PITCH_RPX(126)，见那里的注释 */
+  height: 114rpx;
   margin-bottom: 12rpx;
   padding: 10rpx 14rpx;
   border-radius: 22rpx;
