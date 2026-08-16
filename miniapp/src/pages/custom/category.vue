@@ -12,6 +12,7 @@ import {
   uploadCustomImages,
   type CustomSummary,
 } from '@/api/custom'
+import { isAuthError } from '@/api/http'
 
 const category = ref<CustomCategory>(getCustomCategory())
 const summary = ref<CustomSummary | null>(null)
@@ -116,7 +117,10 @@ async function submitInquiry() {
     showToast('已提交，设计师将尽快联系')
     uni.navigateTo({ url: `/pages/custom/order?id=${request.id}` })
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '提交失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '提交失败')
+    }
   } finally {
     submitting.value = false
   }
@@ -180,7 +184,10 @@ async function submitMeasurement(vipOnly = false) {
     showToast('量体预约已提交')
     uni.navigateTo({ url: `/pages/custom/order?id=${request.id}` })
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '提交失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '提交失败')
+    }
   } finally {
     submitting.value = false
   }
@@ -223,7 +230,10 @@ async function upgradeVip() {
     showVipUpgrade.value = false
     showToast('已切换为演示 VIP 身份')
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '升级失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '升级失败')
+    }
   } finally {
     upgrading.value = false
   }

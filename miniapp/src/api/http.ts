@@ -62,10 +62,18 @@ function makeError(message: string, statusCode: number, code: string): ApiError 
   return error
 }
 
-/** 未登录错误。调用方可以用 code === 'NO_AUTH' 判断，不必去抠文案。 */
+/**
+ * 未登录错误。调用方可以用它判断「这个错要不要提示」，不必去抠文案。
+ *
+ * 只认 NO_AUTH（以及没带业务码的裸 401）。不能把所有 401 都算进来 ——
+ * 登录类接口走 publicRequest，密码错也是 401（如 ADMIN_LOGIN_FAILED），
+ * 那属于用户操作失败，必须让人看见；算成「未登录」就会被静默吞掉，
+ * 表现成「点了登录什么都没发生」。
+ */
 export function isAuthError(error: unknown): boolean {
-  const code = (error as ApiError)?.code
-  return code === 'NO_AUTH' || (error as ApiError)?.statusCode === 401
+  const err = error as ApiError
+  if (err?.code === 'NO_AUTH') return true
+  return err?.statusCode === 401 && !err?.code
 }
 
 /**
@@ -120,6 +128,22 @@ export function redirectToLogin() {
   })
 }
 
+/**
+ * 会话过期提示。
+ *
+ * 只在「本来有 token、被服务端拒了」时提示一次：首次打开根本没有 token
+ * 属于正常流程，那时候弹「登录已失效」是误导。有了这一处提示，各页面就
+ * 不必再为 NO_AUTH 各弹一次 toast —— 页面马上要被 reLaunch 掉，
+ * 那些提示只会叠在登录页上（规格 §5）。
+ */
+function notifySessionExpired() {
+  try {
+    uni.showToast({ title: '登录状态已失效，请重新登录', icon: 'none' })
+  } catch {
+    // 提示失败不该挡住跳转
+  }
+}
+
 function rawRequest<T>(options: RequestOptions): Promise<T> {
   return new Promise((resolve, reject) => {
     uni.request({
@@ -172,6 +196,7 @@ export async function request<T>(options: RequestOptions): Promise<T> {
     if ((error as ApiError)?.statusCode !== 401) throw error
     // token 过期或被服务端拒绝：清掉并回登录页，不再静默换一个身份继续跑
     clearToken()
+    notifySessionExpired()
     redirectToLogin()
     throw makeError('登录状态已失效，请重新登录', 401, 'NO_AUTH')
   }
@@ -205,6 +230,7 @@ export async function uploadFile<T>(options: {
         if (res.statusCode >= 400) {
           if (res.statusCode === 401) {
             clearToken()
+            notifySessionExpired()
             redirectToLogin()
             reject(makeError('登录状态已失效，请重新登录', 401, 'NO_AUTH'))
             return

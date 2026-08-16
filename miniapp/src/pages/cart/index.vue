@@ -12,6 +12,7 @@ import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import { useCartStore } from '@/stores/cart'
 import { resolveImageUrl } from '@/api/wardrobe'
+import { isAuthError } from '@/api/http'
 import type { CartItem } from '@/api/cart'
 
 const cart = useCartStore()
@@ -74,7 +75,10 @@ async function changeQuantity(item: CartItem, delta: number) {
   try {
     await cart.setQuantity(item.cartId, next)
   } catch (error) {
-    toast((error as Error)?.message || '修改数量失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error)?.message || '修改数量失败')
+    }
   } finally {
     busy.value -= 1
   }
@@ -95,7 +99,10 @@ async function removeItem(item: CartItem) {
     await cart.remove(item.cartId)
     toast('已移出购物车')
   } catch (error) {
-    toast((error as Error)?.message || '移除失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error)?.message || '移除失败')
+    }
   } finally {
     busy.value -= 1
   }

@@ -14,6 +14,7 @@ import {
   type Outfit,
   type OutfitBatch,
 } from '@/api/wardrobe'
+import { isAuthError } from '@/api/http'
 import { categoryLabel, occasionLabel, seasonLabel } from '@/data/wardrobeOptions'
 import {
   garmentToAccessoryContext,
@@ -79,7 +80,10 @@ async function loadBatch(batchId: string) {
   try {
     batch.value = await apiGetOutfitBatch(batchId)
   } catch (error) {
-    uni.showToast({ title: (error as Error).message || '加载失败', icon: 'none' })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({ title: (error as Error).message || '加载失败', icon: 'none' })
+    }
   } finally {
     loading.value = false
   }
@@ -123,7 +127,10 @@ async function replaceWith(newGarmentId: string) {
     toast('单品已替换，方案已刷新')
     closeReplace()
   } catch (error) {
-    toast((error as Error).message || '替换失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '替换失败')
+    }
   }
 }
 
@@ -139,7 +146,10 @@ async function saveOutfit(outfit: Outfit) {
     }
     toast('已保存到我的搭配')
   } catch (error) {
-    toast((error as Error).message || '保存失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '保存失败')
+    }
   }
 }
 
@@ -153,7 +163,10 @@ async function addToCart(outfit: Outfit) {
     const added = await cart.addOutfit(outfit.id)
     toast(added > 0 ? `整套方案已拆成 ${added} 件加入购物车` : '整套方案已在购物车中')
   } catch (error) {
-    toast((error as Error).message || '加入购物车失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '加入购物车失败')
+    }
   }
 }
 

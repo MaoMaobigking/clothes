@@ -5,6 +5,7 @@ import {
   fetchAdminDashboard,
   type AdminDashboard,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -36,7 +37,10 @@ async function refresh() {
   try {
     dashboard.value = await fetchAdminDashboard()
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '数据刷新失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '数据刷新失败'
+    }
   }
 }
 
