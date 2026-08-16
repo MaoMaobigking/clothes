@@ -308,6 +308,10 @@ function saveSharePoster() {
           <text class="algorithm-label">参与旧衣</text>
           <text class="algorithm-value">{{ algorithmTarget.algorithm?.garmentCount }} 件</text>
         </view>
+        <view v-if="algorithmTarget.algorithm?.input" class="algorithm-row">
+          <text class="algorithm-label">输入范围</text>
+          <text class="algorithm-value">{{ algorithmTarget.algorithm.input }}</text>
+        </view>
         <view class="algorithm-row">
           <text class="algorithm-label">本套单品</text>
           <text class="algorithm-value">{{ algorithmTarget.algorithm?.selectedCount }} 件</text>
