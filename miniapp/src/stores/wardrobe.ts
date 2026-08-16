@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { GARMENTS, type Garment } from '@/data/mock'
+import { type Garment } from '@/data/mock'
 import {
   apiAddGarment,
   apiDeleteGarment,
@@ -13,24 +13,30 @@ import {
   type WardrobeItem,
 } from '@/api/wardrobe'
 
-const DEFAULT_FAV = ['g1', 'g9', 'g11']
-
-function fallbackItems(): WardrobeItem[] {
-  return GARMENTS.map((g) => ({ ...g, fav: DEFAULT_FAV.includes(g.id) }))
-}
-
 export const useWardrobeStore = defineStore('wardrobe', () => {
-  const items = ref<WardrobeItem[]>(fallbackItems())
+  /**
+   * 初始值必须是空数组。
+   * 以前这里灌的是 data/mock 里的 GARMENTS，后端没起来时页面上会显示一柜子
+   * 根本不属于这个用户的衣服，还能拿去生成搭配 —— 规格 §4.3 明确禁止用假数据
+   * 冒充真实衣橱。现在加载失败就是空态 + 错误提示。
+   */
+  const items = ref<WardrobeItem[]>([])
   const activeCategory = ref('all')
   const usingApi = ref(false)
   const loaded = ref(false)
+  const loadError = ref('')
 
   async function load() {
     try {
       items.value = await apiListGarments()
       usingApi.value = true
-    } catch {
+      loadError.value = ''
+    } catch (error) {
       usingApi.value = false
+      items.value = []
+      loadError.value = error instanceof Error && error.message
+        ? `衣橱加载失败：${error.message}`
+        : '衣橱加载失败，请检查网络或稍后重试'
     } finally {
       loaded.value = true
     }
@@ -127,16 +133,17 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
    * 上一个人的衣橱会留在内存里，下一个人进衣橱页会先看到别人的衣服。
    */
   function reset() {
-    items.value = fallbackItems()
+    items.value = []
     activeCategory.value = 'all'
     usingApi.value = false
     loaded.value = false
+    loadError.value = ''
   }
 
   load()
 
   return {
-    items, activeCategory, usingApi, loaded,
+    items, activeCategory, usingApi, loaded, loadError,
     garments, filtered, favoriteGarments, favIds,
     isFav, toggleFav, addItem, updateItem, uploadItems, reorder,
     toggleFrequentlyWorn, removeItem, setCategory, load, reset,
