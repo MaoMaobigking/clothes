@@ -5,8 +5,6 @@ import TileImage from '@/components/TileImage/TileImage.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import {
   apiGenerateOutfits,
-  apiListOutfits,
-  type Outfit,
   type WardrobeItem,
 } from '@/api/wardrobe'
 import {
@@ -20,11 +18,9 @@ import {
 } from '@/utils/accessoryContext'
 
 const wardrobe = useWardrobeStore()
-const tab = ref<'today' | 'mine'>('today')
 const activeCategory = ref('all')
 const manage = ref(false)
 const generating = ref(false)
-const history = ref<Outfit[]>([])
 const sortOpen = ref(false)
 const sortItems = ref<WardrobeItem[]>([])
 const dragIndex = ref(-1)
@@ -48,19 +44,10 @@ const filtered = computed(() =>
 
 onMounted(async () => {
   await wardrobe.load()
-  await loadHistory()
 })
 
 function toast(title: string) {
   uni.showToast({ title, icon: 'none' })
-}
-
-async function loadHistory() {
-  try {
-    history.value = await apiListOutfits(true)
-  } catch {
-    history.value = []
-  }
 }
 
 function goUpload() {
@@ -158,8 +145,9 @@ async function saveSort() {
   }
 }
 
-function openHistory(item: Outfit) {
-  uni.navigateTo({ url: `/pages/outfit-result/index?batchId=${item.batchId}` })
+/** 收藏的搭配和场景模板都在同一页（§8.11 §10.10），带上来源筛选过去 */
+function goMyOutfits() {
+  uni.navigateTo({ url: '/pages/outfits/index?source=wardrobe' })
 }
 
 function maskClose(event: any) {
@@ -192,15 +180,16 @@ function goAccessory(item: WardrobeItem) {
     </view>
 
     <view class="seg">
-      <view class="seg-item" :class="{ on: tab === 'today' }" @tap="tab = 'today'">
+      <view class="seg-item on">
         今日搭配
       </view>
-      <view class="seg-item" :class="{ on: tab === 'mine' }" @tap="tab = 'mine'">
-        我的搭配
+      <!-- 「我的搭配」只有一页（§8.11 §10.10），这里跳过去而不是再维护一份列表 -->
+      <view class="seg-item" @tap="goMyOutfits">
+        我的搭配 ›
       </view>
     </view>
 
-    <view v-if="tab === 'today'" class="today-panel">
+    <view class="today-panel">
       <view class="action-card">
         <view>
           <view class="action-title">一键生成今日穿搭</view>
@@ -271,43 +260,6 @@ function goAccessory(item: WardrobeItem) {
           <view class="empty-title">衣橱还是空的</view>
           <view class="empty-sub">先上传几张真实旧衣照片</view>
           <view class="btn btn-primary empty-btn" @tap="goUpload">上传旧衣</view>
-        </view>
-      </scroll-view>
-    </view>
-
-    <view v-else class="history-panel">
-      <scroll-view scroll-y class="history-scroll hide-scrollbar">
-        <view v-if="history.length" class="history-list">
-          <view v-for="item in history" :key="item.id" class="history-card" @tap="openHistory(item)">
-            <view class="history-top">
-              <view>
-                <view class="history-title">{{ item.title }}</view>
-                <view class="history-time">{{ item.createdAt }}</view>
-              </view>
-              <view class="history-go">查看 →</view>
-            </view>
-            <view class="history-items">
-              <TileImage
-                v-for="entry in item.items.slice(0, 5)"
-                :key="entry.id"
-                class="history-thumb"
-                :src="entry.garment.img"
-                :emoji="entry.garment.emoji"
-                :from="entry.garment.primaryColor || entry.garment.from"
-                :to="entry.garment.secondaryColors?.[0] || entry.garment.to"
-                ratio="1 / 1"
-                rounded="18rpx"
-              />
-            </view>
-            <view class="history-names">
-              {{ item.items.map((entry) => entry.garment.name).join('、') }}
-            </view>
-          </view>
-        </view>
-        <view v-else class="empty history-empty">
-          <view class="empty-emoji">☆</view>
-          <view class="empty-title">还没有收藏搭配</view>
-          <view class="empty-sub">在搭配结果页点“收藏”即可回看</view>
         </view>
       </scroll-view>
     </view>
@@ -591,60 +543,6 @@ function goAccessory(item: WardrobeItem) {
 .cell-control.danger {
   color: #d04c5b;
 }
-.history-panel {
-  flex: 1;
-  min-height: 0;
-  padding: 0 32rpx 28rpx;
-}
-.history-scroll {
-  height: 100%;
-}
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 18rpx;
-}
-.history-card {
-  padding: 24rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-}
-.history-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-.history-title {
-  font-size: 30rpx;
-  font-weight: 800;
-}
-.history-time {
-  margin-top: 5rpx;
-  color: var(--text-3);
-  font-size: 20rpx;
-}
-.history-go {
-  flex-shrink: 0;
-  color: var(--pink-deep);
-  font-size: 23rpx;
-  font-weight: 700;
-}
-.history-items {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12rpx;
-  margin-top: 20rpx;
-}
-.history-thumb {
-  border-radius: 18rpx;
-}
-.history-names {
-  margin-top: 16rpx;
-  color: var(--text-2);
-  font-size: 22rpx;
-  line-height: 1.5;
-}
 .empty {
   padding-top: 140rpx;
   display: flex;
@@ -652,9 +550,6 @@ function goAccessory(item: WardrobeItem) {
   align-items: center;
   gap: 12rpx;
   color: var(--text-3);
-}
-.history-empty {
-  padding-top: 110rpx;
 }
 .empty-emoji {
   font-size: 88rpx;
