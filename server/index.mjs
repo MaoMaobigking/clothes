@@ -27,6 +27,7 @@ import accessoryRoutes from './routes/accessories.mjs'
 import accessoryCartRoutes from './routes/accessoryCart.mjs'
 import { ensureAccessories } from './services/accessoryService.mjs'
 import sceneRoutes from './routes/scene.mjs'
+import mallRoutes from './routes/mall.mjs'
 import { ensureSceneCatalog } from './services/sceneService.mjs'
 import customRoutes from './routes/custom.mjs'
 import { ensureDesigners } from './services/customService.mjs'
@@ -69,6 +70,7 @@ app.use('/api/accessories', accessoryRoutes)
 app.use('/api/accessory-cart', accessoryCartRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/scene', sceneRoutes)
+app.use('/api/mall', mallRoutes) // 商城目录复用 scene_catalog，见 services/mallService.mjs
 app.use('/api/custom', customRoutes)
 app.use('/api/community', communityRoutes)
 

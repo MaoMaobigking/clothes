@@ -6,7 +6,8 @@ import TileImage from '@/components/TileImage/TileImage.vue'
 import AvatarViewer from '@/components/AvatarViewer/AvatarViewer.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
-import { MODEL_IMAGES, MALL_PRODUCTS, type Garment, type MallProduct } from '@/data/mock'
+import { MODEL_IMAGES, type Garment } from '@/data/mock'
+import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { resolveImageUrl } from '@/api/wardrobe'
 import {
   addAccessoryCartBatch,
@@ -89,8 +90,12 @@ const pickerGarments = computed<PickerItem[]>(() =>
   wardrobe.items.slice(0, 40).map((item) => ({ kind: 'garment', item })),
 )
 
+// 「换服装」里的商城候选来自服务端目录（scene_catalog），
+// 和商城页同源，配饰推荐拿到的品类、配色才对得上（规格 §4.4 §10.6）
+const mallProducts = ref<MallProduct[]>([])
+
 const pickerMallItems = computed<PickerItem[]>(() =>
-  MALL_PRODUCTS.slice(0, 10).map((item) => ({ kind: 'mall', item })),
+  mallProducts.value.slice(0, 10).map((item) => ({ kind: 'mall', item })),
 )
 
 const pickerItems = computed(() =>
@@ -113,8 +118,18 @@ onLoad(async () => {
     pickerOpen.value = true
   }
 
-  await Promise.all([loadRecommendations(), loadCart()])
+  await Promise.all([loadRecommendations(), loadCart(), loadMallProducts()])
 })
+
+async function loadMallProducts() {
+  try {
+    const data = await fetchMallProducts()
+    mallProducts.value = data.items
+  } catch {
+    // 目录拉不到就只剩衣橱那一栏可选，不阻断配饰推荐
+    mallProducts.value = []
+  }
+}
 
 function toast(title: string) {
   uni.showToast({ title, icon: 'none' })
@@ -122,6 +137,11 @@ function toast(title: string) {
 
 function displaySrc(src?: string) {
   return resolveImageUrl(src || '')
+}
+
+/** 衣橱item 用 img，商城目录用 imageUrl，取图统一在这里分流 */
+function pickerImage(entry: PickerItem) {
+  return displaySrc(entry.kind === 'garment' ? entry.item.img : entry.item.imageUrl)
 }
 
 function accessoryEmoji(item: Pick<Accessory, 'category' | 'emoji'>) {
@@ -175,7 +195,9 @@ async function selectGarment(garment: Garment) {
 }
 
 async function selectMallProduct(product: MallProduct) {
-  currentOutfit.value = [mallProductToAccessoryContext(product)]
+  currentOutfit.value = [
+    mallProductToAccessoryContext({ ...product, img: product.imageUrl }),
+  ]
   contextSource.value = 'mall'
   contextTitle.value = product.name
   pickerOpen.value = false
@@ -628,7 +650,7 @@ function copyCartItem(item: AccessoryCartItem) {
                 : selectMallProduct(entry.item)"
             >
               <TileImage
-                :src="displaySrc(entry.item.img)"
+                :src="pickerImage(entry)"
                 :from="entry.item.from"
                 :to="entry.item.to"
                 :emoji="entry.item.emoji"

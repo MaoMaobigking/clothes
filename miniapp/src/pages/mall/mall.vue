@@ -2,7 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
-import { MALL_CATEGORIES, MALL_PRODUCTS, type MallProduct } from '@/data/mock'
+import { fetchMallProducts, type MallCategory, type MallProduct } from '@/api/mall'
+import { isAuthError } from '@/api/http'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
 import MallDetailSheet from './MallDetailSheet.vue'
@@ -11,25 +12,42 @@ import {
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
 
-// 购物车徽标与入口走真实服务端购物车（规格 §4.5 §13）
+/*
+ * 商城商品来自服务端 scene_catalog（规格 §4.4 §10.6），和功能四场景模拟
+ * 选的是同一份目录，所以每件都带真实价格、淘宝链接与淘口令，
+ * 加购走 /api/cart 的 item_type='catalog'，购物车页能查得到。
+ * 以前这里读 data/mock.ts，服务端查无此物，只能收进本地心愿单假装加购。
+ */
 const cart = useCartStore()
-// 商城商品来自 data/mock.ts，服务端目录里没有对应记录，
-// 所以爱心只能是本地心愿单，不能冒充落库的购物车。
+// 心愿单仍是纯本地的「收藏」，和购物车是两件事
 const wishlist = useWishlistStore()
 
-onMounted(() => {
-  cart.load()
+const categories = ref<MallCategory[]>([])
+const products = ref<MallProduct[]>([])
+const activeCat = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+const detail = ref<MallProduct | null>(null)
+/** 淘口令弹窗目标（§4.4：小程序写剪贴板，H5 先试跳转再复制） */
+const purchaseTarget = ref<MallProduct | null>(null)
+
+const isH5 = computed(() => {
+  // #ifdef H5
+  return true
+  // #endif
+  // #ifndef H5
+  return false
+  // #endif
 })
 
-const activeCat = ref(MALL_CATEGORIES[0].key)
-const detail = ref<MallProduct | null>(null)
-
 const catLabel = computed(
-  () => MALL_CATEGORIES.find((c) => c.key === activeCat.value)?.label ?? '商城',
+  () => categories.value.find((c) => c.key === activeCat.value)?.label ?? '商城',
 )
 
 const filtered = computed(() =>
-  MALL_PRODUCTS.filter((p) => p.category === activeCat.value),
+  activeCat.value
+    ? products.value.filter((p) => p.category === activeCat.value)
+    : products.value,
 )
 
 const toast = ref('')
@@ -40,22 +58,86 @@ function showToast(msg: string) {
   toastTimer = setTimeout(() => (toast.value = ''), 1600)
 }
 
-/*
- * 商城商品是演示目录（data/mock.ts），服务端 accessories / scene_catalog
- * 里没有对应记录，直接加购只会拿到 404。所以这里只收进本地心愿单，
- * 并把人指向真实可购买的配饰页 —— 不假装加进了落库的购物车。
- */
-function buyAll() {
-  const items = filtered.value
-  items.forEach((p) => wishlist.add(p.id))
-  showToast(`已收藏 ${items.length} 件${catLabel.value}，去配饰页可真实加购`)
+async function loadProducts() {
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    const data = await fetchMallProducts()
+    categories.value = data.categories
+    products.value = data.items
+    if (!activeCat.value || !data.categories.some((c) => c.key === activeCat.value)) {
+      activeCat.value = data.categories[0]?.key ?? ''
+    }
+  } catch (error) {
+    // 未登录已由请求层跳登录页，这里再报一次错只是噪音（规格 §5）
+    if (!isAuthError(error)) {
+      errorMessage.value = error instanceof Error ? error.message : '商品加载失败'
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
-function addFromSheet() {
+onMounted(() => {
+  cart.load()
+  loadProducts()
+})
+
+/** 当前分类整类加购。服务端按 id 重新取价，不信前端传的值 */
+async function buyAll() {
+  const items = filtered.value
+  if (!items.length) return
+  await cart.addBatch(items.map((p) => ({ itemType: 'catalog' as const, itemId: p.id })))
+  if (cart.error) {
+    showToast(cart.error)
+    return
+  }
+  showToast(`已把 ${items.length} 件${catLabel.value}加入购物车`)
+}
+
+async function addFromSheet() {
   if (!detail.value) return
-  wishlist.add(detail.value.id)
-  showToast('已收藏，去配饰页可真实加购 ✨')
+  const target = detail.value
+  await cart.add('catalog', target.id)
   detail.value = null
+  if (cart.error) {
+    showToast(cart.error)
+    return
+  }
+  showToast(`已加入购物车 · ${target.name}`)
+}
+
+/** §4.4：淘口令/链接购买。H5 先试着跳淘宝，被拦截就退回复制 */
+function openPurchase(product: MallProduct) {
+  purchaseTarget.value = product
+  if (isH5.value && product.taobaoUrl) {
+    setTimeout(() => {
+      const opened = (globalThis as any).open?.(product.taobaoUrl, '_blank')
+      if (!opened) copyPurchase()
+    }, 350)
+  }
+}
+
+function copyPurchase() {
+  const target = purchaseTarget.value
+  if (!target) return
+  const text = target.taokouling || target.taobaoUrl
+  if (!text) {
+    showToast('该商品暂未配置淘口令')
+    return
+  }
+  uni.setClipboardData({
+    data: text,
+    success: () => showToast('淘口令已复制'),
+    fail: () => showToast('复制失败，请手动复制'),
+  })
+}
+
+function buyFromSheet() {
+  if (!detail.value) return
+  const target = detail.value
+  detail.value = null
+  openPurchase(target)
 }
 
 function goCart() {
@@ -67,14 +149,19 @@ function goAccessoryFromSheet() {
   setAccessoryPageContext({
     source: 'mall',
     title: detail.value.name,
-    outfit: [mallProductToAccessoryContext(detail.value)],
+    outfit: [
+      mallProductToAccessoryContext({
+        ...detail.value,
+        img: detail.value.imageUrl,
+      }),
+    ],
   })
   detail.value = null
   uni.navigateTo({ url: '/pages/accessory/index' })
 }
 
 function goFreeMatch() {
-  showToast('自由搭配功能开发中～')
+  uni.navigateTo({ url: '/pages/scene/index' })
 }
 </script>
 
@@ -91,14 +178,14 @@ function goFreeMatch() {
       </view>
       <view class="search">
         <text class="s-ico">🔍</text>
-        <text class="s-ph">搜首饰、包袋、好物…</text>
+        <text class="s-ph">搜上衣、鞋履、包袋…</text>
       </view>
     </view>
 
     <!-- 分类横向 tab -->
     <view class="cats hide-scrollbar">
       <view
-        v-for="c in MALL_CATEGORIES"
+        v-for="c in categories"
         :key="c.key"
         class="cat"
         :class="{ on: activeCat === c.key }"
@@ -113,13 +200,22 @@ function goFreeMatch() {
       <!-- 系列 banner -->
       <view class="banner">
         <view class="banner-txt">
-          <text class="b-cn">现货系列</text>
-          <text class="b-en">Bar clip series</text>
+          <text class="b-cn">灵犀严选</text>
+          <text class="b-en">Lingxi selected series</text>
         </view>
         <text class="banner-emoji">💎</text>
       </view>
 
-      <view v-if="filtered.length" class="grid">
+      <view v-if="loading" class="empty">
+        <text class="empty-emoji">🛍️</text>
+        <text>正在加载商品…</text>
+      </view>
+      <view v-else-if="errorMessage" class="empty">
+        <text class="empty-emoji">⚠️</text>
+        <text>{{ errorMessage }}</text>
+        <text class="empty-link" @tap="loadProducts">重新加载</text>
+      </view>
+      <view v-else-if="filtered.length" class="grid">
         <ProductCard
           v-for="p in filtered"
           :key="p.id"
@@ -128,8 +224,8 @@ function goFreeMatch() {
           :emoji="p.emoji"
           :from="p.from"
           :to="p.to"
-          :tag="p.tag"
-          :src="p.img"
+          :tag="p.categoryLabel"
+          :src="p.imageUrl"
           :fav="wishlist.has(p.id)"
           @fav="wishlist.toggle(p.id)"
           @click="detail = p"
@@ -144,7 +240,7 @@ function goFreeMatch() {
     <!-- 吸底操作条（在 BottomNav 之上） -->
     <view class="actionbar">
       <view class="btn btn-ghost pill" @tap="buyAll">
-        <text>🛒 一键购买</text>
+        <text>🛒 一键加购</text>
       </view>
       <view class="btn btn-primary pill" @tap="goFreeMatch">
         <text>✨ 一键搭配</text>
@@ -163,8 +259,23 @@ function goFreeMatch() {
       @close="detail = null"
       @fav="detail && wishlist.toggle(detail.id)"
       @add="addFromSheet"
+      @buy="buyFromSheet"
       @accessory="goAccessoryFromSheet"
     />
+
+    <!-- 淘口令弹窗（§4.4） -->
+    <view v-if="purchaseTarget" class="mask" @tap="purchaseTarget = null">
+      <view class="purchase-dialog" @tap.stop>
+        <text class="purchase-symbol">↗</text>
+        <text class="purchase-title">正在前往淘宝…</text>
+        <text class="purchase-product">{{ purchaseTarget.name }}</text>
+        <text class="purchase-command">
+          {{ purchaseTarget.taokouling || purchaseTarget.taobaoUrl || '暂未配置淘口令' }}
+        </text>
+        <view class="btn btn-primary purchase-copy" @tap="copyPurchase">复制链接 / 淘口令</view>
+        <text class="purchase-close" @tap="purchaseTarget = null">继续看看</text>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -314,11 +425,77 @@ function goFreeMatch() {
   text-align: center;
   color: var(--text-3);
   font-size: 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
 }
 .empty-emoji {
   font-size: 88rpx;
   display: block;
   margin-bottom: 16rpx;
+}
+.empty-link {
+  color: var(--purple-deep);
+  font-weight: 700;
+}
+
+/* 淘口令弹窗（§4.4） */
+.mask {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(40, 24, 48, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.purchase-dialog {
+  width: 76%;
+  padding: 44rpx 36rpx 32rpx;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+.purchase-symbol {
+  font-size: 56rpx;
+  color: var(--purple-deep);
+}
+.purchase-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.purchase-product {
+  font-size: 28rpx;
+  color: var(--text-2);
+  text-align: center;
+}
+.purchase-command {
+  width: 100%;
+  padding: 16rpx 20rpx;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  font-size: 26rpx;
+  color: var(--pink-deep);
+  font-weight: 700;
+  text-align: center;
+  word-break: break-all;
+}
+.purchase-copy {
+  width: 100%;
+  height: 88rpx;
+  border-radius: var(--radius-pill);
+  font-size: 28rpx;
+}
+.purchase-close {
+  font-size: 26rpx;
+  color: var(--text-3);
+  padding: 8rpx;
 }
 
 .actionbar {
