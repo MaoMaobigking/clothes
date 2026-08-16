@@ -9,6 +9,7 @@ import {
   type CommunityContent,
   type CommunityContentType,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const TABS: { key: CommunityContentType; label: string }[] = [
   { key: 'magazine', label: '杂志推送' },
@@ -73,7 +74,10 @@ async function loadCurrentTab() {
     const items = await fetchCommunityContents(activeTab.value, filters)
     contentByType[activeTab.value] = items
   } catch (error) {
-    loadError.value = error instanceof Error ? error.message : '内容加载失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      loadError.value = error instanceof Error ? error.message : '内容加载失败'
+    }
   } finally {
     loading.value = false
   }
@@ -115,10 +119,13 @@ async function toggleAction(
       contentByType.share = contentByType.share.filter((post) => post.id !== item.id)
     }
   } catch (error) {
-    uni.showToast({
-      title: error instanceof Error ? error.message : '操作失败',
-      icon: 'none',
-    })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '操作失败',
+        icon: 'none',
+      })
+    }
   }
 }
 

@@ -173,7 +173,10 @@ async function saveTemplate() {
     sourceOutfitId.value = String(outfit.id)
     showToast('已保存到我的搭配')
   } catch (error) {
-    showToast(error instanceof Error ? error.message : '保存失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      showToast(error instanceof Error ? error.message : '保存失败')
+    }
   } finally {
     loading.value = false
   }
@@ -217,7 +220,10 @@ async function buyAll() {
     )
     purchaseSummary.value = summary
   } catch (error) {
-    showToast(error instanceof Error ? error.message : '加入购物车失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      showToast(error instanceof Error ? error.message : '加入购物车失败')
+    }
   } finally {
     loading.value = false
   }
