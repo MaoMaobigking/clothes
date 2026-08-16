@@ -10,6 +10,7 @@ import {
   VISUAL_BODY_OPTIONS,
 } from '@/data/questions'
 import type {
+  AvatarShape,
   BodyMetricKey,
   Gender,
   HairStyleId,
@@ -277,6 +278,24 @@ export const useProfileStore = defineStore('profile', () => {
   const visualBodyLabel = computed(() =>
     VISUAL_BODY_OPTIONS.find((o) => o.id === profile.visualBody)?.label ?? '',
   )
+
+  /** 喂给 AvatarViewer 的身形参数（规格 §7.9）；围度只在用户改过默认值时才传 */
+  const avatarShape = computed<AvatarShape>(() => {
+    const girth = (key: 'shoulder' | 'waist' | 'hip') => {
+      const value = profile.body[key]
+      const fallback = BODY_FIELDS.find((f) => f.key === key)?.default
+      return value && value !== fallback ? value : undefined
+    }
+    return {
+      gender: profile.gender,
+      height: profile.progress.heightTouched ? profile.body.height : 0,
+      weight: profile.progress.weightTouched ? profile.body.weight : 0,
+      visualBody: profile.visualBody,
+      shoulder: girth('shoulder'),
+      waist: girth('waist'),
+      hip: girth('hip'),
+    }
+  })
   const summary = computed(() => {
     if (!isComplete.value) return ''
     const main = styleLabels.value[0] ?? '百搭'
@@ -293,6 +312,7 @@ export const useProfileStore = defineStore('profile', () => {
     goNext, goPrev, goto, reset,
     canProceed, isComplete, answeredPreferences, bodyReady, missingCount,
     incompleteDimensions, bmi, radar, styleLabels, skinLabel, faceLabel, visualBodyLabel, summary,
+    avatarShape,
   }
 })
 

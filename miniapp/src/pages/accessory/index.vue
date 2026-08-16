@@ -459,6 +459,7 @@ function copyCartItem(item: AccessoryCartItem) {
           <AvatarViewer
             :src="tryonModelSrc"
             label="我的虚拟形象"
+            :shape="profile.avatarShape"
             :overlay="selectedAccessory ? {
               slot: selectedAccessory.tryonSlot,
               emoji: accessoryEmoji(selectedAccessory),
