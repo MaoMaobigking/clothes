@@ -12,7 +12,7 @@ const emit = defineEmits<{
 <template>
   <view v-if="visible" class="mask" @tap="emit('close')">
     <view class="sheet" @tap.stop>
-      <view class="spark">✨</view>
+      <UiIcon class="spark" name="sparkle" :size="44" tone="purple" />
       <view class="title">智能推荐已生成</view>
       <view class="desc">
         AI 已根据你的风格、肤色、脸型、体型和偏好，生成了专属风格报告
@@ -26,29 +26,6 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(47, 42, 61, 0.45);
-  display: flex;
-  align-items: flex-end;
-  z-index: 50;
-}
-
-.sheet {
-  width: 100%;
-  background: var(--surface);
-  border-radius: 56rpx 56rpx 0 0;
-  padding: 56rpx 48rpx calc(48rpx + env(safe-area-inset-bottom, 0px));
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .spark {
   width: 144rpx;
   height: 144rpx;

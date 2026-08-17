@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { VISUAL_BODY_OPTIONS } from '@/data/questions'
+import { iconForEmoji } from '@/utils/icons'
 import type { AvatarShape, VisualBodyId } from '@/types'
 
 /**
@@ -341,7 +342,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
           :alt="label"
           mode="aspectFit"
         />
-        <text v-else class="emoji">{{ emoji }}</text>
+        <UiIcon v-else class="emoji" :name="iconForEmoji(emoji) ?? 'me'" :size="72" tone="muted" :stroke-width="1.3" />
         <view
           v-if="overlayVisible"
           class="accessory-overlay"
@@ -357,7 +358,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
             mode="aspectFit"
             @error="overlayFailed = overlayImage"
           />
-          <text v-else class="accessory-overlay-emoji">{{ overlay?.emoji || '✨' }}</text>
+          <UiIcon v-else class="accessory-overlay-emoji" :name="iconForEmoji(overlay?.emoji) ?? 'gem'" :size="36" tone="muted" />
         </view>
       </view>
 
@@ -547,7 +548,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   max-width: 62%;
   font-size: 21rpx;
   font-weight: 700;
-  color: #d9694f;
+  color: var(--warning);
   background: rgba(255, 243, 240, 0.94);
   padding: 10rpx 20rpx;
   border-radius: 999rpx;

@@ -361,6 +361,6 @@ defineExpose({ savePoster, draw })
   font-weight: 700;
 }
 .poster-hint.err {
-  background: #d9694f;
+  background: var(--warning);
 }
 </style>

@@ -10,6 +10,7 @@ import { AI_TOOLS, HAIR_STYLES, MODEL_IMAGES } from '@/data/mock'
 import { useProfileStore } from '@/stores/profile'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { Gender, HairStyleId } from '@/types'
+import { iconForEmoji } from '@/utils/icons'
 
 const store = useProfileStore()
 const wardrobe = useWardrobeStore()
@@ -118,14 +119,19 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 
     <view class="body">
       <view class="stage-wrap">
-        <text class="avatar-tag">我的虚拟形象</text>
+        <text class="avatar-tag tag-pill">我的虚拟形象</text>
 
         <view class="model">
           <view class="figure">
+            <!--
+              模特是抠好的透明底立绘，不要 TileImage 的粉紫渐变底：
+              图片本身不是 3:4，contain 之后左右会露出一条渐变色带（截图里那条粉边）。
+              缺图时 from/to 仍会兜底，这里靠 emoji 提示。
+            -->
             <TileImage
               :src="modelSrc"
-              from="#ffe3ef"
-              to="#e7d4ff"
+              from="transparent"
+              to="transparent"
               emoji="🧍‍♀️"
               ratio="3 / 4"
               fit="contain"
@@ -149,7 +155,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
             class="test"
             @tap="goTest(i + 1)"
           >
-            <text class="test-emoji">{{ s.emoji }}</text>
+            <UiIcon :name="s.icon" :size="30" tone="purple" />
             <text class="test-label">{{ s.title }}</text>
           </view>
         </view>
@@ -198,7 +204,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
             :class="{ on: store.profile.hairstyle === h.id }"
             @tap="chooseHair(h)"
           >
-            <text class="hair-emoji">{{ h.emoji }}</text>
+            <UiIcon class="hair-emoji" :name="h.icon" :size="52" tone="soft" />
             <text class="hair-label">{{ h.label }}</text>
           </view>
         </view>
@@ -215,7 +221,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
             :key="g.id"
             class="fav-card"
           >
-            <text class="fav-emoji">{{ g.emoji }}</text>
+            <UiIcon class="fav-emoji" :name="iconForEmoji(g.emoji) ?? 'image'" :size="48" tone="muted" />
             <text class="fav-name">{{ g.name }}</text>
           </view>
         </view>
@@ -227,12 +233,6 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   position: relative;
   flex: 1;
@@ -258,25 +258,20 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   overflow: hidden;
 }
 
+/* 外观走全局 .tag-pill，这里只管定位 */
 .avatar-tag {
   position: absolute;
   top: 12rpx;
   left: 8rpx;
   z-index: 4;
-  padding: 10rpx 24rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  border: 2rpx solid var(--line);
-  font-size: 24rpx;
-  font-weight: 700;
-  color: var(--text-1);
 }
 
 .model {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* 设计稿里模特偏右，给左侧的基础信息面板让出位置 */
+  transform: translateX(30rpx);
 }
 .figure {
   position: relative;
@@ -312,12 +307,13 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   color: var(--text-2);
 }
 .gender-chip {
-  top: 4%;
-  left: -24rpx;
+  top: 6%;
+  left: 0;
 }
 .hair-chip {
-  top: 4%;
-  right: -24rpx;
+  top: 6%;
+  /* 别再往外挂，否则会钻到右侧工具栏底下 */
+  right: 0;
 }
 
 .panel {
@@ -332,7 +328,8 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 .panel-left {
   top: 80rpx;
   left: 8rpx;
-  max-height: calc(100% - 104rpx);
+  /* 给左下角的五步测试留出位置，别再压上去 */
+  max-height: calc(100% - 420rpx);
 }
 .panel-right {
   top: 80rpx;
@@ -351,23 +348,19 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 .test {
   display: flex;
   align-items: center;
-  gap: 10rpx;
-  padding: 12rpx 20rpx;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface-glass);
   backdrop-filter: blur(8px);
-  box-shadow: var(--shadow-card);
-  border: 2rpx solid var(--line);
+  box-shadow: var(--shadow-soft);
   transition: transform 0.15s ease;
 }
 .test:active {
   transform: scale(0.94);
 }
-.test-emoji {
-  font-size: 28rpx;
-}
 .test-label {
-  font-size: 22rpx;
+  font-size: 21rpx;
   font-weight: 600;
   color: var(--text-2);
 }
@@ -390,47 +383,6 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   transform: scale(0.94);
 }
 
-.toast {
-  position: absolute;
-  left: 50%;
-  bottom: 144rpx;
-  transform: translateX(-50%);
-  z-index: 10;
-  max-width: 80%;
-  padding: 18rpx 32rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 47, 58, 0.86);
-  color: #fff;
-  font-size: 26rpx;
-  white-space: nowrap;
-  box-shadow: var(--shadow-float);
-}
-
-.mask {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 20;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(31, 25, 45, 0.36);
-}
-.sheet {
-  width: 100%;
-  padding: 36rpx 36rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 48rpx 48rpx 0 0;
-  background: #fff;
-  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.22);
-}
-.sheet-title {
-  margin-bottom: 32rpx;
-  font-size: 34rpx;
-  font-weight: 800;
-  color: var(--text-1);
-}
 .gender-options {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -124,12 +124,6 @@ function viewReport() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 .slide-enter-active,
 .slide-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;

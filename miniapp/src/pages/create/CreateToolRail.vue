@@ -13,7 +13,7 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
       :class="{ disabled: t.disabled }"
       @tap="emit('tool', t)"
     >
-      <text class="t-ico">{{ t.emoji }}</text>
+      <UiIcon :name="t.icon" :size="38" :tone="t.disabled ? 'muted' : 'dark'" />
       <text class="t-label">{{ t.label }}</text>
     </view>
   </view>
@@ -25,32 +25,27 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
   flex-direction: column;
   gap: 16rpx;
 }
+/*
+ * 设计稿里这排工具是「裸图标 + 文字」直接落在背景上，没有卡片外壳。
+ * 之前每个都套了张白卡，6 个工具就是 6 块视觉噪音，把中间的模特压下去了。
+ */
 .tool {
-  width: 116rpx;
+  width: 108rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4rpx;
-  padding: 14rpx 4rpx;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(8px);
-  box-shadow: var(--shadow-card);
-  border: 2rpx solid var(--line);
+  gap: 6rpx;
+  padding: 8rpx 4rpx;
   transition: transform 0.15s ease;
 }
 .tool:active {
   transform: scale(0.92);
 }
 .tool.disabled {
-  opacity: 0.45;
-  filter: grayscale(0.8);
+  opacity: 0.4;
 }
 .tool.disabled:active {
   transform: none;
-}
-.t-ico {
-  font-size: 36rpx;
 }
 .t-label {
   font-size: 20rpx;

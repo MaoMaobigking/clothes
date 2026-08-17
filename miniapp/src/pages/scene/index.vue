@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { iconForEmoji } from '@/utils/icons'
 import { computed, ref } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
@@ -337,7 +338,7 @@ function savePoster() {
             :class="{ on: selectedScene === item.key }"
             @tap="selectedScene = item.key"
           >
-            <text class="scene-emoji">{{ item.emoji }}</text>
+            <UiIcon class="scene-emoji" :name="iconForEmoji(item.emoji) ?? 'image'" :size="46" tone="soft" />
             <text class="scene-label">{{ item.label }}</text>
           </button>
         </view>
@@ -543,11 +544,6 @@ function savePoster() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -665,7 +661,7 @@ function savePoster() {
   opacity: 0.7;
 }
 .error-message {
-  color: #d9694f;
+  color: var(--warning);
   font-size: 12px;
   text-align: center;
 }
@@ -946,20 +942,4 @@ function savePoster() {
   text-align: center;
 }
 
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 72px;
-  transform: translateX(-50%);
-  z-index: 80;
-  max-width: 86%;
-  padding: 10px 18px;
-  border-radius: var(--radius-pill);
-  background: rgba(40, 24, 48, 0.88);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: var(--shadow-float);
-}
 </style>

@@ -135,7 +135,7 @@ onMounted(() => {
     <view class="body scroll-y hide-scrollbar">
       <!-- 品牌区 -->
       <view class="brand">
-        <text class="brand-logo">👗</text>
+        <UiIcon class="brand-logo" name="cat-skirt" :size="96" tone="brand" :stroke-width="1.5" />
         <text class="brand-title">灵犀穿搭</text>
         <text class="brand-sub">登录后你的衣橱、画像和搭配都会留在账号里</text>
       </view>
@@ -211,11 +211,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -234,8 +229,7 @@ onMounted(() => {
   padding: 32rpx 0 8rpx;
 }
 .brand-logo {
-  font-size: 96rpx;
-  line-height: 1.1;
+  margin-bottom: 8rpx;
 }
 .brand-title {
   font-size: 44rpx;
@@ -275,7 +269,7 @@ onMounted(() => {
   height: 92rpx;
   padding: 0 28rpx;
   border-radius: var(--radius-sm);
-  background: #f7f4fb;
+  background: var(--surface-tint);
   border: 1px solid var(--line);
   font-size: 28rpx;
   color: var(--text-1);

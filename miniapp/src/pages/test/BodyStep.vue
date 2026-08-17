@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { iconForEmoji } from '@/utils/icons'
 import { reactive } from 'vue'
 import StepShell from '@/components/StepShell/StepShell.vue'
 import {
@@ -62,7 +63,7 @@ const bmiTip = (bmi: number) => {
               mode="aspectFill"
               @error="imgFailed[opt.id] = true"
             />
-            <text v-else class="body-emoji">{{ opt.emoji }}</text>
+            <UiIcon v-else class="body-emoji" :name="iconForEmoji(opt.emoji) ?? 'body'" :size="64" tone="muted" :stroke-width="1.4" />
           </view>
           <text class="body-label">{{ opt.label }}</text>
           <text class="body-desc">{{ opt.desc }}</text>
@@ -79,7 +80,7 @@ const bmiTip = (bmi: number) => {
           :class="{ on: store.profile.gender === 'female' }"
           @tap="chooseGender('female')"
         >
-          <text class="gender-emoji">👩</text>
+          <UiIcon class="gender-emoji" name="me" :size="56" tone="soft" />
           <text>女</text>
         </view>
         <view
@@ -87,7 +88,7 @@ const bmiTip = (bmi: number) => {
           :class="{ on: store.profile.gender === 'male' }"
           @tap="chooseGender('male')"
         >
-          <text class="gender-emoji">👨</text>
+          <UiIcon class="gender-emoji" name="me" :size="56" tone="soft" />
           <text>男</text>
         </view>
       </view>

@@ -47,7 +47,7 @@ async function send(text?: string) {
     messages.value.push({
       id: uid++,
       role: 'assistant',
-      content: `⚠️ 没连上 AI：${msg}\n请在 .env 里填好 key，并用 npm run dev:all 启动后端。`,
+      content: `没连上 AI：${msg}\n请在 .env 里填好 key，并用 npm run dev:all 启动后端。`,
     })
   } finally {
     loading.value = false
@@ -66,11 +66,11 @@ async function send(text?: string) {
       class="chat hide-scrollbar"
     >
       <view v-for="m in messages" :key="m.id" class="row" :class="m.role">
-        <text v-if="m.role === 'assistant'" class="avatar">🤖</text>
+        <UiIcon v-if="m.role === 'assistant'" class="avatar" name="robot" :size="40" tone="purple" />
         <view class="bubble">{{ m.content }}</view>
       </view>
       <view v-if="loading" class="row assistant">
-        <text class="avatar">🤖</text>
+        <UiIcon class="avatar" name="robot" :size="40" tone="purple" />
         <view class="bubble typing">
           <text></text><text></text><text></text>
         </view>
@@ -103,12 +103,6 @@ async function send(text?: string) {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 .chat {
   flex: 1;
   min-height: 0;

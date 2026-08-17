@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import type { IconName } from '@/utils/icons'
 
 interface Tab {
   key: string
   label: string
   route: string
+  /** Ai 那格是方块徽标，没有 icon */
+  icon?: IconName
 }
 
 const tabs: Tab[] = [
-  { key: 'home', label: '首页', route: '/pages/home/home' },
+  { key: 'home', label: '首页', route: '/pages/home/home', icon: 'home' },
   { key: 'ai', label: 'Ai', route: '/pages/ai/ai' },
-  { key: 'closet', label: '衣橱', route: '/pages/closet/closet' },
-  { key: 'mall', label: '商城', route: '/pages/mall/mall' },
-  { key: 'me', label: '我的', route: '/pages/me/me' },
+  { key: 'closet', label: '衣橱', route: '/pages/closet/closet', icon: 'closet' },
+  { key: 'mall', label: '商城', route: '/pages/mall/mall', icon: 'mall' },
+  { key: 'me', label: '我的', route: '/pages/me/me', icon: 'me' },
 ]
 
 const props = defineProps<{ active: string }>()
@@ -49,13 +52,13 @@ function go(t: Tab) {
       <view class="ico">
         <!-- Ai：圆角方块徽标 -->
         <text v-if="t.key === 'ai'" class="ai-badge">Ai</text>
-        <!-- 其他用 emoji 简化 -->
-        <text v-else class="ico-emoji">
-          <template v-if="t.key === 'home'">🏠</template>
-          <template v-else-if="t.key === 'closet'">👗</template>
-          <template v-else-if="t.key === 'mall'">🛍️</template>
-          <template v-else>👤</template>
-        </text>
+        <UiIcon
+          v-else-if="t.icon"
+          :name="t.icon"
+          :size="44"
+          :tone="active === t.key ? 'dark' : 'muted'"
+          :stroke-width="active === t.key ? 1.9 : 1.6"
+        />
       </view>
       <text class="lbl">{{ t.label }}</text>
     </view>
@@ -87,9 +90,6 @@ function go(t: Tab) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.ico-emoji {
-  font-size: 44rpx;
 }
 .lbl {
   font-size: 21rpx;

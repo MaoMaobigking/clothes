@@ -1,3 +1,5 @@
+import type { IconName } from '@/utils/icons'
+
 /** 单个选项（风格 / 肤色 / 脸型 / 偏好题都用它） */
 export interface Option {
   id: string
@@ -101,4 +103,6 @@ export interface StepMeta {
   key: string
   title: string // 步骤名，如「风格测试」
   emoji: string
+  /** 线性图标名，见 components/UiIcon/icons.ts；emoji 保留给还没换皮的地方兜底 */
+  icon: IconName
 }

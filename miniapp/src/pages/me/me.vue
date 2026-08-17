@@ -9,6 +9,10 @@ import { useCartStore } from '@/stores/cart'
 import { useProfileStore } from '@/stores/profile'
 import { useAuthStore } from '@/stores/auth'
 import { fetchAchievements, type AchievementSummary } from '@/api/community'
+import { iconForEmoji } from '@/utils/icons'
+
+/** 菜单项里存的还是 emoji，查表换成线性图标 */
+const menuIcon = (emoji: string) => iconForEmoji(emoji) ?? 'chevron-right'
 
 const wardrobe = useWardrobeStore()
 const cart = useCartStore()
@@ -110,11 +114,11 @@ onMounted(async () => {
       <!-- 顶部用户卡 -->
       <view class="user-card">
         <view class="uc-row">
-          <text class="uc-avatar">🧑‍🎨</text>
+          <view class="uc-avatar"><UiIcon name="me" :size="56" tone="white" /></view>
           <view class="uc-text">
             <text class="uc-name">{{ auth.displayName }}</text>
             <text class="uc-sign">
-              <text v-if="auth.session.account">账号 {{ auth.session.account }} · </text>用穿搭记录每一天的好心情 ✨
+              <text v-if="auth.session.account">账号 {{ auth.session.account }} · </text>用穿搭记录每一天的好心情
             </text>
           </view>
           <view class="uc-edit" hover-class="uc-edit-hover" @tap="showToast('资料编辑功能开发中～')">编辑资料</view>
@@ -185,7 +189,7 @@ onMounted(async () => {
             hover-class="menu-item-hover"
             @tap="onMenu(m)"
           >
-            <text class="mi-emoji">{{ m.emoji }}</text>
+            <UiIcon :name="menuIcon(m.emoji)" :size="38" tone="soft" />
             <text class="mi-label">{{ m.label }}</text>
             <text v-if="m.hint" class="mi-hint">{{ m.hint }}</text>
             <text class="mi-arrow">›</text>
@@ -204,11 +208,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -408,9 +407,6 @@ onMounted(async () => {
 .menu-item-hover {
   opacity: 0.6;
 }
-.mi-emoji {
-  font-size: 38rpx;
-}
 .mi-label {
   flex: 1;
   text-align: left;
@@ -428,19 +424,6 @@ onMounted(async () => {
 }
 
 /* 轻提示 */
-.toast {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--safe-bottom, 0px) + 168rpx);
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.78);
-  color: #fff;
-  font-size: 26rpx;
-  padding: 18rpx 32rpx;
-  border-radius: var(--radius-pill);
-  white-space: nowrap;
-  z-index: 20;
-}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

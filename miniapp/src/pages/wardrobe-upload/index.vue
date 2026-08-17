@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { iconForEmoji } from '@/utils/icons'
 import { computed, onMounted, ref } from 'vue'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
@@ -118,7 +119,7 @@ function resetReview() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <PageHeader title="旧衣上传" to="/pages/closet/closet" />
 
     <scroll-view scroll-y class="body hide-scrollbar">
@@ -204,7 +205,7 @@ function resetReview() {
                 :class="{ on: drafts[item.id].seasons.includes(season.key) }"
                 @tap="toggleOption(drafts[item.id], 'seasons', season.key)"
               >
-                {{ season.emoji }} {{ season.label }}
+                <UiIcon :name="iconForEmoji(season.emoji) ?? 'season-spring'" :size="26" tone="soft" /><text>{{ season.label }}</text>
               </view>
             </view>
           </view>
@@ -219,7 +220,7 @@ function resetReview() {
                 :class="{ on: drafts[item.id].occasions.includes(occasion.key) }"
                 @tap="toggleOption(drafts[item.id], 'occasions', occasion.key)"
               >
-                {{ occasion.emoji }} {{ occasion.label }}
+                <UiIcon :name="iconForEmoji(occasion.emoji) ?? 'sc-daily'" :size="26" tone="soft" /><text>{{ occasion.label }}</text>
               </view>
             </view>
           </view>
@@ -239,19 +240,19 @@ function resetReview() {
 
       <template v-else>
         <view class="hero">
-          <view class="hero-icon">📷</view>
+          <UiIcon class="hero-icon" name="camera" :size="72" tone="purple" :stroke-width="1.4" />
           <view class="hero-title">把旧衣拍成穿搭灵感</view>
           <view class="hero-sub">单次最多 20 张，衣橱最多 100 件</view>
         </view>
 
         <view class="upload-grid">
           <view class="upload-cell" @tap="chooseImages('camera')">
-            <view class="upload-icon">📷</view>
+            <UiIcon class="upload-icon" name="camera" :size="52" tone="purple" />
             <view class="upload-title">拍照</view>
             <view class="upload-sub">拍一张真实旧衣</view>
           </view>
           <view class="upload-cell" @tap="chooseImages('album')">
-            <view class="upload-icon">🖼️</view>
+            <UiIcon class="upload-icon" name="image" :size="52" tone="purple" />
             <view class="upload-title">从相册选择</view>
             <view class="upload-sub">可一次选择多张</view>
           </view>
@@ -291,14 +292,6 @@ function resetReview() {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -500,7 +493,7 @@ function resetReview() {
   padding: 0 20rpx;
   border: 1px solid var(--line);
   border-radius: 18rpx;
-  background: #faf8ff;
+  background: var(--surface-tint);
   font-size: 28rpx;
 }
 .field-label {
@@ -520,7 +513,7 @@ function resetReview() {
   justify-content: center;
   padding: 12rpx 22rpx;
   border-radius: 999rpx;
-  background: #f4f0fb;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 23rpx;
   font-weight: 600;
@@ -575,7 +568,7 @@ function resetReview() {
   font-weight: 700;
 }
 .frequent.on {
-  color: #2e8a6e;
+  color: var(--success);
   border-color: #8fd5c1;
   background: #e9f9f4;
 }

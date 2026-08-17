@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { AI_FEATURES, OUTFIT_RECOS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
+import { iconForEmoji } from '@/utils/icons'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { isAuthError } from '@/api/http'
 import { useProfileStore } from '@/stores/profile'
@@ -12,6 +13,9 @@ import { useWishlistStore } from '@/stores/wishlist'
 
 const profile = useProfileStore()
 const wishlist = useWishlistStore()
+
+/** 天气数据里存的还是 emoji，查表换成线性图标 */
+const weatherIcon = computed(() => iconForEmoji(WEATHER.icon) ?? 'w-cloud')
 
 // 「为你精选」取真实商城目录（scene_catalog），不再是 mock 商品，
 // 点进去看到的价格和淘口令与商城页一致（规格 §4.4）
@@ -61,12 +65,12 @@ function goMall() {
             class="logo"
           />
           <view>
-            <view class="hi">Hi～欢迎回来 👋</view>
+            <view class="hi">Hi～欢迎回来</view>
             <view class="brand">AI 服装 · 私人穿搭官</view>
           </view>
         </view>
         <view class="weather">
-          <text class="w-ico">{{ WEATHER.icon }}</text>
+          <UiIcon :name="weatherIcon" :size="36" tone="soft" />
           <text class="w-temp">{{ WEATHER.temp }}°</text>
         </view>
       </view>
@@ -101,9 +105,9 @@ function goMall() {
             class="feature"
             @tap="goFeature(f.route)"
           >
-            <text class="f-ico" :style="{ background: `linear-gradient(140deg, ${f.from}, ${f.to})` }">
-              {{ f.emoji }}
-            </text>
+            <view class="f-ico">
+              <UiIcon :name="f.icon" :size="44" tone="soft" />
+            </view>
             <text class="f-label">{{ f.label }}</text>
             <text class="f-desc">{{ f.desc }}</text>
           </view>
@@ -158,11 +162,6 @@ function goMall() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -205,9 +204,6 @@ function goMall() {
   padding: 12rpx 24rpx;
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
-}
-.w-ico {
-  font-size: 36rpx;
 }
 .w-temp {
   font-size: 30rpx;
@@ -269,12 +265,15 @@ function goMall() {
   transform: scale(0.95);
 }
 .f-ico {
-  width: 92rpx;
-  height: 92rpx;
-  border-radius: 28rpx;
-  display: grid;
-  place-items: center;
-  font-size: 48rpx;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*
+   * 不给图标垫色块。设计稿的语言是「照片是主角，图标只做辅助」，
+   * 图标一旦套上有色方块就变成模块的主视觉，整页就是一堆彩色贴纸。
+   */
 }
 .f-label {
   font-size: 26rpx;

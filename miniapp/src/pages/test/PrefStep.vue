@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import StepShell from '@/components/StepShell/StepShell.vue'
 import { PREFERENCE_QUESTIONS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
+import { iconForEmoji } from '@/utils/icons'
 
 const store = useProfileStore()
 
@@ -25,7 +26,7 @@ const subtitle = computed(
             :class="{ on: store.profile.preferences[q.id] === opt.id }"
             @tap="store.setPreference(q.id, opt.id)"
           >
-            <text class="chip-emoji">{{ opt.emoji }}</text>
+            <UiIcon class="chip-emoji" :name="iconForEmoji(opt.emoji) ?? 'star'" :size="30" tone="soft" />
             {{ opt.label }}
           </view>
         </view>
@@ -63,7 +64,7 @@ const subtitle = computed(
   gap: 10rpx;
   padding: 18rpx 32rpx;
   border-radius: 999rpx;
-  background: #f4f0fb;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 28rpx;
   font-weight: 600;

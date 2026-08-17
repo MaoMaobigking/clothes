@@ -35,7 +35,7 @@ const emit = defineEmits<{
         <view class="head">
           <text class="name">{{ product.name }}</text>
           <view class="fav" :class="{ on: fav }" @tap="emit('fav')">
-            <text>{{ fav ? '❤️' : '🤍' }}</text>
+            <UiIcon name="heart" :size="34" :tone="fav ? 'brand' : 'muted'" :stroke-width="fav ? 2.6 : 1.7" />
           </view>
         </view>
         <view class="tags">
@@ -67,28 +67,6 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 30;
-  background: rgba(40, 24, 48, 0.35);
-  display: flex;
-  align-items: flex-end;
-}
-.sheet {
-  width: 100%;
-  background: var(--surface);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 20rpx 32rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
-  box-shadow: var(--shadow-float);
-  display: flex;
-  flex-direction: column;
-  gap: 28rpx;
-  animation: sheetIn 0.25s ease;
-}
 @keyframes sheetIn {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }

@@ -7,11 +7,9 @@ import {
   apiGenerateOutfits,
   type WardrobeItem,
 } from '@/api/wardrobe'
-import {
-  WARDROBE_CATEGORIES,
-  categoryLabel,
-  seasonLabel,
-} from '@/data/wardrobeOptions'
+import { categoryLabel, seasonLabel } from '@/data/wardrobeOptions'
+import { CLOSET_CATEGORIES } from '@/data/mock'
+import { iconForEmoji } from '@/utils/icons'
 import {
   garmentToAccessoryContext,
   setAccessoryPageContext,
@@ -165,10 +163,10 @@ function goAccessory(item: WardrobeItem) {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <view class="topbar">
       <view>
-        <view class="title">旧衣新穿</view>
+        <view class="title">我的衣橱</view>
         <view class="subtitle">让衣柜里的旧衣服重新搭起来</view>
       </view>
       <view class="top-actions">
@@ -191,39 +189,45 @@ function goAccessory(item: WardrobeItem) {
 
     <view class="today-panel">
       <view class="action-card">
-        <view>
-          <view class="action-title">一键生成今日穿搭</view>
-          <view class="action-sub">优先使用靠前和常穿的 30 件旧衣</view>
-        </view>
-        <view class="btn btn-primary action-btn" @tap="generateNow">
-          {{ generating ? '生成中…' : '生成 3 套' }}
+        <view class="action-main">
+          <view class="action-text">
+            <view class="action-title">一键生成今日穿搭</view>
+            <view class="action-sub">优先使用靠前和常穿的 30 件旧衣</view>
+          </view>
+          <view class="btn btn-primary action-btn" @tap="generateNow">
+            {{ generating ? '生成中…' : '生成 3 套' }}
+          </view>
         </view>
         <view class="manual-link" @tap="goManual">手动调整搭配 →</view>
       </view>
 
-      <view class="filter-row">
-        <scroll-view scroll-x class="filters hide-scrollbar">
+      <view v-if="manage" class="sort-row">
+        <view class="sort-link" @tap="openSort">拖动排序</view>
+      </view>
+
+      <!--
+        设计稿（开发手册 §4 图③）是「左侧竖排分类 + 右侧两列大图」，
+        不是顶部横向 chips —— 分类有 10 项，横排永远看不全，还要左右滑。
+      -->
+      <view class="closet-body">
+        <scroll-view scroll-y class="cat-rail hide-scrollbar">
           <view
-            class="filter"
-            :class="{ on: activeCategory === 'all' }"
-            @tap="activeCategory = 'all'"
-          >
-            全部
-          </view>
-          <view
-            v-for="category in WARDROBE_CATEGORIES"
+            v-for="category in CLOSET_CATEGORIES"
             :key="category.key"
-            class="filter"
+            class="cat"
             :class="{ on: activeCategory === category.key }"
             @tap="activeCategory = category.key"
           >
-            {{ category.label }}
+            <UiIcon
+              :name="iconForEmoji(category.emoji) ?? 'grid'"
+              :size="34"
+              :tone="activeCategory === category.key ? 'brand' : 'muted'"
+            />
+            <text class="cat-label">{{ category.label }}</text>
           </view>
         </scroll-view>
-        <view v-if="manage" class="sort-link" @tap="openSort">拖动排序</view>
-      </view>
 
-      <scroll-view scroll-y class="grid-scroll hide-scrollbar">
+        <scroll-view scroll-y class="grid-scroll hide-scrollbar">
         <view v-if="filtered.length" class="grid">
           <view v-for="item in filtered" :key="item.id" class="cell">
             <TileImage
@@ -250,18 +254,19 @@ function goAccessory(item: WardrobeItem) {
           </view>
         </view>
         <view v-else-if="wardrobe.loadError" class="empty">
-          <view class="empty-emoji">⚠️</view>
+          <UiIcon class="empty-emoji" name="warn" :size="88" tone="muted" :stroke-width="1.3" />
           <view class="empty-title">衣橱加载失败</view>
           <view class="empty-sub">{{ wardrobe.loadError }}</view>
           <view class="btn btn-primary empty-btn" @tap="wardrobe.load()">重新加载</view>
         </view>
         <view v-else class="empty">
-          <view class="empty-emoji">🧺</view>
+          <UiIcon class="empty-emoji" name="box" :size="88" tone="muted" :stroke-width="1.3" />
           <view class="empty-title">衣橱还是空的</view>
           <view class="empty-sub">先上传几张真实旧衣照片</view>
           <view class="btn btn-primary empty-btn" @tap="goUpload">上传旧衣</view>
         </view>
       </scroll-view>
+      </view>
     </view>
 
     <BottomNav active="closet" />
@@ -305,14 +310,6 @@ function goAccessory(item: WardrobeItem) {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
 .topbar {
   flex-shrink: 0;
   display: flex;
@@ -390,10 +387,9 @@ function goAccessory(item: WardrobeItem) {
 }
 .action-card {
   flex-shrink: 0;
-  position: relative;
   display: flex;
-  align-items: center;
-  gap: 20rpx;
+  flex-direction: column;
+  gap: 14rpx;
   margin: 0 32rpx 18rpx;
   padding: 26rpx;
   border-radius: var(--radius);
@@ -401,13 +397,25 @@ function goAccessory(item: WardrobeItem) {
   box-shadow: var(--shadow-float);
   color: #fff;
 }
+/*
+ * 「手动调整搭配」原本是 position:absolute + bottom 定位，卡片高度由上面的
+ * 标题/副标题撑开，两者必然叠在一起。改成正常的纵向流式布局。
+ */
+.action-main {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.action-text {
+  flex: 1;
+  min-width: 0;
+}
 .action-title {
   font-size: 31rpx;
   font-weight: 800;
 }
 .action-sub {
   margin-top: 8rpx;
-  max-width: 390rpx;
   font-size: 21rpx;
   opacity: 0.9;
   line-height: 1.4;
@@ -422,45 +430,61 @@ function goAccessory(item: WardrobeItem) {
   box-shadow: 0 10rpx 20rpx rgba(80, 45, 120, 0.24);
 }
 .manual-link {
-  position: absolute;
-  left: 26rpx;
-  bottom: 12rpx;
   font-size: 21rpx;
   font-weight: 700;
   opacity: 0.9;
 }
-.filter-row {
+.sort-row {
   flex-shrink: 0;
   display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 0 32rpx 16rpx;
-}
-.filters {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-}
-.filter {
-  display: inline-flex;
-  margin-right: 12rpx;
-  padding: 12rpx 24rpx;
-  border-radius: 999rpx;
-  background: var(--surface-soft);
-  box-shadow: var(--shadow-card);
-  color: var(--text-2);
-  font-size: 23rpx;
-  font-weight: 700;
-}
-.filter.on {
-  background: var(--brand-gradient);
-  color: #fff;
+  justify-content: flex-end;
+  padding: 0 32rpx 12rpx;
 }
 .sort-link {
-  flex-shrink: 0;
   color: var(--purple-deep);
   font-size: 23rpx;
   font-weight: 700;
+}
+
+/* 左栏 + 右网格 */
+.closet-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 12rpx;
+  padding: 0 24rpx 0 12rpx;
+}
+.cat-rail {
+  flex-shrink: 0;
+  width: 118rpx;
+  height: 100%;
+}
+.cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  padding: 16rpx 0;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+.cat.on {
+  background: var(--pink-soft);
+}
+.cat-label {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.cat.on .cat-label {
+  color: var(--pink-deep);
+  font-weight: 700;
+}
+.grid-scroll {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 0 28rpx;
 }
 .grid-scroll {
   flex: 1;
@@ -492,7 +516,7 @@ function goAccessory(item: WardrobeItem) {
   font-weight: 800;
 }
 .frequent-badge {
-  color: #2e8a6e;
+  color: var(--success);
 }
 .suggested-badge {
   top: 64rpx;
@@ -534,7 +558,7 @@ function goAccessory(item: WardrobeItem) {
   flex: 1;
   padding: 10rpx 4rpx;
   border-radius: 14rpx;
-  background: #f4f0fb;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 20rpx;
   font-weight: 700;
@@ -568,15 +592,6 @@ function goAccessory(item: WardrobeItem) {
   padding: 0 40rpx;
   font-size: 27rpx;
 }
-.mask {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(35, 24, 48, 0.36);
-}
 .sort-sheet {
   width: 100%;
   max-height: 82vh;
@@ -584,10 +599,6 @@ function goAccessory(item: WardrobeItem) {
   border-radius: 44rpx 44rpx 0 0;
   background: #fff;
   box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.24);
-}
-.sheet-title {
-  font-size: 34rpx;
-  font-weight: 800;
 }
 .sheet-sub {
   margin-top: 8rpx;
@@ -607,7 +618,7 @@ function goAccessory(item: WardrobeItem) {
   margin-bottom: 12rpx;
   padding: 10rpx 14rpx;
   border-radius: 22rpx;
-  background: #faf7ff;
+  background: var(--surface-tint);
   box-shadow: var(--shadow-card);
   transition: transform 0.12s ease, opacity 0.12s ease;
 }

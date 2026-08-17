@@ -72,11 +72,6 @@ function progressWidth() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -90,7 +85,7 @@ function progressWidth() {
   font-size: 26rpx;
 }
 .state.error {
-  color: #d45a78;
+  color: var(--accent);
 }
 .points-card {
   display: flex;

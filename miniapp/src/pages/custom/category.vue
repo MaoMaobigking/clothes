@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { iconForEmoji } from '@/utils/icons'
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
@@ -259,7 +260,7 @@ async function upgradeVip() {
           />
         </view>
         <view class="hero-copy">
-          <text class="hero-emoji">{{ category.emoji }}</text>
+          <UiIcon class="hero-emoji" :name="iconForEmoji(category.emoji) ?? 'scissors'" :size="64" tone="white" :stroke-width="1.4" />
           <text class="hero-title">{{ category.label }}</text>
           <text class="hero-desc">{{ category.desc }}</text>
         </view>
@@ -478,11 +479,6 @@ async function upgradeVip() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -680,24 +676,6 @@ async function upgradeVip() {
   margin-top: 22rpx;
 }
 
-.mask {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  background: rgba(31, 25, 45, 0.42);
-}
-.sheet {
-  width: 100%;
-  max-height: 92vh;
-  padding: 34rpx 32rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 44rpx 44rpx 0 0;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 22rpx;
-}
 .tall-sheet {
   max-height: 96vh;
 }
@@ -706,10 +684,6 @@ async function upgradeVip() {
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-}
-.sheet-title {
-  font-size: 34rpx;
-  font-weight: 800;
 }
 .sheet-close {
   color: var(--text-3);
@@ -855,17 +829,4 @@ async function upgradeVip() {
   height: 84rpx;
 }
 
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 120rpx);
-  transform: translateX(-50%);
-  z-index: 60;
-  padding: 18rpx 30rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 47, 58, 0.88);
-  color: #fff;
-  font-size: 25rpx;
-  white-space: nowrap;
-}
 </style>

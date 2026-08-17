@@ -125,7 +125,7 @@ async function submit() {
           mode="aspectFill"
         />
         <view v-else class="photo-placeholder">
-          <text class="photo-emoji">📷</text>
+          <UiIcon class="photo-emoji" name="camera" :size="64" tone="muted" :stroke-width="1.3" />
           <text class="photo-text">拍照或从相册选择</text>
           <text class="photo-sub">仅支持真实照片，最大 8MB</text>
         </view>
@@ -182,11 +182,6 @@ async function submit() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -227,7 +222,7 @@ async function submit() {
 .error {
   display: block;
   margin-top: 12rpx;
-  color: #d45a78;
+  color: var(--accent);
   font-size: 22rpx;
 }
 .hidden-file {

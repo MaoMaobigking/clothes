@@ -241,7 +241,7 @@ function goCloset() {
       </template>
 
       <view v-else-if="!loading" class="empty">
-        <text class="empty-emoji">👗</text>
+        <UiIcon class="empty-emoji" name="cat-skirt" :size="88" tone="muted" :stroke-width="1.3" />
         <text>还没有保存的搭配</text>
         <text class="empty-sub">
           在搭配结果页点「收藏」，或在场景模拟里点「保存模板」，都会出现在这里。
@@ -256,11 +256,6 @@ function goCloset() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .filter-row {
   flex-shrink: 0;
   display: flex;
@@ -296,7 +291,7 @@ function goCloset() {
   font-size: 13px;
 }
 .status.error {
-  color: #d9694f;
+  color: var(--warning);
   padding: 16px 0;
 }
 .empty {

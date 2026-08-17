@@ -8,11 +8,11 @@ import type {
 
 /** 5 个步骤的定义（顶部进度 & 步骤指示都用它） */
 export const STEPS: StepMeta[] = [
-  { key: 'style', title: '风格测试', emoji: '👕' },
-  { key: 'skin', title: '肤色测试', emoji: '🎨' },
-  { key: 'face', title: '脸型测试', emoji: '🙂' },
-  { key: 'body', title: '体型测试', emoji: '📏' },
-  { key: 'pref', title: '偏好测试', emoji: '📝' },
+  { key: 'style', title: '风格测试', emoji: '👕', icon: 'test-style' },
+  { key: 'skin', title: '肤色测试', emoji: '🎨', icon: 'test-skin' },
+  { key: 'face', title: '脸型测试', emoji: '🙂', icon: 'test-face' },
+  { key: 'body', title: '体型测试', emoji: '📏', icon: 'test-body' },
+  { key: 'pref', title: '偏好测试', emoji: '📝', icon: 'test-pref' },
 ]
 
 /**

@@ -11,6 +11,9 @@ dist-ssr
 # 冒烟测试截图产物
 .smoke
 
+# UI 截图产物（scripts/ui-shot.mjs）
+.uishot
+
 # 本地数据库文件（已切 MySQL，保留以防旧文件残留）
 server/data.db
 server/*.db
