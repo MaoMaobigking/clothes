@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import {
   fetchCommunityContents,
@@ -46,21 +46,40 @@ const visibleShares = computed(() =>
     : contentByType.share,
 )
 
+/*
+ * 当前 tab 手里有没有可显示的数据。
+ * 用来决定「加载中」要不要盖住整页 —— 见下面 loadCurrentTab 的注释。
+ */
+const hasCurrentData = computed(() => contentByType[activeTab.value].length > 0)
+
 onLoad((options) => {
   const tab = options?.tab
   if (TABS.some((item) => item.key === tab)) activeTab.value = tab as CommunityContentType
 })
 
+/*
+ * 只在 onShow 里拉数据，**不要再加 onMounted**。
+ *
+ * 原来两个钩子都调了 loadCurrentTab()，而 onShow 首次进页面也会触发 ——
+ * 结果首次进入是两个并发请求、loading 被来回切两轮，页面闪两次。
+ * onShow 单独用就够：它覆盖「首次进入」和「从详情页返回」两种情况。
+ */
 onShow(() => {
   void loadCurrentTab()
 })
 
-onMounted(() => {
-  void loadCurrentTab()
-})
-
 async function loadCurrentTab() {
-  loading.value = true
+  /*
+   * 关键：只有当前 tab **一条数据都没有**时才置 loading。
+   *
+   * 原来无条件 loading = true，而模板里 `v-if="loading"` 会把整个 body 换成
+   * 「正在读取社区内容...」。于是每次切 tab、每次从详情页返回，都是
+   * 内容 → 整页文字 → 内容，看起来就是闪屏。
+   *
+   * 手里已经有数据时静默刷新：旧内容一直挂着，新数据到了直接替换，中间没有空帧。
+   */
+  const silent = hasCurrentData.value
+  if (!silent) loading.value = true
   loadError.value = ''
   try {
     const filters =
@@ -167,7 +186,12 @@ function showCooperationTip() {
     </view>
 
     <view class="body scroll-y hide-scrollbar">
-      <view v-if="loading" class="state">正在读取社区内容...</view>
+      <!--
+        `loading && !hasCurrentData`：只有「一条都没有」时才用整页文字盖住内容。
+        手里有旧数据时是静默刷新（见 loadCurrentTab），旧内容一直挂着，
+        不会出现 内容→整页文字→内容 的闪屏。
+      -->
+      <view v-if="loading && !hasCurrentData" class="state">正在读取社区内容...</view>
       <view v-else-if="loadError" class="state error">
         {{ loadError }}
         <view class="retry" @tap="loadCurrentTab">重新加载</view>

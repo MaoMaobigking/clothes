@@ -101,8 +101,14 @@ watch(() => props.model, () => (modelFailed.value = false))
 
     <view v-if="filterStyle" class="layer filter" :style="{ background: filterStyle }" />
 
+    <!--
+      model 传空串时也走占位分支（v-if 里多了一个 `model &&`）。
+      原来只判断 modelFailed —— 空 src 在小程序里不会触发 @error，
+      结果是既不显示人台也不显示占位，中间空一块什么都没有。
+      调用方需要「先不要人台」时就传 model=""（见 pages/scene 的 SHOW_MODEL）。
+    -->
     <image
-      v-if="!modelFailed"
+      v-if="model && !modelFailed"
       class="model"
       :src="model"
       mode="aspectFit"
