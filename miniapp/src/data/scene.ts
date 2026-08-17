@@ -85,6 +85,34 @@ export const SCENE_FILTERS: { key: SceneFilterKey; label: string }[] = [
   { key: 'outdoor', label: '户外' },
 ]
 
+/**
+ * 四档滤镜的遮罩色（规格 §10.9）。
+ *
+ * 页面上的舞台和导出的海报用同一组值，切滤镜只改这一层 ——
+ * 底图、人台、衣物都不动，「切换滤镜衣服不变」这条才成立。
+ * 两段 rgba 是为了让 canvas 也能画：CSS 的 linear-gradient 字符串
+ * canvas 认不了，只能拆成起止色自己 createLinearGradient。
+ */
+export const SCENE_FILTER_OVERLAYS: Record<SceneFilterKey, [string, string]> = {
+  day: ['rgba(255,255,255,0.12)', 'rgba(255,207,145,0.22)'],
+  night: ['rgba(14,15,36,0.52)', 'rgba(82,53,137,0.35)'],
+  indoor: ['rgba(255,235,220,0.46)', 'rgba(179,165,145,0.2)'],
+  outdoor: ['rgba(116,196,255,0.28)', 'rgba(182,240,176,0.2)'],
+}
+
+/** 海报缺场景底图时的兜底底色，和滤镜同一套色系 */
+export const SCENE_FILTER_GRADIENTS: Record<SceneFilterKey, [string, string]> = {
+  day: ['#fff5df', '#ffc7d5'],
+  night: ['#17182b', '#4a3576'],
+  indoor: ['#f7ead8', '#c7b39b'],
+  outdoor: ['#cceeff', '#b6e6c0'],
+}
+
+export function sceneFilterStyle(key: SceneFilterKey) {
+  const [from, to] = SCENE_FILTER_OVERLAYS[key]
+  return `linear-gradient(135deg, ${from}, ${to})`
+}
+
 export const MANUAL_WEATHER = [
   { city: '杭州', temp: 28, condition: '晴', icon: '☀️' },
   { city: '重庆', temp: 23, condition: '多云', icon: '⛅' },

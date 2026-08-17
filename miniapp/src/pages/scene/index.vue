@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
+import OutfitPreview from '@/components/OutfitPreview/OutfitPreview.vue'
+import OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 import SceneWeather from './SceneWeather.vue'
 import {
   SCENE_FILTERS,
+  SCENE_FILTER_GRADIENTS,
+  SCENE_FILTER_OVERLAYS,
   SCENE_OPTIONS,
   SCENE_SEASONS,
   currentSeason,
+  sceneFilterStyle,
   type SceneFilterKey,
   type SceneKey,
   type SceneMode,
 } from '@/data/scene'
 import { MODEL_IMAGES } from '@/data/mock'
+import { piecesFromSceneItems } from '@/utils/outfitPieces'
 import {
   buySceneOutfit,
   fetchScenePlans,
@@ -25,9 +31,12 @@ import {
   type ScenePlanResult,
   type SceneWeatherInfo,
 } from '@/api/scene'
+import { isAuthError } from '@/api/http'
+import { useProfileStore } from '@/stores/profile'
 import { useWardrobeStore } from '@/stores/wardrobe'
 
 const wardrobe = useWardrobeStore()
+const profile = useProfileStore()
 
 const selectedScene = ref<SceneKey>('daily')
 const season = ref(currentSeason())
@@ -83,15 +92,22 @@ const oldItems = computed(() =>
   (activePlan.value?.items ?? []).filter((item) => !item.isNew),
 )
 
-const filterStyle = computed(() => {
-  const styles: Record<SceneFilterKey, string> = {
-    day: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,207,145,0.22))',
-    night: 'linear-gradient(135deg, rgba(14,15,36,0.52), rgba(82,53,137,0.35))',
-    indoor: 'linear-gradient(135deg, rgba(255,235,220,0.46), rgba(179,165,145,0.2))',
-    outdoor: 'linear-gradient(135deg, rgba(116,196,255,0.28), rgba(182,240,176,0.2))',
-  }
-  return styles[filterKey.value]
-})
+const filterStyle = computed(() => sceneFilterStyle(filterKey.value))
+const filterOverlay = computed(() => SCENE_FILTER_OVERLAYS[filterKey.value])
+const posterGradient = computed(() => SCENE_FILTER_GRADIENTS[filterKey.value])
+
+/**
+ * 效果图与海报共用的人台（§10.8：对比两版必须同一个模特和场景背景）。
+ * 对比模式下两张卡都读这一个值，只有衣物层不同。
+ */
+const modelImage = computed(() =>
+  profile.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front,
+)
+
+const stageCaption = computed(
+  () =>
+    `${scene.value.label} · ${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
+)
 
 async function generate() {
   loading.value = true
@@ -106,7 +122,10 @@ async function generate() {
     planIndex.value = 0
     sourceOutfitId.value = ''
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : String(error)
+    // 未登录已由请求层跳登录页，页面不用再挂一条报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorMessage.value = error instanceof Error ? error.message : String(error)
+    }
   } finally {
     loading.value = false
   }
@@ -154,7 +173,10 @@ async function saveTemplate() {
     sourceOutfitId.value = String(outfit.id)
     showToast('已保存到我的搭配')
   } catch (error) {
-    showToast(error instanceof Error ? error.message : '保存失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      showToast(error instanceof Error ? error.message : '保存失败')
+    }
   } finally {
     loading.value = false
   }
@@ -198,7 +220,10 @@ async function buyAll() {
     )
     purchaseSummary.value = summary
   } catch (error) {
-    showToast(error instanceof Error ? error.message : '加入购物车失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      showToast(error instanceof Error ? error.message : '加入购物车失败')
+    }
   } finally {
     loading.value = false
   }
@@ -234,6 +259,8 @@ async function hydrateSavedOutfit(outfit: SavedSceneOutfit) {
 }
 
 onLoad(async (options) => {
+  // 人台按性别取，画像没加载就永远是女款（§10.8 两版共用同一个模特）
+  profile.loadPersisted()
   await wardrobe.load()
   const savedId = Number(options?.outfitId)
   if (Number.isInteger(savedId) && savedId > 0) {
@@ -242,7 +269,9 @@ onLoad(async (options) => {
       await hydrateSavedOutfit(outfit)
       return
     } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : '模板读取失败'
+      if (!isAuthError(error)) {
+        errorMessage.value = error instanceof Error ? error.message : '模板读取失败'
+      }
     }
   }
   await generate()
@@ -254,100 +283,33 @@ onShareAppMessage(() => ({
 }))
 
 const posterVisible = ref(false)
-const posterMessage = ref('')
-const posterSaving = ref(false)
-const posterPath = ref('')
+const posterRef = ref<InstanceType<typeof OutfitPoster> | null>(null)
 
-const posterText = computed(() =>
-  [
-    `${scene.value.label} · ${season.value}`,
-    `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
-    (activePlan.value?.items ?? []).map((item) => item.name).join(' / '),
-  ].join(' · '),
+const posterSubtitle = computed(
+  () =>
+    `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃ · ${season.value}`,
 )
 
-function loadLocalImage(src: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    uni.getImageInfo({ src, success: resolve, fail: reject })
-  })
+const posterPieces = computed(() => piecesFromSceneItems(activePlan.value?.items ?? []))
+
+/**
+ * 海报导出（规格 §10.10）。
+ *
+ * 以前这里是一段自己写的 canvas：渐变底 + 人台 + 文字清单，没有真实衣物，
+ * 而且 H5 端 saveImageToPhotosAlbum 必然失败。现在复用功能二的 OutfitPoster，
+ * 把场景底图与当前滤镜一并传进去 —— 海报里有真实搭配、场景背景和滤镜，
+ * H5 走浏览器下载，小程序走相册。
+ */
+function exportPoster() {
+  if (!activePlan.value) {
+    showToast('先生成一套方案再导出海报')
+    return
+  }
+  posterVisible.value = true
 }
 
-async function exportPoster() {
-  if (!activePlan.value || posterSaving.value) return
-  posterSaving.value = true
-  posterVisible.value = true
-  posterMessage.value = '正在生成海报…'
-  await nextTick()
-
-  try {
-    const ctx = uni.createCanvasContext('scenePoster')
-    const width = 600
-    const height = 800
-    const palette: Record<SceneFilterKey, [string, string]> = {
-      day: ['#fff5df', '#ffc7d5'],
-      night: ['#17182b', '#4a3576'],
-      indoor: ['#f7ead8', '#c7b39b'],
-      outdoor: ['#cceeff', '#b6e6c0'],
-    }
-    const colors = palette[filterKey.value]
-    const gradient = ctx.createLinearGradient(0, 0, width, height)
-    gradient.addColorStop(0, colors[0])
-    gradient.addColorStop(1, colors[1])
-    ctx.setFillStyle(gradient)
-    ctx.fillRect(0, 0, width, height)
-    ctx.setFillStyle(filterStyle.value)
-    ctx.fillRect(0, 0, width, height)
-
-    try {
-      const model = await loadLocalImage(MODEL_IMAGES.front)
-      ctx.drawImage(model.path, 230, 170, 140, 360)
-    } catch {
-      ctx.setFillStyle('#ffffff')
-      ctx.setFontSize(90)
-      ctx.fillText('🧍‍♀️', 270, 390)
-    }
-
-    ctx.setFillStyle('#ffffff')
-    ctx.setFontSize(38)
-    ctx.setTextAlign('center')
-    ctx.fillText(scene.value.label, width / 2, 90)
-    ctx.setFontSize(24)
-    ctx.fillText(
-      `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
-      width / 2,
-      130,
-    )
-    ctx.setFontSize(20)
-    activePlan.value.items.slice(0, 8).forEach((item, index) => {
-      ctx.fillText(`· ${item.name}`, width / 2, 570 + index * 34)
-    })
-    ctx.draw(false, () => {
-      uni.canvasToTempFilePath({
-        canvasId: 'scenePoster',
-        success: async (canvasResult) => {
-          posterPath.value = canvasResult.tempFilePath
-          uni.saveImageToPhotosAlbum({
-            filePath: canvasResult.tempFilePath,
-            success: () => {
-              posterMessage.value = '海报已保存到相册'
-            },
-            fail: () => {
-              copyText(shareText.value, '当前端不支持保存，已复制分享文案')
-              posterMessage.value = '当前端不支持保存，已复制分享文案'
-            },
-          })
-        },
-        fail: () => {
-          copyText(shareText.value, '海报生成失败，已复制分享文案')
-          posterMessage.value = '海报生成失败，已复制分享文案'
-        },
-      }, getCurrentInstance()?.proxy)
-    })
-  } catch {
-    posterMessage.value = '海报生成失败，可复制分享文案'
-  } finally {
-    posterSaving.value = false
-  }
+function savePoster() {
+  posterRef.value?.savePoster()
 }
 </script>
 
@@ -457,25 +419,19 @@ async function exportPoster() {
 
         <view class="plan-grid" :class="{ compare: compareMode }">
           <view v-for="plan in currentPlans" :key="plan.id" class="plan-card">
-            <view class="stage">
-              <image
-                v-if="scene.img"
-                class="stage-image"
-                :src="scene.img"
-                mode="aspectFill"
-              />
-              <view class="stage-placeholder">
-                <text>{{ scene.emoji }}</text>
-              </view>
-              <view class="stage-filter" :style="{ background: filterStyle }" />
-              <image class="stage-model" :src="MODEL_IMAGES.front" mode="aspectFit" />
-              <view class="stage-caption">
-                <text class="caption-scene">{{ scene.label }}</text>
-                <text class="caption-weather">
-                  {{ weather.city }} · {{ weather.condition }} · {{ weather.temp }}℃
-                </text>
-              </view>
-            </view>
+            <!--
+              效果图用真实衣物照片叠在统一人台上（§10.7 §10.8）。
+              对比模式下两张卡的 model / background 是同一个值，只有 pieces 不同。
+            -->
+            <OutfitPreview
+              :pieces="piecesFromSceneItems(plan.items)"
+              :background="scene.img"
+              :background-emoji="scene.emoji"
+              :filter-style="filterStyle"
+              :model="modelImage"
+              :caption="stageCaption"
+              :height="compareMode ? '360rpx' : '520rpx'"
+            />
 
             <view class="plan-head">
               <view class="plan-title-wrap">
@@ -563,17 +519,22 @@ async function exportPoster() {
     <view v-if="posterVisible" class="modal-mask" @tap="posterVisible = false">
       <view class="poster-sheet" @tap.stop>
         <text class="modal-title">场景海报</text>
-        <view class="poster-preview" :class="`filter-${filterKey}`">
-          <text class="poster-scene">{{ scene.label }}</text>
-          <text class="poster-weather">
-            {{ weather.city }} · {{ weather.condition }} · {{ weather.temp }}℃
-          </text>
-          <image class="poster-model" :src="MODEL_IMAGES.front" mode="aspectFit" />
-          <text class="poster-caption">{{ posterText }}</text>
+        <OutfitPoster
+          ref="posterRef"
+          :title="`${scene.label} · ${season}`"
+          :subtitle="posterSubtitle"
+          :pieces="posterPieces"
+          :background="scene.img"
+          :gradient="posterGradient"
+          :overlay="filterOverlay"
+          :file-name="`${scene.label}-${season}`"
+        />
+        <text class="poster-message">海报含当前真实搭配、场景背景与滤镜</text>
+        <view class="poster-actions">
+          <button class="action-button" @tap="shareScene">复制文案</button>
+          <button class="action-button primary" @tap="savePoster">保存图片</button>
         </view>
-        <canvas canvas-id="scenePoster" id="scenePoster" class="poster-canvas" />
-        <text class="poster-message">{{ posterMessage }}</text>
-        <button class="btn btn-primary modal-close" @tap="posterVisible = false">关闭</button>
+        <button class="btn btn-ghost modal-close" @tap="posterVisible = false">关闭</button>
       </view>
     </view>
 
@@ -788,60 +749,6 @@ async function exportPoster() {
   gap: 10px;
 }
 
-.stage {
-  position: relative;
-  height: 260px;
-  overflow: hidden;
-  border-radius: 10px;
-  background: linear-gradient(150deg, #c9ecff, #b8b0ff 55%, #ffc9e8);
-}
-.stage-image,
-.stage-placeholder,
-.stage-filter,
-.stage-model,
-.stage-caption {
-  position: absolute;
-  inset: 0;
-}
-.stage-image {
-  width: 100%;
-  height: 100%;
-}
-.stage-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 74px;
-}
-.stage-filter {
-  pointer-events: none;
-}
-.stage-model {
-  left: 50%;
-  width: 58%;
-  height: 82%;
-  top: 9%;
-  transform: translateX(-50%);
-}
-.stage-caption {
-  inset: auto 0 0;
-  padding: 8px 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #fff;
-  background: rgba(30, 24, 42, 0.35);
-  z-index: 2;
-}
-.caption-scene {
-  font-size: 13px;
-  font-weight: 800;
-}
-.caption-weather {
-  font-size: 11px;
-  font-weight: 600;
-}
-
 .plan-head {
   display: flex;
   flex-direction: column;
@@ -1028,58 +935,10 @@ async function exportPoster() {
   height: 42px;
 }
 
-.poster-preview {
-  position: relative;
-  height: 430px;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: linear-gradient(150deg, #fff5df, #ffc7d5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 28px 20px 16px;
-}
-.poster-preview.filter-night {
-  background: linear-gradient(150deg, #17182b, #4a3576);
-}
-.poster-preview.filter-indoor {
-  background: linear-gradient(150deg, #f7ead8, #c7b39b);
-}
-.poster-preview.filter-outdoor {
-  background: linear-gradient(150deg, #cceeff, #b6e6c0);
-}
-.poster-scene {
-  font-size: 24px;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-.poster-weather {
-  margin-top: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
-}
-.poster-model {
-  flex: 1;
-  width: 58%;
-  margin: 4px 0;
-}
-.poster-caption {
-  width: 100%;
-  font-size: 11px;
-  line-height: 1.5;
-  color: #fff;
-  text-align: center;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-.poster-canvas {
-  position: fixed;
-  left: -9999px;
-  top: 0;
-  width: 600px;
-  height: 800px;
+.poster-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 .poster-message {
   font-size: 12px;

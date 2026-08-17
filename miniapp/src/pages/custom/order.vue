@@ -14,6 +14,10 @@ import {
   type CustomMessage,
   type CustomRequestDetail,
 } from '@/api/custom'
+import { isAuthError } from '@/api/http'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const requestId = ref(0)
 const detail = ref<CustomRequestDetail | null>(null)
@@ -34,7 +38,17 @@ const statusIndex = computed(() =>
 const canAdvance = computed(
   () => statusIndex.value < REQUEST_STATUS_ORDER.length - 1,
 )
+/**
+ * 「演示推进」只给四个预置演示账号（规格 §16：不做真实履约）。
+ *
+ * 真实用户看到一个能自己把订单推到「已发货」的按钮，等于在演示这个功能
+ * 有履约能力 —— 它没有。普通账号这里只显示进度由设计师更新的说明。
+ */
+const isDemoAccount = computed(() => Boolean(auth.session.demoKind))
 const referenceImages = computed(() => request.value?.referenceImages || [])
+const designerAvatar = computed(() =>
+  request.value?.designer?.avatarUrl ? resolveMediaUrl(request.value.designer.avatarUrl) : '',
+)
 const measurementPhotos = computed(() => {
   if (!measurement.value) return []
   return [
@@ -57,7 +71,9 @@ async function loadDetail() {
     detail.value = await fetchCustomRequestDetail(requestId.value)
     scrollToBottom()
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '读取申请失败')
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '读取申请失败')
+    }
   } finally {
     loading.value = false
   }
@@ -99,7 +115,7 @@ async function sendMessage() {
 }
 
 async function advance() {
-  if (!requestId.value || !canAdvance.value || advancing.value) return
+  if (!requestId.value || !canAdvance.value || advancing.value || !isDemoAccount.value) return
   advancing.value = true
   try {
     const nextRequest = await advanceCustomRequest(requestId.value)
@@ -139,11 +155,19 @@ function messageClass(message: CustomMessage) {
 
     <scroll-view v-if="detail" scroll-y class="body hide-scrollbar">
       <view v-if="request" class="designer-card">
+        <!--
+          设计师头像取后端 designer.avatarUrl；目录里还没配头像时退回姓氏首字，
+          不再拿人台图 front.png 冒充一张设计师照片（§4.3）。
+        -->
         <image
-          src="/static/images/model/front.png"
+          v-if="designerAvatar"
+          :src="designerAvatar"
           class="designer-avatar"
           mode="aspectFill"
         />
+        <view v-else class="designer-avatar designer-avatar-fallback">
+          <text>{{ (request.designer?.name || '设').slice(0, 1) }}</text>
+        </view>
         <view class="designer-copy">
           <text class="designer-label">负责设计师</text>
           <text class="designer-name">{{ request.designer?.name || '待分配设计师' }}</text>
@@ -156,14 +180,15 @@ function messageClass(message: CustomMessage) {
         <view class="card-head">
           <text class="card-title">定制进度</text>
           <button
-            v-if="canAdvance"
+            v-if="isDemoAccount && canAdvance"
             class="advance"
             :disabled="advancing"
             @tap="advance"
           >
             {{ advancing ? '更新中…' : '演示推进' }}
           </button>
-          <text v-else class="finished">已完成演示流程</text>
+          <text v-else-if="!canAdvance" class="finished">已完成演示流程</text>
+          <text v-else class="finished">进度由设计师更新</text>
         </view>
 
         <view class="progress">
@@ -316,6 +341,15 @@ function messageClass(message: CustomMessage) {
   border-radius: 24rpx;
   flex-shrink: 0;
   background: #f0e6fb;
+}
+.designer-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, #ffe6f2, #e7dcff);
+  color: var(--purple-deep);
+  font-size: 52rpx;
+  font-weight: 800;
 }
 .designer-copy {
   flex: 1;

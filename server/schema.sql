@@ -6,14 +6,20 @@ CREATE DATABASE IF NOT EXISTS lingxi CHARACTER SET utf8mb4 COLLATE utf8mb4_unico
 USE lingxi;
 
 -- 1. 用户表
+-- account / password_hash 服务于规格 §5「账号密码登录 + 四类预置演示账号」。
+-- 普通微信用户这两列为 NULL，只有演示账号和管理员才有值。
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   openid VARCHAR(64) UNIQUE,
+  account VARCHAR(64) NULL,
+  password_hash VARCHAR(160) NULL,
   nickname VARCHAR(64),
   avatar_url VARCHAR(512),
   role VARCHAR(32) NOT NULL DEFAULT 'user',
   membership_level VARCHAR(32) NOT NULL DEFAULT 'standard',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  demo_kind VARCHAR(32) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_users_account (account)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 2. 身形档案
@@ -184,19 +190,10 @@ CREATE TABLE IF NOT EXISTS outfit_items (
   FOREIGN KEY (garment_id) REFERENCES garments(id) ON DELETE CASCADE
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 7. 功能二购物车（独立表，避免与其他模块共用表结构）
-CREATE TABLE IF NOT EXISTS feature2_cart_items (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  source_outfit_id INT NULL,
-  garment_id VARCHAR(64) NOT NULL,
-  quantity INT NOT NULL DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (source_outfit_id) REFERENCES outfits(id) ON DELETE SET NULL,
-  FOREIGN KEY (garment_id) REFERENCES garments(id) ON DELETE CASCADE,
-  INDEX idx_feature2_cart_user (user_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- 7. 功能二购物车 —— 已删除（2026-08-16 批次 0B）
+-- 原 feature2_cart_items 与 cart_items 两套并存、互相看不见，违反规格 §13
+-- 「只有一个 cart_items 数据域」。存量已由 migrateCart() 搬进 cart_items 后 DROP。
+-- 别把这张表加回来：功能二的购物车走 cart_items 的 item_type='garment'。
 
 -- 8. AI 顾问会话 ★
 CREATE TABLE IF NOT EXISTS chat_sessions (
@@ -320,12 +317,16 @@ CREATE TABLE IF NOT EXISTS scene_outfits (
   INDEX idx_scene_outfit_user_created (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 15. 购物车（配饰、衣橱与场景新品统一入口）
--- 功能三和功能四共用这张表；item_type 后续可按业务扩展。
+-- 15. 购物车（规格 §4.5 §13 的唯一购物车数据域）
+-- 功能二、三、四共用这张表，三种 item_type 分别指向不同的商品目录：
+--   garment   → garments      按 user_id 隔离的旧衣
+--   accessory → accessories   全局配饰目录
+--   catalog   → scene_catalog 全局场景新品目录
+-- 旧的 feature2_cart_items 已由 migrateCart() 搬迁后删除，不再存在。
 CREATE TABLE IF NOT EXISTS cart_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  item_type ENUM('garment','accessory') NOT NULL,
+  item_type ENUM('garment','accessory','catalog') NOT NULL,
   item_id VARCHAR(64) NOT NULL,
   quantity INT UNSIGNED NOT NULL DEFAULT 1,
   source_outfit_id VARCHAR(64),

@@ -1,16 +1,31 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
-import { AI_FEATURES, OUTFIT_RECOS, MALL_PRODUCTS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
+import { AI_FEATURES, OUTFIT_RECOS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
+import { fetchMallProducts, type MallProduct } from '@/api/mall'
+import { isAuthError } from '@/api/http'
 import { useProfileStore } from '@/stores/profile'
-import { useCartStore } from '@/stores/cart'
+import { useWishlistStore } from '@/stores/wishlist'
 
 const profile = useProfileStore()
-const cart = useCartStore()
+const wishlist = useWishlistStore()
 
-const picks = MALL_PRODUCTS.slice(0, 4)
+// 「为你精选」取真实商城目录（scene_catalog），不再是 mock 商品，
+// 点进去看到的价格和淘口令与商城页一致（规格 §4.4）
+const picks = ref<MallProduct[]>([])
+
+onMounted(async () => {
+  try {
+    const data = await fetchMallProducts()
+    picks.value = data.items.slice(0, 4)
+  } catch (error) {
+    // 未登录时请求层已跳登录页，首页安静留白即可
+    if (!isAuthError(error)) picks.value = []
+  }
+})
 
 function createAvatar() {
   uni.navigateTo({ url: '/pages/body-create/index' })
@@ -129,9 +144,9 @@ function goMall() {
             :emoji="p.emoji"
             :from="p.from"
             :to="p.to"
-            :src="p.img"
-            :fav="cart.has(p.id)"
-            @fav="cart.toggle(p.id)"
+            :src="p.imageUrl"
+            :fav="wishlist.has(p.id)"
+            @fav="wishlist.toggle(p.id)"
             @click="goMall"
           />
         </view>

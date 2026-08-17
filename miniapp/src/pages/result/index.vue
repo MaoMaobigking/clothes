@@ -218,6 +218,7 @@ function goBack() {
           :src="modelSrc"
           :frames="{ front: modelSrc, back: modelSrc }"
           :label="viewerLabel"
+          :shape="store.avatarShape"
         />
         <view class="summary">{{ summary }}</view>
       </view>

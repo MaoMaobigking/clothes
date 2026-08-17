@@ -1,7 +1,10 @@
 /*
  * 认证路由
- *  - POST /login 微信登录
- *  - POST /dev-token 开发用（仅非生产环境）
+ *  - POST /login          微信一键注册 / 登录（规格 §5.1）
+ *  - POST /login-password 账号密码登录（规格 §5.1、§5.2）
+ *  - GET  /demo-accounts  H5 兜底演示账号选择器（规格 §5.4）
+ *  - POST /admin-login    管理员独立密码（规格 §5.3）
+ *  - POST /dev-token      开发用（仅非生产环境）
  */
 import { Router } from 'express'
 import {
@@ -9,6 +12,8 @@ import {
   devToken,
   checkToken,
   adminLogin,
+  passwordLogin,
+  listDemoAccounts,
 } from '../services/authService.mjs'
 
 const router = Router()
@@ -20,6 +25,26 @@ router.post('/login', async (req, res, next) => {
     if (!code) return res.status(400).json({ error: 'MISSING_CODE', message: '缺少登录凭证 code' })
     const result = await wxLogin(code)
     res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/auth/login-password → 账号密码登录
+router.post('/login-password', async (req, res, next) => {
+  try {
+    const { account, password } = req.body || {}
+    res.json(await passwordLogin(account, password))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/auth/demo-accounts → 演示账号清单
+// 小程序端不调用这个接口，账号选择器只在 H5 兜底入口出现。
+router.get('/demo-accounts', async (_req, res, next) => {
+  try {
+    res.json({ accounts: await listDemoAccounts() })
   } catch (err) {
     next(err)
   }

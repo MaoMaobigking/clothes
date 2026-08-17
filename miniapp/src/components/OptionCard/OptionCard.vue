@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import type { Option } from '@/types'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     option: Option
     selected: boolean
@@ -14,6 +15,15 @@ withDefaults(
 const emit = defineEmits<{
   (e: 'select', id: string): void
 }>()
+
+/** 小图加载失败（素材尚未配置）时回落到色块 + emoji，见规格 §7.4 */
+const imgFailed = ref(false)
+watch(
+  () => props.option.img,
+  () => {
+    imgFailed.value = false
+  },
+)
 </script>
 
 <template>
@@ -22,9 +32,16 @@ const emit = defineEmits<{
     :class="{ selected }"
     @tap="emit('select', option.id)"
   >
-    <!-- 预览色块 + emoji -->
+    <!-- 优先真实小图预览，缺素材时回落到色块 + emoji -->
     <view class="preview" :style="{ background: option.color || 'var(--line)' }">
-      <text v-if="option.emoji" class="emoji">{{ option.emoji }}</text>
+      <image
+        v-if="option.img && !imgFailed"
+        class="preview-img"
+        :src="option.img"
+        mode="aspectFill"
+        @error="imgFailed = true"
+      />
+      <text v-else-if="option.emoji" class="emoji">{{ option.emoji }}</text>
     </view>
 
     <view class="meta">
@@ -63,13 +80,19 @@ const emit = defineEmits<{
 }
 
 .preview {
+  position: relative;
   width: 100%;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   /* aspect-ratio: 1.35 在小程序不支持，用固定高度 */
   height: 180rpx;
+}
+.preview-img {
+  width: 100%;
+  height: 100%;
 }
 .emoji {
   font-size: 68rpx;

@@ -110,7 +110,7 @@ function buildPlan(pool, recipe, planIndex, season, inputLabel) {
       input: inputLabel,
       season,
       occasion: recipe.occasion,
-      strategy: 'sort_order + frequently_worn + season/occasion',
+      strategy: '衣柜排序优先，其次常穿标记，再按当季与场景匹配',
       note: `排序越靠前、常穿标记越多，越优先进入搭配。`,
     },
   }
@@ -123,7 +123,8 @@ export async function generateOutfits(userId, selectedIds) {
   }
 
   let pool = []
-  let inputLabel = 'top_30'
+  // 浮层直接展示这段文案，所以写成中文可读的真实描述，不要 top_30 这种内部枚举（规格 §8.10）
+  let inputLabel = ''
   if (Array.isArray(selectedIds) && selectedIds.length > 0) {
     const ids = [...new Set(selectedIds.map(String))]
     const byId = new Map(all.map((item) => [item.id, item]))
@@ -133,13 +134,16 @@ export async function generateOutfits(userId, selectedIds) {
       }
     }
     pool = ids.map((id) => byId.get(id)).filter(Boolean)
-    inputLabel = 'manual_selection'
+    inputLabel = `你手动勾选的 ${pool.length} 件旧衣`
   } else {
     pool = all
       .map((item) => ({ item, score: rankGarment(item) }))
       .sort((a, b) => b.score - a.score || a.item.id.localeCompare(b.item.id))
       .slice(0, 30)
       .map((entry) => entry.item)
+    inputLabel = all.length > pool.length
+      ? `衣橱 ${all.length} 件中，按排序与常穿标记自动取前 ${pool.length} 件`
+      : `衣橱全部 ${pool.length} 件旧衣`
   }
 
   const season = currentSeasonKey()

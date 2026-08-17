@@ -7,11 +7,13 @@ import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import { useProfileStore } from '@/stores/profile'
+import { useAuthStore } from '@/stores/auth'
 import { fetchAchievements, type AchievementSummary } from '@/api/community'
 
 const wardrobe = useWardrobeStore()
 const cart = useCartStore()
 const profile = useProfileStore()
+const auth = useAuthStore()
 const achievements = ref<AchievementSummary>({
   points: 0,
   badges: [],
@@ -46,23 +48,32 @@ interface MenuItem {
   emoji: string
   label: string
   route?: string
+  /** 右侧小字，用来提前说明「点进去还要过一道」 */
+  hint?: string
 }
 
 const menus: MenuItem[] = [
   { key: 'orders', emoji: '📦', label: '我的订单' },
+  { key: 'cart', emoji: '🛒', label: '购物车', route: '/pages/cart/index' },
   { key: 'outfits', emoji: '👗', label: '我的搭配', route: '/pages/outfits/index' },
   { key: 'diary', emoji: '📔', label: '穿搭日记' },
   { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/community/index?tab=magazine' },
   { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index?tab=share' },
   { key: 'favorites', emoji: '⭐', label: '我的收藏', route: '/pages/my-favorites/index' },
   { key: 'achievements', emoji: '🏅', label: '学习成就', route: '/pages/achievements/index' },
-  { key: 'admin', emoji: '📊', label: '管理员看板', route: '/pages/admin/index' },
+  // 看板本身有密码闸（pages/admin/index.vue），这里只提示，不重复弹一次输入框
+  { key: 'admin', emoji: '📊', label: '管理员看板', route: '/pages/admin/index', hint: '需密码' },
   { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/index' },
   { key: 'custom', emoji: '🧵', label: '差异化定制', route: '/pages/custom/index' },
   { key: 'setting', emoji: '⚙️', label: '设置' },
+  { key: 'logout', emoji: '🚪', label: '退出登录' },
 ]
 
 function onMenu(m: MenuItem) {
+  if (m.key === 'logout') {
+    confirmLogout()
+    return
+  }
   if (m.route) {
     uni.navigateTo({ url: m.route })
   } else {
@@ -70,7 +81,21 @@ function onMenu(m: MenuItem) {
   }
 }
 
+/** 退出登录（规格 §5）。清身份 + 清跟人绑定的本地缓存，然后回登录页。 */
+function confirmLogout() {
+  uni.showModal({
+    title: '退出登录',
+    content: '退出后需要重新登录才能查看你的衣橱和搭配。',
+    confirmText: '退出',
+    success: (res) => {
+      if (res.confirm) auth.logout()
+    },
+  })
+}
+
 onMounted(async () => {
+  // 购物车统计要走服务端（规格 §4.5），不加载就永远显示 0
+  cart.load(true)
   try {
     achievements.value = await fetchAchievements()
   } catch {
@@ -87,8 +112,10 @@ onMounted(async () => {
         <view class="uc-row">
           <text class="uc-avatar">🧑‍🎨</text>
           <view class="uc-text">
-            <text class="uc-name">时尚探索家</text>
-            <text class="uc-sign">用穿搭记录每一天的好心情 ✨</text>
+            <text class="uc-name">{{ auth.displayName }}</text>
+            <text class="uc-sign">
+              <text v-if="auth.session.account">账号 {{ auth.session.account }} · </text>用穿搭记录每一天的好心情 ✨
+            </text>
           </view>
           <view class="uc-edit" hover-class="uc-edit-hover" @tap="showToast('资料编辑功能开发中～')">编辑资料</view>
         </view>
@@ -160,6 +187,7 @@ onMounted(async () => {
           >
             <text class="mi-emoji">{{ m.emoji }}</text>
             <text class="mi-label">{{ m.label }}</text>
+            <text v-if="m.hint" class="mi-hint">{{ m.hint }}</text>
             <text class="mi-arrow">›</text>
           </view>
         </view>
@@ -389,6 +417,10 @@ onMounted(async () => {
   font-size: 28rpx;
   font-weight: 600;
   color: var(--text-1);
+}
+.mi-hint {
+  font-size: 22rpx;
+  color: var(--text-3);
 }
 .mi-arrow {
   font-size: 40rpx;

@@ -87,70 +87,25 @@ export const GARMENTS: Garment[] = GARMENTS_RAW.map((g) => ({
 
 /* ----------------------------- 商城 ----------------------------- */
 
-export interface MallProduct {
-  id: string
-  name: string
-  category: string
-  price: number
-  emoji: string
-  from: string
-  to: string
-  img: string
-  tag?: string
-}
-type RawMallProduct = Omit<MallProduct, 'img'>
-
-export const MALL_CATEGORIES: { key: string; label: string }[] = [
-  { key: 'earring', label: '耳饰' },
-  { key: 'necklace', label: '项链' },
-  { key: 'ring', label: '戒指' },
-  { key: 'bracelet', label: '手链' },
-  { key: 'bag', label: '包袋' },
-]
-
-const MALL_PRODUCTS_RAW: RawMallProduct[] = [
-  { id: 'm1', name: 'C 形环扣耳夹', category: 'earring', price: 84, emoji: '💫', from: '#eef1f6', to: '#c3ccdb', tag: '现货系列' },
-  { id: 'm2', name: '流苏长耳线', category: 'earring', price: 138, emoji: '✨', from: '#f6eef7', to: '#d6b8dd' },
-  { id: 'm3', name: '海马造型耳饰', category: 'earring', price: 84, emoji: '🐚', from: '#e6f3f1', to: '#a9d8cf' },
-  { id: 'm4', name: '珍珠爱心耳钉', category: 'earring', price: 138, emoji: '🤍', from: '#fdf3f6', to: '#f2cdd8' },
-  { id: 'm5', name: '几何银项链', category: 'necklace', price: 168, emoji: '📿', from: '#eef1f6', to: '#b9c2d4' },
-  { id: 'm6', name: '锁骨细链', category: 'necklace', price: 118, emoji: '🔗', from: '#f6f0ea', to: '#d8c3a5' },
-  { id: 'm7', name: '开口戒指', category: 'ring', price: 79, emoji: '💍', from: '#f2eef7', to: '#cbb8e0' },
-  { id: 'm8', name: '编织手链', category: 'bracelet', price: 84, emoji: '🧶', from: '#fdeee6', to: '#f0c2a5' },
-  { id: 'm9', name: '亚克力手镯', category: 'bracelet', price: 138, emoji: '⭕', from: '#eaf0ff', to: '#b8c8f0' },
-  { id: 'm10', name: '迷你链条包', category: 'bag', price: 359, emoji: '👛', from: '#ffd9de', to: '#e0716f' },
-]
-export const MALL_PRODUCTS: MallProduct[] = MALL_PRODUCTS_RAW.map((p) => ({
-  ...p,
-  img: `/static/images/mall/${p.id}.png`,
-}))
+/*
+ * MALL_PRODUCTS / MALL_CATEGORIES 已删除（批次 5，规格 §4.4 §10.6）。
+ *
+ * 商城商品改为服务端 scene_catalog，接口见 api/mall.ts，
+ * 和功能四场景模拟共用一份目录 —— 价格、淘宝链接、淘口令只有一个来源，
+ * 加购走 /api/cart 的 item_type='catalog'，购物车页查得到。
+ * 别把 mock 商品加回来：服务端查无此物，加购必然 404。
+ */
 
 /* ----------------------------- 时尚杂志 ----------------------------- */
 
-export interface Magazine {
-  id: string
-  title: string
-  subtitle: string
-  emoji: string
-  from: string
-  to: string
-  tag: string
-  img: string
-}
-type RawMagazine = Omit<Magazine, 'img'>
-
-const MAGAZINES_RAW: RawMagazine[] = [
-  { id: 'z1', title: 'BAZAAR', subtitle: '超现实主义 100 年', emoji: '🎩', from: '#e9e2d6', to: '#b7a98f', tag: '本期封面' },
-  { id: 'z2', title: 'VOGUE', subtitle: '春夏高定秀场解析', emoji: '👗', from: '#f3d9e4', to: '#c98fb0', tag: '秀场' },
-  { id: 'z3', title: 'ELLE', subtitle: '通勤穿搭的 10 个公式', emoji: '💼', from: '#d6e4f0', to: '#8fa9c9', tag: '干货' },
-  { id: 'z4', title: 'GQ', subtitle: '机能风的正确打开方式', emoji: '🧥', from: '#d9ece6', to: '#7fc0b0', tag: '风格' },
-  { id: 'z5', title: 'NYLON', subtitle: 'Y2K 复古回潮', emoji: '🕶️', from: '#efe0f0', to: '#c29ad6', tag: '趋势' },
-  { id: 'z6', title: 'KINFOLK', subtitle: '莫兰迪配色搭配指南', emoji: '🫧', from: '#e8e6e1', to: '#b3aea3', tag: '配色' },
-]
-export const MAGAZINES: Magazine[] = MAGAZINES_RAW.map((m) => ({
-  ...m,
-  img: `/static/images/magazine/${m.id}.png`,
-}))
+/*
+ * MAGAZINES 已删除（批次 7，规格 §12.3 §12.4）。
+ *
+ * 六本写死的假期刊，唯一读它的 pages/magazine/index.vue 已下线成跳转壳。
+ * 杂志内容现在来自服务端 community_contents，入口是「时尚社群」的
+ * 杂志推送 tab（api/community.ts）。别把 mock 版加回来 ——
+ * 两套杂志数据并存时，没人分得清页面上看到的是哪一份。
+ */
 
 /* ----------------------------- 时尚社群 ----------------------------- */
 

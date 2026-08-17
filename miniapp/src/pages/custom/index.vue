@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
+import TileImage from '@/components/TileImage/TileImage.vue'
 import { CUSTOM_CATEGORIES, CUSTOM_STEPS, REQUEST_STATUS_LABELS } from '@/data/custom'
 import {
   fetchCustomRequests,
@@ -10,6 +11,7 @@ import {
   type CustomRequest,
   type CustomSummary,
 } from '@/api/custom'
+import { isAuthError } from '@/api/http'
 
 const summary = ref<CustomSummary | null>(null)
 const requests = ref<CustomRequest[]>([])
@@ -36,7 +38,10 @@ async function loadData() {
     summary.value = summaryData
     requests.value = requestData.slice(0, 5)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err)
+    // 未登录已由请求层跳登录页，这里不再叠一条报错（规格 §5）
+    if (!isAuthError(err)) {
+      error.value = err instanceof Error ? err.message : String(err)
+    }
   } finally {
     loading.value = false
   }
@@ -98,7 +103,13 @@ onShow(loadData)
             @tap="openCategory(category.key)"
           >
             <view class="category-image-wrap">
-              <image :src="category.image" mode="aspectFill" />
+              <TileImage
+                :src="category.image"
+                from="#ffe6f2"
+                to="#e7dcff"
+                fill
+                rounded="0"
+              />
               <text class="category-emoji">{{ category.emoji }}</text>
             </view>
             <view class="category-meta">

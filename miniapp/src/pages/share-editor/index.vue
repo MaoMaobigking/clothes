@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import { createCommunityShare } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const caption = ref('')
 const description = ref('')
@@ -98,10 +99,13 @@ async function submit() {
       url: `/pages/share-detail/index?id=${encodeURIComponent(share.id)}`,
     })
   } catch (error) {
-    uni.showToast({
-      title: error instanceof Error ? error.message : '发布失败',
-      icon: 'none',
-    })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '发布失败',
+        icon: 'none',
+      })
+    }
   } finally {
     submitting.value = false
   }

@@ -2,8 +2,9 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import { REQUEST_STATUS_LABELS } from '@/data/custom'
+import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/data/custom'
 import { fetchCustomRequests, type CustomRequest } from '@/api/custom'
+import { isAuthError } from '@/api/http'
 
 const requests = ref<CustomRequest[]>([])
 const loading = ref(true)
@@ -15,7 +16,10 @@ async function loadRequests() {
   try {
     requests.value = await fetchCustomRequests()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err)
+    // 未登录已由请求层跳登录页，这里不再叠一条报错（规格 §5）
+    if (!isAuthError(err)) {
+      error.value = err instanceof Error ? err.message : String(err)
+    }
   } finally {
     loading.value = false
   }
@@ -27,6 +31,17 @@ function openRequest(id: number) {
 
 function openCategory() {
   uni.navigateTo({ url: '/pages/custom/category?key=body' })
+}
+
+/**
+ * 五档进度（规格 §11.6）。
+ *
+ * 以前列表里只有一枚当前状态标签，「定制进度可见」这条要靠点进详情页才成立。
+ * 现在每张卡直接画出「已提交 → 设计稿 → 打样 → 生产中 → 发货」，
+ * 走到哪一档一眼可见；状态来自后端 request.status，不在前端造。
+ */
+function statusIndex(status: string) {
+  return Math.max(0, REQUEST_STATUS_ORDER.indexOf(status))
 }
 
 function formatTime(value: string) {
@@ -63,6 +78,23 @@ onShow(loadRequests)
           </view>
 
           <text class="requirement">{{ item.requirements?.requirements || item.requirements?.notes || '未填写补充说明' }}</text>
+
+          <!-- 五档进度时间轴（§11.6） -->
+          <view class="timeline">
+            <view
+              v-for="(status, index) in REQUEST_STATUS_ORDER"
+              :key="status"
+              class="tl-step"
+              :class="{
+                done: index < statusIndex(item.status),
+                current: index === statusIndex(item.status),
+              }"
+            >
+              <view class="tl-line" :class="{ first: index === 0 }" />
+              <view class="tl-dot">{{ index < statusIndex(item.status) ? '✓' : '' }}</view>
+              <text class="tl-label">{{ REQUEST_STATUS_LABELS[status] }}</text>
+            </view>
+          </view>
 
           <view class="meta">
             <text>{{ item.designer?.name || '待分配设计师' }}</text>
@@ -168,6 +200,69 @@ onShow(loadRequests)
   margin-top: 18rpx;
   color: var(--text-3);
   font-size: 22rpx;
+}
+
+/* 五档进度时间轴（§11.6） */
+.timeline {
+  display: flex;
+  margin-top: 24rpx;
+}
+.tl-step {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+.tl-line {
+  position: absolute;
+  top: 15rpx;
+  right: 50%;
+  left: -50%;
+  height: 4rpx;
+  background: var(--line);
+}
+.tl-line.first {
+  display: none;
+}
+.tl-step.done .tl-line,
+.tl-step.current .tl-line {
+  background: var(--pink-deep);
+}
+.tl-dot {
+  position: relative;
+  z-index: 1;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  border: 3rpx solid var(--line);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 800;
+  line-height: 24rpx;
+  text-align: center;
+}
+.tl-step.done .tl-dot {
+  background: var(--pink-deep);
+  border-color: var(--pink-deep);
+}
+.tl-step.current .tl-dot {
+  background: var(--brand-gradient);
+  border-color: transparent;
+  box-shadow: 0 0 0 6rpx rgba(255, 92, 157, 0.16);
+}
+.tl-label {
+  font-size: 19rpx;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.tl-step.done .tl-label,
+.tl-step.current .tl-label {
+  color: var(--text-1);
+  font-weight: 700;
 }
 .actions {
   margin-top: 22rpx;

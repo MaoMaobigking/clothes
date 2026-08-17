@@ -7,6 +7,7 @@ import {
   fetchCommunityContent,
   type CommunityContent,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)
@@ -41,7 +42,10 @@ async function loadContent() {
       uni.getStorageSync(`ai-fashion-offline-${contentId.value}`),
     )
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '杂志加载失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '杂志加载失败'
+    }
   } finally {
     loading.value = false
   }
@@ -65,10 +69,13 @@ async function saveBookmark() {
     noteModal.value = false
     uni.showToast({ title: '已加入书签', icon: 'success' })
   } catch (error) {
-    uni.showToast({
-      title: error instanceof Error ? error.message : '保存失败',
-      icon: 'none',
-    })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '保存失败',
+        icon: 'none',
+      })
+    }
   }
 }
 

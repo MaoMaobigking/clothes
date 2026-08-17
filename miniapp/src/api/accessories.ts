@@ -1,4 +1,12 @@
 import { request } from './http'
+import {
+  addCartBatch,
+  addCartItem,
+  fetchCart,
+  removeCartItem,
+  type Cart,
+  type CartItem,
+} from './cart'
 
 export interface AccessoryContextItem {
   id: string
@@ -93,28 +101,15 @@ export interface AccessoryRecommendations {
   hotCombos: AccessoryHotCombo[]
 }
 
-export interface AccessoryCartItem {
-  cartId: number
-  itemType: 'garment' | 'accessory'
-  itemId: string
-  quantity: number
-  sourceOutfitId: string | null
-  createdAt: string
-  name: string
-  brand: string
-  price: number
-  imageUrl: string
-  emoji: string
-  from: string
-  to: string
-  taobaoUrl: string
-  taokouling: string
-}
-
-export interface AccessoryCart {
-  items: AccessoryCartItem[]
-  count: number
-}
+/**
+ * 配饰购物车类型 —— 已并入统一购物车（规格 §4.5 §13）。
+ *
+ * 后端 /api/accessory-cart 现在转发到 /api/cart，返回体完全一致，
+ * 所以这里直接别名到 api/cart.ts 的类型，避免两份定义漂移
+ * （统一后多了 available / totalPrice / catalog 类型）。
+ */
+export type AccessoryCartItem = CartItem
+export type AccessoryCart = Cart
 
 export async function fetchAccessoryRecommendations(input: {
   garment?: AccessoryContextItem
@@ -135,32 +130,28 @@ export async function rateAccessory(id: string, score: number) {
   })
 }
 
+/*
+ * 以下购物车函数已弃用（规格 §4.5 §13）。
+ *
+ * 购物车已统一到 api/cart.ts + /api/cart，请改用那边的
+ * fetchCart / addCartItem / addCartBatch / removeCartItem，
+ * 或直接用 stores/cart.ts。这里保留为薄封装，只为不打断配饰页
+ * 现有的「接口失败就退回本地缓存」双路径逻辑，勿再新增调用方。
+ */
 export async function fetchAccessoryCart(): Promise<AccessoryCart> {
-  return request<AccessoryCart>({ url: '/api/accessory-cart' })
+  return fetchCart()
 }
 
 export async function addAccessoryToCart(itemType: 'garment' | 'accessory', itemId: string) {
-  return request<AccessoryCart>({
-    url: '/api/accessory-cart',
-    method: 'POST',
-    data: { itemType, itemId, quantity: 1 },
-  })
+  return addCartItem(itemType, itemId)
 }
 
 export async function addAccessoryCartBatch(
   items: Array<{ itemType: 'garment' | 'accessory'; itemId: string }>,
 ): Promise<AccessoryCart> {
-  return request<AccessoryCart>({
-    url: '/api/accessory-cart/batch',
-    method: 'POST',
-    data: { items },
-  })
+  return addCartBatch(items)
 }
 
 export async function removeAccessoryCartItem(id: number): Promise<boolean> {
-  const data = await request<{ ok: boolean }>({
-    url: `/api/accessory-cart/${id}`,
-    method: 'DELETE',
-  })
-  return data.ok
+  return removeCartItem(id)
 }

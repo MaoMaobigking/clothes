@@ -198,11 +198,21 @@ function enrichAccessory(accessory, userRating, aggregate) {
   }
 }
 
+/**
+ * 配饰目录初始化。
+ *
+ * 目录本身每次都同步（seedAccessories 是 upsert，18 行，代价可忽略），
+ * 这样改了 seed-accessories.json —— 比如按素材清单填上 imageUrl ——
+ * 已有的开发库也能拿到新值，不必先删表。以前这里「有数据就直接返回」，
+ * seed 改了库里不动，很容易查半天。
+ *
+ * 演示评分只在冷启动灌一次：那是模拟的用户行为，重复写会把真实评分盖掉。
+ */
 export async function ensureAccessories() {
   const existing = await accessoryRepo.countAccessories()
-  if (existing > 0) return { inserted: 0, demoInteractions: false }
-
   const inserted = await accessoryRepo.seedAccessories()
+  if (existing > 0) return { inserted, demoInteractions: false }
+
   let demoInteractions = false
   for (const [openid, nickname, ratings] of DEMO_RATINGS) {
     try {

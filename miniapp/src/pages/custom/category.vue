@@ -2,6 +2,7 @@
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
+import TileImage from '@/components/TileImage/TileImage.vue'
 import { CUSTOM_STEPS, getCustomCategory, type CustomCategory } from '@/data/custom'
 import {
   fetchCustomSummary,
@@ -11,6 +12,7 @@ import {
   uploadCustomImages,
   type CustomSummary,
 } from '@/api/custom'
+import { isAuthError } from '@/api/http'
 
 const category = ref<CustomCategory>(getCustomCategory())
 const summary = ref<CustomSummary | null>(null)
@@ -115,7 +117,10 @@ async function submitInquiry() {
     showToast('已提交，设计师将尽快联系')
     uni.navigateTo({ url: `/pages/custom/order?id=${request.id}` })
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '提交失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '提交失败')
+    }
   } finally {
     submitting.value = false
   }
@@ -179,7 +184,10 @@ async function submitMeasurement(vipOnly = false) {
     showToast('量体预约已提交')
     uni.navigateTo({ url: `/pages/custom/order?id=${request.id}` })
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '提交失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '提交失败')
+    }
   } finally {
     submitting.value = false
   }
@@ -222,7 +230,10 @@ async function upgradeVip() {
     showVipUpgrade.value = false
     showToast('已切换为演示 VIP 身份')
   } catch (err) {
-    showToast(err instanceof Error ? err.message : '升级失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(err)) {
+      showToast(err instanceof Error ? err.message : '升级失败')
+    }
   } finally {
     upgrading.value = false
   }
@@ -235,8 +246,17 @@ async function upgradeVip() {
 
     <scroll-view scroll-y class="body hide-scrollbar">
       <view class="hero">
+        <!-- 缺素材时退回色块 + emoji，不塞人台图充数（§4.3） -->
         <view class="hero-image">
-          <image :src="category.image" mode="aspectFit" />
+          <TileImage
+            :src="category.image"
+            :emoji="category.emoji"
+            from="#ffe6f2"
+            to="#e7dcff"
+            fit="contain"
+            fill
+            rounded="26rpx"
+          />
         </view>
         <view class="hero-copy">
           <text class="hero-emoji">{{ category.emoji }}</text>
@@ -261,7 +281,14 @@ async function upgradeVip() {
         <view class="cases">
           <view v-for="item in category.cases" :key="item.title" class="case">
             <view class="case-image">
-              <image :src="item.image" mode="aspectFill" />
+              <TileImage
+                :src="item.image"
+                :emoji="item.emoji"
+                from="#ffe6f2"
+                to="#d7ecff"
+                fill
+                rounded="24rpx"
+              />
             </view>
             <view class="case-copy">
               <view class="case-title-row">
