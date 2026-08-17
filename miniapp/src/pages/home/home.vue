@@ -56,7 +56,7 @@ function goMall() {
             to="#4fc7bb"
             emoji="👗"
             ratio="1 / 1"
-            rounded="14px"
+            rounded="28rpx"
             fit="contain"
             class="logo"
           />
@@ -124,7 +124,7 @@ function goMall() {
                 :to="p.to"
                 :emoji="p.emoji"
                 ratio="1 / 1"
-                rounded="12px"
+                rounded="24rpx"
               />
             </view>
             <view class="reco-title">{{ o.title }}</view>
@@ -192,14 +192,29 @@ function goMall() {
   font-weight: 500;
   color: var(--text-1);
 }
+/*
+ * 首页顶部的微气象胶囊。
+ *
+ * ⚠️ 原来是 `rgba(255,255,255,0.7)` 写死的半透明白 —— 那是渐变页面底时代的遗留：
+ * 半透明是为了透出底下的粉紫渐变。第二轮把页面底换成纯色 #f3f4f6 之后，
+ * 半透明白叠在纯灰上只剩一点点脏，既不是玻璃也不是白底。
+ *
+ * 这批按「顶部微气象走毛玻璃」把它接到 --glass-* 上：同一套半透明白 + 光晕 + 高光边，
+ * 和情景页那张天气卡是同一个视觉语言。不用 .card-glass 类是因为那个类带 --radius-lg
+ * 的卡片圆角，这里要胶囊。
+ */
 .weather {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: rgba(255, 255, 255, 0.7);
   padding: 12rpx 24rpx;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-card);
+  background-color: var(--glass-bg);
+  background-image: var(--glass-tint);
+  border: 0.5px solid var(--glass-line);
+  box-shadow: var(--shadow-glass), var(--glow-inset);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 .w-temp {
   font-size: 30rpx;

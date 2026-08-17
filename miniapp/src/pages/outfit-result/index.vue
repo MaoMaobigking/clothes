@@ -17,6 +17,16 @@ import {
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
 import { piecesFromOutfit } from '@/utils/outfitPieces'
+/*
+ * 只导入**类型**，不导入值。
+ *
+ * OutfitPoster 在模板里靠 easycom 自动注册（显式 import 组件会触发
+ * uni-app 的组件路径 marker 前向引用 bug，全站白屏，见 docs/开发手册.md §3.5）。
+ * 但下面 posterRef 的 `InstanceType<typeof OutfitPoster>` 需要这个标识符存在，
+ * 否则 vue-tsc 报 TS2304 Cannot find name。
+ * `import type` 会被编译器完全擦除，产物里不会留 require —— 两边都满足。
+ */
+import type OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 
 interface ReplaceTarget {
   outfitId: number

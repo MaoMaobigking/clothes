@@ -5,6 +5,7 @@
  *
  * 收进来的都是全站重复 4 次以上的东西：
  *   .btn / .card / .chip / .pill / .empty / .toast / .mask / .sheet / .grid-2
+ * 加上第三轮的两个受限例外：.card-glass / .pill-macaron-*（见文末那节的边界说明）
  *
  * 用法示例：
  *   <view class="card">…</view>
@@ -24,6 +25,13 @@
  *   1. **分隔靠线不靠影。** uv-ui 用 0.5px solid #dadbde，阴影只留给真正脱离纸面的层。
  *   2. **按钮没有阴影。** 查过全库，uv-button 一处投影都没有。
  *   3. **标题不加粗。** uv-cell-group 的标题是 15px + $uv-main-color，font-weight 默认 400。
+ *
+ * ------------------------------------------------------------
+ *  2026-08-17 第三轮：两处受限的例外
+ * ------------------------------------------------------------
+ * 新增 .card-glass（毛玻璃，重写）和 .pill-macaron-*（马卡龙果冻胶囊）。
+ * 这两个**明确破**上面的第 1、2 条，只服务顶部微气象 / 情景卡那一片。
+ * 其余类一条没动，仍是素白 + 细线 + 无影。加新东西前先想清楚是不是真的属于那一片。
  */
 
 /* ---------------- 发丝线工具类 ---------------- */
@@ -110,14 +118,33 @@
   box-shadow: var(--shadow-card);
 }
 /*
- * 原来这是毛玻璃（backdrop-filter: blur(8px)）。
- * uv-ui 里没有半透明面，而且 backdrop-filter 在安卓端小程序本来就不生效 ——
- * 去掉是同时对齐设计语言和修掉一个既有兼容问题。
+ * 毛玻璃卡。第二轮曾把它压成实心白（理由：uv-ui 无半透明面，
+ * 且 backdrop-filter 在安卓端小程序不生效）；第三轮按「顶部微气象/情景卡走毛玻璃」
+ * 的要求放回来，但**只放回这一个类**，.card 基类仍是白底细线。
+ *
+ * 用法两种，看元素自己有没有内边距：
+ *   <view class="card card-glass">…</view>   一般卡片，.card 给 padding
+ *   <view class="my-panel card-glass">…</view>  元素自带 padding / 布局时单用即可
+ * 这个类只管面 / 边 / 影 / 圆角，不管 padding —— 所以单用不会缺样式，只是没内边距。
+ *
+ * 关于安卓：blur 失效时这卡片退化成「半透明白 + 两团粉薄荷光晕」，
+ * 依然成立 —— 观感是 --glass-tint 撑的，不是 blur 撑的（tokens.css 里详述）。
+ * 所以**别在这个面上放浅灰小字**，对比度不能押在模糊上。
+ *
+ * background-color 和 background-image 分开写而不是用 background 简写：
+ * 简写会把 color 和 image 一起重置，两层（半透明白 + 光晕）必须各占一个属性才叠得上。
+ *
+ * 边框 0.5px 沿用全站发丝线规格（1rpx 在 3x 屏会被抹掉），
+ * 只是颜色从冷灰 --line 换成高亮白 --glass-line —— 玻璃的「厚度」就是这条亮边。
  */
 .card-glass {
-  background: var(--surface);
-  border: var(--hairline);
-  box-shadow: var(--shadow-float);
+  background-color: var(--glass-bg);
+  background-image: var(--glass-tint);
+  border: 0.5px solid var(--glass-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass), var(--glow-inset);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 /* ---------------- 胶囊标签 / 筛选片 ---------------- */
@@ -159,6 +186,67 @@
   border-color: var(--pink-deep);
   color: var(--text-on-brand);
   box-shadow: none;
+}
+
+/* ---------------- 马卡龙胶囊（操作标签）---------------- */
+
+/*
+ * 果冻质感的软色胶囊，给「操作标签」用：重新定位、手动选择、穿搭日记这类
+ * 挂在毛玻璃卡上的次级动作。三个色是并列关系（不是主次），所以用三种马卡龙色区分，
+ * 而不是主色一种色深浅。
+ *
+ * ⚠️ 这是全站唯一带投影的按钮形态，**故意违反** uv-ui 的「按钮无投影」。
+ * 边界：只有 .pill-macaron-* 这样，.btn / .chip / .tag-pill 一个都不许加影。
+ * 想给某处强调时用 .tag-pill-brand 或 .chip.on，不要顺手抄这里的 --shadow-jelly。
+ *
+ * 用法两个类都要写，色是修饰类：
+ *   <view class="pill-macaron pill-macaron-mint">穿搭日记</view>
+ *
+ * 底色和字色必须成对取（--macaron-X + --macaron-X-ink）。字色是按 4.5:1 反算的，
+ * 自己配一个「看起来差不多」的粉字色，大概率掉到 3:1 以下 —— 浅底浅字。
+ */
+.pill-macaron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--btn-h-sm);
+  padding: 0 26rpx;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: var(--shadow-jelly);
+}
+/*
+ * uni-app 给 <button> 塞了一个 ::after 伪元素做默认边框
+ * （1px solid rgba(0,0,0,.2) + border-radius:10px）。
+ * 在 9999rpx 的胶囊上，那个 10px 圆角的方框会从胶囊里露出四个角。
+ * 全站没有统一的 button reset，所以在这里按需清掉 ——
+ * 只清 .pill-macaron 的，不动别人的（别的按钮什么样是既有状态，不在这批范围）。
+ */
+.pill-macaron::after {
+  border: none;
+}
+.pill-macaron-pink {
+  background: var(--macaron-pink);
+  color: var(--macaron-pink-ink);
+}
+.pill-macaron-mint {
+  background: var(--macaron-mint);
+  color: var(--macaron-mint-ink);
+}
+.pill-macaron-violet {
+  background: var(--macaron-violet);
+  color: var(--macaron-violet-ink);
+}
+/* 按下 / 忙碌态：压扁内发光，果冻被按下去的感觉。不改颜色，改的是光 */
+.pill-macaron.busy,
+.pill-macaron:active {
+  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.06);
+}
+.pill-macaron.busy {
+  opacity: 0.7;
 }
 
 /* ---------------- 网格 ---------------- */
