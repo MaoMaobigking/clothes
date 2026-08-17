@@ -50,7 +50,7 @@ function openItem(item: CommunityContent) {
           from="#f3e0d6"
           to="#c98fb0"
           ratio="1 / 1"
-          rounded="12px"
+          rounded="24rpx"
           class="thumb"
         />
         <view class="item-text">

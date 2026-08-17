@@ -124,10 +124,18 @@ const tileStyle = computed(() => ({
           用 uv-image 而不是原生 <image>：白捡懒加载（lazyLoad 默认 true）和
           淡入过渡（fade 默认 true，duration 500）。src、mode、@error 的语义完全一致。
 
-          show-loading / show-error 都关掉：uv-image 自带的加载中 / 失败图标走的是
-          uvicons 字体图标，和本项目 UiIcon 的线条风格不是一套。
-          缺图和失败一律回退到下面那个 UiIcon 占位（由 showPlaceholder 控制），
-          保持全站占位形态统一。@error 仍然会照常触发，和 showError 无关。
+          show-error 关掉：uv-image 自带的失败图标走 uvicons 字体图标，
+          和本项目 UiIcon 的线条风格不是一套。缺图和失败一律回退到下面那个
+          UiIcon 占位（由 showPlaceholder 控制），保持全站占位形态统一。
+          @error 仍然会照常触发，和 showError 无关。
+
+          show-loading 则**开着**，但内容由 #loading 插槽自己给：
+          开着才有插槽可用，关掉的话加载中这段时间是一片纯空白再突然淡入 ——
+          在慢网和大图上很明显。插槽里放的是和 showPlaceholder 同一个 UiIcon
+          占位（同图标、同色、同粗细），所以「加载中 → 加载完」的过渡是
+          「占位淡出、图淡入」，而不是「空白 → 图」。
+          用 uv-image 自带的 loading 图标就会在这里露出一个 uvicons 字体图标，
+          那才是原来关掉 show-loading 的理由 —— 现在有插槽了，理由不成立。
 
           宽高必须显式给 100%：uv-image 的 width/height 默认是 300/225（px），
           不给就变成固定尺寸，撑不满外层按 ratio 算出来的盒子。
@@ -138,10 +146,13 @@ const tileStyle = computed(() => ({
           :mode="fit === 'contain' ? 'aspectFit' : 'aspectFill'"
           width="100%"
           height="100%"
-          :show-loading="false"
           :show-error="false"
           @error="failed = true"
-        />
+        >
+          <template #loading>
+            <UiIcon :name="placeholderIcon" :size="56" tone="muted" :stroke-width="1.4" />
+          </template>
+        </uv-image>
         <UiIcon v-else :name="placeholderIcon" :size="56" tone="muted" :stroke-width="1.4" />
         <text v-if="label" class="label">{{ label }}</text>
         <slot />

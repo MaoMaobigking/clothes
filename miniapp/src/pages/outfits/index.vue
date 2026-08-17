@@ -224,7 +224,7 @@ function goCloset() {
                   :to="piece.to"
                   :emoji="piece.emoji"
                   ratio="1 / 1"
-                  rounded="10px"
+                  rounded="20rpx"
                 />
                 <text class="piece-name">{{ piece.name }}</text>
               </view>

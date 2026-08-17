@@ -468,26 +468,67 @@ function goAccessory(item: WardrobeItem) {
 }
 
 /* 左栏 + 右网格 */
+/*
+ * 分类栏是**浮层抽屉**（概念稿图①）：绝对定位、更高层级、阴影投在右侧内容上，
+ * 而不是和内容平级的 Flex 列。
+ *
+ * position:relative 是给 .cat-rail 当定位父级用的，别删。
+ * --rail-w / --rail-x 定在这里而不是把数字写两遍：抽屉宽度要和把手的左偏移同值、
+ * 抽屉的 left 要和容器左内边距同值，分开写下次调一定会漏一个。
+ */
 .closet-body {
+  --rail-w: 118rpx;
+  --rail-x: 12rpx;
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   gap: 12rpx;
-  padding: 0 24rpx 0 12rpx;
+  padding: 0 24rpx 0 var(--rail-x);
 }
+/*
+ * 抽屉本体。
+ *
+ * z-index 走 --z-float(10) 而不是随手写个数：衣橱是 tabBar 主页面，
+ * 底部导航是 --z-sticky(20)，抽屉必须低于它，否则滚到底时抽屉会盖住导航栏。
+ *
+ * 绝对定位顺带修掉一个原有的别扭处：原来抽屉是 Flex 列里的 scroll-view，
+ * 和右侧网格各滚各的但**共享横向空间**；现在它脱离流，右侧网格滚动时它稳稳不动。
+ *
+ * 保持 v-if 卸载（不是把宽度动画到 0）—— 上面模板里的注释解释了原因：
+ * 小程序的 scroll-view 在宽度变化时不重算内部滚动容器，动画收起会留下
+ * 一片能滚但看不见的区域。改成浮层不改变这个约束。
+ */
 .cat-rail {
-  flex-shrink: 0;
-  width: 118rpx;
-  height: 100%;
+  position: absolute;
+  /*
+   * left 要显式写 var(--rail-x)，不能靠父级的 padding。
+   * 绝对定位元素的包含块是定位父级的 **padding box**，所以 left:0 会落在
+   * padding 的外边缘 —— 抽屉会贴死屏幕左边缘、左侧圆角被切在边上，
+   * 和上面 Banner / SegTabs 的留白对不齐。
+   */
+  left: var(--rail-x);
+  top: 0;
+  bottom: 0;
+  z-index: var(--z-float);
+  width: var(--rail-w);
+  padding: 8rpx;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
 }
 /*
  * 分类栏的折叠把手。始终可见的一条竖窄条 ——
  * 用 v-if 卸载分类栏（而不是把宽度动画到 0）：小程序的 scroll-view 在
  * 宽度变化时不会重算内部滚动容器，动画收起会留下一片能滚但看不见的区域。
+ *
+ * 把手**留在 Flex 流里**、不跟着抽屉浮起来：它是"抽屉在哪、怎么开合"的唯一线索，
+ * 浮层化之后反而会压住内容。抽屉展开时靠 margin-left 把它推到抽屉右边。
  */
 .rail-toggle {
   flex-shrink: 0;
   width: 32rpx;
+  margin-left: var(--rail-w);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -497,9 +538,10 @@ function goAccessory(item: WardrobeItem) {
   background: var(--surface);
   border: var(--hairline);
 }
-/* 收起时把手加宽一点，好点，也放得下分类名 */
+/* 收起时把手加宽一点，好点，也放得下分类名；抽屉没了就不用再让位 */
 .rail-toggle.closed {
   width: 44rpx;
+  margin-left: 0;
 }
 .rail-toggle-label {
   /* 竖排文字：分类名最多 3 个字，竖着写正好塞进 44rpx 宽 */
@@ -514,7 +556,14 @@ function goAccessory(item: WardrobeItem) {
   align-items: center;
   gap: 6rpx;
   padding: 16rpx 0;
-  border-radius: var(--radius-sm);
+  /*
+   * 概念稿图①的选中态是「带圆角的浅色高亮块」（Highlight Capsule）。
+   * 6rpx(--radius-sm) 太方，看着像被选中的表格单元格，不像一个高亮胶囊。
+   * 提到 16rpx(--radius-lg) —— 不用 --radius-pill：那是 9999rpx，
+   * 在 118rpx 宽 × 约 80rpx 高的格子上会圆成一坨药丸，把图标和文字挤在中间。
+   * 也不自造 20rpx 之类的中间值，圆角必须留在 tokens 那四档里。
+   */
+  border-radius: var(--radius-lg);
   transition: background 0.15s ease;
 }
 .cat.on {

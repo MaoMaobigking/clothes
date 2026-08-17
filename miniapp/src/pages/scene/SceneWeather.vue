@@ -153,17 +153,21 @@ defineExpose({ requestLocation })
 </script>
 
 <template>
-  <view class="weather-card">
+  <view class="weather-card card-glass">
     <view class="wc-top">
       <view class="wc-place">
         <view class="wc-city"><UiIcon name="location" :size="28" tone="soft" /><text>{{ weather.city }}</text></view>
         <text class="wc-date">{{ dateLabel }} · {{ sourceLabel }}</text>
       </view>
       <view class="wc-actions">
-        <button class="wc-locate" :class="{ busy: locating }" @tap="requestLocation">
+        <button
+          class="wc-locate pill-macaron pill-macaron-violet"
+          :class="{ busy: locating }"
+          @tap="requestLocation"
+        >
           {{ locating ? '定位中' : '重新定位' }}
         </button>
-        <button class="wc-manual" @tap="openManual">手动选择</button>
+        <button class="wc-manual pill-macaron pill-macaron-pink" @tap="openManual">手动选择</button>
       </view>
     </view>
 
@@ -216,120 +220,134 @@ defineExpose({ requestLocation })
 </template>
 
 <style scoped>
+/*
+ * ⚠️ 这里原来把粉紫渐变**写死**在页面里：
+ *   linear-gradient(150deg, #c9ecff 0%, #b8b0ff 55%, #ffc9e8 100%)
+ * 是第二轮去渐变时漏掉的硬编码点（全局 --brand-gradient 早就改成纯色了，
+ * 但写死的这条不受影响，所以这块一直还是老的粉紫）。
+ *
+ * 现在换成 --glass-* 那套：半透明白 + 粉/薄荷双光晕 + 高光描边。
+ * 面 / 边 / 影 / 圆角走全局 .card-glass，这里只留这个组件自己的排布。
+ */
 .weather-card {
-  background: linear-gradient(150deg, #c9ecff 0%, #b8b0ff 55%, #ffc9e8 100%);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  color: var(--text-1);
-  box-shadow: var(--shadow-float);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
+  padding: 32rpx;
+  color: var(--text-1);
 }
 
 .wc-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 16rpx;
 }
 .wc-place {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4rpx;
   min-width: 0;
 }
 .wc-city {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 700;
 }
 .wc-date {
-  font-size: 12px;
+  font-size: 24rpx;
   color: var(--text-2);
 }
 .wc-actions {
   display: flex;
-  gap: 8px;
+  gap: 16rpx;
   flex-shrink: 0;
 }
+/*
+ * 两个按钮的尺寸 / 圆角 / 底色 / 字色 / 果冻投影全部来自
+ * .pill-macaron + .pill-macaron-violet|pink，这里一条都不要重复写 ——
+ * scoped 规则特异性比全局单类高，写了就是把全局类盖掉。
+ * .busy 的压扁效果也在全局类里（.pill-macaron.busy），不用在这写。
+ *
+ * 两个按钮用不同色是因为它们是**并列**的两个动作（自动定位 / 手动选择），
+ * 不是主次关系；用同色深浅区分反而要让人猜哪个是主。
+ */
 .wc-locate,
 .wc-manual {
-  padding: 5px 10px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--purple-deep);
-  font-size: 12px;
-  font-weight: 700;
-}
-.wc-locate.busy {
-  opacity: 0.65;
+  flex-shrink: 0;
 }
 
 .wc-now {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20rpx;
 }
 .wc-icon {
-  font-size: 40px;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.12));
+  font-size: 80rpx;
+  filter: drop-shadow(0 6rpx 12rpx rgba(0, 0, 0, 0.12));
 }
 .wc-temp {
-  font-size: 52px;
+  font-size: 104rpx;
   font-weight: 500;
   line-height: 1;
 }
 .wc-cond {
   align-self: flex-end;
-  margin-bottom: 6px;
-  font-size: 15px;
+  margin-bottom: 12rpx;
+  font-size: 30rpx;
   font-weight: 500;
 }
 .wc-message {
-  font-size: 12px;
+  font-size: 24rpx;
   font-weight: 500;
   color: var(--purple-deep);
 }
 
+/*
+ * 手动面板嵌在玻璃卡里，所以底色不能再用半透明白（叠两层白就浑了），
+ * 用 --surface-tint 的浅灰实底，跟玻璃面拉开一档。
+ * 原值是 rgba(255,255,255,0.58) —— 又一处写死的半透明。
+ */
 .manual-panel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.58);
+  gap: 20rpx;
+  background: var(--surface-tint);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 24rpx;
 }
 .manual-row {
   display: flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 68rpx;
 }
 .manual-label {
-  width: 46px;
+  width: 92rpx;
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 700;
 }
 .manual-picker {
   flex: 1;
 }
 .picker-value {
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+/* 原值 rgba(255,255,255,0.86)，同上，改实底白 + 发丝边才看得出这是个输入框 */
 .manual-input {
   flex: 1;
-  height: 34px;
+  height: 68rpx;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--surface);
+  border: var(--hairline);
   border-radius: var(--radius);
-  padding: 0 10px;
-  font-size: 13px;
+  padding: 0 20rpx;
+  font-size: 26rpx;
 }
 .manual-unit {
-  margin-left: 6px;
-  font-size: 13px;
+  margin-left: 12rpx;
+  font-size: 26rpx;
   font-weight: 700;
 }
 </style>

@@ -30,6 +30,16 @@ import {
 import { isAuthError } from '@/api/http'
 import { useProfileStore } from '@/stores/profile'
 import { useWardrobeStore } from '@/stores/wardrobe'
+/*
+ * 只导入**类型**，不导入值。
+ *
+ * OutfitPoster 在模板里靠 easycom 自动注册（显式 import 组件会触发
+ * uni-app 的组件路径 marker 前向引用 bug，全站白屏）。
+ * 但下面 posterRef 的 `InstanceType<typeof OutfitPoster>` 需要这个标识符存在，
+ * 否则 vue-tsc 报 TS2304 Cannot find name。
+ * `import type` 会被编译器完全擦除，产物里不会留 require —— 两边都满足。
+ */
+import type OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
@@ -424,15 +434,20 @@ function savePoster() {
     />
 
     <scroll-view class="body" scroll-y>
-      <!-- 天气卡：定位 + 穿搭日记 + 日期 + 当前天气 + 未来三天预报（对齐样图） -->
-      <view class="card weather-card">
+      <!--
+        天气卡：定位 + 穿搭日记 + 日期 + 当前天气 + 未来三天预报（对齐样图）。
+        .card 给结构、.card-glass 覆盖成毛玻璃面（半透明白 + 粉/薄荷光晕）。
+        安卓端 backdrop-filter 不生效，退化成带柔光的浅色面 —— 所以这卡里
+        不放浅灰小字，最弱的一档是 .wc-date 的 --text-3。
+      -->
+      <view class="card card-glass weather-card">
         <view class="wc-head">
           <view class="wc-loc">
             <UiIcon name="location" :size="28" tone="brand" />
             <text class="wc-city">{{ weather.city }}</text>
           </view>
-          <view class="wc-diary" @tap="goDiary">
-            <UiIcon name="calendar" :size="28" tone="soft" />
+          <view class="wc-diary pill-macaron pill-macaron-mint" @tap="goDiary">
+            <UiIcon name="calendar" :size="28" tone="macaron-mint" />
             <text>穿搭日记</text>
           </view>
         </view>
@@ -624,7 +639,7 @@ function savePoster() {
                   :to="item.to"
                   :emoji="item.emoji"
                   ratio="1 / 1"
-                  rounded="12px"
+                  rounded="24rpx"
                 />
                 <text class="item-name">{{ item.name }}</text>
                 <text class="item-tag">{{ item.isNew ? '新增单品' : '衣橱旧衣' }}</text>
@@ -730,14 +745,15 @@ function savePoster() {
  * 而且整页用 px 而不是项目统一的 rpx，所以看起来七零八落。
  *
  * 现在收成两档（都换成 rpx，跟随屏宽缩放）：
- *   --btn-h-sm: 60rpx  chip / 筛选片 / 换一套 —— 一切行内小按钮
- *   --btn-h-md: 72rpx  功能按钮（保存模板/分享/海报）、三选一的搭配方式
+ *   --btn-h-sm  chip / 筛选片 / 换一套 —— 一切行内小按钮
+ *   --btn-h-md  功能按钮（保存模板/分享/海报）、三选一的搭配方式
  * 主 CTA 走全局 .btn（100rpx），不在这里另定。
+ *
+ * ⚠️ 这两个变量原来在下面 `.body { }` 里本地声明（60rpx / 72rpx）。
+ * 现在已经进了 styles/tokens.css（60 / 80 / 100rpx，对齐 uv-button 三档），
+ * 本地声明删掉 —— 留着的话 md 会被这一页压回 72rpx，比全站矮 8rpx，
+ * 就又变成「同一个变量两个值」的覆盖问题。md 从 72 → 80rpx 是刻意的对齐。
  */
-.body {
-  --btn-h-sm: 60rpx;
-  --btn-h-md: 72rpx;
-}
 
 /* ---------------- 顶部 ---------------- */
 
@@ -772,8 +788,7 @@ function savePoster() {
   align-items: center;
   justify-content: space-between;
 }
-.wc-loc,
-.wc-diary {
+.wc-loc {
   display: flex;
   align-items: center;
   gap: 8rpx;
@@ -782,13 +797,17 @@ function savePoster() {
   font-size: 28rpx;
   color: var(--text-1);
 }
-/* 穿搭日记：弱化成次级入口，别和定位信息抢 */
+/*
+ * 穿搭日记的字号 / 字色 / 内边距 / 圆角全部由 .pill-macaron + .pill-macaron-mint
+ * 提供，这里**只留全局类没给的差异**：图标和文字之间的 8rpx。
+ *
+ * ⚠️ 原来这里有一整套 font-size / color / padding / border / border-radius，
+ * 已删。不删不行 —— scoped 选择器编译成 `.wc-diary[data-v-x]`，特异性 (0,2,0)
+ * 比全局的 `.pill-macaron-mint` (0,1,0) 高，留着就等于全局类白写、
+ * 胶囊仍然是灰字白底。这个坑上一轮的交接文档里记过。
+ */
 .wc-diary {
-  font-size: 24rpx;
-  color: var(--text-2);
-  padding: 8rpx 16rpx;
-  border: var(--hairline);
-  border-radius: var(--radius-pill);
+  gap: 8rpx;
 }
 .wc-date {
   font-size: 24rpx;
@@ -798,6 +817,10 @@ function savePoster() {
 /*
  * 预报行：今天一格 + 未来三天三格。
  * 今天那格用 flex:1.4 占宽一点，把「实时」和「预报」的层级拉开。
+ *
+ * ⚠️ 底色必须是半透明白（--glass-pane）而不是 --surface-tint。
+ * 这几格现在坐在 .card-glass 的毛玻璃面上，不透明块会把玻璃感直接切断 ——
+ * 第一版用了不透明冷灰 + 不透明浅粉，截出来整张卡是「粉卡片 + 灰方块」。
  */
 .wc-forecast {
   display: flex;
@@ -815,11 +838,12 @@ function savePoster() {
   gap: 6rpx;
   padding: 16rpx 4rpx;
   border-radius: var(--radius-sm);
-  background: var(--surface-tint);
+  background: var(--glass-pane);
 }
+/* 今天那格靠「更白」强调，不靠 --pink-soft 换色相 —— 玻璃左上角本来就是粉光晕 */
 .fc-today {
   flex: 1.4;
-  background: var(--pink-soft);
+  background: var(--glass-pane-strong);
 }
 .fc-temp-now {
   font-size: 34rpx;
@@ -830,9 +854,14 @@ function savePoster() {
   font-size: 20rpx;
   color: var(--text-2);
 }
+/*
+ * 这两个原来是 --text-3（#909193）。半透明面上 20rpx 的 #909193 太飘，
+ * 而且安卓端 blur 不生效时底下透出的是页面灰，对比度更差 ——
+ * 这正是 tokens.css 里「别在玻璃面上放浅灰小字」那条说的情况，提到 --text-2。
+ */
 .fc-day {
   font-size: 20rpx;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 .fc-range {
   font-size: 22rpx;
@@ -922,10 +951,10 @@ function savePoster() {
 .body {
   flex: 1;
   min-height: 0;
-  padding: 12px 16px 22px;
+  padding: 24rpx 32rpx 44rpx;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 28rpx;
 }
 
 /* .header-action 已随「我的搭配」按钮换成右上「＋」而退役，见 .hdr-btn */
@@ -935,17 +964,17 @@ function savePoster() {
 .difference-note {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 28rpx;
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 .section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
+  gap: 20rpx;
 }
 .section-title {
   font-size: 30rpx;
@@ -953,24 +982,24 @@ function savePoster() {
   color: var(--text-1);
 }
 .section-sub {
-  font-size: 12px;
+  font-size: 24rpx;
   color: var(--text-2);
 }
 .scene-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 9px;
+  gap: 18rpx;
 }
 .scene-option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 10px 4px;
+  gap: 10rpx;
+  padding: 20rpx 8rpx;
   border-radius: var(--radius);
   background: var(--surface-soft);
   color: var(--text-2);
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 700;
   transition: all 0.15s ease;
 }
@@ -980,7 +1009,7 @@ function savePoster() {
   box-shadow: var(--shadow-card);
 }
 .scene-emoji {
-  font-size: 24px;
+  font-size: 48rpx;
 }
 .scene-label {
   line-height: 1.2;
@@ -989,12 +1018,12 @@ function savePoster() {
 .control-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20rpx;
 }
 .control-label {
-  width: 42px;
+  width: 84rpx;
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 700;
   color: var(--text-1);
 }
@@ -1002,7 +1031,7 @@ function savePoster() {
 .mode-switch {
   flex: 1;
   display: flex;
-  gap: 8px;
+  gap: 16rpx;
 }
 /* 小按钮档，见文件头「按钮尺寸只有两档」 */
 .mini-chip,
@@ -1030,32 +1059,32 @@ function savePoster() {
 }
 .error-message {
   color: var(--warning);
-  font-size: 12px;
+  font-size: 24rpx;
   text-align: center;
 }
 
 .active-banner {
   background: var(--brand-gradient);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 24rpx;
   color: var(--text-on-brand);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8rpx;
 }
 .active-title {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
 }
 .active-sub {
-  font-size: 12px;
+  font-size: 24rpx;
   opacity: 0.9;
 }
 
 .filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16rpx;
 }
 .filter-chip {
   height: var(--btn-h-sm);
@@ -1089,7 +1118,7 @@ function savePoster() {
   font-size: 24rpx;
 }
 .plan-count {
-  font-size: 12px;
+  font-size: 24rpx;
   color: var(--text-2);
   font-weight: 500;
 }
@@ -1097,51 +1126,51 @@ function savePoster() {
 .plan-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 24rpx;
 }
 .plan-grid.compare {
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 16rpx;
 }
 .plan-card {
   min-width: 0;
   background: var(--surface-soft);
   border-radius: var(--radius);
-  padding: 10px;
+  padding: 20rpx;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .plan-head {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 14rpx;
 }
 .plan-title-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 16rpx;
 }
 .plan-title {
   flex: 1;
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
   line-height: 1.35;
 }
 .plan-tag {
   flex-shrink: 0;
-  padding: 4px 8px;
+  padding: 8rpx 16rpx;
   border-radius: var(--radius-pill);
   background: var(--brand-gradient);
   color: #fff;
-  font-size: 10px;
+  font-size: 20rpx;
   font-weight: 700;
 }
 .plan-reason {
-  font-size: 11px;
+  font-size: 22rpx;
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -1149,31 +1178,31 @@ function savePoster() {
 .item-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+  gap: 14rpx;
 }
 .item {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6rpx;
 }
 .item-name {
-  font-size: 10px;
+  font-size: 20rpx;
   color: var(--text-1);
   line-height: 1.25;
   min-height: 50rpx;
 }
 .item-tag {
   align-self: flex-start;
-  padding: 2px 5px;
+  padding: 4rpx 10rpx;
   border-radius: var(--radius-sm);
   background: var(--pink-soft);
   color: var(--purple-deep);
-  font-size: 9px;
+  font-size: 18rpx;
   font-weight: 700;
 }
 .item-price {
-  font-size: 11px;
+  font-size: 22rpx;
   font-weight: 500;
   color: var(--pink-deep);
 }
@@ -1181,13 +1210,13 @@ function savePoster() {
 .new-panel {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 14rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 9px;
+  padding: 18rpx;
 }
 .new-title {
-  font-size: 12px;
+  font-size: 24rpx;
   font-weight: 500;
   color: var(--text-1);
 }
@@ -1195,11 +1224,11 @@ function savePoster() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 16rpx;
 }
 .new-name {
   flex: 1;
-  font-size: 11px;
+  font-size: 22rpx;
   color: var(--text-2);
 }
 .copy-button {
@@ -1209,20 +1238,20 @@ function savePoster() {
   border-radius: var(--radius-pill);
   background: var(--brand-gradient);
   color: #fff;
-  font-size: 10px;
+  font-size: 20rpx;
   font-weight: 700;
 }
 
 .difference-note {
-  gap: 7px;
+  gap: 14rpx;
 }
 .difference-title {
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
 }
 .difference-text {
-  font-size: 11px;
+  font-size: 22rpx;
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -1230,7 +1259,7 @@ function savePoster() {
 .action-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 16rpx;
 }
 /* 中按钮档。等宽靠父级 grid，这里只管高度和字号统一 */
 .action-button {
@@ -1263,13 +1292,13 @@ function savePoster() {
   overflow-y: auto;
   background: var(--surface);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 .modal-title {
-  font-size: 18px;
+  font-size: 36rpx;
   font-weight: 500;
   color: var(--text-1);
   text-align: center;
@@ -1278,20 +1307,20 @@ function savePoster() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 20rpx;
 }
 .purchase-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6rpx;
 }
 .purchase-name {
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 700;
   color: var(--text-1);
 }
 .purchase-price {
-  font-size: 12px;
+  font-size: 24rpx;
   color: var(--pink-deep);
   font-weight: 700;
 }
@@ -1303,10 +1332,10 @@ function savePoster() {
 .poster-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 20rpx;
 }
 .poster-message {
-  font-size: 12px;
+  font-size: 24rpx;
   color: var(--text-2);
   text-align: center;
 }

@@ -219,7 +219,7 @@ function showCooperationTip() {
                 from="#f3e0d6"
                 to="#c98fb0"
                 ratio="3 / 4"
-                rounded="12px"
+                rounded="24rpx"
               />
               <view class="magazine-meta">
                 <text class="magazine-month">{{ item.publishedMonth }}</text>
@@ -262,7 +262,7 @@ function showCooperationTip() {
                 from="#d6e4f0"
                 to="#9ab6d8"
                 ratio="16 / 10"
-                rounded="12px"
+                rounded="24rpx"
               />
               <text class="tutorial-category">{{ item.category }}</text>
               <text v-if="item.body.verified" class="verified-mark">认证博主</text>
@@ -301,7 +301,7 @@ function showCooperationTip() {
                 from="#ffd6e8"
                 to="#c9b8ff"
                 :ratio="index % 3 === 0 ? '3 / 4' : index % 2 === 0 ? '1 / 1' : '4 / 5'"
-                rounded="12px"
+                rounded="24rpx"
               />
               <view class="share-author">
                 <text class="author-avatar">{{ item.authorAvatar }}</text>
@@ -354,7 +354,7 @@ function showCooperationTip() {
                 from="#e3f0e6"
                 to="#9fceb0"
                 ratio="16 / 9"
-                rounded="12px"
+                rounded="24rpx"
               />
               <text class="challenge-category">{{ item.category }}</text>
               <view class="card-title">{{ item.title }}</view>

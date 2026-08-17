@@ -13,7 +13,22 @@ import { ICON_PATHS, type IconName } from '@/utils/icons'
  * 色值和 App.vue 里的 --text-* / --pink-deep / --purple-deep 保持同步。
  */
 
-type Tone = 'dark' | 'soft' | 'muted' | 'light' | 'brand' | 'purple' | 'white'
+type Tone =
+  | 'dark'
+  | 'soft'
+  | 'muted'
+  | 'light'
+  | 'brand'
+  | 'purple'
+  | 'white'
+  /*
+   * 马卡龙三色，只给 .pill-macaron-* 胶囊里的图标用。
+   * 存在的理由：胶囊的字色是 --macaron-*-ink，图标若还是默认的 soft 灰，
+   * 一个胶囊里就会出现「灰图标 + 墨绿文字」两种色，看起来像没写完。
+   */
+  | 'macaron-pink'
+  | 'macaron-mint'
+  | 'macaron-violet'
 
 const props = withDefaults(
   defineProps<{
@@ -51,6 +66,10 @@ const TONE_COLORS: Record<Tone, string> = {
    */
   purple: '#ff5c9d',
   white: '#ffffff',
+  /* 与 tokens.css 的 --macaron-*-ink 三个字色同值，改一边记得改另一边 */
+  'macaron-pink': '#b82a5f',
+  'macaron-mint': '#0f7a58',
+  'macaron-violet': '#5442b5',
 }
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'

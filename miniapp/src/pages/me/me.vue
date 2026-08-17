@@ -408,7 +408,9 @@ onMounted(async () => {
   align-items: center;
   gap: 24rpx;
   padding: 28rpx 4rpx;
-  border-bottom: 1px solid var(--line);
+  /* 走 --hairline（0.5px）而不是 1px：uv-ui 的列表分隔线是发丝线，
+     1px 在 2 倍屏上是两个物理像素，和 uv-cell 并排会明显粗一档 */
+  border-bottom: var(--hairline);
 }
 .menu-item:last-child {
   border-bottom: none;
