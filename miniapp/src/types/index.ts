@@ -7,6 +7,8 @@ export interface Option {
   color?: string
   /** emoji 图标，做轻量占位 */
   emoji?: string
+  /** 小图预览路径（规格 §7.4）；素材缺失时组件回落到色块 + emoji */
+  img?: string
 }
 
 /** 偏好测试里的单道题 */
@@ -50,6 +52,20 @@ export type VisualBodyId =
 
 /** 发型 key，先留接口，后续可扩展成图片资源 id */
 export type HairStyleId = 'straight' | 'curly' | 'bun' | 'short'
+
+/** 驱动 3D 人台比例的身形参数（规格 §7.9） */
+export interface AvatarShape {
+  gender: Gender | ''
+  /** 身高 cm；0 表示未填，人台走中性默认值 */
+  height: number
+  /** 体重 kg；0 表示未填 */
+  weight: number
+  visualBody: VisualBodyId | ''
+  /** 可选围度，用户改过才参与肩腰臀微调 */
+  shoulder?: number
+  waist?: number
+  hip?: number
+}
 
 /** 必填体型项是否已经由用户确认 */
 export interface ProfileProgress {

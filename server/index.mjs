@@ -6,7 +6,8 @@
  * 启动：npm run dev（脚本里带 --env-file=.env）
  *
  * 切换服务商只改 .env：
- *   AI_PROVIDER=openai     → OpenAI 兼容（OpenAI/DeepSeek/通义/Kimi/智谱…）
+ *   AI_PROVIDER=deepseek   → DeepSeek（默认）
+ *   AI_PROVIDER=openai     → OpenAI 兼容（OpenAI/通义/Kimi/智谱…）
  *   AI_PROVIDER=anthropic  → Claude
  */
 import express from 'express'
@@ -26,10 +27,13 @@ import accessoryRoutes from './routes/accessories.mjs'
 import accessoryCartRoutes from './routes/accessoryCart.mjs'
 import { ensureAccessories } from './services/accessoryService.mjs'
 import sceneRoutes from './routes/scene.mjs'
+import mallRoutes from './routes/mall.mjs'
 import { ensureSceneCatalog } from './services/sceneService.mjs'
 import customRoutes from './routes/custom.mjs'
 import { ensureDesigners } from './services/customService.mjs'
 import communityRoutes from './routes/community.mjs'
+import { ensureDemoData } from './services/demoSeedService.mjs'
+import { getAiRuntime } from './services/aiService.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
@@ -37,11 +41,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const uploadDir = join(here, 'uploads')
 mkdirSync(uploadDir, { recursive: true })
 
-const PROVIDER = (process.env.AI_PROVIDER || 'openai').toLowerCase()
-const API_KEY = process.env.AI_API_KEY || ''
-const MODEL =
-  process.env.AI_MODEL ||
-  (PROVIDER === 'anthropic' ? 'claude-haiku-4-5-20251001' : 'gpt-4o-mini')
+const ai = getAiRuntime()
 const PORT = Number(process.env.PORT || 8787)
 
 app.use(cors())
@@ -51,19 +51,26 @@ app.use('/uploads', express.static(uploadDir))
 
 /* ============ 健康检查 ============ */
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, provider: PROVIDER, model: MODEL, hasKey: Boolean(API_KEY) })
+  res.json({
+    ok: true,
+    provider: ai.provider,
+    providerLabel: ai.providerLabel,
+    model: ai.model,
+    hasKey: ai.hasKey,
+  })
 })
 
 /* ============ 路由挂载 ============ */
 app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
-app.use('/api/accessories', accessoryRoutes)
-app.use('/api/accessory-cart', accessoryCartRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/wardrobe', wardrobeRoutes)
+app.use('/api/accessories', accessoryRoutes)
+app.use('/api/accessory-cart', accessoryCartRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/scene', sceneRoutes)
+app.use('/api/mall', mallRoutes) // 商城目录复用 scene_catalog，见 services/mallService.mjs
 app.use('/api/custom', customRoutes)
 app.use('/api/community', communityRoutes)
 
@@ -92,6 +99,9 @@ async function bootstrap() {
     if (designerSeed.inserted > 0) {
       console.log(`✅ 定制设计师目录已初始化: ${designerSeed.inserted} 位`)
     }
+    // 规格 §5.2：四类预置演示账号。幂等，已有数据不覆盖。
+    const demoSeed = await ensureDemoData()
+    console.log(`✅ 演示账号已就绪: ${demoSeed.filter((item) => item.ok).length}/${demoSeed.length}`)
   } catch (err) {
     console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${err.message}`)
     console.error('   排查：1) 容器是否启动 docker ps  2) .env 里 MYSQL_PORT/PASSWORD 是否对\n')
@@ -100,7 +110,7 @@ async function bootstrap() {
 
   app.listen(PORT, async () => {
     console.log(`\n✅ AI 后端已启动: http://localhost:${PORT}`)
-    console.log(`   AI: provider=${PROVIDER} model=${MODEL} hasKey=${Boolean(API_KEY)}`)
+    console.log(`   AI: provider=${ai.provider} model=${ai.model} hasKey=${ai.hasKey}`)
 
     // 初始化 RAG（失败不影响主服务）
     try {
@@ -110,7 +120,7 @@ async function bootstrap() {
       console.log('   ⚠️ RAG 初始化失败:', e.message)
     }
 
-    if (!API_KEY) console.log('   ⚠️ 未填 AI_API_KEY，AI 类接口会提示；衣橱数据库接口不受影响。\n')
+    if (!ai.hasKey) console.log('   ⚠️ 未填 AI_API_KEY，AI 类接口会提示；衣橱数据库接口不受影响。\n')
   })
 }
 

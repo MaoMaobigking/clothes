@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TileImage from '@/components/TileImage/TileImage.vue'
-import type { MallProduct } from '@/data/mock'
+import type { MallProduct } from '@/api/mall'
 
 defineProps<{
   product: MallProduct | null
@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'fav'): void
   (e: 'add'): void
+  (e: 'buy'): void
   (e: 'accessory'): void
 }>()
 </script>
@@ -24,7 +25,7 @@ const emit = defineEmits<{
           :from="product.from"
           :to="product.to"
           :emoji="product.emoji"
-          :src="product.img"
+          :src="product.imageUrl"
           ratio="1 / 1"
           rounded="var(--radius-lg)"
         />
@@ -37,19 +38,25 @@ const emit = defineEmits<{
             <text>{{ fav ? '❤️' : '🤍' }}</text>
           </view>
         </view>
-        <text v-if="product.tag" class="tag">{{ product.tag }}</text>
+        <view class="tags">
+          <text class="tag">{{ product.categoryLabel }}</text>
+          <text v-if="product.season" class="tag ghost">{{ product.season }}</text>
+        </view>
         <text class="desc">
-          精选材质 · 亲肤不过敏，粉紫少女风必备单品，百搭日常与约会造型～
+          {{ product.keywords.length ? product.keywords.join(' · ') : '精选材质，百搭日常与约会造型' }}
         </text>
         <text class="price"><text class="price-symbol">¥</text>{{ product.price.toFixed(2) }}</text>
+        <!-- §4.4：商品必须带淘宝链接与淘口令，这里明示给用户 -->
+        <text v-if="product.taokouling" class="taokouling">淘口令 {{ product.taokouling }}</text>
+        <text v-else class="taokouling missing">该商品暂未配置淘口令</text>
       </view>
 
       <view class="actions">
-        <view class="btn btn-ghost" @tap="emit('close')">
-          <text>再逛逛</text>
-        </view>
         <view class="btn btn-ghost" @tap="emit('accessory')">
           <text>配配饰</text>
+        </view>
+        <view class="btn btn-ghost" @tap="emit('buy')">
+          <text>去淘宝</text>
         </view>
         <view class="btn btn-primary" @tap="emit('add')">
           <text>加入购物车</text>
@@ -129,6 +136,10 @@ const emit = defineEmits<{
 .fav.on {
   background: #fff;
 }
+.tags {
+  display: flex;
+  gap: 12rpx;
+}
 .tag {
   align-self: flex-start;
   font-size: 24rpx;
@@ -137,6 +148,20 @@ const emit = defineEmits<{
   background: var(--brand-gradient);
   padding: 6rpx 20rpx;
   border-radius: var(--radius-pill);
+}
+.tag.ghost {
+  color: var(--text-2);
+  background: var(--surface-soft);
+}
+.taokouling {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pink-deep);
+  word-break: break-all;
+}
+.taokouling.missing {
+  color: var(--text-3);
+  font-weight: 600;
 }
 .desc {
   margin: 0;

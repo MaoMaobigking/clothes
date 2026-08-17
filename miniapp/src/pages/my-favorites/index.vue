@@ -6,6 +6,7 @@ import {
   fetchCommunityBookmarks,
   type CommunityContent,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const items = ref<CommunityContent[]>([])
 const loading = ref(true)
@@ -15,7 +16,10 @@ onMounted(async () => {
   try {
     items.value = await fetchCommunityBookmarks()
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '收藏加载失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '收藏加载失败'
+    }
   } finally {
     loading.value = false
   }

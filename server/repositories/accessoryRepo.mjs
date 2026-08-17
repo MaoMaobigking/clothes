@@ -83,17 +83,44 @@ export async function countAccessories() {
   return Number(row?.n || 0)
 }
 
+/**
+ * 写入人工维护的配饰目录。
+ *
+ * 用 ON DUPLICATE KEY UPDATE 而不是 INSERT IGNORE：目录是演示数据，
+ * seed 文件才是唯一事实来源。改了 seed 却更新不到已有库，表现就是
+ * 「按清单把图片丢进目录了，页面还是 emoji」—— image_url 一直是那条
+ * 老的 NULL。评分等用户数据在 accessory_ratings，不受这里影响。
+ */
 export async function seedAccessories() {
   const seed = JSON.parse(readFileSync(join(here, '..', 'seed-accessories.json'), 'utf-8'))
   let inserted = 0
   for (const item of seed) {
     const result = await execute(
-      `INSERT IGNORE INTO accessories
+      `INSERT INTO accessories
         (id, category, name, brand, price, original_price, discount_price,
          image_url, tryon_slot, tryon_enabled, primary_color, secondary_color,
          seasons, occasions, styles, keywords, taobao_url, taokouling,
          favorite_count, base_popularity)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         category = VALUES(category),
+         name = VALUES(name),
+         brand = VALUES(brand),
+         price = VALUES(price),
+         original_price = VALUES(original_price),
+         discount_price = VALUES(discount_price),
+         image_url = VALUES(image_url),
+         tryon_slot = VALUES(tryon_slot),
+         tryon_enabled = VALUES(tryon_enabled),
+         primary_color = VALUES(primary_color),
+         secondary_color = VALUES(secondary_color),
+         seasons = VALUES(seasons),
+         occasions = VALUES(occasions),
+         styles = VALUES(styles),
+         keywords = VALUES(keywords),
+         taobao_url = VALUES(taobao_url),
+         taokouling = VALUES(taokouling),
+         base_popularity = VALUES(base_popularity)`,
       [
         item.id,
         item.category,
@@ -117,7 +144,8 @@ export async function seedAccessories() {
         Number(item.basePopularity || 3.5),
       ],
     )
-    if (result.affectedRows > 0) inserted += 1
+    // affectedRows：1 = 新插入，2 = 更新了已有行，0 = 无变化
+    if (result.affectedRows === 1) inserted += 1
   }
   return inserted
 }

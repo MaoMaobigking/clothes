@@ -2,23 +2,29 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
-  adminLogin,
   fetchAdminDashboard,
   type AdminDashboard,
 } from '@/api/community'
-import { clearToken } from '@/api/http'
+import { isAuthError } from '@/api/http'
+import { useAuthStore } from '@/stores/auth'
 
+const auth = useAuthStore()
 const password = ref('')
 const logging = ref(false)
 const errorText = ref('')
 const dashboard = ref<AdminDashboard | null>(null)
 
+/**
+ * 管理员密码闸（规格 §5.3）。
+ * 验过之后当前身份就切成管理员账号了，所以走 auth store 而不是自己写 token，
+ * 否则「我的」页还显示着上一个人的昵称，实际请求已经是管理员在发。
+ */
 async function login() {
   if (!password.value || logging.value) return
   logging.value = true
   errorText.value = ''
   try {
-    await adminLogin(password.value)
+    await auth.signInAsAdmin(password.value)
     dashboard.value = await fetchAdminDashboard()
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : '管理员登录失败'
@@ -31,15 +37,18 @@ async function refresh() {
   try {
     dashboard.value = await fetchAdminDashboard()
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '数据刷新失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '数据刷新失败'
+    }
   }
 }
 
+/** 退出管理员：身份已经是管理员账号，只能整体登出回登录页，不能悄悄退回原来那个人 */
 function logout() {
-  clearToken()
   dashboard.value = null
   password.value = ''
-  uni.switchTab({ url: '/pages/me/me' })
+  auth.logout()
 }
 </script>
 

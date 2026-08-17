@@ -6,7 +6,8 @@ import TileImage from '@/components/TileImage/TileImage.vue'
 import AvatarViewer from '@/components/AvatarViewer/AvatarViewer.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
-import { MODEL_IMAGES, MALL_PRODUCTS, type Garment, type MallProduct } from '@/data/mock'
+import { MODEL_IMAGES, type Garment } from '@/data/mock'
+import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { resolveImageUrl } from '@/api/wardrobe'
 import {
   addAccessoryCartBatch,
@@ -21,6 +22,8 @@ import {
   type AccessoryContextItem,
   type AccessoryRecommendations,
 } from '@/api/accessories'
+// 改数量走统一购物车接口（规格 §4.5 §13）
+import { updateCartQuantity } from '@/api/cart'
 import {
   ACCESSORY_CATEGORY_EMOJI,
   buildFallbackRecommendations,
@@ -47,7 +50,7 @@ const contextTitle = ref('当前服装')
 const recommendations = ref<AccessoryRecommendations | null>(null)
 const activeCategory = ref('jewelry')
 const selectedAccessory = ref<Accessory | null>(null)
-const cart = ref<AccessoryCart>({ items: [], count: 0 })
+const cart = ref<AccessoryCart>({ items: [], count: 0, totalPrice: 0 })
 const loading = ref(true)
 const usingApi = ref(false)
 const cartOpen = ref(false)
@@ -87,8 +90,12 @@ const pickerGarments = computed<PickerItem[]>(() =>
   wardrobe.items.slice(0, 40).map((item) => ({ kind: 'garment', item })),
 )
 
+// 「换服装」里的商城候选来自服务端目录（scene_catalog），
+// 和商城页同源，配饰推荐拿到的品类、配色才对得上（规格 §4.4 §10.6）
+const mallProducts = ref<MallProduct[]>([])
+
 const pickerMallItems = computed<PickerItem[]>(() =>
-  MALL_PRODUCTS.slice(0, 10).map((item) => ({ kind: 'mall', item })),
+  mallProducts.value.slice(0, 10).map((item) => ({ kind: 'mall', item })),
 )
 
 const pickerItems = computed(() =>
@@ -111,8 +118,18 @@ onLoad(async () => {
     pickerOpen.value = true
   }
 
-  await Promise.all([loadRecommendations(), loadCart()])
+  await Promise.all([loadRecommendations(), loadCart(), loadMallProducts()])
 })
+
+async function loadMallProducts() {
+  try {
+    const data = await fetchMallProducts()
+    mallProducts.value = data.items
+  } catch {
+    // 目录拉不到就只剩衣橱那一栏可选，不阻断配饰推荐
+    mallProducts.value = []
+  }
+}
 
 function toast(title: string) {
   uni.showToast({ title, icon: 'none' })
@@ -120,6 +137,11 @@ function toast(title: string) {
 
 function displaySrc(src?: string) {
   return resolveImageUrl(src || '')
+}
+
+/** 衣橱item 用 img，商城目录用 imageUrl，取图统一在这里分流 */
+function pickerImage(entry: PickerItem) {
+  return displaySrc(entry.kind === 'garment' ? entry.item.img : entry.item.imageUrl)
 }
 
 function accessoryEmoji(item: Pick<Accessory, 'category' | 'emoji'>) {
@@ -160,7 +182,7 @@ async function loadCart() {
   try {
     cart.value = await fetchAccessoryCart()
   } catch {
-    cart.value = { items: [], count: 0 }
+    cart.value = { items: [], count: 0, totalPrice: 0 }
   }
 }
 
@@ -173,7 +195,9 @@ async function selectGarment(garment: Garment) {
 }
 
 async function selectMallProduct(product: MallProduct) {
-  currentOutfit.value = [mallProductToAccessoryContext(product)]
+  currentOutfit.value = [
+    mallProductToAccessoryContext({ ...product, img: product.imageUrl }),
+  ]
   contextSource.value = 'mall'
   contextTitle.value = product.name
   pickerOpen.value = false
@@ -224,6 +248,7 @@ function toLocalCartItem(item: Accessory): AccessoryCartItem {
     itemId: item.id,
     quantity: 1,
     sourceOutfitId: null,
+    available: true,
     createdAt: new Date().toISOString(),
     name: item.name,
     brand: item.brand,
@@ -286,6 +311,7 @@ async function addOutfitToCart() {
           itemId: piece.id,
           quantity: 1,
           sourceOutfitId: null,
+          available: true,
           createdAt: new Date().toISOString(),
           name: piece.name,
           brand: '',
@@ -304,6 +330,41 @@ async function addOutfitToCart() {
   }
   await loadRecommendations()
   toast('当前服装已入车，配饰显示搭配价')
+}
+
+/**
+ * 抽屉内改数量（规格 §9.7 §4.5「商品可以修改数量或删除」）。
+ * 和本页其他购物车操作一样保留双路径：接口可用就走服务端，
+ * 否则只改本地缓存，保证断网演示不至于点了没反应。
+ */
+async function changeCartQuantity(item: AccessoryCartItem, delta: number) {
+  const next = item.quantity + delta
+  if (next < 1) {
+    await removeCartItem(item.cartId)
+    return
+  }
+  if (next > 99) {
+    toast('单件最多 99 件')
+    return
+  }
+  if (usingApi.value) {
+    try {
+      await updateCartQuantity(item.cartId, next)
+      cart.value = await fetchAccessoryCart()
+    } catch (error) {
+      toast((error as Error).message || '修改数量失败')
+    }
+    return
+  }
+  item.quantity = next
+  cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
+  saveLocalAccessoryCart(cart.value)
+}
+
+/** §9.2 §4.5：从配饰抽屉进完整购物车 */
+function goFullCart() {
+  cartOpen.value = false
+  uni.navigateTo({ url: '/pages/cart/index' })
 }
 
 async function removeCartItem(id: number) {
@@ -420,6 +481,7 @@ function copyCartItem(item: AccessoryCartItem) {
           <AvatarViewer
             :src="tryonModelSrc"
             label="我的虚拟形象"
+            :shape="profile.avatarShape"
             :overlay="selectedAccessory ? {
               slot: selectedAccessory.tryonSlot,
               emoji: accessoryEmoji(selectedAccessory),
@@ -588,7 +650,7 @@ function copyCartItem(item: AccessoryCartItem) {
                 : selectMallProduct(entry.item)"
             >
               <TileImage
-                :src="displaySrc(entry.item.img)"
+                :src="pickerImage(entry)"
                 :from="entry.item.from"
                 :to="entry.item.to"
                 :emoji="entry.item.emoji"
@@ -642,6 +704,11 @@ function copyCartItem(item: AccessoryCartItem) {
                 <view class="cart-meta">
                   ¥{{ item.price }} × {{ item.quantity }}
                 </view>
+                <view class="cart-stepper">
+                  <view class="cart-step" @tap="changeCartQuantity(item, -1)">−</view>
+                  <text class="cart-qty">{{ item.quantity }}</text>
+                  <view class="cart-step" @tap="changeCartQuantity(item, 1)">+</view>
+                </view>
               </view>
               <view class="cart-action" @tap="copyCartItem(item)">复制口令</view>
               <view class="cart-delete" @tap="removeCartItem(item.cartId)">×</view>
@@ -652,6 +719,7 @@ function copyCartItem(item: AccessoryCartItem) {
             <text>购物车还是空的</text>
           </view>
         </scroll-view>
+        <view class="btn btn-primary cart-full" @tap="goFullCart">查看完整购物车</view>
         <view class="btn btn-ghost cart-close" @tap="cartOpen = false">关闭</view>
       </view>
     </view>
@@ -1274,6 +1342,34 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 5rpx;
   color: var(--text-3);
   font-size: 20rpx;
+}
+.cart-stepper {
+  margin-top: 10rpx;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+.cart-step {
+  width: 44rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #faf8ff;
+  color: var(--text-1);
+  font-size: 26rpx;
+}
+.cart-qty {
+  min-width: 48rpx;
+  text-align: center;
+  font-size: 21rpx;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.cart-full {
+  margin-top: 22rpx;
 }
 .cart-action {
   flex-shrink: 0;

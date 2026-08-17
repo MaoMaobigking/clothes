@@ -203,7 +203,7 @@ export function saveLocalAccessoryRating(id: string, score: number) {
 
 function scoreItem(item: LocalAccessory, outfit: AccessoryContextItem[], ratings: Record<string, number>) {
   const anchor = outfit[0] || {}
-  const seasons = outfit.map((piece) => piece.season).filter(Boolean)
+  const seasons = outfit.map((piece) => piece.season).filter((season): season is string => !!season)
   const occasions = outfit.flatMap((piece) => piece.occasions || [])
   const styles = outfit.flatMap((piece) => piece.styles || [])
   const colorHits = (outfit.flatMap((piece) => piece.colors || []).length)
@@ -299,11 +299,19 @@ export function buildFallbackRecommendations(
 }
 
 export function loadLocalAccessoryCart(): AccessoryCart {
+  // 形状要和服务端购物车一致（规格 §4.5 §13），否则断网回退时
+  // 页面上的合计、下架标记这些字段会突然变 undefined。
+  const empty: AccessoryCart = { items: [], count: 0, totalPrice: 0 }
   try {
-    const saved = JSON.parse(uni.getStorageSync(CART_KEY) || '{"items":[],"count":0}')
-    return saved.items ? saved : { items: [], count: 0 }
+    const saved = JSON.parse(uni.getStorageSync(CART_KEY) || 'null')
+    if (!saved?.items) return empty
+    return {
+      items: saved.items,
+      count: saved.count ?? 0,
+      totalPrice: saved.totalPrice ?? 0,
+    }
   } catch {
-    return { items: [], count: 0 }
+    return empty
   }
 }
 

@@ -1,6 +1,7 @@
 /*
  * AI 服务层（增强版）
- *  - 结构化输出：使用 JSON Schema 约束模型输出，支持 OpenAI/Anthropic 双 provider
+ *  - 结构化输出：OpenAI 使用 JSON Schema，DeepSeek 使用 JSON Object + prompt 约束
+ *  - 兼容 OpenAI / DeepSeek / Anthropic 三类 provider
  *  - 兜底机制：手写 JSON 提取 + Schema 校验
  *  - 结果入库：style_reports 持久化
  *
@@ -8,14 +9,60 @@
  * 使用 Node 18+ 内置 fetch。
  */
 
-const PROVIDER = (process.env.AI_PROVIDER || 'openai').toLowerCase()
+const PROVIDER_PRESETS = {
+  deepseek: {
+    label: 'DeepSeek',
+    api: 'openai',
+    model: 'deepseek-chat',
+    baseUrl: 'https://api.deepseek.com',
+    supportsJsonSchema: false,
+  },
+  openai: {
+    label: 'OpenAI',
+    api: 'openai',
+    model: 'gpt-4o-mini',
+    baseUrl: 'https://api.openai.com/v1',
+    supportsJsonSchema: true,
+  },
+  anthropic: {
+    label: 'Anthropic',
+    api: 'anthropic',
+    model: 'claude-haiku-4-5-20251001',
+    baseUrl: 'https://api.anthropic.com',
+    supportsJsonSchema: false,
+  },
+}
+
+const rawProvider = (process.env.AI_PROVIDER || 'deepseek').trim().toLowerCase()
+const PROVIDER = PROVIDER_PRESETS[rawProvider] ? rawProvider : 'openai'
+const PROVIDER_CONFIG = PROVIDER_PRESETS[PROVIDER]
 const API_KEY = process.env.AI_API_KEY || ''
-const MODEL =
-  process.env.AI_MODEL ||
-  (PROVIDER === 'anthropic' ? 'claude-haiku-4-5-20251001' : 'gpt-4o-mini')
-const BASE_URL =
-  process.env.AI_BASE_URL ||
-  (PROVIDER === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1')
+const MODEL = process.env.AI_MODEL || PROVIDER_CONFIG.model
+const BASE_URL = process.env.AI_BASE_URL || PROVIDER_CONFIG.baseUrl
+const API_STYLE = PROVIDER_CONFIG.api
+const SUPPORTS_JSON_SCHEMA = PROVIDER_CONFIG.supportsJsonSchema
+const CHAT_COMPLETIONS_URL = joinUrl(BASE_URL, 'chat/completions')
+const ANTHROPIC_MESSAGES_URL = joinUrl(BASE_URL, 'v1/messages')
+
+if (rawProvider && !PROVIDER_PRESETS[rawProvider]) {
+  console.warn(`[aiService] 未知 AI_PROVIDER=${rawProvider}，已回退为 openai`)
+}
+
+function joinUrl(baseUrl, path) {
+  return `${String(baseUrl).replace(/\/+$/, '')}/${String(path).replace(/^\/+/, '')}`
+}
+
+export function getAiRuntime() {
+  return {
+    provider: PROVIDER,
+    providerLabel: PROVIDER_CONFIG.label,
+    model: MODEL,
+    baseUrl: BASE_URL,
+    apiStyle: API_STYLE,
+    supportsJsonSchema: SUPPORTS_JSON_SCHEMA,
+    hasKey: Boolean(API_KEY),
+  }
+}
 
 /* ============ JSON Schema 定义 ============ */
 
@@ -237,36 +284,37 @@ function normalizeStyleReport(result) {
  * @returns {Promise<any>} 解析后的 JSON 对象
  */
 async function structuredComplete({ system, prompt, jsonSchema }) {
-  if (PROVIDER === 'anthropic') {
+  if (API_STYLE === 'anthropic') {
     return structuredAnthropic(system, prompt, jsonSchema)
   }
   return structuredOpenAI(system, prompt, jsonSchema)
 }
 
-/** OpenAI: 使用 response_format { type: "json_schema" } */
+/** OpenAI 兼容：按 provider 能力使用 json_schema 或 json_object */
 async function structuredOpenAI(system, prompt, jsonSchema) {
+  const useJsonSchema = SUPPORTS_JSON_SCHEMA
+  const userPrompt = useJsonSchema ? prompt : buildJsonOutputPrompt(prompt, jsonSchema)
   const body = {
     model: MODEL,
     temperature: 0.7,
     messages: [
       { role: 'system', content: system },
-      { role: 'user', content: prompt },
+      { role: 'user', content: userPrompt },
     ],
-    response_format: {
-      type: 'json_schema',
-      json_schema: jsonSchema,
-    },
+    response_format: useJsonSchema
+      ? { type: 'json_schema', json_schema: jsonSchema }
+      : { type: 'json_object' },
   }
-  const r = await fetch(`${BASE_URL}/chat/completions`, {
+  const r = await fetch(CHAT_COMPLETIONS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
     body: JSON.stringify(body),
   })
   if (!r.ok) {
     const errText = await r.text()
-    // 如果 provider 不支持 json_schema（如某些代理），回退到普通调用 + 手动解析
-    if (r.status === 400 && errText.includes('json_schema')) {
-      console.warn('[aiService] Provider 不支持 json_schema，回退到 prompt 约束 + 手动解析')
+    // 部分代理只支持普通 JSON 输出，遇到 response_format 拒绝时走 prompt 兜底
+    if (r.status === 400 && structuredFormatRejected(errText)) {
+      console.warn('[aiService] Provider 拒绝当前 structured output，回退到 prompt 约束 + 手动解析')
       return fallbackJsonCall(system, prompt, jsonSchema)
     }
     throw new Error(`OpenAI 接口 ${r.status}: ${errText}`)
@@ -274,6 +322,19 @@ async function structuredOpenAI(system, prompt, jsonSchema) {
   const data = await r.json()
   const content = data.choices?.[0]?.message?.content ?? ''
   return parseJson(content, jsonSchema)
+}
+
+function buildJsonOutputPrompt(prompt, jsonSchema) {
+  const schemaText = JSON.stringify(jsonSchema.schema, null, 2)
+  return `${prompt}
+
+输出要求：只返回一个 JSON 对象，必须使用合法 JSON 语法，不要输出 Markdown 代码块或任何解释。
+JSON 对象字段结构请严格参考：
+${schemaText}`
+}
+
+function structuredFormatRejected(errorText) {
+  return /response_format|json_schema|json schema/i.test(errorText)
 }
 
 /** Anthropic: 使用 tool_use 模拟 structured output */
@@ -293,7 +354,7 @@ async function structuredAnthropic(system, prompt, jsonSchema) {
     ],
     tool_choice: { type: 'tool', name: jsonSchema.name },
   }
-  const r = await fetch(`${BASE_URL}/v1/messages`, {
+  const r = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -318,7 +379,7 @@ async function structuredAnthropic(system, prompt, jsonSchema) {
 
 /** 兜底：普通调用 + 手动 JSON 提取 + Schema 校验 */
 async function fallbackJsonCall(system, prompt, jsonSchema) {
-  const text = await aiCompleteText(system, prompt)
+  const text = await aiCompleteText(system, buildJsonOutputPrompt(prompt, jsonSchema))
   return parseJson(text, jsonSchema)
 }
 
@@ -563,13 +624,13 @@ export async function aiChat(messages, system) {
 /* ============ 底层 provider 适配 ============ */
 
 export async function aiComplete({ system, messages }) {
-  return PROVIDER === 'anthropic'
+  return API_STYLE === 'anthropic'
     ? callAnthropic(system, messages)
     : callOpenAI(system, messages)
 }
 
 export async function callOpenAI(system, messages) {
-  const r = await fetch(`${BASE_URL}/chat/completions`, {
+  const r = await fetch(CHAT_COMPLETIONS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
     body: JSON.stringify({
@@ -584,7 +645,7 @@ export async function callOpenAI(system, messages) {
 }
 
 export async function callAnthropic(system, messages) {
-  const r = await fetch(`${BASE_URL}/v1/messages`, {
+  const r = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -641,7 +702,7 @@ export { STYLE_REPORT_SCHEMA, SCENE_OUTFIT_SCHEMA }
 export async function aiChatStream(messages, system, onChunk, signal) {
   const sys = system || '你是「灵犀」——一个亲切专业的中文穿搭顾问。回答简洁口语化，多给具体、可执行的单品和搭配建议，必要时分点。不要超过 200 字。'
   
-  if (PROVIDER === 'anthropic') {
+  if (API_STYLE === 'anthropic') {
     return streamAnthropic(sys, messages, onChunk, signal)
   }
   return streamOpenAI(sys, messages, onChunk, signal)
@@ -649,7 +710,7 @@ export async function aiChatStream(messages, system, onChunk, signal) {
 
 /** OpenAI 流式 */
 async function streamOpenAI(system, messages, onChunk, signal) {
-  const r = await fetch(`${BASE_URL}/chat/completions`, {
+  const r = await fetch(CHAT_COMPLETIONS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
     body: JSON.stringify({
@@ -689,7 +750,7 @@ async function streamOpenAI(system, messages, onChunk, signal) {
 
 /** Anthropic 流式 */
 async function streamAnthropic(system, messages, onChunk, signal) {
-  const r = await fetch(`${BASE_URL}/v1/messages`, {
+  const r = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -847,16 +908,13 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
       temperature: 0.8,
       messages: [
         { role: 'system', content: system },
-        ...messages.map(m => ({
-          role: m.role === 'assistant' ? 'assistant' : 'user',
-          content: String(m.content || ''),
-        })),
+        ...messages.map(normalizeOpenAiMessage),
       ],
       tools: TOOLS,
       tool_choice: 'auto',
     }
 
-    const r = await fetch(`${BASE_URL}/chat/completions`, {
+    const r = await fetch(CHAT_COMPLETIONS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
       body: JSON.stringify(body),
@@ -895,4 +953,23 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
   }
   
   throw new Error('工具调用超出最大轮次')
+}
+
+function normalizeOpenAiMessage(message) {
+  const role = ['system', 'user', 'assistant', 'tool'].includes(message?.role)
+    ? message.role
+    : 'user'
+  const normalized = {
+    role,
+    content: String(message?.content ?? ''),
+  }
+
+  if (role === 'assistant' && Array.isArray(message.tool_calls)) {
+    normalized.tool_calls = message.tool_calls
+  }
+  if (role === 'tool' && message.tool_call_id) {
+    normalized.tool_call_id = message.tool_call_id
+  }
+
+  return normalized
 }

@@ -8,7 +8,7 @@
  *  - POST /chat/tools     → 手写 tool-calling 对话（3.3）
  */
 import { Router } from 'express'
-import { authRequired } from '../middleware/auth.mjs'
+import { authRequired, authOptional } from '../middleware/auth.mjs'
 import {
   generateReport,
   generateSceneOutfits,
@@ -85,7 +85,7 @@ router.post('/chat/stream', async (req, res, next) => {
   })
 
   const abortController = new AbortController()
-  req.on('close', () => abortController.abort())
+  res.on('close', () => abortController.abort())
 
   try {
     const fullText = await aiChatStream(
@@ -116,8 +116,10 @@ router.get('/chat/tools', (_req, res) => {
 })
 
 // POST /chat/tools — 手写 tool-calling 对话
-router.post('/chat/tools', async (req, res, next) => {
+router.post('/chat/tools', authOptional, async (req, res, next) => {
   if (!requireKey(req, res)) return
+  const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
+  if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
 
   // SSE 流式
   res.writeHead(200, {
@@ -126,13 +128,12 @@ router.post('/chat/tools', async (req, res, next) => {
     'Connection': 'keep-alive',
   })
 
-  const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
   const abortController = new AbortController()
-  req.on('close', () => abortController.abort())
+  res.on('close', () => abortController.abort())
 
   try {
     // 构建工具执行上下文
-    const garments = await listGarments(req, userId)
+    const garments = req.userId ? await listGarments(req.userId) : []
     const context = {
       garments,
       profile: req.body?.profile || {},

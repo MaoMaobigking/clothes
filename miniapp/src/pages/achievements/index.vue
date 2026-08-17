@@ -5,6 +5,7 @@ import {
   fetchAchievements,
   type AchievementSummary,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const summary = ref<AchievementSummary>({
   points: 0,
@@ -19,7 +20,10 @@ onMounted(async () => {
   try {
     summary.value = await fetchAchievements()
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '成就加载失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '成就加载失败'
+    }
   } finally {
     loading.value = false
   }

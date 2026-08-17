@@ -9,6 +9,7 @@ import {
   type CommunityComment,
   type CommunityContent,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)
@@ -38,7 +39,10 @@ async function loadContent() {
     content.value = await fetchCommunityContent(contentId.value)
     comments.value = content.value.comments || []
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '分享加载失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '分享加载失败'
+    }
   } finally {
     loading.value = false
   }
@@ -54,10 +58,13 @@ async function toggleAction(action: 'like' | 'favorite' | 'report') {
       setTimeout(() => uni.navigateBack(), 700)
     }
   } catch (error) {
-    uni.showToast({
-      title: error instanceof Error ? error.message : '操作失败',
-      icon: 'none',
-    })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '操作失败',
+        icon: 'none',
+      })
+    }
   }
 }
 
@@ -71,10 +78,13 @@ async function sendComment() {
     content.value.commentCount += 1
     commentDraft.value = ''
   } catch (error) {
-    uni.showToast({
-      title: error instanceof Error ? error.message : '评论失败',
-      icon: 'none',
-    })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '评论失败',
+        icon: 'none',
+      })
+    }
   } finally {
     sending.value = false
   }

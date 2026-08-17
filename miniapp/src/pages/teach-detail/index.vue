@@ -7,6 +7,7 @@ import {
   fetchCommunityContent,
   type CommunityContent,
 } from '@/api/community'
+import { isAuthError } from '@/api/http'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)
@@ -35,7 +36,10 @@ async function loadTutorial() {
   try {
     content.value = await fetchCommunityContent(contentId.value)
   } catch (error) {
-    errorText.value = error instanceof Error ? error.message : '教程加载失败'
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
+    if (!isAuthError(error)) {
+      errorText.value = error instanceof Error ? error.message : '教程加载失败'
+    }
   } finally {
     loading.value = false
   }
@@ -57,10 +61,13 @@ async function finishTutorial() {
       icon: 'none',
     })
   } catch (error) {
-    uni.showToast({
-      title: error instanceof Error ? error.message : '完成失败',
-      icon: 'none',
-    })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '完成失败',
+        icon: 'none',
+      })
+    }
   } finally {
     finishing.value = false
   }

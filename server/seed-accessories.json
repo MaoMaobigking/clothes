@@ -11,14 +11,27 @@
     "tryonEnabled": true,
     "primaryColor": "#fdf3f6",
     "secondaryColor": "#f2cdd8",
-    "seasons": ["春夏"],
-    "occasions": ["约会", "聚会"],
-    "styles": ["french", "korean"],
-    "keywords": ["柔和", "精致", "浅色"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "约会",
+      "聚会"
+    ],
+    "styles": [
+      "french",
+      "korean"
+    ],
+    "keywords": [
+      "柔和",
+      "精致",
+      "浅色"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=珍珠耳钉",
     "taokouling": "￥珍珠耳钉AI穿搭演示￥",
     "favoriteCount": 38,
-    "basePopularity": 4.7
+    "basePopularity": 4.7,
+    "imageUrl": "/static/images/accessory/ac-jewelry-1.png"
   },
   {
     "id": "ac-jewelry-2",
@@ -32,14 +45,27 @@
     "tryonEnabled": true,
     "primaryColor": "#eef1f6",
     "secondaryColor": "#b9c2d4",
-    "seasons": ["四季"],
-    "occasions": ["通勤", "日常"],
-    "styles": ["commute", "vintage"],
-    "keywords": ["利落", "金属", "中性"],
+    "seasons": [
+      "四季"
+    ],
+    "occasions": [
+      "通勤",
+      "日常"
+    ],
+    "styles": [
+      "commute",
+      "vintage"
+    ],
+    "keywords": [
+      "利落",
+      "金属",
+      "中性"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=几何银项链",
     "taokouling": "￥几何银项链AI穿搭演示￥",
     "favoriteCount": 31,
-    "basePopularity": 4.5
+    "basePopularity": 4.5,
+    "imageUrl": "/static/images/accessory/ac-jewelry-2.png"
   },
   {
     "id": "ac-jewelry-3",
@@ -53,14 +79,25 @@
     "tryonEnabled": false,
     "primaryColor": "#f6f0ea",
     "secondaryColor": "#d8c3a5",
-    "seasons": ["四季"],
-    "occasions": ["街头", "日常"],
-    "styles": ["street"],
-    "keywords": ["个性", "轻量"],
+    "seasons": [
+      "四季"
+    ],
+    "occasions": [
+      "街头",
+      "日常"
+    ],
+    "styles": [
+      "street"
+    ],
+    "keywords": [
+      "个性",
+      "轻量"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=金属环耳夹",
     "taokouling": "￥金属环耳夹AI穿搭演示￥",
     "favoriteCount": 24,
-    "basePopularity": 4.4
+    "basePopularity": 4.4,
+    "imageUrl": "/static/images/accessory/ac-jewelry-3.png"
   },
   {
     "id": "ac-jewelry-4",
@@ -74,14 +111,25 @@
     "tryonEnabled": true,
     "primaryColor": "#ffe9f2",
     "secondaryColor": "#f2c1d5",
-    "seasons": ["春夏"],
-    "occasions": ["日常", "约会"],
-    "styles": ["korean"],
-    "keywords": ["甜美", "珍珠"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "日常",
+      "约会"
+    ],
+    "styles": [
+      "korean"
+    ],
+    "keywords": [
+      "甜美",
+      "珍珠"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=珍珠发夹",
     "taokouling": "￥珍珠发夹AI穿搭演示￥",
     "favoriteCount": 29,
-    "basePopularity": 4.3
+    "basePopularity": 4.3,
+    "imageUrl": "/static/images/accessory/ac-jewelry-4.png"
   },
   {
     "id": "ac-hat-1",
@@ -95,14 +143,26 @@
     "tryonEnabled": true,
     "primaryColor": "#ffd6c9",
     "secondaryColor": "#ff9e86",
-    "seasons": ["秋冬"],
-    "occasions": ["日常", "旅行"],
-    "styles": ["street", "sport"],
-    "keywords": ["保暖", "街头"],
+    "seasons": [
+      "秋冬"
+    ],
+    "occasions": [
+      "日常",
+      "旅行"
+    ],
+    "styles": [
+      "street",
+      "sport"
+    ],
+    "keywords": [
+      "保暖",
+      "街头"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=针织毛线帽",
     "taokouling": "￥针织毛线帽AI穿搭演示￥",
     "favoriteCount": 33,
-    "basePopularity": 4.6
+    "basePopularity": 4.6,
+    "imageUrl": "/static/images/accessory/ac-hat-1.png"
   },
   {
     "id": "ac-hat-2",
@@ -116,14 +176,27 @@
     "tryonEnabled": true,
     "primaryColor": "#d8c3a5",
     "secondaryColor": "#a9885c",
-    "seasons": ["春秋", "秋冬"],
-    "occasions": ["约会", "聚会"],
-    "styles": ["french", "vintage"],
-    "keywords": ["复古", "优雅"],
+    "seasons": [
+      "春秋",
+      "秋冬"
+    ],
+    "occasions": [
+      "约会",
+      "聚会"
+    ],
+    "styles": [
+      "french",
+      "vintage"
+    ],
+    "keywords": [
+      "复古",
+      "优雅"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=法式贝雷帽",
     "taokouling": "￥法式贝雷帽AI穿搭演示￥",
     "favoriteCount": 27,
-    "basePopularity": 4.5
+    "basePopularity": 4.5,
+    "imageUrl": "/static/images/accessory/ac-hat-2.png"
   },
   {
     "id": "ac-hat-3",
@@ -137,14 +210,26 @@
     "tryonEnabled": true,
     "primaryColor": "#d6e4f0",
     "secondaryColor": "#9ab6d8",
-    "seasons": ["春夏"],
-    "occasions": ["街头", "旅行"],
-    "styles": ["street", "sport"],
-    "keywords": ["休闲", "百搭"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "街头",
+      "旅行"
+    ],
+    "styles": [
+      "street",
+      "sport"
+    ],
+    "keywords": [
+      "休闲",
+      "百搭"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=基础棒球帽",
     "taokouling": "￥基础棒球帽AI穿搭演示￥",
     "favoriteCount": 25,
-    "basePopularity": 4.3
+    "basePopularity": 4.3,
+    "imageUrl": "/static/images/accessory/ac-hat-3.png"
   },
   {
     "id": "ac-hat-4",
@@ -158,14 +243,25 @@
     "tryonEnabled": false,
     "primaryColor": "#e8e2d0",
     "secondaryColor": "#c3b48f",
-    "seasons": ["春夏"],
-    "occasions": ["街头", "旅行"],
-    "styles": ["street"],
-    "keywords": ["遮阳", "随性"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "街头",
+      "旅行"
+    ],
+    "styles": [
+      "street"
+    ],
+    "keywords": [
+      "遮阳",
+      "随性"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=渔夫帽",
     "taokouling": "￥渔夫帽AI穿搭演示￥",
     "favoriteCount": 21,
-    "basePopularity": 4.2
+    "basePopularity": 4.2,
+    "imageUrl": "/static/images/accessory/ac-hat-4.png"
   },
   {
     "id": "ac-scarf-1",
@@ -179,14 +275,25 @@
     "tryonEnabled": true,
     "primaryColor": "#f0d3d0",
     "secondaryColor": "#c98f8a",
-    "seasons": ["秋冬"],
-    "occasions": ["通勤", "日常"],
-    "styles": ["vintage"],
-    "keywords": ["复古", "保暖"],
+    "seasons": [
+      "秋冬"
+    ],
+    "occasions": [
+      "通勤",
+      "日常"
+    ],
+    "styles": [
+      "vintage"
+    ],
+    "keywords": [
+      "复古",
+      "保暖"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=格纹羊毛围巾",
     "taokouling": "￥格纹羊毛围巾AI穿搭演示￥",
     "favoriteCount": 36,
-    "basePopularity": 4.7
+    "basePopularity": 4.7,
+    "imageUrl": "/static/images/accessory/ac-scarf-1.png"
   },
   {
     "id": "ac-scarf-2",
@@ -200,14 +307,26 @@
     "tryonEnabled": true,
     "primaryColor": "#ffe0ef",
     "secondaryColor": "#ffb3d9",
-    "seasons": ["春夏"],
-    "occasions": ["约会", "聚会"],
-    "styles": ["french", "korean"],
-    "keywords": ["轻盈", "浪漫"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "约会",
+      "聚会"
+    ],
+    "styles": [
+      "french",
+      "korean"
+    ],
+    "keywords": [
+      "轻盈",
+      "浪漫"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=轻纱丝巾",
     "taokouling": "￥轻纱丝巾AI穿搭演示￥",
     "favoriteCount": 30,
-    "basePopularity": 4.5
+    "basePopularity": 4.5,
+    "imageUrl": "/static/images/accessory/ac-scarf-2.png"
   },
   {
     "id": "ac-scarf-3",
@@ -221,14 +340,26 @@
     "tryonEnabled": false,
     "primaryColor": "#f3ead6",
     "secondaryColor": "#cbb488",
-    "seasons": ["秋冬"],
-    "occasions": ["通勤", "旅行"],
-    "styles": ["commute", "vintage"],
-    "keywords": ["高级", "保暖"],
+    "seasons": [
+      "秋冬"
+    ],
+    "occasions": [
+      "通勤",
+      "旅行"
+    ],
+    "styles": [
+      "commute",
+      "vintage"
+    ],
+    "keywords": [
+      "高级",
+      "保暖"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=羊绒披肩",
     "taokouling": "￥羊绒披肩AI穿搭演示￥",
     "favoriteCount": 22,
-    "basePopularity": 4.4
+    "basePopularity": 4.4,
+    "imageUrl": "/static/images/accessory/ac-scarf-3.png"
   },
   {
     "id": "ac-belt-1",
@@ -242,14 +373,25 @@
     "tryonEnabled": true,
     "primaryColor": "#d8c3a5",
     "secondaryColor": "#a9885c",
-    "seasons": ["四季"],
-    "occasions": ["通勤", "日常"],
-    "styles": ["commute"],
-    "keywords": ["收腰", "利落"],
+    "seasons": [
+      "四季"
+    ],
+    "occasions": [
+      "通勤",
+      "日常"
+    ],
+    "styles": [
+      "commute"
+    ],
+    "keywords": [
+      "收腰",
+      "利落"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=细款通勤腰带",
     "taokouling": "￥细款通勤腰带AI穿搭演示￥",
     "favoriteCount": 26,
-    "basePopularity": 4.4
+    "basePopularity": 4.4,
+    "imageUrl": "/static/images/accessory/ac-belt-1.png"
   },
   {
     "id": "ac-belt-2",
@@ -263,14 +405,26 @@
     "tryonEnabled": false,
     "primaryColor": "#e7e2f0",
     "secondaryColor": "#b3a0d8",
-    "seasons": ["四季"],
-    "occasions": ["街头", "聚会"],
-    "styles": ["street", "vintage"],
-    "keywords": ["金属", "个性"],
+    "seasons": [
+      "四季"
+    ],
+    "occasions": [
+      "街头",
+      "聚会"
+    ],
+    "styles": [
+      "street",
+      "vintage"
+    ],
+    "keywords": [
+      "金属",
+      "个性"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=金属扣腰带",
     "taokouling": "￥金属扣腰带AI穿搭演示￥",
     "favoriteCount": 23,
-    "basePopularity": 4.3
+    "basePopularity": 4.3,
+    "imageUrl": "/static/images/accessory/ac-belt-2.png"
   },
   {
     "id": "ac-belt-3",
@@ -284,14 +438,26 @@
     "tryonEnabled": true,
     "primaryColor": "#c9a27e",
     "secondaryColor": "#8f6744",
-    "seasons": ["春夏"],
-    "occasions": ["旅行", "日常"],
-    "styles": ["street", "vintage"],
-    "keywords": ["自然", "松弛"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "旅行",
+      "日常"
+    ],
+    "styles": [
+      "street",
+      "vintage"
+    ],
+    "keywords": [
+      "自然",
+      "松弛"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=编织腰带",
     "taokouling": "￥编织腰带AI穿搭演示￥",
     "favoriteCount": 20,
-    "basePopularity": 4.2
+    "basePopularity": 4.2,
+    "imageUrl": "/static/images/accessory/ac-belt-3.png"
   },
   {
     "id": "ac-shoes-1",
@@ -305,14 +471,27 @@
     "tryonEnabled": true,
     "primaryColor": "#f2f2f5",
     "secondaryColor": "#d8d8e0",
-    "seasons": ["四季"],
-    "occasions": ["街头", "日常", "旅行"],
-    "styles": ["street", "sport"],
-    "keywords": ["百搭", "休闲"],
+    "seasons": [
+      "四季"
+    ],
+    "occasions": [
+      "街头",
+      "日常",
+      "旅行"
+    ],
+    "styles": [
+      "street",
+      "sport"
+    ],
+    "keywords": [
+      "百搭",
+      "休闲"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=厚底小白鞋",
     "taokouling": "￥厚底小白鞋AI穿搭演示￥",
     "favoriteCount": 42,
-    "basePopularity": 4.8
+    "basePopularity": 4.8,
+    "imageUrl": "/static/images/accessory/ac-shoes-1.png"
   },
   {
     "id": "ac-shoes-2",
@@ -326,14 +505,27 @@
     "tryonEnabled": true,
     "primaryColor": "#ffdfe9",
     "secondaryColor": "#ff9ec2",
-    "seasons": ["春夏"],
-    "occasions": ["约会", "聚会", "日常"],
-    "styles": ["french", "korean"],
-    "keywords": ["甜美", "浪漫"],
+    "seasons": [
+      "春夏"
+    ],
+    "occasions": [
+      "约会",
+      "聚会",
+      "日常"
+    ],
+    "styles": [
+      "french",
+      "korean"
+    ],
+    "keywords": [
+      "甜美",
+      "浪漫"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=玛丽珍单鞋",
     "taokouling": "￥玛丽珍单鞋AI穿搭演示￥",
     "favoriteCount": 35,
-    "basePopularity": 4.6
+    "basePopularity": 4.6,
+    "imageUrl": "/static/images/accessory/ac-shoes-2.png"
   },
   {
     "id": "ac-shoes-3",
@@ -347,14 +539,26 @@
     "tryonEnabled": false,
     "primaryColor": "#4a4a52",
     "secondaryColor": "#2b2b31",
-    "seasons": ["秋冬"],
-    "occasions": ["通勤", "聚会"],
-    "styles": ["commute", "vintage"],
-    "keywords": ["利落", "深色"],
+    "seasons": [
+      "秋冬"
+    ],
+    "occasions": [
+      "通勤",
+      "聚会"
+    ],
+    "styles": [
+      "commute",
+      "vintage"
+    ],
+    "keywords": [
+      "利落",
+      "深色"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=切尔西短靴",
     "taokouling": "￥切尔西短靴AI穿搭演示￥",
     "favoriteCount": 28,
-    "basePopularity": 4.5
+    "basePopularity": 4.5,
+    "imageUrl": "/static/images/accessory/ac-shoes-3.png"
   },
   {
     "id": "ac-shoes-4",
@@ -368,13 +572,26 @@
     "tryonEnabled": true,
     "primaryColor": "#d8c3a5",
     "secondaryColor": "#a9885c",
-    "seasons": ["春秋", "四季"],
-    "occasions": ["通勤", "日常"],
-    "styles": ["commute", "vintage"],
-    "keywords": ["中性", "利落"],
+    "seasons": [
+      "春秋",
+      "四季"
+    ],
+    "occasions": [
+      "通勤",
+      "日常"
+    ],
+    "styles": [
+      "commute",
+      "vintage"
+    ],
+    "keywords": [
+      "中性",
+      "利落"
+    ],
     "taobaoUrl": "https://s.taobao.com/search?q=方头乐福鞋",
     "taokouling": "￥方头乐福鞋AI穿搭演示￥",
     "favoriteCount": 32,
-    "basePopularity": 4.4
+    "basePopularity": 4.4,
+    "imageUrl": "/static/images/accessory/ac-shoes-4.png"
   }
 ]

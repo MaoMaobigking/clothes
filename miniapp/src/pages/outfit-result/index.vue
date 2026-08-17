@@ -4,21 +4,23 @@ import { onLoad } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import OutfitPreview from '@/components/OutfitPreview/OutfitPreview.vue'
+import OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import {
-  apiAddOutfitToCart,
   apiGetOutfitBatch,
   apiReplaceOutfitItem,
   apiSaveOutfit,
   type Outfit,
   type OutfitBatch,
 } from '@/api/wardrobe'
+import { isAuthError } from '@/api/http'
 import { categoryLabel, occasionLabel, seasonLabel } from '@/data/wardrobeOptions'
 import {
   garmentToAccessoryContext,
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
+import { piecesFromOutfit } from '@/utils/outfitPieces'
 
 interface ReplaceTarget {
   outfitId: number
@@ -34,8 +36,24 @@ const replacing = ref<ReplaceTarget | null>(null)
 const replaceDraft = ref('')
 const algorithmTarget = ref<Outfit | null>(null)
 const shareTarget = ref<Outfit | null>(null)
+const posterRef = ref<InstanceType<typeof OutfitPoster> | null>(null)
 
 const outfits = computed(() => batch.value?.outfits || [])
+
+// 海报副标题与日期：以前由 OutfitPoster 从 Outfit 里自己抠，
+// 组件通用化后由调用方给（功能四给的是场景 + 天气）
+const posterSubtitle = computed(() => {
+  const target = shareTarget.value
+  if (!target) return ''
+  return [target.scene, target.occasion].filter(Boolean).join(' · ')
+})
+const posterDate = computed(() => {
+  const raw = shareTarget.value?.createdAt
+  const date = raw ? new Date(raw) : new Date()
+  const d = Number.isNaN(date.getTime()) ? new Date() : date
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`
+})
 const leftItems = computed(() =>
   wardrobe.items
     .map((item, index) => ({ item, index: index + 1 }))
@@ -62,7 +80,10 @@ async function loadBatch(batchId: string) {
   try {
     batch.value = await apiGetOutfitBatch(batchId)
   } catch (error) {
-    uni.showToast({ title: (error as Error).message || '加载失败', icon: 'none' })
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      uni.showToast({ title: (error as Error).message || '加载失败', icon: 'none' })
+    }
   } finally {
     loading.value = false
   }
@@ -106,7 +127,10 @@ async function replaceWith(newGarmentId: string) {
     toast('单品已替换，方案已刷新')
     closeReplace()
   } catch (error) {
-    toast((error as Error).message || '替换失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '替换失败')
+    }
   }
 }
 
@@ -122,17 +146,27 @@ async function saveOutfit(outfit: Outfit) {
     }
     toast('已保存到我的搭配')
   } catch (error) {
-    toast((error as Error).message || '保存失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '保存失败')
+    }
   }
 }
 
+/**
+ * 整套方案拆成单品入车（规格 §4.5 §8.9）。
+ * 拆分和来源搭配都由服务端完成，store 直接以接口返回的整车为准，
+ * 不再往本地 id 数组里塞一份 —— 那份数据刷新就没，和落库的车对不上。
+ */
 async function addToCart(outfit: Outfit) {
   try {
-    await apiAddOutfitToCart(outfit.id)
-    outfit.items.forEach((entry) => cart.add(entry.garment.id))
-    toast('整套方案已拆成单品加入购物车')
+    const added = await cart.addOutfit(outfit.id)
+    toast(added > 0 ? `整套方案已拆成 ${added} 件加入购物车` : '整套方案已在购物车中')
   } catch (error) {
-    toast((error as Error).message || '加入购物车失败')
+    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '加入购物车失败')
+    }
   }
 }
 
@@ -165,8 +199,8 @@ function copyShareText() {
 
 function saveSharePoster() {
   if (!shareTarget.value) return
-  // 小程序内支持长按海报保存；H5 下先给出可复制文案作为稳定兜底。
-  toast('请长按分享卡片保存，或复制上方文案')
+  // 真导出走 OutfitPoster 的 canvas（规格 §8.9），不再是假保存提示
+  posterRef.value?.savePoster()
 }
 </script>
 
@@ -205,7 +239,7 @@ function saveSharePoster() {
       <scroll-view scroll-y class="right-column hide-scrollbar">
         <view v-if="outfits.length" class="plans">
           <view v-for="outfit in outfits" :key="outfit.id" class="plan">
-            <OutfitPreview :outfit="outfit" />
+            <OutfitPreview :pieces="piecesFromOutfit(outfit)" />
             <view class="plan-head">
               <view>
                 <view class="plan-title">{{ outfit.title }}</view>
@@ -305,6 +339,10 @@ function saveSharePoster() {
           <text class="algorithm-label">参与旧衣</text>
           <text class="algorithm-value">{{ algorithmTarget.algorithm?.garmentCount }} 件</text>
         </view>
+        <view v-if="algorithmTarget.algorithm?.input" class="algorithm-row">
+          <text class="algorithm-label">输入范围</text>
+          <text class="algorithm-value">{{ algorithmTarget.algorithm.input }}</text>
+        </view>
         <view class="algorithm-row">
           <text class="algorithm-label">本套单品</text>
           <text class="algorithm-value">{{ algorithmTarget.algorithm?.selectedCount }} 件</text>
@@ -328,23 +366,13 @@ function saveSharePoster() {
     <view v-if="shareTarget" class="mask" @tap="closeShare">
       <view class="sheet share-sheet" @tap.stop>
         <view class="sheet-title">分享搭配</view>
-        <view class="poster">
-          <view class="poster-top">{{ shareTarget.title }}</view>
-          <view class="poster-items">
-            <TileImage
-              v-for="entry in shareTarget.items"
-              :key="entry.id"
-              class="poster-thumb"
-              :src="entry.garment.img"
-              :emoji="entry.garment.emoji"
-              :from="entry.garment.primaryColor || entry.garment.from"
-              :to="entry.garment.secondaryColors?.[0] || entry.garment.to"
-              ratio="1 / 1"
-              rounded="16rpx"
-            />
-          </view>
-          <view class="poster-bottom">AI 旧衣智能搭配</view>
-        </view>
+        <OutfitPoster
+          ref="posterRef"
+          :title="shareTarget.title"
+          :subtitle="posterSubtitle"
+          :pieces="piecesFromOutfit(shareTarget)"
+          :footnote="posterDate"
+        />
         <view class="share-actions">
           <view class="btn btn-ghost share-btn" @tap="saveSharePoster">保存图片</view>
           <view class="btn btn-primary share-btn" @tap="copyShareText">复制分享文案</view>
@@ -646,32 +674,6 @@ function saveSharePoster() {
 .share-sheet {
   display: flex;
   flex-direction: column;
-}
-.poster {
-  margin-top: 24rpx;
-  padding: 28rpx;
-  border-radius: var(--radius);
-  background: var(--brand-gradient);
-  color: #fff;
-}
-.poster-top {
-  font-size: 32rpx;
-  font-weight: 800;
-}
-.poster-items {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14rpx;
-  margin-top: 24rpx;
-}
-.poster-thumb {
-  border: 4rpx solid rgba(255, 255, 255, 0.7);
-}
-.poster-bottom {
-  margin-top: 24rpx;
-  text-align: right;
-  font-size: 22rpx;
-  font-weight: 700;
 }
 .share-actions {
   display: flex;
