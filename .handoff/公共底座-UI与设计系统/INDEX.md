@@ -18,9 +18,12 @@
   第三轮在冷调地基上**局部**加玻璃卡 `.card-glass` 和马卡龙胶囊 `.pill-macaron`。
   修掉 5 个 bug，最贵的是**全站白屏**（显式组件 import 触发 uni-app 组件路径
   marker 前向引用 bug，无有效报错）和 **`--btn-h-*` 有 10 处引用却从未定义**。
-  六个坑：安卓没有 `backdrop-filter`、发丝线必须留 px、scoped 会盖掉全局类、
+  七个坑：安卓没有 `backdrop-filter`、发丝线必须留 px、scoped 会盖掉全局类、
   `uni.scss` 的 `$show-*` 开关不定义则 uv-ui 工具类静默不生成、
-  uni-app 给 `<button>` 注入默认 `::after` 伪边框、`rpx` 可以混进 `calc(env())`。
+  uni-app 给 `<button>` 注入默认 `::after` 伪边框、`rpx` 可以混进 `calc(env())`、
+  绝对定位的包含块是父级 **padding box**（浮层抽屉的 `left` 吃不到父级 padding）。
+  另有一节记**衣橱「纯图网格」为什么不做**：素材侧是硬阻塞（27 个文件里 0 个可用），
+  缺的是去背景管线而不是 CSS。
   ⚠️ 它**更正了下面那份文档**「`vue-tsc` 通过」的说法（曾回归 3 个错，现已修）
 
 - [20260817 UI 设计稿对齐与样式集中](20260817-UI设计稿对齐与样式集中.md) —
@@ -60,6 +63,7 @@
 | 时尚社群 | ❌ 未做 | 需搜索 + 城市 + 瀑布流 |
 | 列表页改 `uv-cell` | ❌ 未做 | 批次③剩余：me / custom-orders / cart / my-favorites / achievements / admin |
 | 三日预报 | ⚠️ 假数据 | 前端本地推导的演示数据，后端只返回当前天气 |
-| 模特 / 衣橱素材 | ⚠️ 阻塞 | 人台按指令已删（`free-match` 去掉 `:src`、`scene` 用 `SHOW_MODEL=false`）；`outfit.png` 与 `closet/g1~g18.png` 全缺 |
+| 模特 / 衣橱素材 | ⛔ 硬阻塞 | 已核过磁盘：`uploads/garments/` 27 个文件 = **18 个 4 字节损坏 + 9 个人台窄条副本**，带 alpha 的 **0 个**；`static/images/closet/` 目录**不存在**；全域无抠图环节。缺的是**一条去背景管线（后端）**，不是 CSS |
+| 衣橱「纯图网格」（概念稿图①） | ❌ 不做 | 素材为零时隐藏 title/tags 会得到一屏相同的灰占位图标且无文字，**比现状更差**。等去背景管线 |
 | 页面 scoped CSS 清理 | ⚠️ 部分 | 用 `css-audit.mjs` 增量清；`css-migrate.mjs --apply` **不能整体跑** |
 | 真机验证 | ❌ 未做 | 只在微信开发者工具里看过；重点验**安卓端没有 `backdrop-filter`** 时玻璃卡的降级 |
