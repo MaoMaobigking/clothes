@@ -1,0 +1,104 @@
+/*
+ * ============================================================
+ *  页面骨架 —— .page / .body 的唯一定义
+ * ============================================================
+ *
+ * 之前 .page 在 32 个页面里各写一遍（5 种写法），.body 27 遍（22 种写法），
+ * 每页自己发明一套边距，改一次全局间距要动几十个文件。这里统一。
+ *
+ * 页面骨架固定是：
+ *   <view class="page">            纵向 flex 满高
+ *     <PageHeader />               可选，二级页
+ *     <view class="body">          唯一的滚动区，flex:1
+ *     <BottomNav />                可选，5 个 tab 主页面
+ *   </view>
+ *
+ * 页面需要不一样的内边距时，用下面的修饰类，不要重新定义 .body。
+ */
+
+page {
+  background: var(--bg-gradient);
+  min-height: 100%;
+  font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: var(--text-1);
+}
+
+view,
+text,
+button,
+input,
+textarea,
+scroll-view {
+  box-sizing: border-box;
+}
+
+/* ---------------- 骨架 ---------------- */
+
+.page {
+  /*
+   * height:100% 和 min-height:100vh 都要写。
+   * 只写 100%：父链（uni-page-body）没有确定高度时解析不出来，页面会缩成内容高度，
+   *   结果是底部导航跑到屏幕中间、绝对定位的浮层互相重叠。
+   * 只写 100vh：内容超出一屏时高度被钉死，内部 flex 滚动区算不对。
+   * 两条一起写才在「内容不足一屏」和「内容超出一屏」两种情况下都对。
+   */
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 内部有绝对定位浮层的页面（个性化创建、自由搭配）加这个，给浮层定位用 */
+.page-stage {
+  position: relative;
+  overflow: hidden;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--gap-sm) var(--page-x) var(--page-bottom);
+}
+
+/* 没有 PageHeader、内容直接顶到状态栏的页面（5 个 tab 主页面） */
+.body-top {
+  padding-top: var(--page-top);
+}
+
+/* 纵向排列 + 统一间距，省得每页再写一遍 flex-direction/gap */
+.body-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+}
+
+/* 内容要自己贴边（左右不留白）时用，比如整宽的横滑区 */
+.body-flush {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ---------------- 滚动 ---------------- */
+
+.scroll-y {
+  overflow-y: auto;
+}
+
+/* 藏滚动条。小程序的 scroll-view 用 :show-scrollbar="false"，这个管 H5 和普通 view */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* 横向滚动条里的 chips 必须这样写：
+   不能给 scroll-view 本身加 display:flex —— uni-app 的 scroll-view 真正装内容的是
+   内层容器，外层的 flex 传不下去，结果是 chips 一个个竖着排。 */
+.row-scroll {
+  white-space: nowrap;
+}
+.row-scroll > view,
+.row-scroll > button {
+  display: inline-flex;
+  vertical-align: middle;
+}

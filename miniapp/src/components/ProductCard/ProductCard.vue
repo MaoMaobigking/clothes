@@ -43,7 +43,7 @@ const emit = defineEmits<{
         aria-label="收藏"
         @tap.stop="emit('fav')"
       >
-        {{ fav ? '❤️' : '🤍' }}
+        <UiIcon name="heart" :size="32" :tone="fav ? 'brand' : 'muted'" :stroke-width="fav ? 2.6 : 1.7" />
       </view>
     </view>
     <view class="name">{{ title }}</view>

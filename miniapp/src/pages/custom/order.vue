@@ -300,11 +300,6 @@ function messageClass(message: CustomMessage) {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -645,17 +640,4 @@ function messageClass(message: CustomMessage) {
   opacity: 0.55;
 }
 
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 120rpx);
-  transform: translateX(-50%);
-  z-index: 50;
-  padding: 18rpx 30rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 47, 58, 0.88);
-  color: #fff;
-  font-size: 25rpx;
-  white-space: nowrap;
-}
 </style>

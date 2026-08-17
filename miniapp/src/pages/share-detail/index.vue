@@ -121,15 +121,15 @@ async function sendComment() {
 
       <view class="actions">
         <view class="action" :class="{ on: content.liked }" @tap="toggleAction('like')">
-          <text class="action-icon">{{ content.liked ? '❤️' : '🤍' }}</text>
+          <UiIcon class="action-icon" name="heart" :size="34" :tone="content.liked ? 'brand' : 'muted'" :stroke-width="content.liked ? 2.6 : 1.7" />
           <text>{{ content.likeCount }}</text>
         </view>
         <view class="action" @tap="toggleAction('favorite')">
-          <text class="action-icon">{{ content.favorited ? '⭐' : '☆' }}</text>
+          <UiIcon class="action-icon" name="star" :size="34" :tone="content.favorited ? 'brand' : 'muted'" :stroke-width="content.favorited ? 2.6 : 1.7" />
           <text>{{ content.favoriteCount }}</text>
         </view>
         <view class="action" @tap="toggleAction('report')">
-          <text class="action-icon">🚩</text>
+          <UiIcon class="action-icon" name="flag" :size="34" tone="muted" />
           <text>举报</text>
         </view>
       </view>
@@ -158,11 +158,6 @@ async function sendComment() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -176,7 +171,7 @@ async function sendComment() {
   font-size: 26rpx;
 }
 .state.error {
-  color: #d45a78;
+  color: var(--accent);
 }
 .hero-image {
   width: 100%;

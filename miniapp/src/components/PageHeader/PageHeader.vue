@@ -27,7 +27,7 @@ function back() {
 <template>
   <view class="ph">
     <view class="back" aria-label="返回" @tap="back">
-      <text class="arrow-icon">‹</text>
+      <UiIcon name="chevron-left" :size="40" tone="dark" :stroke-width="2" />
     </view>
     <view class="mid">
       <view class="title">{{ title }}</view>
@@ -57,12 +57,6 @@ function back() {
   color: var(--text-1);
   box-shadow: var(--shadow-card);
   flex-shrink: 0;
-}
-.arrow-icon {
-  font-size: 48rpx;
-  font-weight: 300;
-  line-height: 1;
-  color: var(--text-1);
 }
 .mid {
   flex: 1;

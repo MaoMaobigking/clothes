@@ -295,17 +295,17 @@ function showCooperationTip() {
                   :class="{ on: item.liked }"
                   @tap.stop="toggleAction(item, 'like')"
                 >
-                  {{ item.liked ? '❤️' : '🤍' }} {{ item.likeCount }}
+                  <UiIcon name="heart" :size="28" :tone="item.liked ? 'brand' : 'muted'" :stroke-width="item.liked ? 2.6 : 1.7" /><text>{{ item.likeCount }}</text>
                 </view>
                 <view class="action" @tap.stop="openContent(item)">
-                  💬 {{ item.commentCount }}
+                  <UiIcon name="comment" :size="28" tone="muted" /><text>{{ item.commentCount }}</text>
                 </view>
                 <view
                   class="action"
                   :class="{ on: item.favorited }"
                   @tap.stop="toggleAction(item, 'favorite')"
                 >
-                  {{ item.favorited ? '⭐' : '☆' }} {{ item.favoriteCount }}
+                  <UiIcon name="star" :size="28" :tone="item.favorited ? 'brand' : 'muted'" :stroke-width="item.favorited ? 2.6 : 1.7" /><text>{{ item.favoriteCount }}</text>
                 </view>
                 <view class="action subtle" @tap.stop="toggleAction(item, 'report')">举报</view>
               </view>
@@ -353,11 +353,6 @@ function showCooperationTip() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .publish {
   min-width: 72rpx;
   height: 64rpx;
@@ -410,7 +405,7 @@ function showCooperationTip() {
   font-size: 26rpx;
 }
 .state.error {
-  color: #d45a78;
+  color: var(--accent);
 }
 .retry {
   margin-top: 20rpx;

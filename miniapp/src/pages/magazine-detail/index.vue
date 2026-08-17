@@ -184,11 +184,6 @@ function restoreProgress() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -202,7 +197,7 @@ function restoreProgress() {
   font-size: 26rpx;
 }
 .state.error {
-  color: #d45a78;
+  color: var(--accent);
 }
 .cover-wrap {
   position: relative;
@@ -356,11 +351,6 @@ function restoreProgress() {
   padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
   border-radius: 28rpx 28rpx 0 0;
   background: var(--surface);
-}
-.sheet-title {
-  font-size: 32rpx;
-  font-weight: 800;
-  color: var(--text-1);
 }
 .note-input {
   width: 100%;

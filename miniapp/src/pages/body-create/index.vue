@@ -5,6 +5,7 @@ import TileImage from '@/components/TileImage/TileImage.vue'
 import { STEPS } from '@/data/questions'
 import { MODEL_IMAGES } from '@/data/mock'
 import { useProfileStore } from '@/stores/profile'
+import { iconForEmoji } from '@/utils/icons'
 
 const store = useProfileStore()
 
@@ -62,7 +63,7 @@ function start() {
           <view class="guide-index">{{ index + 1 }}</view>
           <view class="guide-meta">
             <text class="guide-label">{{ step.title }}</text>
-            <text class="guide-emoji">{{ step.emoji }}</text>
+            <UiIcon class="guide-emoji" :name="iconForEmoji(step.emoji) ?? 'check'" :size="40" tone="purple" />
           </view>
           <text v-if="index === 0 || index === 3" class="guide-tag">必答</text>
           <text v-else class="guide-tag optional">可跳过</text>
@@ -79,11 +80,6 @@ function start() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -192,7 +188,7 @@ function start() {
 }
 .guide-tag.optional {
   color: var(--text-3);
-  background: #f0edf6;
+  background: var(--surface-tint);
 }
 
 .foot {

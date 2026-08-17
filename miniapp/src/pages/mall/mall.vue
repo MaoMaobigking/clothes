@@ -166,18 +166,18 @@ function goFreeMatch() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <!-- 顶部：分类名标题 + 购物车 -->
     <view class="topbar">
       <view class="row1">
         <text class="title">{{ catLabel }}</text>
         <view class="cart" aria-label="购物车" @tap="goCart">
-          <text>🛒</text>
+          <UiIcon name="cart" :size="36" tone="dark" />
           <text v-if="cart.count" class="badge">{{ cart.count }}</text>
         </view>
       </view>
       <view class="search">
-        <text class="s-ico">🔍</text>
+        <UiIcon class="s-ico" name="search" :size="34" tone="muted" />
         <text class="s-ph">搜上衣、鞋履、包袋…</text>
       </view>
     </view>
@@ -203,15 +203,15 @@ function goFreeMatch() {
           <text class="b-cn">灵犀严选</text>
           <text class="b-en">Lingxi selected series</text>
         </view>
-        <text class="banner-emoji">💎</text>
+        <UiIcon class="banner-emoji" name="gem" :size="64" tone="white" :stroke-width="1.4" />
       </view>
 
       <view v-if="loading" class="empty">
-        <text class="empty-emoji">🛍️</text>
+        <UiIcon class="empty-emoji" name="mall" :size="88" tone="muted" :stroke-width="1.3" />
         <text>正在加载商品…</text>
       </view>
       <view v-else-if="errorMessage" class="empty">
-        <text class="empty-emoji">⚠️</text>
+        <UiIcon class="empty-emoji" name="warn" :size="88" tone="muted" :stroke-width="1.3" />
         <text>{{ errorMessage }}</text>
         <text class="empty-link" @tap="loadProducts">重新加载</text>
       </view>
@@ -232,7 +232,7 @@ function goFreeMatch() {
         />
       </view>
       <view v-else class="empty">
-        <text class="empty-emoji">🛍️</text>
+        <UiIcon class="empty-emoji" name="mall" :size="88" tone="muted" :stroke-width="1.3" />
         <text>这个分类暂时没有好物</text>
       </view>
     </scroll-view>
@@ -240,10 +240,10 @@ function goFreeMatch() {
     <!-- 吸底操作条（在 BottomNav 之上） -->
     <view class="actionbar">
       <view class="btn btn-ghost pill" @tap="buyAll">
-        <text>🛒 一键加购</text>
+        <UiIcon name="cart" :size="32" tone="dark" /><text>一键加购</text>
       </view>
       <view class="btn btn-primary pill" @tap="goFreeMatch">
-        <text>✨ 一键搭配</text>
+        <UiIcon name="sparkle" :size="32" tone="white" /><text>一键搭配</text>
       </view>
     </view>
 
@@ -280,14 +280,6 @@ function goFreeMatch() {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
 .topbar {
   flex-shrink: 0;
   padding: calc(env(safe-area-inset-top, 24rpx) + 24rpx) 32rpx 16rpx;
@@ -441,15 +433,6 @@ function goFreeMatch() {
 }
 
 /* 淘口令弹窗（§4.4） */
-.mask {
-  position: absolute;
-  inset: 0;
-  z-index: 50;
-  background: rgba(40, 24, 48, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .purchase-dialog {
   width: 76%;
   padding: 44rpx 36rpx 32rpx;
@@ -514,24 +497,6 @@ function goFreeMatch() {
   font-size: 30rpx;
 }
 
-.toast {
-  position: absolute;
-  left: 50%;
-  bottom: 240rpx;
-  transform: translateX(-50%);
-  z-index: 40;
-  max-width: 80%;
-  padding: 20rpx 36rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(40, 24, 48, 0.85);
-  color: #fff;
-  font-size: 26rpx;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: var(--shadow-float);
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
 .toast-show {
   opacity: 1;
   transform: translateX(-50%) translateY(-8rpx);

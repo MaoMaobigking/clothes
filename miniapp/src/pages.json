@@ -8,9 +8,9 @@
   "pages": [
     { "path": "pages/home/home", "style": { "navigationStyle": "custom" } },
     { "path": "pages/login/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/ai/ai", "style": { "navigationBarTitleText": "AI 工作流" } },
-    { "path": "pages/closet/closet", "style": { "navigationBarTitleText": "我的衣橱" } },
-    { "path": "pages/mall/mall", "style": { "navigationBarTitleText": "商城" } },
+    { "path": "pages/ai/ai", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/closet/closet", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/mall/mall", "style": { "navigationStyle": "custom" } },
     { "path": "pages/cart/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/me/me", "style": { "navigationStyle": "custom" } },
     { "path": "pages/body-create/index", "style": { "navigationStyle": "custom" } },

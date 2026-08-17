@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { fetchSceneWeather, type SceneWeatherInfo } from '@/api/scene'
+import { iconForEmoji } from '@/utils/icons'
 import { MANUAL_WEATHER } from '@/data/scene'
 
 const props = withDefaults(
@@ -24,6 +25,9 @@ const emit = defineEmits<{
 }>()
 
 const weather = ref<SceneWeatherInfo>({ ...props.modelValue })
+
+/** 天气接口和 MANUAL_WEATHER 里存的都还是 emoji，查表换成线性图标 */
+const weatherIcon = computed(() => iconForEmoji(weather.value.icon) ?? 'w-cloud')
 const locating = ref(false)
 const editing = ref(false)
 const locationMessage = ref('')
@@ -152,7 +156,7 @@ defineExpose({ requestLocation })
   <view class="weather-card">
     <view class="wc-top">
       <view class="wc-place">
-        <text class="wc-city">📍 {{ weather.city }}</text>
+        <view class="wc-city"><UiIcon name="location" :size="28" tone="soft" /><text>{{ weather.city }}</text></view>
         <text class="wc-date">{{ dateLabel }} · {{ sourceLabel }}</text>
       </view>
       <view class="wc-actions">
@@ -164,7 +168,7 @@ defineExpose({ requestLocation })
     </view>
 
     <view class="wc-now">
-      <text class="wc-icon">{{ weather.icon }}</text>
+      <UiIcon class="wc-icon" :name="weatherIcon" :size="72" tone="soft" :stroke-width="1.4" />
       <text class="wc-temp">{{ weather.temp }}°</text>
       <text class="wc-cond">{{ weather.condition }}</text>
     </view>
@@ -189,11 +193,11 @@ defineExpose({ requestLocation })
         <picker
           class="manual-picker"
           mode="selector"
-          :range="CONDITIONS.map((item) => `${item.icon} ${item.condition}`)"
+          :range="CONDITIONS.map((item) => item.condition)"
           :value="manualConditionIndex"
           @change="onConditionChange"
         >
-          <view class="picker-value">{{ weather.icon }} {{ weather.condition }} ›</view>
+          <view class="picker-value">{{ weather.condition }} ›</view>
         </picker>
       </view>
       <view class="manual-row">

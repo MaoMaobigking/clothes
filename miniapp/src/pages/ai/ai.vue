@@ -15,12 +15,12 @@ function navigateTo(url: string) {
       <!-- 顶部大标题 -->
       <view class="hero">
         <text class="title">AI 工作流</text>
-        <text class="sub">从形象到穿搭，一站式智能生成 ✨</text>
+        <text class="sub">从形象到穿搭，一站式智能生成</text>
       </view>
 
       <!-- 主推 banner -->
       <view class="banner" @tap="navigateTo('/pages/body-create/index')">
-        <text class="banner-emoji">🧍‍♀️</text>
+        <UiIcon class="banner-emoji" name="me" :size="80" tone="white" :stroke-width="1.3" />
         <view class="banner-text">
           <text class="banner-title">打造你的专属虚拟形象</text>
           <text class="banner-desc">上传信息，AI 生成会动的你</text>
@@ -42,7 +42,7 @@ function navigateTo(url: string) {
               class="f-ico"
               :style="{ background: `linear-gradient(140deg, ${f.from}, ${f.to})` }"
             >
-              {{ f.emoji }}
+              <UiIcon :name="f.icon" :size="44" tone="dark" />
             </text>
             <text class="f-label">{{ f.label }}</text>
             <text class="f-desc">{{ f.desc }}</text>
@@ -78,11 +78,6 @@ function navigateTo(url: string) {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;

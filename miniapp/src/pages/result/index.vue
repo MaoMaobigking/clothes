@@ -179,18 +179,18 @@ function goBack() {
     <scroll-view scroll-y class="body">
       <!-- AI 状态条 -->
       <view v-if="loading" class="ai-banner loading">
-        <text class="spin">🤖</text> <text>AI 正在生成你的专属风格报告…</text>
+        <UiIcon class="spin" name="robot" :size="40" tone="purple" /> <text>AI 正在生成你的专属风格报告…</text>
       </view>
       <view v-else-if="error" class="ai-banner err">
-        <text>⚠️ AI 没连上：{{ error }}</text>
+        <text>AI 没连上：{{ error }}</text>
         <button class="mini" @tap="generate">重试</button>
       </view>
       <view v-else-if="report && source === 'ai'" class="ai-banner ok">
-        <text>✨ 以下由 AI 实时生成</text>
+        <text>以下由 AI 实时生成</text>
         <button class="mini" @tap="generate">换一份</button>
       </view>
       <view v-else-if="report && source === 'rule'" class="ai-banner ok">
-        <text>🧭 基础规则版（AI 未连接）</text>
+        <text>基础规则版（AI 未连接）</text>
         <button class="mini" @tap="generate">重试 AI</button>
       </view>
 
@@ -225,7 +225,7 @@ function goBack() {
 
       <!-- 画像雷达图 -->
       <view class="card">
-        <view class="sec-title">🧭 我的画像雷达</view>
+        <view class="sec-title">我的画像雷达</view>
         <RadarChart :dimensions="radar" />
         <view v-if="store.incompleteDimensions.length" class="incomplete-list">
           <view
@@ -241,7 +241,7 @@ function goBack() {
 
       <!-- 推荐配色 -->
       <view v-if="report?.palette?.length" class="card">
-        <view class="sec-title">🎨 推荐配色</view>
+        <view class="sec-title">推荐配色</view>
         <view class="palette">
           <text v-for="c in report.palette" :key="c" class="sw" :style="{ background: c }" :title="c" />
         </view>
@@ -249,7 +249,7 @@ function goBack() {
 
       <!-- AI 穿搭推荐 -->
       <view v-if="report?.recommendations?.length" class="card">
-        <view class="sec-title">👗 AI 穿搭推荐</view>
+        <view class="sec-title">AI 穿搭推荐</view>
         <view class="recos">
           <view v-for="(r, i) in report.recommendations" :key="i" class="reco">
             <view class="reco-head">
@@ -266,7 +266,7 @@ function goBack() {
 
       <!-- 造型建议 -->
       <view v-if="report?.tips?.length" class="card">
-        <view class="sec-title">💡 造型建议</view>
+        <view class="sec-title">造型建议</view>
         <view class="tips">
           <view v-for="(t, i) in report.tips" :key="i" class="tip-item">{{ t }}</view>
         </view>
@@ -274,7 +274,7 @@ function goBack() {
 
       <!-- 关键标签 -->
       <view class="card">
-        <view class="sec-title">🏷️ 关键标签</view>
+        <view class="sec-title">关键标签</view>
         <view class="traits">
           <view class="trait">
             <text class="k">肤色</text><text class="v">{{ store.skinLabel || '—' }}</text>
@@ -300,12 +300,6 @@ function goBack() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 .top {
   display: flex;
   align-items: center;
@@ -369,7 +363,7 @@ function goBack() {
 }
 .ai-banner.err {
   background: #fff3f0;
-  color: #d9694f;
+  color: var(--warning);
 }
 .spin {
   display: inline-block;
@@ -592,7 +586,7 @@ function goBack() {
   font-weight: 600;
 }
 .style-tag.empty {
-  background: #f0edf6;
+  background: var(--surface-tint);
   color: var(--text-3);
 }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { MODEL_IMAGES } from '@/data/mock'
+import { iconForEmoji } from '@/utils/icons'
 import { categoryLabel } from '@/data/wardrobeOptions'
 import type { OutfitPiece } from '@/utils/outfitPieces'
 
@@ -78,6 +79,9 @@ const overlays = computed(() => {
 // 缺素材时退回中性底，不显示裂图（§4.3）
 const bgFailed = ref(false)
 const modelFailed = ref(false)
+
+/** 场景底图缺素材时的占位图标（backgroundEmoji 里还存着 emoji，查表转成线条图标） */
+const bgIcon = computed(() => iconForEmoji(props.backgroundEmoji) ?? 'image')
 watch(() => props.background, () => (bgFailed.value = false))
 watch(() => props.model, () => (modelFailed.value = false))
 </script>
@@ -92,7 +96,7 @@ watch(() => props.model, () => (modelFailed.value = false))
       @error="bgFailed = true"
     />
     <view v-else-if="backgroundEmoji" class="layer bg-emoji">
-      <text>{{ backgroundEmoji }}</text>
+      <UiIcon :name="bgIcon" :size="100" tone="muted" :stroke-width="1.2" />
     </view>
 
     <view v-if="filterStyle" class="layer filter" :style="{ background: filterStyle }" />
@@ -104,7 +108,7 @@ watch(() => props.model, () => (modelFailed.value = false))
       mode="aspectFit"
       @error="modelFailed = true"
     />
-    <text v-else class="model-fallback">🧍‍♀️</text>
+    <UiIcon v-else name="me" :size="120" tone="muted" :stroke-width="1.2" class="model-fallback" />
 
     <view
       v-for="overlay in overlays"
@@ -118,12 +122,8 @@ watch(() => props.model, () => (modelFailed.value = false))
         mode="aspectFill"
         class="overlay-img"
       />
-      <view
-        v-else
-        class="overlay-img placeholder"
-        :style="{ background: `linear-gradient(140deg, ${overlay.from}, ${overlay.to})` }"
-      >
-        <text>{{ overlay.emoji }}</text>
+      <view v-else class="overlay-img placeholder">
+        <UiIcon :name="iconForEmoji(overlay.emoji) ?? 'image'" :size="40" tone="muted" :stroke-width="1.4" />
       </view>
       <text class="overlay-tag">{{ overlay.label }}</text>
     </view>
@@ -149,8 +149,7 @@ watch(() => props.model, () => (modelFailed.value = false))
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 108rpx;
-  background: linear-gradient(150deg, #e9f2ff, #f3e8ff);
+  background: #f2f0f6;
 }
 .filter {
   z-index: 1;
@@ -191,7 +190,7 @@ watch(() => props.model, () => (modelFailed.value = false))
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 44rpx;
+  background: #f2f0f6;
 }
 .overlay-tag {
   position: absolute;

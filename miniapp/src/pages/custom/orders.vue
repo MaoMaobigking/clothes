@@ -109,7 +109,7 @@ onShow(loadRequests)
       </view>
 
       <view v-else class="empty">
-        <text class="empty-emoji">🧵</text>
+        <UiIcon class="empty-emoji" name="scissors" :size="88" tone="muted" :stroke-width="1.3" />
         <text class="empty-title">还没有定制申请</text>
         <text class="empty-desc">提交咨询或量体预约后，进度会集中显示在这里。</text>
         <button class="btn btn-primary empty-btn" @tap="openCategory">发起定制</button>
@@ -119,11 +119,6 @@ onShow(loadRequests)
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -137,7 +132,7 @@ onShow(loadRequests)
   font-size: 25rpx;
 }
 .state.error {
-  color: #d9694f;
+  color: var(--warning);
 }
 
 .list {

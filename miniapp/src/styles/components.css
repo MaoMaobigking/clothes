@@ -1,0 +1,221 @@
+/*
+ * ============================================================
+ *  通用组件类 —— 页面里直接加 class，不要再各自写一份
+ * ============================================================
+ *
+ * 收进来的都是全站重复 4 次以上的东西：
+ *   .card / .chip / .pill / .empty / .toast / .mask / .sheet / .grid-2
+ *
+ * 用法示例：
+ *   <view class="card">…</view>
+ *   <view class="mask"><view class="sheet">…</view></view>
+ *   <view class="empty"><UiIcon …/><view class="empty-title">…</view></view>
+ *
+ * 要微调某一处时，在页面的 scoped style 里只写差异（比如 padding），
+ * 不要把整块规则复制过去 —— 复制就是下一次「到处改」的起点。
+ */
+
+/* ---------------- 按钮 ---------------- */
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  padding: 0 48rpx;
+  border-radius: var(--radius-pill);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+.btn-primary {
+  background: var(--brand-gradient);
+  color: var(--text-on-brand);
+  box-shadow: 0 16rpx 40rpx rgba(177, 140, 255, 0.4);
+}
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: var(--shadow-card);
+}
+.btn-disabled {
+  background: #e6e0ef;
+  color: #b7b0c6;
+  box-shadow: none;
+}
+.btn-sm {
+  height: 68rpx;
+  padding: 0 28rpx;
+  font-size: 26rpx;
+}
+
+/* ---------------- 卡片 ---------------- */
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: var(--gap);
+  box-shadow: var(--shadow-card);
+}
+/* 浮在内容之上的面板（个性化创建的基础信息卡这类） */
+.card-glass {
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border: 2rpx solid var(--line);
+  box-shadow: var(--shadow-float);
+}
+
+/* ---------------- 胶囊标签 / 筛选片 ---------------- */
+
+/* 纯展示标签：设计稿里反复出现的「我的虚拟形象」「基础信息」那种 */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 10rpx 26rpx;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  border: 2rpx solid var(--line);
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.tag-pill-brand {
+  background: var(--pink-soft);
+  border-color: transparent;
+  color: var(--pink-deep);
+}
+
+/* 可点的筛选片，配合 .row-scroll 用 */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 12rpx;
+  padding: 12rpx 28rpx;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  color: var(--text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+.chip.on {
+  background: var(--brand-gradient);
+  color: var(--text-on-brand);
+  box-shadow: none;
+}
+
+/* ---------------- 网格 ---------------- */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-sm);
+}
+
+/* ---------------- 空态 / 错误态 ---------------- */
+
+.empty {
+  padding: 96rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-sm);
+  text-align: center;
+}
+.empty-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.empty-sub {
+  font-size: 24rpx;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.empty-btn {
+  margin-top: var(--gap-xs);
+}
+
+/* ---------------- 遮罩 + 弹出面板 ---------------- */
+
+/*
+ * 层级走 --z-mask / --z-sheet / --z-toast，不要再手写数字。
+ * 之前每个页面各写一套（mask 20~50、toast 10~60），
+ * 结果低层级的 toast 被高层级的遮罩盖住。
+ */
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: var(--z-mask);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(31, 25, 45, 0.4);
+}
+/* 居中弹窗而不是底部抽屉 */
+.mask-center {
+  align-items: center;
+}
+
+.sheet {
+  position: relative;
+  z-index: var(--z-sheet);
+  width: 100%;
+  max-height: 82vh;
+  padding: 36rpx 36rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--surface);
+  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.22);
+}
+.sheet-center {
+  width: 84%;
+  max-width: 640rpx;
+  border-radius: var(--radius-lg);
+  padding: 40rpx;
+}
+.sheet-title {
+  margin-bottom: var(--gap-lg);
+  font-size: 34rpx;
+  font-weight: 800;
+  color: var(--text-1);
+}
+
+/* ---------------- 轻提示 ---------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 160rpx);
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  max-width: 80%;
+  padding: 18rpx 32rpx;
+  border-radius: var(--radius-pill);
+  background: rgba(47, 42, 61, 0.9);
+  color: #fff;
+  font-size: 26rpx;
+  text-align: center;
+  box-shadow: var(--shadow-float);
+}
+
+/* ---------------- 小节标题 ---------------- */
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.section-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: var(--text-3);
+}

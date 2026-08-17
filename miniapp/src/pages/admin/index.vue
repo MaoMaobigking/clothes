@@ -59,7 +59,7 @@ function logout() {
     <view class="body scroll-y hide-scrollbar">
       <template v-if="!dashboard">
         <view class="login-panel">
-          <text class="login-emoji">🔐</text>
+          <UiIcon class="login-emoji" name="lock" :size="88" tone="purple" :stroke-width="1.4" />
           <view class="login-title">轻量管理员入口</view>
           <view class="login-sub">统计数据来自当前数据库真实记录</view>
           <input
@@ -145,11 +145,6 @@ function logout() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -191,7 +186,7 @@ function logout() {
   box-shadow: var(--shadow-card);
 }
 .error {
-  color: #d45a78;
+  color: var(--accent);
   font-size: 22rpx;
 }
 .login-button {

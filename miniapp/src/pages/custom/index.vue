@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { iconForEmoji } from '@/utils/icons'
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageHeader from '@/components/PageHeader/PageHeader.vue'
@@ -110,7 +111,7 @@ onShow(loadData)
                 fill
                 rounded="0"
               />
-              <text class="category-emoji">{{ category.emoji }}</text>
+              <UiIcon class="category-emoji" :name="iconForEmoji(category.emoji) ?? 'scissors'" :size="44" tone="soft" />
             </view>
             <view class="category-meta">
               <text class="category-label">{{ category.shortLabel }}</text>
@@ -191,11 +192,6 @@ onShow(loadData)
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -452,7 +448,7 @@ onShow(loadData)
   text-align: center;
 }
 .error {
-  color: #d9694f;
+  color: var(--warning);
 }
 .empty-card {
   background: var(--surface-soft);
@@ -478,17 +474,4 @@ onShow(loadData)
   margin-top: 10rpx;
 }
 
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 120rpx);
-  transform: translateX(-50%);
-  z-index: 40;
-  padding: 18rpx 30rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 47, 58, 0.88);
-  color: #fff;
-  font-size: 25rpx;
-  white-space: nowrap;
-}
 </style>

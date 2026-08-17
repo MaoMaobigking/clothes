@@ -54,7 +54,7 @@ async function generate() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <PageHeader title="手动调整搭配" to="/pages/closet/closet" />
 
     <view class="summary">
@@ -135,14 +135,6 @@ async function generate() {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
 .summary {
   flex-shrink: 0;
   display: flex;
@@ -243,7 +235,7 @@ async function generate() {
 }
 .frequent {
   margin-left: 8rpx;
-  color: #2e8a6e;
+  color: var(--success);
   font-weight: 700;
 }
 .empty {

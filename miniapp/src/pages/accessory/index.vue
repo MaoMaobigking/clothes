@@ -415,11 +415,11 @@ function copyCartItem(item: AccessoryCartItem) {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <PageHeader title="配饰推荐" to="/pages/home/home">
       <template #right>
         <view class="cart-button" @tap="cartOpen = true">
-          <text>🛒</text>
+          <UiIcon name="cart" :size="32" tone="dark" />
           <text v-if="cart.count" class="cart-badge">{{ cart.count }}</text>
         </view>
       </template>
@@ -578,7 +578,7 @@ function copyCartItem(item: AccessoryCartItem) {
           </view>
         </view>
         <view v-else class="empty-recommend">
-          <text class="empty-recommend-emoji">🪞</text>
+          <UiIcon class="empty-recommend-emoji" name="mirror" :size="88" tone="muted" :stroke-width="1.3" />
           <text>这个分类暂无强匹配，可查看其他风格</text>
         </view>
 
@@ -715,7 +715,7 @@ function copyCartItem(item: AccessoryCartItem) {
             </view>
           </view>
           <view v-else class="cart-empty">
-            <text class="cart-empty-emoji">🛒</text>
+            <UiIcon class="cart-empty-emoji" name="cart" :size="88" tone="muted" :stroke-width="1.3" />
             <text>购物车还是空的</text>
           </view>
         </scroll-view>
@@ -727,14 +727,6 @@ function copyCartItem(item: AccessoryCartItem) {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -820,7 +812,7 @@ function copyCartItem(item: AccessoryCartItem) {
   flex-shrink: 0;
   padding: 12rpx 22rpx;
   border-radius: 999rpx;
-  background: #f3effc;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 23rpx;
   font-weight: 700;
@@ -852,7 +844,7 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 20rpx;
   padding: 15rpx 18rpx;
   border-radius: 18rpx;
-  background: #f7f2ff;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 23rpx;
   font-weight: 700;
@@ -902,7 +894,7 @@ function copyCartItem(item: AccessoryCartItem) {
   flex-shrink: 0;
   padding: 8rpx 18rpx;
   border-radius: 999rpx;
-  background: #f3effc;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 20rpx;
   font-weight: 700;
@@ -924,7 +916,7 @@ function copyCartItem(item: AccessoryCartItem) {
   color: var(--text-3);
 }
 .tryon-status.on {
-  color: #2e8a6e;
+  color: var(--success);
 }
 .category-tabs {
   margin-top: 22rpx;
@@ -1018,7 +1010,7 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 14rpx;
   padding: 12rpx 14rpx;
   border-radius: 14rpx;
-  background: #faf7ff;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 21rpx;
   line-height: 1.45;
@@ -1056,7 +1048,7 @@ function copyCartItem(item: AccessoryCartItem) {
   align-items: center;
   justify-content: center;
   border-radius: 14rpx;
-  background: #f3effc;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 20rpx;
   font-weight: 700;
@@ -1153,35 +1145,13 @@ function copyCartItem(item: AccessoryCartItem) {
   font-size: 30rpx;
   font-weight: 800;
 }
-.mask {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(35, 24, 48, 0.38);
-}
-.sheet {
-  width: 100%;
-  max-height: 82vh;
-  padding: 30rpx 30rpx calc(30rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 44rpx 44rpx 0 0;
-  background: #fff;
-  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.24);
-}
-.sheet-title {
-  font-size: 34rpx;
-  font-weight: 800;
-  color: var(--text-1);
-}
 .picker-tabs {
   display: flex;
   gap: 10rpx;
   margin-top: 22rpx;
   padding: 7rpx;
   border-radius: 999rpx;
-  background: #f7f2ff;
+  background: var(--surface-tint);
 }
 .picker-tab {
   flex: 1;
@@ -1210,7 +1180,7 @@ function copyCartItem(item: AccessoryCartItem) {
   padding: 10rpx;
   border: 4rpx solid transparent;
   border-radius: 24rpx;
-  background: #faf7ff;
+  background: var(--surface-tint);
 }
 .picker-name {
   display: block;
@@ -1294,7 +1264,7 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 10rpx;
   padding: 14rpx;
   border-radius: 16rpx;
-  background: #f7f2ff;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 22rpx;
   word-break: break-all;
@@ -1357,7 +1327,7 @@ function copyCartItem(item: AccessoryCartItem) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #faf8ff;
+  background: var(--surface-tint);
   color: var(--text-1);
   font-size: 26rpx;
 }
@@ -1375,7 +1345,7 @@ function copyCartItem(item: AccessoryCartItem) {
   flex-shrink: 0;
   padding: 10rpx 16rpx;
   border-radius: 999rpx;
-  background: #f3effc;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 20rpx;
   font-weight: 700;

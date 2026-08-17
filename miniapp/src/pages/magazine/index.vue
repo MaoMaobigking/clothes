@@ -31,12 +31,6 @@ onLoad(() => {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .hint {
   font-size: 26rpx;
   color: var(--text-3);

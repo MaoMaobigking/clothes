@@ -4,6 +4,7 @@ import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import TileImage from '@/components/TileImage/TileImage.vue'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import SegTabs from '@/components/SegTabs/SegTabs.vue'
+import { iconForEmoji, type IconName } from '@/utils/icons'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { MODEL_IMAGES, type Garment } from '@/data/mock'
 import {
@@ -23,13 +24,13 @@ function showToast(msg: string) {
 }
 
 /* ---------- 右侧工具 ---------- */
-const tools: { key: string; label: string; emoji: string }[] = [
-  { key: 'save', label: '穿搭保存', emoji: '💾' },
-  { key: 'model', label: '更换模型', emoji: '🧍‍♀️' },
-  { key: 'outfit', label: '更换搭配', emoji: '🔄' },
-  { key: 'shoes', label: '换鞋子', emoji: '👟' },
-  { key: 'skirt', label: '换裙子', emoji: '👗' },
-  { key: 'pro', label: '进阶穿搭', emoji: '✨' },
+const tools: { key: string; label: string; emoji: string; icon: IconName }[] = [
+  { key: 'save', label: '穿搭保存', emoji: '💾', icon: 'save' },
+  { key: 'model', label: '更换模型', emoji: '🧍‍♀️', icon: 'model-switch' },
+  { key: 'outfit', label: '更换搭配', emoji: '🔄', icon: 'refresh' },
+  { key: 'shoes', label: '换鞋子', emoji: '👟', icon: 'cat-shoes' },
+  { key: 'skirt', label: '换裙子', emoji: '👗', icon: 'cat-skirt' },
+  { key: 'pro', label: '进阶穿搭', emoji: '✨', icon: 'outfit-switch' },
 ]
 function onTool(label: string) {
   showToast(`${label} · 敬请期待`)
@@ -123,9 +124,15 @@ function goAccessory() {
     <PageHeader title="自由搭配" to="/pages/home/home">
       <template #right>
         <view class="head-actions">
-          <button class="head-ico" aria-label="配配饰" @tap="goAccessory">💎</button>
-          <button class="head-ico" aria-label="收藏" @tap="showToast('已收藏本套造型 ★')">★</button>
-          <button class="head-ico" aria-label="保存" @tap="showToast('穿搭已保存 💾')">💾</button>
+          <button class="head-ico" aria-label="配配饰" @tap="goAccessory">
+            <UiIcon name="cat-jewelry" :size="34" tone="purple" />
+          </button>
+          <button class="head-ico" aria-label="收藏" @tap="showToast('已收藏本套造型')">
+            <UiIcon name="star" :size="34" tone="brand" />
+          </button>
+          <button class="head-ico" aria-label="保存" @tap="showToast('穿搭已保存')">
+            <UiIcon name="save" :size="34" tone="dark" />
+          </button>
         </view>
       </template>
     </PageHeader>
@@ -167,25 +174,25 @@ function goAccessory() {
             :aria-label="t.label"
             @tap="onTool(t.label)"
           >
-            <text class="tool-ico">{{ t.emoji }}</text>
+            <UiIcon :name="t.icon" :size="38" tone="dark" />
             <text class="tool-label">{{ t.label }}</text>
           </button>
         </scroll-view>
 
         <!-- 右下：个性化创建入口 -->
-        <button class="create-entry" @tap="goCreate">✨ 个性化创建</button>
+        <button class="create-entry" @tap="goCreate"><UiIcon name="sparkle" :size="28" tone="white" /><text>个性化创建</text></button>
       </view>
 
       <!-- 已选单品 chips -->
       <view class="selected">
         <view v-if="selected.length" class="sel-row">
           <button v-for="s in selected" :key="s.id" class="sel-chip" @tap="takeOff(s.id)">
-            <text class="sel-emoji">{{ s.emoji }}</text>
+            <UiIcon class="sel-emoji" :name="iconForEmoji(s.emoji) ?? 'image'" :size="28" tone="soft" />
             <text class="sel-name">{{ s.name }}</text>
             <text class="sel-x">×</text>
           </button>
         </view>
-        <view v-else class="sel-empty">还没穿上单品，去下面挑一件试试吧 👇</view>
+        <view v-else class="sel-empty">还没穿上单品，去下面挑一件试试吧</view>
       </view>
 
       <!-- 下半区：底部面板 -->
@@ -222,7 +229,7 @@ function goAccessory() {
             />
           </view>
           <view v-else class="empty">
-            <text class="empty-emoji">🧺</text>
+            <UiIcon class="empty-emoji" name="box" :size="88" tone="muted" :stroke-width="1.3" />
             <view>这里还没有可搭配的衣物</view>
           </view>
         </scroll-view>
@@ -237,11 +244,6 @@ function goAccessory() {
 </template>
 
 <style scoped>
-.page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -260,10 +262,10 @@ function goAccessory() {
   width: 68rpx;
   height: 68rpx;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 30rpx;
-  color: var(--pink-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: var(--shadow-card);
 }
@@ -314,25 +316,21 @@ function goAccessory() {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
-  max-height: 680rpx;
+  /* 留出右下角「个性化创建」胶囊的位置，否则最后一个工具会被它盖住 */
+  max-height: 560rpx;
 }
+/* 同 create 页：设计稿里是裸图标 + 文字，不套白卡 */
 .tool {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4rpx;
-  width: 112rpx;
-  padding: 12rpx 4rpx;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow-card);
+  gap: 6rpx;
+  width: 108rpx;
+  padding: 8rpx 4rpx;
   transition: transform 0.15s ease;
 }
 .tool:active {
   transform: scale(0.92);
-}
-.tool-ico {
-  font-size: 40rpx;
 }
 .tool-label {
   font-size: 20rpx;
@@ -345,6 +343,9 @@ function goAccessory() {
   right: 24rpx;
   bottom: 24rpx;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   padding: 14rpx 24rpx;
   border-radius: var(--radius-pill);
   font-size: 24rpx;
@@ -407,13 +408,17 @@ function goAccessory() {
   box-shadow: var(--shadow-card);
 }
 
+/*
+ * 横向 chips 必须用 nowrap + inline-flex，不能给 scroll-view 本身加 display:flex：
+ * uni-app 的 scroll-view 真正装内容的是内层容器，外层的 flex 传不下去，
+ * 结果就是 chips 一个个竖着排。closet 里的 .filters 是正确写法，这里对齐它。
+ */
 .chips {
-  display: flex;
-  gap: 16rpx;
   white-space: nowrap;
 }
 .chip {
-  flex-shrink: 0;
+  display: inline-flex;
+  margin-right: 16rpx;
   padding: 12rpx 28rpx;
   border-radius: var(--radius-pill);
   font-size: 26rpx;
@@ -449,22 +454,6 @@ function goAccessory() {
 }
 
 /* ---------- 轻提示 ---------- */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 168rpx;
-  transform: translateX(-50%);
-  z-index: 50;
-  max-width: 78%;
-  padding: 20rpx 36rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(40, 30, 55, 0.86);
-  color: #fff;
-  font-size: 26rpx;
-  font-weight: 600;
-  box-shadow: var(--shadow-float);
-  white-space: nowrap;
-}
 .toast-enter-active,
 .toast-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;

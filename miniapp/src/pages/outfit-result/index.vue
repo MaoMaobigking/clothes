@@ -205,7 +205,7 @@ function saveSharePoster() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <PageHeader title="今日搭配" to="/pages/closet/closet">
       <template #right>
         <view class="head-stat">
@@ -273,11 +273,11 @@ function saveSharePoster() {
 
             <view class="plan-actions">
               <view class="plan-action" @tap="addToCart(outfit)">
-                <text class="action-icon">🛒</text>
+                <UiIcon class="action-icon" name="cart" :size="34" tone="dark" />
                 <text>加入购物车</text>
               </view>
               <view class="plan-action" @tap="saveOutfit(outfit)">
-                <text class="action-icon">{{ outfit.isSaved ? '★' : '☆' }}</text>
+                <UiIcon class="action-icon" name="star" :size="34" :tone="outfit.isSaved ? 'brand' : 'muted'" :stroke-width="outfit.isSaved ? 2.6 : 1.7" />
                 <text>{{ outfit.isSaved ? '已收藏' : '收藏' }}</text>
               </view>
               <view class="plan-action" @tap="openShare(outfit)">
@@ -285,14 +285,14 @@ function saveSharePoster() {
                 <text>分享</text>
               </view>
               <view class="plan-action" @tap="goAccessory(outfit)">
-                <text class="action-icon">💎</text>
+                <UiIcon class="action-icon" name="gem" :size="34" tone="purple" />
                 <text>配饰</text>
               </view>
             </view>
           </view>
         </view>
         <view v-else class="empty">
-          <text class="empty-emoji">🧺</text>
+          <UiIcon class="empty-emoji" name="box" :size="88" tone="muted" :stroke-width="1.3" />
           <text>还没有搭配方案，先回衣橱生成一套吧</text>
         </view>
       </scroll-view>
@@ -383,14 +383,6 @@ function saveSharePoster() {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
 .head-stat {
   display: flex;
   align-items: baseline;
@@ -531,7 +523,7 @@ function saveSharePoster() {
   position: relative;
   padding: 8rpx;
   border-radius: 20rpx;
-  background: #faf7ff;
+  background: var(--surface-tint);
 }
 .outfit-item-name {
   margin: 8rpx 2rpx 0;
@@ -563,7 +555,7 @@ function saveSharePoster() {
   min-height: 64rpx;
   padding: 8rpx 4rpx;
   border-radius: 16rpx;
-  background: #f4f0fb;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 20rpx;
   font-weight: 700;
@@ -583,28 +575,6 @@ function saveSharePoster() {
 .empty-emoji {
   font-size: 82rpx;
 }
-.mask {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(35, 24, 48, 0.36);
-}
-.sheet {
-  width: 100%;
-  max-height: 78vh;
-  padding: 34rpx 34rpx calc(34rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 44rpx 44rpx 0 0;
-  background: #fff;
-  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.24);
-}
-.sheet-title {
-  font-size: 34rpx;
-  font-weight: 800;
-  color: var(--text-1);
-}
 .sheet-sub {
   margin-top: 8rpx;
   color: var(--text-3);
@@ -621,7 +591,7 @@ function saveSharePoster() {
   padding: 10rpx;
   border: 4rpx solid transparent;
   border-radius: 22rpx;
-  background: #faf7ff;
+  background: var(--surface-tint);
 }
 .replace-item.selected {
   border-color: var(--pink);
@@ -663,7 +633,7 @@ function saveSharePoster() {
   margin-top: 22rpx;
   padding: 18rpx;
   border-radius: 18rpx;
-  background: #f7f2ff;
+  background: var(--surface-tint);
   color: var(--text-2);
   font-size: 23rpx;
   line-height: 1.5;

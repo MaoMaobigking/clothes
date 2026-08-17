@@ -26,7 +26,7 @@ const emit = defineEmits<{
     >
       <view class="dot">
         <text v-if="current > i + 1" class="check">✓</text>
-        <text v-else class="emoji">{{ s.emoji }}</text>
+        <UiIcon v-else :name="s.icon" :size="34" :tone="current === i + 1 ? 'white' : 'muted'" />
       </view>
       <text class="label">{{ s.title }}</text>
     </view>
@@ -75,10 +75,6 @@ const emit = defineEmits<{
 .step.done .dot {
   background: var(--mint);
 }
-.emoji {
-  font-size: 40rpx;
-}
-
 .check {
   color: #fff;
   font-weight: 800;

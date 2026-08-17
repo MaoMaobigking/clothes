@@ -127,14 +127,14 @@ function goShopping() {
 </script>
 
 <template>
-  <view class="page">
+  <view class="page page-stage">
     <PageHeader title="购物车" to="/pages/me/me" />
 
     <view v-if="cart.loading && !cart.loaded" class="state">正在读取购物车...</view>
     <view v-else-if="cart.error" class="state error">{{ cart.error }}</view>
 
     <view v-else-if="cart.isEmpty" class="state empty">
-      <text class="empty-emoji">🛒</text>
+      <UiIcon class="empty-emoji" name="cart" :size="88" tone="muted" :stroke-width="1.3" />
       <view class="empty-title">购物车还是空的</view>
       <view class="empty-sub">从配饰推荐或搭配方案里加点东西吧</view>
       <view class="btn btn-primary empty-btn" @tap="goShopping">去逛逛配饰</view>
@@ -214,14 +214,6 @@ function goShopping() {
 </template>
 
 <style scoped>
-.page {
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
 .body {
   flex: 1;
   min-height: 0;
@@ -301,7 +293,7 @@ function goShopping() {
 .tag {
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
-  background: #f3effc;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 19rpx;
 }
@@ -349,7 +341,7 @@ function goShopping() {
   justify-content: center;
   color: var(--text-1);
   font-size: 30rpx;
-  background: #faf8ff;
+  background: var(--surface-tint);
 }
 .step.disabled {
   color: #c4c0cc;
@@ -364,7 +356,7 @@ function goShopping() {
 .op-btn {
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  background: #f3effc;
+  background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 20rpx;
   font-weight: 700;
