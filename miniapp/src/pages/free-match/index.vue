@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { iconForEmoji, type IconName } from '@/utils/icons'
 import { useWardrobeStore } from '@/stores/wardrobe'
-import { MODEL_IMAGES, type Garment } from '@/data/mock'
+/* MODEL_IMAGES 已不再引用（人台暂不渲染，见下面 stage 那段注释）；
+   恢复人台时把它加回这一行的 import 里 */
+import { type Garment } from '@/data/mock'
 import {
   garmentToAccessoryContext,
   setAccessoryPageContext,
@@ -20,16 +22,29 @@ function showToast(msg: string) {
 }
 
 /* ---------- 右侧工具 ---------- */
-const tools: { key: string; label: string; emoji: string; icon: IconName }[] = [
-  { key: 'save', label: '穿搭保存', emoji: '💾', icon: 'save' },
-  { key: 'model', label: '更换模型', emoji: '🧍‍♀️', icon: 'model-switch' },
-  { key: 'outfit', label: '更换搭配', emoji: '🔄', icon: 'refresh' },
-  { key: 'shoes', label: '换鞋子', emoji: '👟', icon: 'cat-shoes' },
-  { key: 'skirt', label: '换裙子', emoji: '👗', icon: 'cat-skirt' },
-  { key: 'pro', label: '进阶穿搭', emoji: '✨', icon: 'outfit-switch' },
+/*
+ * 右侧竖排工具，对齐样图的五项：穿搭保存 / 更换模特 / 更换场景 / 更换搭配 / 还原穿搭。
+ * 原来是「换鞋子 / 换裙子 / 进阶穿搭」，样图上没有这三项。
+ */
+const tools: { key: string; label: string; icon: IconName }[] = [
+  { key: 'save', label: '穿搭保存', icon: 'save' },
+  { key: 'model', label: '更换模特', icon: 'model-switch' },
+  { key: 'scene', label: '更换场景', icon: 'scene-switch' },
+  { key: 'outfit', label: '更换搭配', icon: 'outfit-switch' },
+  { key: 'reset', label: '还原穿搭', icon: 'refresh' },
 ]
-function onTool(label: string) {
-  showToast(`${label} · 敬请期待`)
+function onTool(t: { key: string; label: string }) {
+  // 「还原穿搭」是现成能做的：把已穿上的清空即可，不用再挂一句「敬请期待」
+  if (t.key === 'reset') {
+    if (!selected.value.length) {
+      showToast('还没穿上任何单品')
+      return
+    }
+    selected.value = []
+    showToast('已还原为初始形象')
+    return
+  }
+  showToast(`${t.label} · 敬请期待`)
 }
 
 /* ---------- 左侧可替换缩略（取衣橱前 6 件） ---------- */
@@ -37,6 +52,10 @@ const quickThumbs = computed<Garment[]>(() => wardrobe.garments.slice(0, 6))
 
 /* ---------- 已选单品（本地管理） ---------- */
 const selected = ref<Garment[]>([])
+/** 这件是不是已经穿上了（左栏缩略图的 × 只在穿上后出现） */
+function isWearing(id: string) {
+  return selected.value.some((s) => s.id === id)
+}
 function wear(g: Garment) {
   if (selected.value.some((s) => s.id === g.id)) {
     showToast('这件已经穿上啦～')
@@ -49,13 +68,8 @@ function takeOff(id: string) {
   selected.value = selected.value.filter((s) => s.id !== id)
 }
 
-/* ---------- 底部面板：大类 + 小分类 chips ---------- */
+/* ---------- 底部面板：两个平铺分区 + 各自的小分类 chips ---------- */
 type Chip = { key: string; label: string; kw?: string[] }
-
-const bigTabs = [
-  { key: 'fav', label: '我的收藏' },
-  { key: 'try', label: '试穿' },
-]
 
 const favChips: Chip[] = [
   { key: 'all', label: '全部' },
@@ -72,29 +86,48 @@ const tryChips: Chip[] = [
   { key: 'trench', label: '风衣', kw: ['风衣', '外套', '大衣'] },
 ]
 
-const bigTab = ref('fav')
-const activeChip = ref('all')
+/*
+ * 「我的收藏」和「试穿」两个分区**同时显示**，不再用 SegTabs 二选一 ——
+ * 样图上是两块平铺的区，各带一行 chips 和一条横滑衣物条。
+ * 所以两个分区各自记一份 chip 状态。
+ */
+const favChipKey = ref('all')
+const tryChipKey = ref('all')
 
-// 切换大类时，小分类回到「全部」
-watch(bigTab, () => {
-  activeChip.value = 'all'
-})
-
-const chips = computed(() => (bigTab.value === 'fav' ? favChips : tryChips))
-const baseList = computed(() =>
-  bigTab.value === 'fav' ? wardrobe.favoriteGarments : wardrobe.garments,
-)
-
-const displayList = computed(() => {
-  const chip = chips.value.find((c) => c.key === activeChip.value)
-  if (!chip || !chip.kw) return baseList.value
+/** 宽松过滤：chip 没有关键词（「全部」）或一件都匹配不到时，退回整个列表 */
+function filterByChip(list: Garment[], chips: Chip[], activeKey: string) {
+  const chip = chips.find((c) => c.key === activeKey)
+  if (!chip?.kw) return list
   const kw = chip.kw
-  const matched = baseList.value.filter((g) =>
+  const matched = list.filter((g) =>
     kw.some((k) => g.name.includes(k) || (g.tags?.some((t) => t.includes(k)) ?? false)),
   )
-  // 宽松过滤：匹配不到就展示全部
-  return matched.length ? matched : baseList.value
-})
+  return matched.length ? matched : list
+}
+
+const sections = computed(() => [
+  {
+    key: 'fav',
+    label: '我的收藏',
+    chips: favChips,
+    activeChip: favChipKey.value,
+    list: filterByChip(wardrobe.favoriteGarments, favChips, favChipKey.value),
+    emptyText: '还没有收藏的衣物',
+  },
+  {
+    key: 'try',
+    label: '试穿',
+    chips: tryChips,
+    activeChip: tryChipKey.value,
+    list: filterByChip(wardrobe.garments, tryChips, tryChipKey.value),
+    emptyText: '衣橱里还没有衣物',
+  },
+])
+
+function setChip(sectionKey: string, chipKey: string) {
+  if (sectionKey === 'fav') favChipKey.value = chipKey
+  else tryChipKey.value = chipKey
+}
 
 function goCreate() {
   uni.navigateTo({ url: '/pages/create/index' })
@@ -136,29 +169,44 @@ function goAccessory() {
     <scroll-view scroll-y class="body">
       <!-- 上半区：形象 + 工具 -->
       <view class="stage-area">
+        <!-- 样图左上那个「我的虚拟形象」标签 -->
+        <view class="stage-badge">我的虚拟形象</view>
+
         <!-- 左侧竖排可替换缩略 -->
         <scroll-view scroll-y class="thumbs">
-          <button
-            v-for="g in quickThumbs"
-            :key="g.id"
-            class="thumb"
-            :aria-label="`换上${g.name}`"
-            @tap="wear(g)"
-          >
-            <TileImage :src="g.img" :from="g.from" :to="g.to" :emoji="g.emoji" ratio="1 / 1" rounded="24rpx" />
-          </button>
+          <view v-for="g in quickThumbs" :key="g.id" class="thumb-wrap">
+            <button
+              class="thumb"
+              :aria-label="`换上${g.name}`"
+              @tap="wear(g)"
+            >
+              <TileImage :src="g.img" :emoji="g.emoji" ratio="1 / 1" />
+            </button>
+            <!--
+              样图里每个缩略图右上角都有一个 ×。
+              只在「这件已经穿上了」时出现 —— 它的语义是脱下来，
+              没穿的衣服给个 × 无处可去。
+            -->
+            <view
+              v-if="isWearing(g.id)"
+              class="thumb-x"
+              :aria-label="`脱下${g.name}`"
+              @tap.stop="takeOff(g.id)"
+            >
+              <UiIcon name="close" :size="20" tone="white" :stroke-width="2.4" />
+            </view>
+          </view>
         </scroll-view>
 
-        <!-- 中央：已穿搭全身模特图 -->
+        <!--
+          中央人台。
+          ⚠️ 按「把模特删掉，后续再添加」，这里不再传 src —— TileImage 会退到
+          中性浅灰 + 线条图标的占位。原来传的是 MODEL_IMAGES.outfit + 蓝色渐变底
+          （from/to），渐变底已随第二轮换皮作废。
+          素材到位后把 :src="MODEL_IMAGES.outfit" 加回来即可，布局不用动。
+        -->
         <view class="model">
-          <TileImage
-            :src="MODEL_IMAGES.outfit"
-            from="#c9d8ff"
-            to="#9ab0ff"
-            emoji="🧍‍♀️"
-            ratio="3 / 4"
-            label="我的虚拟形象"
-          />
+          <TileImage icon="me" ratio="3 / 4" />
         </view>
 
         <!-- 右侧竖排工具 -->
@@ -168,15 +216,18 @@ function goAccessory() {
             :key="t.key"
             class="tool"
             :aria-label="t.label"
-            @tap="onTool(t.label)"
+            @tap="onTool(t)"
           >
-            <UiIcon :name="t.icon" :size="38" tone="dark" />
+            <UiIcon :name="t.icon" :size="36" tone="dark" />
             <text class="tool-label">{{ t.label }}</text>
           </button>
         </scroll-view>
 
         <!-- 右下：个性化创建入口 -->
-        <button class="create-entry" @tap="goCreate"><UiIcon name="sparkle" :size="28" tone="white" /><text>个性化创建</text></button>
+        <button class="create-entry" @tap="goCreate">
+          <UiIcon name="sparkle" :size="26" tone="white" />
+          <text>个性化创建</text>
+        </button>
       </view>
 
       <!-- 已选单品 chips -->
@@ -191,46 +242,44 @@ function goAccessory() {
         <view v-else class="sel-empty">还没穿上单品，去下面挑一件试试吧</view>
       </view>
 
-      <!-- 下半区：底部面板 -->
+      <!--
+        下半区：两个分区平铺（样图就是「我的收藏」和「试穿」上下排开，不是 tab）。
+        每区一行 chips + 一条横滑衣物条 —— 横滑比原来的两列网格省一半竖向空间，
+        上面的舞台才留得住。
+      -->
       <view class="panel">
-        <SegTabs v-model="bigTab" :tabs="bigTabs" />
+        <view v-for="sec in sections" :key="sec.key" class="pnl-sec">
+          <text class="section-title">{{ sec.label }}</text>
 
-        <scroll-view scroll-x class="chips">
-          <button
-            v-for="c in chips"
-            :key="c.key"
-            class="chip"
-            :class="{ on: activeChip === c.key }"
-            @tap="activeChip = c.key"
+          <scroll-view scroll-x class="chips row-scroll hide-scrollbar" :show-scrollbar="false">
+            <view
+              v-for="c in sec.chips"
+              :key="c.key"
+              class="chip"
+              :class="{ on: sec.activeChip === c.key }"
+              @tap="setChip(sec.key, c.key)"
+            >
+              {{ c.label }}
+            </view>
+          </scroll-view>
+
+          <scroll-view
+            v-if="sec.list.length"
+            scroll-x
+            class="pnl-row row-scroll hide-scrollbar"
+            :show-scrollbar="false"
           >
-            {{ c.label }}
-          </button>
-        </scroll-view>
-
-        <scroll-view scroll-y class="grid-wrap">
-          <view v-if="displayList.length" class="grid">
-            <ProductCard
-              v-for="g in displayList"
-              :key="g.id"
-              :title="g.name"
-              :src="g.img"
-              :emoji="g.emoji"
-              :from="g.from"
-              :to="g.to"
-              :tag="g.season"
-              :fav="wardrobe.isFav(g.id)"
-              ratio="3 / 4"
-              @tap="wear(g)"
-              @fav="wardrobe.toggleFav(g.id)"
-            />
-          </view>
-          <view v-else class="empty">
-            <UiIcon class="empty-emoji" name="box" :size="88" tone="muted" :stroke-width="1.3" />
-            <view>这里还没有可搭配的衣物</view>
-          </view>
-        </scroll-view>
+            <view v-for="g in sec.list" :key="g.id" class="pnl-cell" @tap="wear(g)">
+              <TileImage :src="g.img" :emoji="g.emoji" ratio="3 / 4" />
+              <text class="pnl-name">{{ g.name }}</text>
+            </view>
+          </scroll-view>
+          <view v-else class="pnl-empty">{{ sec.emptyText }}</view>
+        </view>
       </view>
     </scroll-view>
+
+    <BottomNav active="closet" />
 
     <!-- 轻提示 -->
     <transition name="toast">
@@ -272,30 +321,70 @@ function goAccessory() {
   flex-shrink: 0;
   display: flex;
   gap: 16rpx;
-  background: var(--surface-soft);
+  background: var(--surface);
+  border: var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 24rpx 20rpx;
-  box-shadow: var(--shadow-card);
+  /* 顶部多留 56rpx 给「我的虚拟形象」那个角标 */
+  padding: 56rpx 20rpx 24rpx;
+}
+
+/*
+ * 样图左上角的「我的虚拟形象」。
+ * 原来它是 TileImage 的 label（压在人台图左下），角标放在舞台左上更符合样图，
+ * 也不会挡住衣物层。
+ */
+.stage-badge {
+  position: absolute;
+  top: 14rpx;
+  left: 20rpx;
+  z-index: 3;
+  padding: 6rpx 20rpx;
+  border-radius: var(--radius-pill);
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 20rpx;
 }
 
 /* 左侧竖排缩略 */
 .thumbs {
   flex-shrink: 0;
   width: 104rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
   max-height: 680rpx;
+}
+/*
+ * 缩略图外面套一层相对定位的壳，× 角标要挂在它上面。
+ * 竖向间距用 margin-bottom 而不是父级 gap —— scroll-view 的 flex/gap
+ * 在 uni-app 里传不到内层真正装内容的容器上（见 styles/base.css 里 .row-scroll 的注释）。
+ */
+.thumb-wrap {
+  position: relative;
+  width: 104rpx;
+  margin-bottom: 16rpx;
 }
 .thumb {
   width: 104rpx;
+  padding: 0;
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: transform 0.15s ease;
+  border: var(--hairline);
+  transition: opacity 0.15s ease;
 }
 .thumb:active {
-  transform: scale(0.92);
+  opacity: 0.7;
+}
+/* 「脱下」角标，只在这件已穿上时出现 */
+.thumb-x {
+  position: absolute;
+  top: -6rpx;
+  right: -6rpx;
+  z-index: 2;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: var(--pink-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 中央模特 */
@@ -393,15 +482,49 @@ function goAccessory() {
 
 /* ---------- 下半区面板 ---------- */
 .panel {
-  flex: 1;
-  min-height: 0;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
-  background: var(--surface-soft);
+  gap: 24rpx;
+}
+
+/* 一个分区 = 标题 + 一行 chips + 一条横滑衣物条 */
+.pnl-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  background: var(--surface);
+  border: var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 24rpx 24rpx 8rpx;
-  box-shadow: var(--shadow-card);
+  padding: 20rpx;
+}
+/*
+ * 横滑衣物条。和 .chips 同一个道理：不能给 scroll-view 加 display:flex，
+ * 靠 nowrap + 子元素 inline-block 横排（.row-scroll 已在全局提供这套）。
+ */
+.pnl-row {
+  white-space: nowrap;
+}
+.pnl-cell {
+  display: inline-block;
+  width: 150rpx;
+  margin-right: 16rpx;
+  vertical-align: top;
+}
+.pnl-name {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: var(--text-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pnl-empty {
+  padding: 40rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-3);
 }
 
 /*
@@ -414,40 +537,21 @@ function goAccessory() {
 }
 .chip {
   display: inline-flex;
-  margin-right: 16rpx;
-  padding: 12rpx 28rpx;
+  margin-right: 12rpx;
+  padding: 10rpx 26rpx;
   border-radius: var(--radius-pill);
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: 24rpx;
   color: var(--text-2);
   background: var(--surface);
-  box-shadow: var(--shadow-card);
-  transition: all 0.15s ease;
+  border: var(--hairline);
 }
 .chip.on {
   color: var(--text-on-brand);
-  background: var(--brand-gradient);
+  background: var(--pink-deep);
+  border-color: var(--pink-deep);
 }
 
-.grid-wrap {
-  flex: 1;
-  min-height: 0;
-  padding-bottom: 24rpx;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20rpx;
-}
-
-.empty {
-  padding-top: 80rpx;
-  text-align: center;
-  color: var(--text-3);
-}
-.empty-emoji {
-  font-size: 80rpx;
-}
+/* .grid-wrap / .grid / .empty 已随「两列网格 → 横滑条」的改版删除 */
 
 /* ---------- 轻提示 ---------- */
 .toast-enter-active,

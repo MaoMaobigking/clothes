@@ -44,6 +44,19 @@ const measurement = reactive({
   detailImages: [] as string[],
 })
 
+/*
+ * 所有 input / textarea 的 placeholder 统一用这个压成弱色。
+ *
+ * 为什么不写在 CSS 里：小程序的 placeholder 不受外层 color 影响，
+ * 只认 placeholder-class / placeholder-style 两个属性。而 placeholder-class 在
+ * scoped 样式下会被编译成 .ph[data-v-xxx]，小程序按纯类名匹配，匹配不上。
+ * 所以只能走 placeholder-style 内联。
+ *
+ * 色值和 tokens.css 的 --text-4（uv-ui $uv-light-color）同值 —— 这里必须写字面值，
+ * CSS 变量进不了 inline style 属性。
+ */
+const PH_STYLE = 'color:#c0c4cc'
+
 const vipCases = computed(() => category.value.cases.filter((item) => item.vipOnly))
 const isVip = computed(() => summary.value?.membershipLevel === 'vip')
 
@@ -335,11 +348,22 @@ async function upgradeVip() {
             v-model="inquiry.requirements"
             class="textarea"
             placeholder="描述风格、用途和特殊要求"
+            :placeholder-style="PH_STYLE"
             maxlength="1000"
           />
           <view class="field-row">
-            <input v-model="inquiry.budget" class="input half" placeholder="预算区间（可选）" />
-            <input v-model="inquiry.sizeNotes" class="input half" placeholder="尺码说明（可选）" />
+            <input
+              v-model="inquiry.budget"
+              class="input half"
+              placeholder="预算区间（可选）"
+              :placeholder-style="PH_STYLE"
+            />
+            <input
+              v-model="inquiry.sizeNotes"
+              class="input half"
+              placeholder="尺码说明（可选）"
+              :placeholder-style="PH_STYLE"
+            />
           </view>
           <text class="field-label">参考图（最多 3 张）</text>
           <view class="image-picker">
@@ -371,30 +395,73 @@ async function upgradeVip() {
         </view>
         <scroll-view scroll-y class="sheet-body">
           <text class="field-label">六项必填尺寸（cm / kg）</text>
+          <!--
+            placeholder 全部改成「如 160」这种带前缀的形式，并用 placeholder-style
+            压成弱色（$uv-light-color #c0c4cc）。
+
+            改动原因：原来 placeholder 是裸数字「160」「55」「88」，而 measurement
+            六个字段初始值都是空字符串 —— 也就是说这些数字从来不是真实值。
+            但微信小程序 <input> 的 placeholder 默认颜色偏深，裸数字看起来就是
+            「已经填好的默认值」，用户会去清它，然后发现清不掉（因为本来没东西可清）。
+
+            用 placeholder-style 而不是 placeholder-class：scoped 样式会被编译成
+            .ph[data-v-xxx]，而小程序把 placeholder-class 的值当纯类名匹配，
+            带 data-v 属性选择器的规则匹配不上，写了也不生效。
+          -->
           <view class="measure-grid">
             <label class="measure-field">
               <text>身高</text>
-              <input v-model="measurement.height" type="digit" placeholder="160" />
+              <input
+                v-model="measurement.height"
+                type="digit"
+                placeholder="如 160"
+                :placeholder-style="PH_STYLE"
+              />
             </label>
             <label class="measure-field">
               <text>体重</text>
-              <input v-model="measurement.weight" type="digit" placeholder="55" />
+              <input
+                v-model="measurement.weight"
+                type="digit"
+                placeholder="如 55"
+                :placeholder-style="PH_STYLE"
+              />
             </label>
             <label class="measure-field">
               <text>胸围</text>
-              <input v-model="measurement.bust" type="digit" placeholder="88" />
+              <input
+                v-model="measurement.bust"
+                type="digit"
+                placeholder="如 88"
+                :placeholder-style="PH_STYLE"
+              />
             </label>
             <label class="measure-field">
               <text>腰围</text>
-              <input v-model="measurement.waist" type="digit" placeholder="68" />
+              <input
+                v-model="measurement.waist"
+                type="digit"
+                placeholder="如 68"
+                :placeholder-style="PH_STYLE"
+              />
             </label>
             <label class="measure-field">
               <text>臀围</text>
-              <input v-model="measurement.hips" type="digit" placeholder="92" />
+              <input
+                v-model="measurement.hips"
+                type="digit"
+                placeholder="如 92"
+                :placeholder-style="PH_STYLE"
+              />
             </label>
             <label class="measure-field">
               <text>肩宽</text>
-              <input v-model="measurement.shoulder" type="digit" placeholder="39" />
+              <input
+                v-model="measurement.shoulder"
+                type="digit"
+                placeholder="如 39"
+                :placeholder-style="PH_STYLE"
+              />
             </label>
           </view>
 
@@ -446,6 +513,7 @@ async function upgradeVip() {
             v-model="measurement.notes"
             class="textarea notes"
             placeholder="特殊体态或穿着说明（可选）"
+            :placeholder-style="PH_STYLE"
             maxlength="512"
           />
         </scroll-view>

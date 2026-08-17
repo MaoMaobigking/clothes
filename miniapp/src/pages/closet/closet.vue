@@ -16,6 +16,15 @@ import {
 const wardrobe = useWardrobeStore()
 const activeCategory = ref('all')
 const manage = ref(false)
+/*
+ * 左侧分类栏是否展开。默认展开。
+ * 收起后 118rpx 的栏宽让给右侧衣物网格 —— 小屏上两列图会宽出一截。
+ */
+const railOpen = ref(true)
+/** 收起状态下显示在把手上的当前分类名，否则看不出自己在哪一类 */
+const activeCategoryLabel = computed(
+  () => CLOSET_CATEGORIES.find((c) => c.key === activeCategory.value)?.label ?? '全部',
+)
 const generating = ref(false)
 const sortOpen = ref(false)
 const sortItems = ref<WardrobeItem[]>([])
@@ -206,9 +215,13 @@ function goAccessory(item: WardrobeItem) {
       <!--
         设计稿（开发手册 §4 图③）是「左侧竖排分类 + 右侧两列大图」，
         不是顶部横向 chips —— 分类有 10 项，横排永远看不全，还要左右滑。
+
+        左栏可折叠：分类栏占掉 118rpx，在小屏上右侧两列衣物图会被压得很窄。
+        收起后整个宽度让给衣物网格，中间那条竖把手负责再展开 ——
+        收起状态下把手上显示当前分类名，否则用户看不出自己在哪一类。
       -->
       <view class="closet-body">
-        <scroll-view scroll-y class="cat-rail hide-scrollbar">
+        <scroll-view v-if="railOpen" scroll-y class="cat-rail hide-scrollbar">
           <view
             v-for="category in CLOSET_CATEGORIES"
             :key="category.key"
@@ -224,6 +237,16 @@ function goAccessory(item: WardrobeItem) {
             <text class="cat-label">{{ category.label }}</text>
           </view>
         </scroll-view>
+
+        <view
+          class="rail-toggle"
+          :class="{ closed: !railOpen }"
+          :aria-label="railOpen ? '收起分类栏' : '展开分类栏'"
+          @tap="railOpen = !railOpen"
+        >
+          <UiIcon :name="railOpen ? 'chevron-left' : 'chevron-right'" :size="26" tone="muted" />
+          <text v-if="!railOpen" class="rail-toggle-label">{{ activeCategoryLabel }}</text>
+        </view>
 
         <scroll-view scroll-y class="grid-scroll hide-scrollbar">
         <view v-if="filtered.length" class="grid">
@@ -457,6 +480,34 @@ function goAccessory(item: WardrobeItem) {
   width: 118rpx;
   height: 100%;
 }
+/*
+ * 分类栏的折叠把手。始终可见的一条竖窄条 ——
+ * 用 v-if 卸载分类栏（而不是把宽度动画到 0）：小程序的 scroll-view 在
+ * 宽度变化时不会重算内部滚动容器，动画收起会留下一片能滚但看不见的区域。
+ */
+.rail-toggle {
+  flex-shrink: 0;
+  width: 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: var(--hairline);
+}
+/* 收起时把手加宽一点，好点，也放得下分类名 */
+.rail-toggle.closed {
+  width: 44rpx;
+}
+.rail-toggle-label {
+  /* 竖排文字：分类名最多 3 个字，竖着写正好塞进 44rpx 宽 */
+  writing-mode: vertical-rl;
+  font-size: 20rpx;
+  color: var(--text-3);
+  letter-spacing: 2rpx;
+}
 .cat {
   display: flex;
   flex-direction: column;
@@ -478,16 +529,17 @@ function goAccessory(item: WardrobeItem) {
   color: var(--pink-deep);
   font-weight: 700;
 }
+/*
+ * 这里原来有两条 .grid-scroll，padding 一条 `0 0 28rpx`、一条 `0 32rpx 28rpx`，
+ * 后者覆盖前者 —— 等于第一条从来没生效。合成一条，取实际生效的值。
+ * 左侧已有分类栏和把手，网格自己不需要再留 32rpx 左边距，收窄到 16rpx。
+ */
 .grid-scroll {
   flex: 1;
   min-width: 0;
-  height: 100%;
-  padding: 0 0 28rpx;
-}
-.grid-scroll {
-  flex: 1;
   min-height: 0;
-  padding: 0 32rpx 28rpx;
+  height: 100%;
+  padding: 0 0 28rpx 16rpx;
 }
 .grid {
   display: grid;
