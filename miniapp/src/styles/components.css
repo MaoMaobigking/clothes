@@ -4,7 +4,7 @@
  * ============================================================
  *
  * 收进来的都是全站重复 4 次以上的东西：
- *   .card / .chip / .pill / .empty / .toast / .mask / .sheet / .grid-2
+ *   .btn / .card / .chip / .pill / .empty / .toast / .mask / .sheet / .grid-2
  *
  * 用法示例：
  *   <view class="card">…</view>
@@ -13,73 +13,128 @@
  *
  * 要微调某一处时，在页面的 scoped style 里只写差异（比如 padding），
  * 不要把整块规则复制过去 —— 复制就是下一次「到处改」的起点。
+ *
+ * ------------------------------------------------------------
+ *  2026-08-17 第二轮：对齐 uv-ui
+ * ------------------------------------------------------------
+ * 尺寸和颜色全部按 @climblee/uv-ui 源码值换算（1px = 2rpx，375px 基准）。
+ * 类名一个没改 —— 全站 15460 行页面的调用点零改动，这是本轮能便宜的根本原因。
+ *
+ * 三条贯穿全文的 uv-ui 规则，看到下面的写法觉得「怎么这么素」时回来读这里：
+ *   1. **分隔靠线不靠影。** uv-ui 用 0.5px solid #dadbde，阴影只留给真正脱离纸面的层。
+ *   2. **按钮没有阴影。** 查过全库，uv-button 一处投影都没有。
+ *   3. **标题不加粗。** uv-cell-group 的标题是 15px + $uv-main-color，font-weight 默认 400。
  */
+
+/* ---------------- 发丝线工具类 ---------------- */
+
+/*
+ * uv-ui 自带 .uv-border-* 系列，但它们藏在 libs/css/variable.scss 的
+ * `@if variable-exists(show-border)` 里，只在**组件内部**编译，页面拿不到。
+ * 所以这里自备一套同规格的。
+ *
+ * 为什么是 0.5px 不是 1rpx：1rpx 在 2x 屏 = 0.5px、3x 屏 = 0.33px，
+ * 部分机型直接抹掉不渲染；0.5px 是 uv-ui 自己选的稳妥值（它的注释原话是
+ * 「移动端兼容性较好，直接使用 0.5px 去实现细边框，不使用伪元素形式实现」）。
+ * 这是全文件唯一故意不用 rpx 的地方。
+ */
+.hairline {
+  border: var(--hairline);
+}
+.hairline-t {
+  border-top: var(--hairline);
+}
+.hairline-b {
+  border-bottom: var(--hairline);
+}
 
 /* ---------------- 按钮 ---------------- */
 
+/*
+ * 尺寸对齐 uv-button 的 large 档：height 50px = 100rpx、padding 0 15px = 0 30rpx。
+ * 字号取 $uv-button-text-font-size 15px = 30rpx。
+ * 圆角仍用 --radius-pill —— uv-ui 的按钮就是胶囊，方正化只发生在卡片和图框。
+ */
 .btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 96rpx;
-  padding: 0 48rpx;
+  height: 100rpx;
+  padding: 0 30rpx;
   border-radius: var(--radius-pill);
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: 30rpx;
+  font-weight: 500;
 }
+/*
+ * 主按钮。
+ * --brand-gradient 现在是纯色 #ff5c9d（不再是渐变），63 处调用点跟着一起变。
+ * **没有 box-shadow**：查过 uv-ui 全库，uv-button 一处投影都没有。
+ * 原来这里是 0 16rpx 40rpx rgba(177,140,255,0.4) —— 40rpx 扩散的紫光晕。
+ */
 .btn-primary {
   background: var(--brand-gradient);
   color: var(--text-on-brand);
-  box-shadow: 0 16rpx 40rpx rgba(177, 140, 255, 0.4);
 }
+/* 次按钮＝uv-ui 的 plain 形态：白底 + 发丝边 + 主文字色，不是白底 + 投影 */
 .btn-ghost {
   background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow-card);
+  border: var(--hairline);
+  color: var(--text-1);
 }
+/* 禁用态取 uv-ui 的 $uv-bg-color 底 + $uv-light-color 字 */
 .btn-disabled {
-  background: #e6e0ef;
-  color: #b7b0c6;
+  background: var(--bg-page);
+  color: var(--text-4);
   box-shadow: none;
 }
+/* 小按钮对齐 uv-button 的 small 档：height 30px = 60rpx、font-size 12px = 24rpx */
 .btn-sm {
-  height: 68rpx;
-  padding: 0 28rpx;
-  font-size: 26rpx;
+  height: 60rpx;
+  min-width: 120rpx;
+  padding: 0 24rpx;
+  font-size: 24rpx;
 }
 
 /* ---------------- 卡片 ---------------- */
 
+/*
+ * uv-ui 没有 card 组件，它的「块」惯例是白底 + 发丝边分隔。
+ * 所以这里从「圆角 + 柔光阴影」改成「近乎方角 + 发丝边 + 一丝抬起」。
+ * --shadow-card 有 104 处调用点，值已在 tokens.css 收到近乎不可见，这里靠边框承担分离感。
+ */
 .card {
   background: var(--surface);
+  border: var(--hairline);
   border-radius: var(--radius);
   padding: var(--gap);
   box-shadow: var(--shadow-card);
 }
-/* 浮在内容之上的面板（个性化创建的基础信息卡这类） */
+/*
+ * 原来这是毛玻璃（backdrop-filter: blur(8px)）。
+ * uv-ui 里没有半透明面，而且 backdrop-filter 在安卓端小程序本来就不生效 ——
+ * 去掉是同时对齐设计语言和修掉一个既有兼容问题。
+ */
 .card-glass {
-  background: var(--surface-glass);
-  backdrop-filter: blur(8px);
-  border: 2rpx solid var(--line);
+  background: var(--surface);
+  border: var(--hairline);
   box-shadow: var(--shadow-float);
 }
 
 /* ---------------- 胶囊标签 / 筛选片 ---------------- */
 
-/* 纯展示标签：设计稿里反复出现的「我的虚拟形象」「基础信息」那种 */
+/* 纯展示标签。白底 + 发丝边，取代原来的白底 + 投影 */
 .tag-pill {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  padding: 10rpx 26rpx;
+  padding: 8rpx 24rpx;
   border-radius: var(--radius-pill);
   background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  border: 2rpx solid var(--line);
+  border: var(--hairline);
   font-size: 24rpx;
-  font-weight: 700;
-  color: var(--text-1);
+  color: var(--text-2);
 }
+/* 品牌色标签＝uv-ui 的 primary plain tag：极浅主色底 + 主色字 + 无边框 */
 .tag-pill-brand {
   background: var(--pink-soft);
   border-color: transparent;
@@ -91,16 +146,17 @@
   display: inline-flex;
   align-items: center;
   margin-right: 12rpx;
-  padding: 12rpx 28rpx;
+  padding: 10rpx 26rpx;
   border-radius: var(--radius-pill);
   background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  border: var(--hairline);
   color: var(--text-2);
   font-size: 24rpx;
-  font-weight: 600;
 }
+/* 选中态：主色实底。uv-ui 的选中就是纯主色，不是渐变 */
 .chip.on {
-  background: var(--brand-gradient);
+  background: var(--pink-deep);
+  border-color: var(--pink-deep);
   color: var(--text-on-brand);
   box-shadow: none;
 }
@@ -120,6 +176,7 @@
 
 /* ---------------- 空态 / 错误态 ---------------- */
 
+/* 文字规格对齐 uv-empty：14px = 28rpx，色用 $uv-tips-color */
 .empty {
   padding: 96rpx 40rpx;
   display: flex;
@@ -130,12 +187,11 @@
 }
 .empty-title {
   font-size: 28rpx;
-  font-weight: 700;
-  color: var(--text-2);
+  color: var(--text-3);
 }
 .empty-sub {
   font-size: 24rpx;
-  color: var(--text-3);
+  color: var(--text-4);
   line-height: 1.5;
 }
 .empty-btn {
@@ -148,6 +204,10 @@
  * 层级走 --z-mask / --z-sheet / --z-toast，不要再手写数字。
  * 之前每个页面各写一套（mask 20~50、toast 10~60），
  * 结果低层级的 toast 被高层级的遮罩盖住。
+ *
+ * 遮罩色取 uv-overlay 的实际观感：它的底色是 rgba(0,0,0,.7)，
+ * 默认 opacity 是 0.5，叠出来约等于 rgba(0,0,0,0.35)。
+ * 这样我们自己的 .mask 和页面里 uv-popup 的遮罩深浅一致，切换时不会跳。
  */
 .mask {
   position: fixed;
@@ -159,22 +219,28 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(31, 25, 45, 0.4);
+  background: rgba(0, 0, 0, 0.35);
 }
 /* 居中弹窗而不是底部抽屉 */
 .mask-center {
   align-items: center;
 }
 
+/*
+ * 弹出面板保留投影 —— 这是少数该有阴影的地方：
+ * 它需要「脱离纸面」的层级暗示，uv-popup 自己也是有投影的。
+ * 圆角用 --radius-lg（16rpx）：uv-popup 的 round 默认是 0（直角），
+ * 但直角底部抽屉在实际产品里几乎没人用，uv-ui 的示例也都传了 round。
+ */
 .sheet {
   position: relative;
   z-index: var(--z-sheet);
   width: 100%;
   max-height: 82vh;
-  padding: 36rpx 36rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
+  padding: 32rpx 30rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: var(--surface);
-  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.22);
+  box-shadow: var(--shadow-float);
 }
 .sheet-center {
   width: 84%;
@@ -182,15 +248,17 @@
   border-radius: var(--radius-lg);
   padding: 40rpx;
 }
+/* 标题规格对齐 uv-cell-group 的 title：30rpx + 主文字色，不加粗 */
 .sheet-title {
   margin-bottom: var(--gap-lg);
-  font-size: 34rpx;
-  font-weight: 800;
+  font-size: 32rpx;
+  font-weight: 500;
   color: var(--text-1);
 }
 
 /* ---------------- 轻提示 ---------------- */
 
+/* 对齐 uv-toast：深色实底 + 小圆角（4px = 8rpx），不是胶囊 */
 .toast {
   position: fixed;
   left: 50%;
@@ -199,19 +267,25 @@
   z-index: var(--z-toast);
   max-width: 80%;
   padding: 18rpx 32rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 42, 61, 0.9);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.75);
   color: #fff;
-  font-size: 26rpx;
+  font-size: 28rpx;
   text-align: center;
-  box-shadow: var(--shadow-float);
 }
 
 /* ---------------- 小节标题 ---------------- */
 
+/*
+ * 规格照抄 uv-cell-group 的 __title：font-size 15px = 30rpx、color $uv-main-color、
+ * **font-weight 默认 400 不加粗**。原来是 32rpx / 800，比 uv-ui 重得多。
+ *
+ * 这一处是全文件里最可能让人第一眼觉得「太素了」的地方，但它就是 uv-ui 的样子。
+ * 第 ③ 批逐页看下来如果确实压不住内容层级，再统一提到 500 —— 改这一行即可，
+ * 不要去页面里单独加粗。
+ */
 .section-title {
-  font-size: 32rpx;
-  font-weight: 800;
+  font-size: 30rpx;
   color: var(--text-1);
 }
 .section-sub {

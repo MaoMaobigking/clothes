@@ -11,72 +11,180 @@
  * CSS 变量在 H5 和微信小程序（基础库 2.x+）都支持，改一处全站响应。
  *
  * 挂在 page 上而不是 :root —— 小程序里没有 :root，page 是页面根节点。
+ *
+ * ------------------------------------------------------------
+ *  2026-08-17 第二轮：视觉语言切到 uv-ui
+ * ------------------------------------------------------------
+ * 目标是 uv-ui（@climblee/uv-ui）自己的设计语言。它的四个支点，逐值从源码抄：
+ *   1. 冷灰中性色  #303133 / #606266 / #909193 / #c0c4cc（libs/css/color.scss）
+ *   2. 细线分隔    0.5px solid #dadbde —— **不靠阴影**，这是和原设计最大的结构差异
+ *   3. 近乎方角    uv-button 的 square 只有 3px；没有 36rpx 那种圆润块
+ *   4. 纯色无渐变  uv-ui 全库没有一处渐变
+ *
+ * 三条已作废的原方向：
+ *   - 粉紫渐变页面底 → 换成 uv-ui 的 #f3f4f6 冷浅灰（uv-cell 是通栏白底，
+ *     铺上去会把渐变盖掉九成，只在缝隙里露一道撞调的暖色边）
+ *   - 紫调灰文字（#2f2a3d / #6b6580 / #a8a2ba）→ 换成上面的冷灰四档
+ *   - 卡片柔光阴影 → 换成细线（阴影变量保留但收到近乎不可见，见下）
+ *
+ * 唯一保留的品牌资产是**主色粉 #ff5c9d**，取代 uv-ui 默认的 #3c9cff 蓝。
+ *
+ * ⚠️ 同步提醒：uv-ui 组件读的是 SCSS 变量，不读这里。
+ * 改主色要动**两个**文件：本文件的 --pink-deep 和 src/uni.scss 的 $uv-primary。
  */
 
 page {
   /* ---------------- 品牌色 ---------------- */
-  --pink: #ff7eb3;
+  /*
+   * 主色。价格、主按钮、选中态、强调文字一律用这个。
+   * 和 src/uni.scss 的 $uv-primary 必须同值。
+   */
   --pink-deep: #ff5c9d;
-  --purple: #b892ff;
-  --purple-deep: #9a6bff;
-  --mint: #a9dcd6;
-  --mint-deep: #7fc9c1;
 
-  /* 浅色底：选中态、标签底、图标底 */
-  --pink-soft: #ffeaf3;
-  --purple-soft: #f0e8ff;
+  /*
+   * 下面四个是**别名**，不是独立颜色。
+   *
+   * 原来粉/紫/薄荷是三套并列的主题色，这是「卡通感」的结构性来源：
+   * 一个界面上同时出现三种高饱和色，没有主次。uv-ui 的做法是一个主色 + 语义色。
+   * 所以这里把它们收敛掉，但**保留变量名** —— 全站 55 + 13 + 12 处调用点一行不用改。
+   *
+   * 收敛依据是实际用法（查过属性分布，不是拍脑袋）：
+   *   --purple-deep  54 处 color + 1 处 background → 纯粹是「强调文字色」→ 塌进主色
+   *   --purple        1 处                          → 同上
+   *   --pink          8 处 border-color             → 选中态描边 → 主色（uv-ui 选中态就是用主色描边）
+   *   --mint-deep     7 处 color                    → 另一种强调 → 映到 uv-ui 的 success 绿
+   *   --mint          4 处 background               → 浅底 → 映到 uv-ui 的 success-light
+   *
+   * ⚠️ 已知副作用：极少数页面可能原本靠「粉 vs 紫」区分两个并列的东西，
+   * 塌进同色后那处区分会消失。第 ③ 批逐页过的时候会挑出来单独给对比。
+   * 这里不预先例外处理 —— 先让 54 处上色正确，再修个别冲突，比反过来划算。
+   */
+  --purple-deep: #ff5c9d;
+  --purple: #ff5c9d;
+  --pink: #ff5c9d;
+  --mint-deep: #5ac725; /* = uv-ui $uv-success */
+  --mint: #f5fff0; /* = uv-ui $uv-success-light */
 
-  /* ---------------- 渐变 ---------------- */
-  --bg-gradient: linear-gradient(170deg, #ffe6f2 0%, #f0e4ff 45%, #e3ecff 100%);
-  --brand-gradient: linear-gradient(135deg, #ff8fc0 0%, #b18cff 100%);
+  /* 浅色底：标签底、选中底、图标底 */
+  --pink-soft: #ffeaf3; /* = uv-ui $uv-primary-light 的粉色版 */
+  --purple-soft: #ffeaf3; /* 别名，同上 */
+
+  /* ---------------- 渐变（已退役）---------------- */
+  /*
+   * --brand-gradient 有 63 处调用点，全部是 background。
+   * uv-ui 全库没有一处渐变，所以这里改成**纯色**。
+   * 变量名保留是为了不动那 63 处 —— 改这一行等于一次性给全站去渐变，
+   * 这是本轮换皮里杠杆最大的一处。
+   *
+   * 原值：linear-gradient(135deg, #ff8fc0 0%, #b18cff 100%)（粉跨紫，卡通感来源）
+   */
+  --brand-gradient: #ff5c9d;
 
   /* ---------------- 文字 ---------------- */
-  --text-1: #2f2a3d; /* 主 */
-  --text-2: #6b6580; /* 次 */
-  --text-3: #a8a2ba; /* 弱 / 占位 */
+  /*
+   * uv-ui 的冷灰四档，原样照抄 libs/css/color.scss，不做「中性化」改动 ——
+   * 这四档带一点蓝底，是 uv-ui 观感的一半来源，换成纯 #333/#666/#999 就不是它了。
+   */
+  --text-1: #303133; /* 主：标题、正文 */
+  --text-2: #606266; /* 次：说明、右侧值 */
+  --text-3: #909193; /* 弱：占位、辅助 */
+  --text-4: #c0c4cc; /* 最弱：禁用、箭头 */
   --text-on-brand: #ffffff;
 
-  /* 状态色。之前散在页面里写死（#d45a78 ×8、#d9694f ×7、#2e8a6e ×4 个文件），
-     改一次要翻遍全站，现在统一走变量。 */
-  --danger: #e0504f;
-  --accent: #d45a78; /* 强调/数值，如积分、价格 */
-  --warning: #d9694f; /* 提醒、待处理 */
-  --success: #2e8a6e; /* 成功、已完成 */
+  /* 语义色，取 uv-ui 原值 */
+  --danger: #f56c6c; /* = $uv-error */
+  --warning: #f9ae3d; /* = $uv-warning */
+  --success: #5ac725; /* = $uv-success */
+  --info: #909399; /* = $uv-info */
+
+  /* 价格专用。语义上和主色同值，单独一个变量，将来调价格色不牵连按钮 */
+  --price: #ff5c9d;
 
   /* ---------------- 面 ---------------- */
+  /* 页面底。原来是粉紫渐变（--bg-gradient，已删除），现在是 uv-ui 的冷浅灰 */
+  --bg-page: #f3f4f6;
   --surface: #ffffff;
-  --surface-soft: rgba(255, 255, 255, 0.72);
   /*
-   * 浮层面板底色。设计稿里这些卡是毛玻璃，但 backdrop-filter 在安卓端小程序上
-   * 不生效，只靠 --surface-soft 那档透明度会糊成一片。浮层统一用这个更实的值。
+   * 原来这两个是半透明（0.72 / 0.88），为了透出渐变底做毛玻璃。
+   * uv-ui 里没有毛玻璃，也没有半透明面 —— 面必须是实心白，细线负责分隔。
+   * 变量名保留，值改实：--surface-soft 有 32 处 background 调用点，一行不用动。
    */
-  --surface-glass: rgba(255, 255, 255, 0.88);
-  /* 缺图占位底：中性浅灰，不用彩色渐变（彩色块 + 图标 = 卡通感的来源） */
-  --surface-placeholder: #f2f0f6;
-  /* 浅紫底：内嵌小面板 / 输入框 / 次级区块。
-     之前同一个意图在页面里写了 6 种近似色（#f4f0fb #faf7ff #faf8ff #f3effc #f7f2ff #f0edf6），
-     肉眼看不出差别，改主题时却要一个个找。 */
-  --surface-tint: #f7f3fd;
-  --line: #efe9f6;
+  --surface-soft: #ffffff;
+  --surface-glass: #ffffff;
+  /*
+   * 缺图占位底。
+   * ⚠️ 这个变量之前是死的：全站 0 处 var() 引用，实际占位色 #f2f0f6 硬编码在
+   * OptionCard / OutfitPreview(×2) / TileImage 四个组件里。本批已把那 4 处改成引用本变量。
+   */
+  --surface-placeholder: #f3f4f6;
+  /*
+   * 浅色底面：chip 底、只读输入框底、次级区块底。
+   *
+   * ⚠️ 这个变量**以前根本没定义过**，但全站有 25 处 `var(--surface-tint)` 在引用它 ——
+   * CSS 变量未定义时整条声明作废，那 25 处的背景色一直是无效的（透明/继承）。
+   * 补上定义等于一次修掉 25 个点。取 uv-ui 的 $uv-bg-color 同值。
+   *
+   * 同期修掉的还有 --success（6 处引用）和 --warning（7 处引用），
+   * 它们同样是「只引用、没定义」，已在上面的语义色一节补齐。
+   */
+  --surface-tint: #f3f4f6;
+
+  /* ---------------- 线 ---------------- */
+  /*
+   * uv-ui 靠线分隔，不靠阴影 —— 所以这一节在本轮里的权重比阴影高得多。
+   *
+   * 为什么是 0.5px 而不是 1rpx：uv-ui 的注释说得很直白 ——「移动端兼容性较好，
+   * 直接使用 0.5px 去实现细边框，不使用伪元素形式实现」（libs/css/variable.scss）。
+   * 1rpx 在 2x 屏上是 0.5px、3x 屏上是 0.33px，会被部分机型抹掉；0.5px 是稳的。
+   * 所以这里**故意不用 rpx**。
+   */
+  --line: #dadbde;
+  --hairline: 0.5px solid #dadbde;
 
   /* ---------------- 圆角 ---------------- */
-  --radius-sm: 24rpx;
-  --radius: 36rpx;
-  --radius-lg: 48rpx;
+  /*
+   * 24/36/48 → 6/8/16。uv-ui 近乎方角：它的 uv-button square 圆角只有 3px（=6rpx）。
+   *
+   * --radius-pill 保留且照旧使用（68 处调用点）：uv-ui 的胶囊按钮、标签、
+   * 头像都是全圆角，方正化只发生在「卡片和图框」，不发生在「按钮和标签」。
+   */
+  --radius-sm: 6rpx;
+  --radius: 8rpx;
+  --radius-lg: 16rpx;
   --radius-pill: 9999rpx;
 
   /* ---------------- 阴影 ---------------- */
-  --shadow-soft: 0 4rpx 14rpx rgba(150, 120, 200, 0.1);
-  --shadow-card: 0 8rpx 24rpx rgba(150, 120, 200, 0.14);
-  --shadow-float: 0 12rpx 32rpx rgba(150, 120, 200, 0.22);
+  /*
+   * 三个阴影变量共 130 处调用点（card 104 / float 22 / soft 4），不能删，
+   * 但值要收到近乎不可见 —— uv-ui 的分离感来自 --hairline，不来自阴影。
+   *
+   * 原值有多散：--shadow-card 是 0 8rpx 24rpx rgba(150,120,200,0.14)，
+   * 24rpx 扩散 + 紫色，卡片像浮在雾里。现在只留一丝抬起感，主要靠细线。
+   *
+   * --shadow-float 保留一点实感：它给的是弹出层 / 悬浮按钮，
+   * 那些确实需要脱离纸面的层级暗示，uv-ui 的 popup 也是有投影的。
+   */
+  --shadow-soft: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  /*
+   * 没有「主按钮带色投影」这一档 —— 查过 uv-ui 全库，uv-button 一处投影都没有。
+   * 需要给某个 CTA 加强调时用主色实底，不要靠投影。
+   */
 
   /* ---------------- 间距 ---------------- */
   --gap-xs: 8rpx;
   --gap-sm: 16rpx;
   --gap: 24rpx;
   --gap-lg: 32rpx;
-  /* 页面左右安全边距：所有页面统一，不要各写各的 */
-  --page-x: 32rpx;
+  /*
+   * 页面左右安全边距。32rpx → 30rpx，对齐 uv-cell 的水平 padding（15px = 30rpx），
+   * 这样「卡片型页面的内容」和「列表型页面的 cell 文字」落在同一条竖线上。
+   *
+   * 列表型页面本身不吃这个值 —— uv-cell 是通栏白底，页面要用 .body-flush
+   * 把左右 padding 清零，由 cell 自己提供内边距。这是 uv-ui 的通栏 cell 惯例。
+   */
+  --page-x: 30rpx;
   --page-top: calc(env(safe-area-inset-top, 24rpx) + 24rpx);
   --page-bottom: calc(env(safe-area-inset-bottom, 0px) + 32rpx);
 
@@ -89,6 +197,11 @@ page {
    *
    * 顺序：内容 < 悬浮控件 < 吸底栏 < 遮罩 < 弹出层 < 轻提示
    * 轻提示最高：它是对刚才操作的反馈，任何时候都该看得见。
+   *
+   * uv-ui 自己的弹层默认 z-index 是 10075（uv-popup / uv-toast），
+   * 比这套高得多。混用时 uv-ui 的层永远在我们的层之上 —— 目前这是想要的结果
+   * （uv-toast 该压住一切）。如果哪天需要我们的层盖住 uv-ui 的，给那个 uv 组件
+   * 传 :z-index 覆盖，不要抬高这里的数字。
    */
   --z-raised: 2; /* 卡片内的角标、徽章 */
   --z-float: 10; /* 页面内的悬浮按钮、侧边工具栏 */

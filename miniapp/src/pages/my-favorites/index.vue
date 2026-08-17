@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import {
   fetchCommunityBookmarks,
   type CommunityContent,
@@ -84,14 +82,14 @@ function openItem(item: CommunityContent) {
   font-size: 26rpx;
 }
 .state.error {
-  color: var(--accent);
+  color: var(--danger);
 }
 .item {
   display: flex;
   align-items: center;
   gap: 20rpx;
   padding: 18rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -112,7 +110,7 @@ function openItem(item: CommunityContent) {
   margin-top: 8rpx;
   font-size: 27rpx;
   line-height: 1.4;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .subtitle {

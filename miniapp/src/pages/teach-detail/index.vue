@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
   completeCommunityTutorial,
   fetchCommunityContent,
@@ -153,15 +152,16 @@ async function finishTutorial() {
   font-size: 26rpx;
 }
 .state.error {
-  color: var(--accent);
+  color: var(--danger);
 }
 .player {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
-  background: #2f2a3d;
+  /* 播放器底色。原来是 #2f2a3d（旧调色板的紫调黑），换成 uv-ui 的 $uv-main-color */
+  background: var(--text-1);
   box-shadow: var(--shadow-float);
 }
 .video {
@@ -198,7 +198,7 @@ async function finishTutorial() {
   margin-top: 12rpx;
   font-size: 40rpx;
   line-height: 1.35;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .subtitle {
@@ -218,7 +218,7 @@ async function finishTutorial() {
   align-items: flex-start;
   gap: 20rpx;
   padding: 22rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -236,7 +236,7 @@ async function finishTutorial() {
   background: var(--surface-soft);
   color: var(--text-2);
   font-size: 25rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .step.on .step-index {
   background: var(--brand-gradient);
@@ -248,7 +248,7 @@ async function finishTutorial() {
 }
 .step-title {
   font-size: 27rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .step-desc {
@@ -264,13 +264,13 @@ async function finishTutorial() {
   gap: 20rpx;
   margin-top: 28rpx;
   padding: 24rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.72);
   box-shadow: var(--shadow-card);
 }
 .finish-title {
   font-size: 27rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .finish-sub {

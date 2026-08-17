@@ -11,8 +11,6 @@
  */
 import { computed, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { listSceneOutfits, type SavedSceneOutfit } from '@/api/scene'
 import { apiListOutfits, type Outfit } from '@/api/wardrobe'
 import { isAuthError } from '@/api/http'
@@ -326,7 +324,7 @@ function goCloset() {
 }
 .group-title {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .group-count {
@@ -359,7 +357,7 @@ function goCloset() {
 }
 .outfit-title {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
   line-height: 1.3;
 }
@@ -367,7 +365,7 @@ function goCloset() {
   flex-shrink: 0;
   padding: 4px 7px;
   border-radius: var(--radius-pill);
-  background: rgba(177, 140, 255, 0.14);
+  background: var(--pink-soft);
   color: var(--purple-deep);
   font-size: 10px;
   font-weight: 700;
@@ -380,7 +378,7 @@ function goCloset() {
 .outfit-meta {
   color: var(--text-2);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .piece-list {

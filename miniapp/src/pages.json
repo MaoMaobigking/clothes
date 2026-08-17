@@ -2,6 +2,11 @@
   "easycom": {
     "autoscan": true,
     "custom": {
+      "^(CreateBasicInfo|CreateToolRail)$": "@/pages/create/$1.vue",
+      "^MallDetailSheet$": "@/pages/mall/MallDetailSheet.vue",
+      "^SceneWeather$": "@/pages/scene/SceneWeather.vue",
+      "^(StyleStep|SkinStep|FaceStep|BodyStep|PrefStep)$": "@/pages/test/$1.vue",
+      "^uv-(.*)": "@climblee/uv-ui/components/uv-$1/uv-$1.vue",
       "^(?!z-|transition|scroll-view|view|text|image|button|input)[A-Z](.*)": "@/components/$1/$1.vue"
     }
   },
@@ -40,8 +45,8 @@
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
   ],
   "tabBar": {
-    "color": "#9a94a8",
-    "selectedColor": "#2f2a3d",
+    "color": "#909193",
+    "selectedColor": "#ff5c9d",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [

@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import AvatarViewer from '@/components/AvatarViewer/AvatarViewer.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
 import { MODEL_IMAGES, type Garment } from '@/data/mock'
@@ -751,11 +748,11 @@ function copyCartItem(item: AccessoryCartItem) {
   min-width: 34rpx;
   height: 34rpx;
   padding: 0 7rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--pink-deep);
   color: #fff;
   font-size: 19rpx;
-  font-weight: 800;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -805,13 +802,13 @@ function copyCartItem(item: AccessoryCartItem) {
 .current-title {
   margin-top: 4rpx;
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .change-btn {
   flex-shrink: 0;
   padding: 12rpx 22rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 23rpx;
@@ -834,7 +831,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 .current-tag {
   padding: 8rpx 18rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: #fff2f6;
   color: var(--pink-deep);
   font-size: 21rpx;
@@ -843,7 +840,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .outfit-cart-btn {
   margin-top: 20rpx;
   padding: 15rpx 18rpx;
-  border-radius: 18rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 23rpx;
@@ -856,7 +853,7 @@ function copyCartItem(item: AccessoryCartItem) {
   gap: 12rpx;
   margin-top: 20rpx;
   padding: 16rpx 22rpx;
-  border-radius: 18rpx;
+  border-radius: var(--radius);
   background: #e9f8f2;
   color: #24765e;
   font-size: 23rpx;
@@ -882,7 +879,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 .section-main {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .section-sub {
@@ -893,7 +890,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .demo-tag {
   flex-shrink: 0;
   padding: 8rpx 18rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 20rpx;
@@ -928,7 +925,7 @@ function copyCartItem(item: AccessoryCartItem) {
   gap: 8rpx;
   margin-right: 12rpx;
   padding: 13rpx 24rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   box-shadow: var(--shadow-card);
   color: var(--text-2);
@@ -964,11 +961,11 @@ function copyCartItem(item: AccessoryCartItem) {
   top: 12rpx;
   z-index: 3;
   padding: 7rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(45, 33, 60, 0.72);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 19rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .accessory-info {
   min-width: 0;
@@ -981,7 +978,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 .accessory-name {
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
   line-height: 1.3;
 }
@@ -997,7 +994,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .price-now {
   color: var(--pink-deep);
   font-size: 31rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .price-old {
   display: block;
@@ -1009,7 +1006,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .match-reason {
   margin-top: 14rpx;
   padding: 12rpx 14rpx;
-  border-radius: 14rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 21rpx;
@@ -1047,7 +1044,7 @@ function copyCartItem(item: AccessoryCartItem) {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 20rpx;
@@ -1099,7 +1096,7 @@ function copyCartItem(item: AccessoryCartItem) {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 23rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .hot-main {
   flex: 1;
@@ -1107,7 +1104,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 .hot-title {
   font-size: 27rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .hot-sub {
@@ -1143,20 +1140,20 @@ function copyCartItem(item: AccessoryCartItem) {
   flex-shrink: 0;
   color: #ffb020;
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .picker-tabs {
   display: flex;
   gap: 10rpx;
   margin-top: 22rpx;
   padding: 7rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
 }
 .picker-tab {
   flex: 1;
   padding: 14rpx 10rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   color: var(--text-2);
   font-size: 24rpx;
   font-weight: 700;
@@ -1179,7 +1176,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .picker-item {
   padding: 10rpx;
   border: 4rpx solid transparent;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
 }
 .picker-name {
@@ -1218,7 +1215,7 @@ function copyCartItem(item: AccessoryCartItem) {
   width: 104rpx;
   height: 104rpx;
   margin: 0 auto;
-  border-radius: 34rpx;
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1233,7 +1230,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .purchase-title {
   margin-top: 24rpx;
   font-size: 34rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .purchase-dots {
@@ -1263,7 +1260,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .purchase-command {
   margin-top: 10rpx;
   padding: 14rpx;
-  border-radius: 16rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 22rpx;
@@ -1318,7 +1315,7 @@ function copyCartItem(item: AccessoryCartItem) {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--line);
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   overflow: hidden;
 }
 .cart-step {
@@ -1344,7 +1341,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .cart-action {
   flex-shrink: 0;
   padding: 10rpx 16rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 20rpx;

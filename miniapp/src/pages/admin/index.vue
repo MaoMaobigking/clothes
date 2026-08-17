@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
   fetchAdminDashboard,
   type AdminDashboard,
@@ -153,7 +152,7 @@ function logout() {
 .login-panel {
   margin-top: 30rpx;
   padding: 42rpx 34rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-float);
   display: flex;
@@ -166,7 +165,7 @@ function logout() {
 }
 .login-title {
   font-size: 34rpx;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .login-sub {
@@ -179,14 +178,14 @@ function logout() {
   height: 88rpx;
   margin-top: 14rpx;
   padding: 0 24rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface-soft);
   color: var(--text-1);
   font-size: 26rpx;
   box-shadow: var(--shadow-card);
 }
 .error {
-  color: var(--accent);
+  color: var(--danger);
   font-size: 22rpx;
 }
 .login-button {
@@ -200,7 +199,7 @@ function logout() {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .toolbar {
   display: flex;
@@ -211,7 +210,7 @@ function logout() {
 }
 .toolbar-title {
   font-size: 32rpx;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .toolbar-actions {
@@ -239,7 +238,7 @@ function logout() {
 .stat {
   min-width: 0;
   padding: 24rpx 14rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
   display: flex;
@@ -249,7 +248,7 @@ function logout() {
 }
 .stat-number {
   font-size: 42rpx;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--pink-deep);
 }
 .stat-label {
@@ -261,14 +260,14 @@ function logout() {
 .topics {
   margin-top: 24rpx;
   padding: 24rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
 .section-title {
   margin-bottom: 16rpx;
-  font-size: 27rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-1);
 }
 .row,

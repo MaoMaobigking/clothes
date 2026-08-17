@@ -28,16 +28,16 @@ async function renderECharts() {
       radius: '68%',
       center: ['50%', '54%'],
       splitNumber: 4,
-      axisName: { color: '#6b6580', fontSize: 13, fontWeight: 600 },
+      axisName: { color: '#606266', fontSize: 13, fontWeight: 600 },
       splitArea: { areaStyle: { color: ['rgba(255,255,255,0.35)', 'rgba(244,240,251,0.35)'] } },
-      axisLine: { lineStyle: { color: 'rgba(154,107,255,0.25)' } },
-      splitLine: { lineStyle: { color: 'rgba(154,107,255,0.25)' } },
+      axisLine: { lineStyle: { color: 'rgba(0,0,0,0.12)' } },
+      splitLine: { lineStyle: { color: 'rgba(0,0,0,0.12)' } },
     },
     series: [{
       type: 'radar',
       symbol: 'circle',
       symbolSize: 6,
-      lineStyle: { color: '#b18cff', width: 2 },
+      lineStyle: { color: '#ff5c9d', width: 2 },
       itemStyle: { color: '#ff5c9d' },
       areaStyle: { color: 'rgba(255,143,192,0.25)' },
       data: [{ value: props.dimensions.map((d) => d.value), name: '我的画像' }],
@@ -76,7 +76,7 @@ function drawCanvas() {
       if (i === 0) ctx.moveTo(x, y)
       else ctx.lineTo(x, y)
     }
-    ctx.setStrokeStyle('rgba(154, 107, 255, 0.2)')
+    ctx.setStrokeStyle('rgba(0, 0, 0, 0.12)')
     ctx.stroke()
   }
 
@@ -88,7 +88,7 @@ function drawCanvas() {
     ctx.beginPath()
     ctx.moveTo(centerX, centerY)
     ctx.lineTo(x, y)
-    ctx.setStrokeStyle('rgba(154, 107, 255, 0.2)')
+    ctx.setStrokeStyle('rgba(0, 0, 0, 0.12)')
     ctx.stroke()
 
     const label = dimensions[i].incomplete
@@ -97,7 +97,7 @@ function drawCanvas() {
     const labelX = centerX + Math.cos(angle) * (radius + 24)
     const labelY = centerY + Math.sin(angle) * (radius + 24) + 4
     ctx.setFontSize(11)
-    ctx.setFillStyle('#6b6580')
+    ctx.setFillStyle('#606266')
     ctx.setTextAlign(
       Math.abs(Math.cos(angle)) < 0.25 ? 'center' : Math.cos(angle) > 0 ? 'left' : 'right',
     )
@@ -125,14 +125,14 @@ function drawCanvas() {
     ctx.closePath()
     ctx.setFillStyle('rgba(255, 143, 192, 0.25)')
     ctx.fill()
-    ctx.setStrokeStyle('#b18cff')
+    ctx.setStrokeStyle('#ff5c9d')
     ctx.setLineWidth(2)
     ctx.stroke()
 
     points.forEach((point) => {
       ctx.beginPath()
       ctx.arc(point.x, point.y, 4, 0, Math.PI * 2)
-      ctx.setFillStyle(point.incomplete ? '#b7b0c6' : '#ff5c9d')
+      ctx.setFillStyle(point.incomplete ? '#c0c4cc' : '#ff5c9d')
       ctx.fill()
     })
   }

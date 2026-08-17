@@ -2,8 +2,6 @@
 import { iconForEmoji } from '@/utils/icons'
 import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { CUSTOM_STEPS, getCustomCategory, type CustomCategory } from '@/data/custom'
 import {
   fetchCustomSummary,
@@ -500,7 +498,7 @@ async function upgradeVip() {
   width: 220rpx;
   height: 250rpx;
   flex-shrink: 0;
-  border-radius: 26rpx;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe6f2, #e7dcff);
 }
@@ -520,7 +518,7 @@ async function upgradeVip() {
 }
 .hero-title {
   font-size: 36rpx;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .hero-desc {
@@ -551,7 +549,7 @@ async function upgradeVip() {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 23rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .process-label {
   font-size: 20rpx;
@@ -562,8 +560,8 @@ async function upgradeVip() {
 
 .section-title {
   margin-bottom: 20rpx;
-  font-size: 31rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-1);
 }
 .cases {
@@ -583,7 +581,7 @@ async function upgradeVip() {
   width: 190rpx;
   height: 155rpx;
   flex-shrink: 0;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe6f2, #d7ecff);
 }
@@ -606,7 +604,7 @@ async function upgradeVip() {
 }
 .case-title {
   font-size: 27rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .vip-tag,
@@ -614,10 +612,10 @@ async function upgradeVip() {
   flex-shrink: 0;
   padding: 5rpx 13rpx;
   border-radius: var(--radius-pill);
-  background: rgba(177, 140, 255, 0.16);
+  background: var(--pink-soft);
   color: var(--purple-deep);
   font-size: 19rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .case-desc {
   font-size: 23rpx;
@@ -649,7 +647,7 @@ async function upgradeVip() {
 .premium-title {
   display: block;
   font-size: 29rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .premium-desc {
   display: block;
@@ -725,7 +723,7 @@ async function upgradeVip() {
 }
 .field-label {
   font-size: 24rpx;
-  font-weight: 750;
+  font-weight: 700;
   color: var(--text-1);
 }
 .field-label.required::after {
@@ -741,7 +739,7 @@ async function upgradeVip() {
 }
 .measure-field input {
   border: 2rpx solid var(--line);
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   padding: 16rpx 18rpx;
   font-size: 26rpx;
 }
@@ -757,7 +755,7 @@ async function upgradeVip() {
   position: relative;
   width: 170rpx;
   height: 170rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 .picked,
@@ -810,7 +808,7 @@ async function upgradeVip() {
 .vip-sheet {
   width: 100%;
   padding: 38rpx 32rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 44rpx 44rpx 0 0;
+  border-radius: var(--radius-lg) 44rpx 0 0;
   background: #fff;
   display: flex;
   flex-direction: column;
@@ -818,7 +816,7 @@ async function upgradeVip() {
 }
 .vip-sheet-title {
   font-size: 34rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .vip-sheet-desc {
   font-size: 25rpx;

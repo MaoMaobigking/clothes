@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue'
-import BottomNav from '@/components/BottomNav/BottomNav.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
-import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { AI_FEATURES, OUTFIT_RECOS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
 import { iconForEmoji } from '@/utils/icons'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
@@ -193,7 +189,7 @@ function goMall() {
 .brand {
   margin: 12rpx 0 0;
   font-size: 44rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .weather {
@@ -231,7 +227,7 @@ function goMall() {
 }
 .ac-title {
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .ac-sub {
   flex: 1;

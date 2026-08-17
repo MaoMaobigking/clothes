@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
   fetchAchievements,
   type AchievementSummary,
@@ -85,14 +84,14 @@ function progressWidth() {
   font-size: 26rpx;
 }
 .state.error {
-  color: var(--accent);
+  color: var(--danger);
 }
 .points-card {
   display: flex;
   flex-direction: column;
   gap: 8rpx;
   padding: 34rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--brand-gradient);
   color: #fff;
   box-shadow: var(--shadow-float);
@@ -105,7 +104,7 @@ function progressWidth() {
 .points-number {
   font-size: 76rpx;
   line-height: 1;
-  font-weight: 900;
+  font-weight: 700;
 }
 .points-sub {
   font-size: 22rpx;
@@ -114,7 +113,7 @@ function progressWidth() {
 .progress-card {
   margin-top: 22rpx;
   padding: 24rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -123,7 +122,7 @@ function progressWidth() {
   align-items: center;
   justify-content: space-between;
   font-size: 25rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .progress-track {
@@ -141,12 +140,12 @@ function progressWidth() {
 .section-title {
   margin: 30rpx 0 18rpx;
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .empty {
   padding: 24rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface-soft);
   color: var(--text-3);
   font-size: 24rpx;
@@ -159,7 +158,7 @@ function progressWidth() {
 }
 .badge {
   padding: 28rpx 20rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
   display: flex;
@@ -173,7 +172,7 @@ function progressWidth() {
 }
 .badge-title {
   font-size: 25rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .badge-points {

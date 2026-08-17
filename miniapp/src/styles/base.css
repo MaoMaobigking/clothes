@@ -17,7 +17,12 @@
  */
 
 page {
-  background: var(--bg-gradient);
+  /*
+   * 页面底。原来是 var(--bg-gradient) 的粉紫渐变，已随第二轮换皮退役 ——
+   * uv-cell / uv-list 是通栏白底，铺上去会把渐变盖掉九成，
+   * 只在区块缝隙里露一道和 uv-ui 冷灰调撞色的暖边。
+   */
+  background: var(--bg-page);
   min-height: 100%;
   font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   color: var(--text-1);

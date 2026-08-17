@@ -233,7 +233,7 @@ onMounted(() => {
 }
 .brand-title {
   font-size: 44rpx;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .brand-sub {
@@ -255,7 +255,7 @@ onMounted(() => {
 }
 .card-title {
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .card-sub {
@@ -326,7 +326,7 @@ onMounted(() => {
 .demo-tag {
   margin-left: 12rpx;
   font-size: 20rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--purple-deep);
   background: #efe8ff;
   border-radius: var(--radius-pill);

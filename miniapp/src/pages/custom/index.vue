@@ -2,8 +2,6 @@
 import { iconForEmoji } from '@/utils/icons'
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { CUSTOM_CATEGORIES, CUSTOM_STEPS, REQUEST_STATUS_LABELS } from '@/data/custom'
 import {
   fetchCustomRequests,
@@ -218,13 +216,13 @@ onShow(loadData)
 .eyebrow {
   color: var(--pink-deep);
   font-size: 20rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .title {
   margin-top: 16rpx;
   font-size: 40rpx;
   line-height: 1.18;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .desc {
@@ -238,7 +236,7 @@ onShow(loadData)
   height: 270rpx;
   flex-shrink: 0;
   align-self: center;
-  border-radius: 28rpx;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe1ef, #ded2ff);
 }
@@ -248,8 +246,8 @@ onShow(loadData)
 }
 
 .section-title {
-  font-size: 32rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-1);
   margin-bottom: 22rpx;
 }
@@ -260,7 +258,7 @@ onShow(loadData)
 }
 .category {
   background: var(--surface);
-  border-radius: 30rpx;
+  border-radius: var(--radius-lg);
   padding: 14rpx;
   box-shadow: var(--shadow-card);
   transition: transform 0.15s ease;
@@ -269,7 +267,7 @@ onShow(loadData)
   position: relative;
   width: 100%;
   height: 210rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe6f2, #e6dcff);
 }
@@ -295,7 +293,7 @@ onShow(loadData)
 }
 .category-label {
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .category-desc {
@@ -335,11 +333,11 @@ onShow(loadData)
   background: var(--brand-gradient);
   color: #fff;
   font-size: 22rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .step-label {
   font-size: 23rpx;
-  font-weight: 650;
+  font-weight: 500;
   color: var(--text-1);
 }
 
@@ -352,7 +350,7 @@ onShow(loadData)
 .vip-title {
   display: block;
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .vip-desc {
   display: block;
@@ -365,9 +363,9 @@ onShow(loadData)
   padding: 8rpx 18rpx;
   border-radius: var(--radius-pill);
   color: var(--purple-deep);
-  background: rgba(177, 140, 255, 0.15);
+  background: var(--pink-soft);
   font-size: 22rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .vip-btn {
   height: 82rpx;
@@ -413,7 +411,7 @@ onShow(loadData)
 }
 .request-title {
   font-size: 27rpx;
-  font-weight: 750;
+  font-weight: 700;
   color: var(--text-1);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -462,7 +460,7 @@ onShow(loadData)
 }
 .empty-title {
   font-size: 29rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .empty-desc {
   font-size: 23rpx;

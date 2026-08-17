@@ -49,7 +49,7 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
 }
 .t-label {
   font-size: 20rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
 </style>

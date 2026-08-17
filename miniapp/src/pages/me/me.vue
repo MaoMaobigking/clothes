@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 // easycom 自动解析 TileImage / SectionTitle / BottomNav，也可显式导入
-import TileImage from '@/components/TileImage/TileImage.vue'
-import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
-import BottomNav from '@/components/BottomNav/BottomNav.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import { useProfileStore } from '@/stores/profile'
@@ -249,7 +246,7 @@ onMounted(async () => {
 }
 .uc-name {
   font-size: 36rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-on-brand);
 }
 .uc-sign {
@@ -261,7 +258,7 @@ onMounted(async () => {
   flex-shrink: 0;
   align-self: flex-start;
   font-size: 24rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-on-brand);
   padding: 10rpx 24rpx;
   border-radius: var(--radius-pill);
@@ -289,7 +286,7 @@ onMounted(async () => {
 }
 .stat-num {
   font-size: 44rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--pink-deep);
 }
 .stat-label {
@@ -329,7 +326,7 @@ onMounted(async () => {
 .learning-number {
   font-size: 48rpx;
   line-height: 1;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--pink-deep);
 }
 .learning-label {
@@ -371,7 +368,7 @@ onMounted(async () => {
 }
 .ac-title {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .ac-sub {
@@ -411,7 +408,7 @@ onMounted(async () => {
   flex: 1;
   text-align: left;
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-1);
 }
 .mi-hint {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import { sendChat, type ChatMessage } from '@/api/ai'
 
 interface Msg extends ChatMessage {
@@ -135,7 +134,7 @@ async function send(text?: string) {
 .bubble {
   max-width: 76%;
   padding: 20rpx 28rpx;
-  border-radius: 36rpx;
+  border-radius: var(--radius-lg);
   font-size: 28rpx;
   line-height: 1.55;
   white-space: pre-wrap;
@@ -192,12 +191,12 @@ async function send(text?: string) {
 .q {
   flex-shrink: 0;
   padding: 16rpx 28rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   box-shadow: var(--shadow-card);
   color: var(--purple-deep);
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -205,7 +204,7 @@ async function send(text?: string) {
   flex-shrink: 0;
   display: flex;
   gap: 20rpx;
-  padding: 16rpx 32rpx calc(24rpx + var(--safe-bottom));
+  padding: 16rpx 32rpx calc(24rpx + env(safe-area-inset-bottom, 0px));
   background: rgba(255, 255, 255, 0.7);
   border-top: 1px solid var(--line);
 }

@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import OutfitPreview from '@/components/OutfitPreview/OutfitPreview.vue'
-import OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import {
@@ -391,7 +387,7 @@ function saveSharePoster() {
 .head-stat-num {
   color: var(--pink-deep);
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .head-stat-label {
   color: var(--text-3);
@@ -440,7 +436,7 @@ function saveSharePoster() {
   position: relative;
   margin-bottom: 18rpx;
   padding: 7rpx;
-  border-radius: 22rpx;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -452,11 +448,11 @@ function saveSharePoster() {
   min-width: 32rpx;
   height: 32rpx;
   padding: 0 6rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--brand-gradient);
   color: #fff;
   font-size: 18rpx;
-  font-weight: 800;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -490,7 +486,7 @@ function saveSharePoster() {
 }
 .plan-title {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .plan-scene {
@@ -501,7 +497,7 @@ function saveSharePoster() {
 .algorithm-link {
   flex-shrink: 0;
   padding: 10rpx 18rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: #f1edff;
   color: var(--purple-deep);
   font-size: 21rpx;
@@ -522,7 +518,7 @@ function saveSharePoster() {
 .outfit-item {
   position: relative;
   padding: 8rpx;
-  border-radius: 20rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
 }
 .outfit-item-name {
@@ -554,7 +550,7 @@ function saveSharePoster() {
   gap: 5rpx;
   min-height: 64rpx;
   padding: 8rpx 4rpx;
-  border-radius: 16rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 20rpx;
@@ -590,7 +586,7 @@ function saveSharePoster() {
 .replace-item {
   padding: 10rpx;
   border: 4rpx solid transparent;
-  border-radius: 22rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
 }
 .replace-item.selected {
@@ -632,7 +628,7 @@ function saveSharePoster() {
 .algorithm-note {
   margin-top: 22rpx;
   padding: 18rpx;
-  border-radius: 18rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 23rpx;

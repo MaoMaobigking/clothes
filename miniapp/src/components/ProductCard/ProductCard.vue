@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import TileImage from '@/components/TileImage/TileImage.vue'
 
 withDefaults(
   defineProps<{
@@ -54,69 +53,87 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
+/*
+ * 商品卡。uv-ui 没有 card / goods-card 组件，这个只能自绘 —— 但视觉规格对齐它：
+ * 白底 + 发丝边 + 8rpx 圆角，分离感靠边框不靠阴影。
+ */
 .pcard {
   background: var(--surface);
+  border: var(--hairline);
   border-radius: var(--radius);
-  padding: 16rpx;
-  box-shadow: var(--shadow-card);
-  transition: transform 0.15s ease;
+  padding: 12rpx;
+  overflow: hidden;
+  transition: opacity 0.15s ease;
 }
+/*
+ * 按压反馈从 transform: scale(0.97) 改成透明度。
+ * uv-ui 全库的按压态就是 .uv-hover-class { opacity: 0.7 }，没有缩放动效；
+ * 而且缩放会让发丝边在动画中出现锯齿。
+ */
 .pcard:active {
-  transform: scale(0.97);
+  opacity: 0.7;
 }
 .thumb {
   position: relative;
 }
+/*
+ * 角标。原来是 rgba(0,0,0,0.35) 的半透黑药丸 ——
+ * 换成 uv-ui 的 primary 实底小标签（它的 uv-tags 就是这个形态）。
+ */
 .tag {
   position: absolute;
-  top: 16rpx;
-  left: 16rpx;
-  font-size: 22rpx;
-  font-weight: 700;
+  top: 12rpx;
+  left: 12rpx;
+  font-size: 20rpx;
   color: #fff;
-  background: rgba(0, 0, 0, 0.35);
-  padding: 6rpx 16rpx;
-  border-radius: 999px;
+  background: var(--pink-deep);
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-sm);
 }
+/* 收藏键：白底圆钮 + 发丝边，去掉投影 */
 .fav {
   position: absolute;
   top: 12rpx;
   right: 12rpx;
-  width: 60rpx;
-  height: 60rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  border: var(--hairline);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30rpx;
-  box-shadow: var(--shadow-card);
 }
 .fav.on {
   background: #fff;
 }
+/* 商品名：uv-ui 不给正文加粗，两行截断 */
 .name {
-  margin-top: 16rpx;
-  margin-left: 8rpx;
+  margin-top: 14rpx;
+  margin-left: 4rpx;
   font-size: 26rpx;
-  font-weight: 600;
   color: var(--text-1);
-  line-height: 1.3;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/*
+ * 价格是全卡唯一的主色元素，所以这里保留 bold ——
+ * 电商场景下价格必须最先被看到，这一处偏离 uv-ui 的「不加粗」是有意的。
+ * 用 --price 而不是 --pink-deep：语义上是价格色，将来调价格不牵连按钮。
+ */
 .price {
-  margin-top: 4rpx;
-  margin-left: 8rpx;
+  margin-top: 8rpx;
+  margin-left: 4rpx;
   margin-bottom: 8rpx;
   font-size: 32rpx;
-  font-weight: 800;
-  color: var(--pink-deep);
+  font-weight: 700;
+  color: var(--price);
 }
 .price-symbol {
-  font-size: 24rpx;
+  font-size: 22rpx;
   margin-right: 2rpx;
 }
 </style>

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { apiGenerateOutfits } from '@/api/wardrobe'
 import { WARDROBE_CATEGORIES, categoryLabel } from '@/data/wardrobeOptions'
@@ -144,7 +142,7 @@ async function generate() {
 }
 .summary-title {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .summary-sub {
@@ -154,7 +152,7 @@ async function generate() {
 }
 .clear {
   padding: 12rpx 24rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   box-shadow: var(--shadow-card);
   color: var(--pink-deep);
@@ -170,7 +168,7 @@ async function generate() {
   display: inline-flex;
   margin-right: 14rpx;
   padding: 13rpx 28rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-soft);
   box-shadow: var(--shadow-card);
   color: var(--text-2);
@@ -195,7 +193,7 @@ async function generate() {
   position: relative;
   padding: 10rpx;
   border: 4rpx solid transparent;
-  border-radius: 28rpx;
+  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -217,7 +215,7 @@ async function generate() {
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .garment-name {
   margin: 14rpx 4rpx 2rpx;
@@ -248,7 +246,7 @@ async function generate() {
   flex-shrink: 0;
   padding: 16rpx 32rpx calc(18rpx + env(safe-area-inset-bottom, 0px));
   background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 -12rpx 28rpx rgba(150, 120, 200, 0.12);
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 .selected-list {
   min-height: 58rpx;
@@ -262,7 +260,7 @@ async function generate() {
   max-width: 300rpx;
   margin-right: 10rpx;
   padding: 10rpx 20rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: #fff0f5;
   color: var(--pink-deep);
   font-size: 21rpx;

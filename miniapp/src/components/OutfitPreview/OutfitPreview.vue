@@ -137,7 +137,9 @@ watch(() => props.model, () => (modelFailed.value = false))
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  background: linear-gradient(155deg, #fff4f8, #f3ebff);
+  /* 原来是 linear-gradient(155deg, #fff4f8, #f3ebff) 的粉紫渐变底，
+     随第二轮换皮改成 uv-ui 的中性浅灰 —— 它是搭配图的背景，不该抢主体的色 */
+  background: var(--surface-placeholder);
 }
 .layer {
   position: absolute;
@@ -149,7 +151,7 @@ watch(() => props.model, () => (modelFailed.value = false))
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2f0f6;
+  background: var(--surface-placeholder);
 }
 .filter {
   z-index: 1;
@@ -176,10 +178,10 @@ watch(() => props.model, () => (modelFailed.value = false))
   z-index: 3;
   width: 108rpx;
   height: 108rpx;
-  border-radius: 20rpx;
+  border-radius: var(--radius);
   border: 4rpx solid #fff;
   background: #fff;
-  box-shadow: 0 8rpx 18rpx rgba(70, 50, 110, 0.22);
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.12);
   overflow: hidden;
 }
 .overlay-img {
@@ -190,7 +192,7 @@ watch(() => props.model, () => (modelFailed.value = false))
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2f0f6;
+  background: var(--surface-placeholder);
 }
 .overlay-tag {
   position: absolute;
@@ -201,7 +203,7 @@ watch(() => props.model, () => (modelFailed.value = false))
   font-size: 18rpx;
   font-weight: 700;
   color: #fff;
-  background: rgba(45, 33, 60, 0.62);
+  background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 0;
 }
 .caption {
@@ -211,8 +213,8 @@ watch(() => props.model, () => (modelFailed.value = false))
   right: 16rpx;
   z-index: 4;
   padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(45, 33, 60, 0.68);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.65);
   color: #fff;
   font-size: 20rpx;
   font-weight: 700;

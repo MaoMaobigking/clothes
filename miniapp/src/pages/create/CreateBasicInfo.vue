@@ -77,7 +77,7 @@ function save() {
 }
 .head-text {
   font-size: 26rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .rows {
@@ -108,7 +108,7 @@ function save() {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 16rpx;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
 }
 .pm {

@@ -10,6 +10,7 @@
     "build:mp-weixin": "uni build -p mp-weixin"
   },
   "dependencies": {
+    "@climblee/uv-ui": "^1.1.20",
     "@dcloudio/uni-app": "vue3",
     "@dcloudio/uni-components": "vue3",
     "@dcloudio/uni-h5": "vue3",
