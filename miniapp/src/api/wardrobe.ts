@@ -109,6 +109,7 @@ export interface Outfit {
   batchId: string
   kind: string
   isSaved: boolean
+  isStarred: boolean
   season: string
   occasion: string
   algorithm: Record<string, any>
@@ -124,6 +125,8 @@ export interface OutfitBatch {
 function normalizeOutfit(outfit: Outfit): Outfit {
   return {
     ...outfit,
+    // 老后端不返回 isStarred，这里兜一个 false，免得模板里 undefined 当真值用
+    isStarred: Boolean(outfit.isStarred),
     items: outfit.items.map((item) => ({
       ...item,
       garment: normalizeGarment(item.garment),
@@ -153,11 +156,47 @@ export async function apiGetOutfitBatch(batchId: string): Promise<OutfitBatch> {
   }
 }
 
-export async function apiListOutfits(saved = false): Promise<Outfit[]> {
+export async function apiListOutfits(
+  saved = false,
+  opts: { starred?: boolean; kind?: 'manual' | 'generated' } = {},
+): Promise<Outfit[]> {
+  const q = [`saved=${saved ? 1 : 0}`]
+  if (opts.starred) q.push('starred=1')
+  if (opts.kind) q.push(`kind=${opts.kind}`)
   const d = await request<{ items: Outfit[] }>({
-    url: `/api/wardrobe/outfits?saved=${saved ? 1 : 0}`,
+    url: `/api/wardrobe/outfits?${q.join('&')}`,
   })
   return d.items.map(normalizeOutfit)
+}
+
+/**
+ * 自由搭配页的「保存」：手动挑的一组衣物落成一条 kind='manual' 的搭配。
+ * 注意它不产生 batchId —— 回看时要走 outfitId，不能拼 /outfit-result?batchId=。
+ *
+ * garmentIds 是字符串 id（`g1`），原样传，别转数字：garments.id 是 VARCHAR。
+ */
+export async function apiCreateOutfit(payload: {
+  garmentIds: string[]
+  title?: string
+  scene?: string
+  reason?: string
+}): Promise<Outfit> {
+  const d = await request<{ item: Outfit }>({
+    url: '/api/wardrobe/outfits',
+    method: 'POST',
+    data: { ...payload, garmentIds: payload.garmentIds.map(String) },
+  })
+  return normalizeOutfit(d.item)
+}
+
+/** 「收藏」= 星标。后端会顺带把 is_saved 置 1，所以未保存直接点收藏也是通的 */
+export async function apiStarOutfit(id: number, starred = true): Promise<Outfit> {
+  const d = await request<{ item: Outfit }>({
+    url: `/api/wardrobe/outfits/${id}/star`,
+    method: 'POST',
+    data: { starred },
+  })
+  return normalizeOutfit(d.item)
 }
 
 export async function apiSaveOutfit(id: number): Promise<Outfit> {

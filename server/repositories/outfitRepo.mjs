@@ -12,7 +12,7 @@ function parseJson(value, fallback = null) {
 }
 
 const OUTFIT_COLS = `
-  id, user_id, title, scene, reason, batch_id, kind, is_saved,
+  id, user_id, title, scene, reason, batch_id, kind, is_saved, is_starred,
   season, occasion, algorithm, created_at
 `
 
@@ -42,6 +42,7 @@ function mapOutfit(row, items) {
     batchId: row.batch_id || '',
     kind: row.kind || 'generated',
     isSaved: Boolean(row.is_saved),
+    isStarred: Boolean(row.is_starred),
     season: row.season || '',
     occasion: row.occasion || '',
     algorithm: parseJson(row.algorithm, {}),
@@ -91,6 +92,36 @@ export async function createOutfitBatch(userId, batchId, plans) {
   return getOutfitBatch(userId, batchId)
 }
 
+/**
+ * 手动搭配落库（自由搭配页的「保存」）。
+ *
+ * 和 createOutfitBatch 的区别：
+ *   - kind = 'manual'，没有 batch_id —— 它不属于任何一次 AI 生成批次。
+ *     所以按 batchId 取搭配的接口对它一律取不到，前端必须走 outfitId。
+ *   - is_saved 直接就是 1。用户点保存的意思就是要留着，不需要再点一次「保存」。
+ */
+export async function createManualOutfit(userId, { title, scene, reason, garmentIds }) {
+  let outfitId = 0
+  await withTransaction(async (conn) => {
+    const [result] = await conn.execute(
+      `INSERT INTO outfits
+        (user_id, title, scene, reason, batch_id, kind, is_saved, is_starred,
+         season, occasion, algorithm)
+       VALUES (?, ?, ?, ?, NULL, 'manual', 1, 0, ?, ?, ?)`,
+      [userId, title, scene, reason, '', scene, JSON.stringify({ source: 'free-match' })],
+    )
+    outfitId = result.insertId
+    for (let index = 0; index < garmentIds.length; index += 1) {
+      await conn.execute(
+        `INSERT INTO outfit_items (outfit_id, garment_id, sort_order)
+         VALUES (?, ?, ?)`,
+        [outfitId, garmentIds[index], index + 1],
+      )
+    }
+  })
+  return getOutfit(userId, outfitId)
+}
+
 export async function getOutfitBatch(userId, batchId) {
   const rows = await getAll(
     `SELECT ${OUTFIT_COLS}
@@ -112,7 +143,7 @@ export async function getOutfit(userId, id) {
   return mapOutfit(row, await itemsForOutfit(userId, id))
 }
 
-export async function listOutfits(userId, { kind = '', saved = false } = {}) {
+export async function listOutfits(userId, { kind = '', saved = false, starred = false } = {}) {
   const conditions = ['user_id = ?']
   const params = [userId]
   if (kind) {
@@ -122,11 +153,14 @@ export async function listOutfits(userId, { kind = '', saved = false } = {}) {
   if (saved) {
     conditions.push('is_saved = 1')
   }
+  if (starred) {
+    conditions.push('is_starred = 1')
+  }
   const rows = await getAll(
     `SELECT ${OUTFIT_COLS}
        FROM outfits
       WHERE ${conditions.join(' AND ')}
-      ORDER BY created_at DESC, id DESC`,
+      ORDER BY is_starred DESC, created_at DESC, id DESC`,
     params,
   )
   const outfits = []
@@ -139,6 +173,23 @@ export async function listOutfits(userId, { kind = '', saved = false } = {}) {
 export async function saveOutfit(userId, id) {
   const result = await execute(
     'UPDATE outfits SET is_saved = 1 WHERE id = ? AND user_id = ?',
+    [id, userId],
+  )
+  if (result.affectedRows === 0) return null
+  return getOutfit(userId, id)
+}
+
+/**
+ * 星标（自由搭配页和搭配结果页的「收藏」）。
+ *
+ * 顺带把 is_saved 也置 1：星标的前提是这条搭配已经留下来了，
+ * 出现「收藏了但不在我的搭配里」是说不通的状态。
+ */
+export async function setOutfitStar(userId, id, starred) {
+  const result = await execute(
+    starred
+      ? 'UPDATE outfits SET is_starred = 1, is_saved = 1 WHERE id = ? AND user_id = ?'
+      : 'UPDATE outfits SET is_starred = 0 WHERE id = ? AND user_id = ?',
     [id, userId],
   )
   if (result.affectedRows === 0) return null

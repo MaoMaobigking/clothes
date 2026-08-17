@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { iconForEmoji, type IconName } from '@/utils/icons'
 import { useWardrobeStore } from '@/stores/wardrobe'
-/* MODEL_IMAGES 已不再引用（人台暂不渲染，见下面 stage 那段注释）；
-   恢复人台时把它加回这一行的 import 里 */
-import { type Garment } from '@/data/mock'
+import { useProfileStore } from '@/stores/profile'
+import { MODEL_IMAGES, SCENES, type Garment, type Scene } from '@/data/mock'
+import { apiCreateOutfit, apiStarOutfit } from '@/api/wardrobe'
+import { isAuthError } from '@/api/http'
 import {
   garmentToAccessoryContext,
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
 
 const wardrobe = useWardrobeStore()
+const profile = useProfileStore()
 
 /* ---------- 轻提示 ---------- */
 const toastMsg = ref('')
@@ -20,35 +22,6 @@ function showToast(msg: string) {
   if (toastTimer) clearTimeout(toastTimer)
   toastTimer = setTimeout(() => (toastMsg.value = ''), 1500)
 }
-
-/* ---------- 右侧工具 ---------- */
-/*
- * 右侧竖排工具，对齐样图的五项：穿搭保存 / 更换模特 / 更换场景 / 更换搭配 / 还原穿搭。
- * 原来是「换鞋子 / 换裙子 / 进阶穿搭」，样图上没有这三项。
- */
-const tools: { key: string; label: string; icon: IconName }[] = [
-  { key: 'save', label: '穿搭保存', icon: 'save' },
-  { key: 'model', label: '更换模特', icon: 'model-switch' },
-  { key: 'scene', label: '更换场景', icon: 'scene-switch' },
-  { key: 'outfit', label: '更换搭配', icon: 'outfit-switch' },
-  { key: 'reset', label: '还原穿搭', icon: 'refresh' },
-]
-function onTool(t: { key: string; label: string }) {
-  // 「还原穿搭」是现成能做的：把已穿上的清空即可，不用再挂一句「敬请期待」
-  if (t.key === 'reset') {
-    if (!selected.value.length) {
-      showToast('还没穿上任何单品')
-      return
-    }
-    selected.value = []
-    showToast('已还原为初始形象')
-    return
-  }
-  showToast(`${t.label} · 敬请期待`)
-}
-
-/* ---------- 左侧可替换缩略（取衣橱前 6 件） ---------- */
-const quickThumbs = computed<Garment[]>(() => wardrobe.garments.slice(0, 6))
 
 /* ---------- 已选单品（本地管理） ---------- */
 const selected = ref<Garment[]>([])
@@ -67,6 +40,207 @@ function wear(g: Garment) {
 function takeOff(id: string) {
   selected.value = selected.value.filter((s) => s.id !== id)
 }
+
+/* ---------- 保存 / 收藏（规格 §8.9：两件事，不是一个按钮的两种说法） ----------
+ * 保存 = 把这组衣物落成一条 kind='manual' 的搭配，之后在「我的搭配」里能翻到。
+ * 收藏 = 在已落库的搭配上打星标。没落库就点收藏的话先落库再打星。
+ *
+ * savedOutfitId 记住这一组对应哪条库里的搭配，避免重复点保存生成一堆副本。
+ * 但它只对「当前这一组」有效 —— 换了单品就是另一套了，下面的 watch 会清掉它，
+ * 否则给 A 打的星会落到 B 头上。
+ */
+const savedOutfitId = ref(0)
+const isStarred = ref(false)
+const busy = ref(false)
+
+watch(
+  () => selected.value.map((s) => s.id).join('|'),
+  () => {
+    savedOutfitId.value = 0
+    isStarred.value = false
+  },
+)
+
+/** 落库并返回 outfitId；已经落过就直接复用。失败返回 0（提示已在内部给过）。 */
+async function ensureSaved(): Promise<number> {
+  if (savedOutfitId.value) return savedOutfitId.value
+  const outfit = await apiCreateOutfit({
+    garmentIds: selected.value.map((s) => s.id),
+    scene: currentScene.value?.key || '',
+    title: currentScene.value ? `${currentScene.value.label} · 自由搭配` : '',
+  })
+  savedOutfitId.value = outfit.id
+  isStarred.value = outfit.isStarred
+  return outfit.id
+}
+
+/**
+ * 出错兜底。401 不提示：请求层已经把人送去登录页了，
+ * 再弹一条 toast 只会叠在登录页上（同 stores/cart.ts 的处理）。
+ */
+function reportError(error: unknown, fallback: string) {
+  if (isAuthError(error)) return
+  showToast((error as Error)?.message || fallback)
+}
+
+async function onSave() {
+  if (busy.value) return
+  if (!selected.value.length) {
+    showToast('先穿上至少一件')
+    return
+  }
+  if (savedOutfitId.value) {
+    showToast('这套已经保存过啦')
+    return
+  }
+  busy.value = true
+  try {
+    await ensureSaved()
+    showToast('已保存到我的搭配')
+  } catch (error) {
+    reportError(error, '保存失败，请稍后再试')
+  } finally {
+    busy.value = false
+  }
+}
+
+async function onStar() {
+  if (busy.value) return
+  if (!selected.value.length) {
+    showToast('先穿上至少一件')
+    return
+  }
+  busy.value = true
+  try {
+    const id = await ensureSaved()
+    const next = !isStarred.value
+    const outfit = await apiStarOutfit(id, next)
+    isStarred.value = outfit.isStarred
+    showToast(outfit.isStarred ? '已收藏本套造型' : '已取消收藏')
+  } catch (error) {
+    reportError(error, '收藏失败，请稍后再试')
+  } finally {
+    busy.value = false
+  }
+}
+
+/* ---------- 更换模特 ----------
+ * 整张预设图切换，不是把衣服图层叠到人台上 —— 衣橱图没有 alpha 通道，
+ * 叠上去就是一堆白底方块（见 .handoff/公共底座-图片素材）。
+ */
+const MODEL_VIEWS = [
+  { key: 'female-front', label: '女生 · 正面', src: MODEL_IMAGES.front },
+  { key: 'female-back', label: '女生 · 背面', src: MODEL_IMAGES.back },
+  { key: 'male-front', label: '男生 · 正面', src: MODEL_IMAGES.frontMale },
+  { key: 'male-back', label: '男生 · 背面', src: MODEL_IMAGES.backMale },
+]
+/** 默认跟随身形档案的性别；没填过就用女生正面 */
+const modelIndex = ref(profile.profile.gender === 'male' ? 2 : 0)
+const currentModel = computed(() => MODEL_VIEWS[modelIndex.value % MODEL_VIEWS.length])
+function switchModel() {
+  modelIndex.value = (modelIndex.value + 1) % MODEL_VIEWS.length
+  showToast(`已切换到${currentModel.value.label}`)
+}
+
+/* ---------- 更换场景 ----------
+ * 只换舞台背景图 + 一层半透明白遮罩（规格 §10.9：切换时衣服本身不变）。
+ * 背景走 <image> 而不是 CSS background-image —— 小程序 WXSS 的 background-image
+ * 不认本地路径，只吃 base64 和网络图，写了就是不显示。
+ */
+const sceneKey = ref('')
+const currentScene = computed<Scene | null>(
+  () => SCENES.find((s) => s.key === sceneKey.value) || null,
+)
+function switchScene() {
+  const options = ['默认（无背景）', ...SCENES.map((s) => s.label)]
+  uni.showActionSheet({
+    itemList: options,
+    success: ({ tapIndex }) => {
+      if (tapIndex === 0) {
+        sceneKey.value = ''
+        showToast('已还原默认背景')
+        return
+      }
+      const scene = SCENES[tapIndex - 1]
+      if (!scene) return
+      sceneKey.value = scene.key
+      showToast(`背景已换成「${scene.label}」`)
+    },
+  })
+}
+
+/* ---------- 更换搭配 ----------
+ * 本地规则随机，不落库也不调 AI：每个部位从衣橱里随机抽一件。
+ * 「智能生成」是首页那条链路（/api/wardrobe/generate），这里只是换个组合看看。
+ */
+const SHUFFLE_GROUPS = [
+  ['top'],
+  ['pants', 'skirt', 'dress'],
+  ['shoes'],
+  ['bag', 'hat', 'jewelry', 'accessory'],
+]
+function pickRandom<T>(list: T[]): T | undefined {
+  if (!list.length) return undefined
+  return list[Math.floor(Math.random() * list.length)]
+}
+function shuffleOutfit() {
+  const pool = wardrobe.garments
+  if (pool.length < 2) {
+    showToast('衣橱里至少要有 2 件才能换搭配')
+    return
+  }
+  const used = new Set<string>()
+  const next: Garment[] = []
+  for (const group of SHUFFLE_GROUPS) {
+    const picked = pickRandom(
+      pool.filter((g) => group.includes(g.category) && !used.has(g.id)),
+    )
+    if (!picked) continue
+    used.add(picked.id)
+    next.push(picked)
+  }
+  // 衣橱里的分类可能压根不覆盖上面四组（比如全是配饰），兜底随便抽三件
+  if (next.length < 2) {
+    for (const g of [...pool].sort(() => Math.random() - 0.5)) {
+      if (next.length >= 3) break
+      if (used.has(g.id)) continue
+      used.add(g.id)
+      next.push(g)
+    }
+  }
+  selected.value = next
+  showToast(`换了一套 ${next.length} 件的搭配`)
+}
+
+/* ---------- 右侧工具 ---------- */
+/*
+ * 右侧竖排工具，对齐样图的五项：穿搭保存 / 更换模特 / 更换场景 / 更换搭配 / 还原穿搭。
+ * 原来是「换鞋子 / 换裙子 / 进阶穿搭」，样图上没有这三项。
+ */
+const tools: { key: string; label: string; icon: IconName }[] = [
+  { key: 'save', label: '穿搭保存', icon: 'save' },
+  { key: 'model', label: '更换模特', icon: 'model-switch' },
+  { key: 'scene', label: '更换场景', icon: 'scene-switch' },
+  { key: 'outfit', label: '更换搭配', icon: 'outfit-switch' },
+  { key: 'reset', label: '还原穿搭', icon: 'refresh' },
+]
+function onTool(t: { key: string; label: string }) {
+  if (t.key === 'save') return void onSave()
+  if (t.key === 'model') return switchModel()
+  if (t.key === 'scene') return switchScene()
+  if (t.key === 'outfit') return shuffleOutfit()
+  // 还原穿搭：清空已穿上的，背景和模特也一起回到初始态
+  if (!selected.value.length && !sceneKey.value) {
+    showToast('还没穿上任何单品')
+    return
+  }
+  selected.value = []
+  sceneKey.value = ''
+  showToast('已还原为初始形象')
+}
+
+/* ---------- 左侧可替换缩略（取衣橱前 6 件） ---------- */
+const quickThumbs = computed<Garment[]>(() => wardrobe.garments.slice(0, 6))
 
 /* ---------- 底部面板：两个平铺分区 + 各自的小分类 chips ---------- */
 type Chip = { key: string; label: string; kw?: string[] }
@@ -156,11 +330,11 @@ function goAccessory() {
           <button class="head-ico" aria-label="配配饰" @tap="goAccessory">
             <UiIcon name="cat-jewelry" :size="34" tone="purple" />
           </button>
-          <button class="head-ico" aria-label="收藏" @tap="showToast('已收藏本套造型')">
-            <UiIcon name="star" :size="34" tone="brand" />
+          <button class="head-ico" aria-label="收藏" @tap="onStar">
+            <UiIcon name="star" :size="34" :tone="isStarred ? 'brand' : 'dark'" />
           </button>
-          <button class="head-ico" aria-label="保存" @tap="showToast('穿搭已保存')">
-            <UiIcon name="save" :size="34" tone="dark" />
+          <button class="head-ico" aria-label="保存" @tap="onSave">
+            <UiIcon name="save" :size="34" :tone="savedOutfitId ? 'brand' : 'dark'" />
           </button>
         </view>
       </template>
@@ -169,6 +343,19 @@ function goAccessory() {
     <scroll-view scroll-y class="body">
       <!-- 上半区：形象 + 工具 -->
       <view class="stage-area">
+        <!--
+          场景背景。用 <image> 而不是 CSS background-image：
+          小程序 WXSS 的 background-image 不认 /static/ 这种本地路径。
+          上面再压一层半透明白遮罩，免得背景把人台和衣物压得看不清。
+        -->
+        <image
+          v-if="currentScene"
+          class="stage-bg"
+          :src="currentScene.img"
+          mode="aspectFill"
+        />
+        <view v-if="currentScene" class="stage-mask" />
+
         <!-- 样图左上那个「我的虚拟形象」标签 -->
         <view class="stage-badge">我的虚拟形象</view>
 
@@ -199,14 +386,12 @@ function goAccessory() {
         </scroll-view>
 
         <!--
-          中央人台。
-          ⚠️ 按「把模特删掉，后续再添加」，这里不再传 src —— TileImage 会退到
-          中性浅灰 + 线条图标的占位。原来传的是 MODEL_IMAGES.outfit + 蓝色渐变底
-          （from/to），渐变底已随第二轮换皮作废。
-          素材到位后把 :src="MODEL_IMAGES.outfit" 加回来即可，布局不用动。
+          中央人台。整张预设图切换（女/男 × 正面/背面，见 MODEL_VIEWS）。
+          不做「衣服图层叠到人台上」：衣橱图是不带 alpha 的 RGB PNG，
+          叠上去只会得到一堆白底方块。真要做得先有去背景管线。
         -->
         <view class="model">
-          <TileImage icon="me" ratio="3 / 4" />
+          <TileImage :src="currentModel.src" icon="me" ratio="3 / 4" fit="contain" />
         </view>
 
         <!-- 右侧竖排工具 -->
@@ -324,8 +509,35 @@ function goAccessory() {
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius-lg);
+  /* 背景图要被圆角裁住 */
+  overflow: hidden;
   /* 顶部多留 56rpx 给「我的虚拟形象」那个角标 */
   padding: 56rpx 20rpx 24rpx;
+}
+
+/* 场景背景 + 遮罩，都垫在最底下 */
+.stage-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.stage-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.72);
+}
+/*
+ * 上面加了定位背景层之后，静态流里的三栏会被它盖住 ——
+ * 定位元素永远画在非定位元素上面。所以三栏都要显式抬到遮罩之上。
+ */
+.thumbs,
+.model,
+.tools {
+  position: relative;
+  z-index: 2;
 }
 
 /*

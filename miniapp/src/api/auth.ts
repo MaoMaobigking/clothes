@@ -19,6 +19,8 @@ export interface LoginResult {
   account?: string
   role?: string
   nickname?: string
+  /** 头像 emoji（见下面 MyProfile 的说明），登录时一并下发 */
+  avatarUrl?: string
   demoKind?: string | null
   isNewUser?: boolean
 }
@@ -78,11 +80,43 @@ export async function fetchDemoAccounts(): Promise<DemoAccount[]> {
   return data.accounts || []
 }
 
-/** 校验当前 token 是否仍然有效 */
+/**
+ * 当前用户资料（规格 §11.2）。
+ * avatarUrl 存的是一个 emoji，不是图片地址 —— 社群那边把它当文本直接渲染，
+ * 「我的」页则用 iconForEmoji() 换成线性图标。命名沿用数据库列名，没改。
+ */
+export interface MyProfile {
+  userId: number
+  account: string
+  nickname: string
+  avatarUrl: string
+  role: string
+  membershipLevel: string
+  demoKind: string | null
+}
+
+/** 校验当前 token 是否仍然有效，顺带拿回资料 */
 export function fetchMe() {
-  return request<{ ok: boolean; user: { userId: number; openid: string; role: string } }>({
+  return request<{
+    ok: boolean
+    user: { userId: number; openid: string; role: string }
+    profile?: MyProfile
+  }>({
     url: '/api/auth/me',
   })
+}
+
+/** 保存昵称 / 头像。只传要改的字段，后端也只认这两个。 */
+export async function apiUpdateMe(patch: {
+  nickname?: string
+  avatarUrl?: string
+}): Promise<MyProfile> {
+  const data = await request<{ profile: MyProfile }>({
+    url: '/api/auth/me',
+    method: 'PUT',
+    data: patch,
+  })
+  return data.profile
 }
 
 /**

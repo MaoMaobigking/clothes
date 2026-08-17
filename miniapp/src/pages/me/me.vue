@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 // easycom 自动解析 TileImage / SectionTitle / BottomNav，也可显式导入
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
@@ -38,6 +38,16 @@ const stats = [
 
 function goAvatar() {
   uni.navigateTo({ url: '/pages/body-create/index' })
+}
+
+/**
+ * 编辑资料（规格 §11.2）。
+ * 头像存的是一个 emoji，这里查表换成线性图标；没设置过就是默认的 'me'。
+ */
+const avatarIcon = computed(() => iconForEmoji(auth.session.avatarUrl) ?? 'me')
+
+function goProfileEdit() {
+  uni.navigateTo({ url: '/pages/profile-edit/index' })
 }
 
 function goAchievements() {
@@ -121,14 +131,16 @@ onMounted(async () => {
       <!-- 顶部用户卡 -->
       <view class="user-card">
         <view class="uc-row">
-          <view class="uc-avatar"><UiIcon name="me" :size="56" tone="white" /></view>
+          <view class="uc-avatar">
+            <UiIcon :name="avatarIcon" :size="56" tone="white" />
+          </view>
           <view class="uc-text">
             <text class="uc-name">{{ auth.displayName }}</text>
             <text class="uc-sign">
               <text v-if="auth.session.account">账号 {{ auth.session.account }} · </text>用穿搭记录每一天的好心情
             </text>
           </view>
-          <view class="uc-edit" hover-class="uc-edit-hover" @tap="showToast('资料编辑功能开发中～')">编辑资料</view>
+          <view class="uc-edit" hover-class="uc-edit-hover" @tap="goProfileEdit">编辑资料</view>
         </view>
       </view>
 

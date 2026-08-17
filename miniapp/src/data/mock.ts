@@ -11,6 +11,8 @@ export const LOGO = '/static/images/logo.png'
 export const MODEL_IMAGES = {
   front: '/static/images/model/front.png',
   frontMale: '/static/images/model/front-male.png',
+  back: '/static/images/model/back.png',
+  backMale: '/static/images/model/back-male.png',
   outfit: '/static/images/model/outfit.png',
 }
 
@@ -238,12 +240,18 @@ export interface Scene {
   emoji: string
   img: string
 }
+/*
+ * 六个场景，key 必须和 static/images/scene/ 下的文件名一一对应。
+ * 之前这里是 play/work/sport/party，磁盘上根本没有这四张图，
+ * SCENES 一旦被渲染就是四个裂图。改成规格 §10.2 的六场景，和素材对齐。
+ */
 const SCENES_RAW: Omit<Scene, 'img'>[] = [
-  { key: 'play', label: '游玩', emoji: '🎡' },
-  { key: 'work', label: '职场', emoji: '💼' },
-  { key: 'date', label: '约会', emoji: '💕' },
-  { key: 'sport', label: '运动', emoji: '🏃' },
-  { key: 'party', label: '派对', emoji: '🎉' },
+  { key: 'daily', label: '日常休闲', emoji: '☕' },
+  { key: 'business', label: '商务正装', emoji: '💼' },
+  { key: 'date', label: '约会聚会', emoji: '💕' },
+  { key: 'travel', label: '旅行度假', emoji: '🧳' },
+  { key: 'academy', label: '学院风', emoji: '🎓' },
+  { key: 'cosplay', label: 'cosplay', emoji: '🎭' },
 ]
 export const SCENES: Scene[] = SCENES_RAW.map((s) => ({
   ...s,
