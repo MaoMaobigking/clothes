@@ -154,11 +154,11 @@ async function draw(): Promise<void> {
 
     const dark = Boolean(bgPath) || isDarkColor(props.gradient[0]) || isDarkColor(props.gradient[1])
     const ink = {
-      title: dark ? '#ffffff' : '#2f2a3d',
-      sub: dark ? 'rgba(255,255,255,0.82)' : '#6b6580',
+      title: dark ? '#ffffff' : '#303133',
+      sub: dark ? 'rgba(255,255,255,0.82)' : '#606266',
       item: dark ? 'rgba(255,255,255,0.9)' : '#4a4360',
-      accent: dark ? '#ffd9f0' : '#9a6bff',
-      foot: dark ? 'rgba(255,255,255,0.66)' : '#a8a2ba',
+      accent: dark ? '#ffd9f0' : '#ff5c9d',
+      foot: dark ? 'rgba(255,255,255,0.66)' : '#909193',
     }
 
     // 标题
@@ -354,8 +354,8 @@ defineExpose({ savePoster, draw })
   bottom: 16rpx;
   transform: translateX(-50%);
   padding: 8rpx 20rpx;
-  border-radius: 999rpx;
-  background: rgba(45, 33, 60, 0.7);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 20rpx;
   font-weight: 700;

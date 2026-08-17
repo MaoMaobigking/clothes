@@ -1,7 +1,25 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import UiIcon from '@/components/UiIcon/UiIcon.vue'
 import { iconForEmoji, type IconName } from '@/utils/icons'
+
+/*
+ * ⚠️ 这里**不要**加 `import UiIcon from '@/components/UiIcon/UiIcon.vue'`。
+ *
+ * UiIcon 由 pages.json 的 easycom 规则自动注册（`^[A-Z](.*)` → @/components/$1/$1.vue），
+ * 显式 import 是多余的 —— 而且会触发一个 uni-app 编译器 bug：
+ *
+ * 当同一个文件里既有「显式 import 的组件」又有「easycom 解析的组件」（本文件用了 uv-image）时，
+ * 编译出来的组件路径 marker 会变成
+ *     Math||((()=>"…uv-image.js")+o)();  const o=()=>"../UiIcon/UiIcon.js"
+ * —— `o` 在 const 声明之前被引用。运行时被 `Math||` 短路了不会抛错，
+ * 但微信开发者工具要解析这几行 marker 来建依赖图，它在 `+o` 处分析失败，
+ * 于是没把本文件 require 的 `utils/icons.js` 记为依赖；
+ * `ignoreDevUnusedFiles`（工具默认开启）就把那个文件从调试包里剔掉了，
+ * 结果是 `module 'utils/icons.js' is not defined` 全站白屏。
+ *
+ * 全靠 easycom 时 marker 是干净的内联形式（对比 OptionCard.vue 的产物即可）。
+ * 结论：**组件一律靠 easycom，不要在 .vue 里显式 import 组件。**
+ */
 
 const props = withDefaults(
   defineProps<{
@@ -102,11 +120,26 @@ const tileStyle = computed(() => ({
     >
       <!-- 内容层铺满这个按比例撑开的盒子 -->
       <view class="tile-content">
-        <image
+        <!--
+          用 uv-image 而不是原生 <image>：白捡懒加载（lazyLoad 默认 true）和
+          淡入过渡（fade 默认 true，duration 500）。src、mode、@error 的语义完全一致。
+
+          show-loading / show-error 都关掉：uv-image 自带的加载中 / 失败图标走的是
+          uvicons 字体图标，和本项目 UiIcon 的线条风格不是一套。
+          缺图和失败一律回退到下面那个 UiIcon 占位（由 showPlaceholder 控制），
+          保持全站占位形态统一。@error 仍然会照常触发，和 showError 无关。
+
+          宽高必须显式给 100%：uv-image 的 width/height 默认是 300/225（px），
+          不给就变成固定尺寸，撑不满外层按 ratio 算出来的盒子。
+        -->
+        <uv-image
           v-if="!showPlaceholder"
-          class="img"
           :src="src"
           :mode="fit === 'contain' ? 'aspectFit' : 'aspectFill'"
+          width="100%"
+          height="100%"
+          :show-loading="false"
+          :show-error="false"
           @error="failed = true"
         />
         <UiIcon v-else :name="placeholderIcon" :size="56" tone="muted" :stroke-width="1.4" />
@@ -126,7 +159,7 @@ const tileStyle = computed(() => ({
 /* 中性占位底：浅灰偏冷。只在「没有图」时铺，图加载出来了就不该再垫一层灰底
    —— 抠图立绘（模特那种透明 PNG）会被这层灰框住，看着像贴了张卡片。 */
 .tile-plain {
-  background: #f2f0f6;
+  background: var(--surface-placeholder);
 }
 .tile-inner {
   position: relative;
@@ -147,16 +180,14 @@ const tileStyle = computed(() => ({
   align-items: center;
   justify-content: center;
 }
-.img {
-  width: 100%;
-  height: 100%;
-}
+/* 原来这里有 .img { width:100%; height:100% }，随 <image> 换成 <uv-image> 一起删掉了
+   —— 尺寸现在由 uv-image 的 width/height prop 传，不再靠 class */
 .label {
   position: absolute;
   bottom: 8px;
   left: 8px;
   font-size: 24rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
 </style>

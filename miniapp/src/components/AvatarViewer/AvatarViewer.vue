@@ -348,7 +348,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
           class="accessory-overlay"
           :class="[`slot-${overlay?.slot}`, { mirrored: viewMode === 'back' }]"
           :style="{
-            background: `linear-gradient(140deg, ${overlay?.from || '#ffffff'}, ${overlay?.to || '#e6e0ef'})`,
+            background: `linear-gradient(140deg, ${overlay?.from || '#ffffff'}, ${overlay?.to || '#f3f4f6'})`,
           }"
         >
           <image
@@ -418,7 +418,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   /* 以脚下为基准缩放：长高往上长，不会陷进地台 */
   transform-origin: center bottom;
   transition: transform 0.06s linear;
-  filter: drop-shadow(0 32rpx 48rpx rgba(154, 107, 255, 0.35));
+  filter: drop-shadow(0 32rpx 48rpx rgba(0, 0, 0, 0.18));
   z-index: 2;
 }
 .model-img {
@@ -450,7 +450,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   justify-content: center;
   overflow: hidden;
   border: 4rpx solid rgba(255, 255, 255, 0.86);
-  box-shadow: 0 8rpx 22rpx rgba(70, 50, 110, 0.28);
+  box-shadow: 0 8rpx 22rpx rgba(0, 0, 0, 0.14);
   transform: translateX(-50%);
 }
 /* 背面视角整个人台是镜像的，配饰再反一次才不会左右颠倒 */
@@ -473,20 +473,20 @@ defineExpose({ resetView, zoom, setEngine, setView })
   top: 31%;
   width: 126rpx;
   height: 60rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
 }
 .slot-belt {
   top: 63%;
   width: 134rpx;
   height: 28rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
 }
 .slot-shoes {
   bottom: 1%;
   top: auto;
   width: 146rpx;
   height: 54rpx;
-  border-radius: 999rpx 999rpx 28rpx 28rpx;
+  border-radius: var(--radius-pill) 999rpx 28rpx 28rpx;
 }
 .accessory-overlay-img {
   width: 100%;
@@ -506,8 +506,8 @@ defineExpose({ resetView, zoom, setEngine, setView })
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(255, 143, 192, 0.55),
-    rgba(177, 140, 255, 0.15) 70%,
+    rgba(0, 0, 0, 0.18),
+    rgba(0, 0, 0, 0.06) 70%,
     transparent
   );
   z-index: 1;
@@ -521,7 +521,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   color: var(--text-3);
   background: rgba(255, 255, 255, 0.72);
   padding: 8rpx 20rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
 
@@ -535,7 +535,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   color: var(--purple-deep);
   background: rgba(255, 255, 255, 0.78);
   padding: 8rpx 20rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
 
@@ -551,7 +551,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   color: var(--warning);
   background: rgba(255, 243, 240, 0.94);
   padding: 10rpx 20rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
 
@@ -566,7 +566,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   gap: 8rpx;
   margin-top: 18rpx;
   background: rgba(255, 255, 255, 0.72);
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   padding: 6rpx;
   box-shadow: var(--shadow-card);
 }
@@ -574,7 +574,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   min-width: 112rpx;
   height: 56rpx;
   padding: 0 24rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -589,7 +589,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
 .ctrl {
   width: 84rpx;
   height: 80rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--text-1);
   font-size: 36rpx;

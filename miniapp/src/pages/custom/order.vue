@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
   REQUEST_STATUS_LABELS,
   REQUEST_STATUS_ORDER,
@@ -333,7 +332,7 @@ function messageClass(message: CustomMessage) {
 .designer-avatar {
   width: 132rpx;
   height: 132rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   flex-shrink: 0;
   background: #f0e6fb;
 }
@@ -344,7 +343,7 @@ function messageClass(message: CustomMessage) {
   background: linear-gradient(150deg, #ffe6f2, #e7dcff);
   color: var(--purple-deep);
   font-size: 52rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .designer-copy {
   flex: 1;
@@ -359,7 +358,7 @@ function messageClass(message: CustomMessage) {
 }
 .designer-name {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .designer-specialty {
   font-size: 22rpx;
@@ -372,14 +371,14 @@ function messageClass(message: CustomMessage) {
   background: rgba(169, 220, 214, 0.22);
   color: #388d83;
   font-size: 21rpx;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .card-title,
 .card-subtitle {
   display: block;
   font-size: 29rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .card-head {
@@ -393,9 +392,9 @@ function messageClass(message: CustomMessage) {
   padding: 10rpx 20rpx;
   border-radius: var(--radius-pill);
   color: var(--purple-deep);
-  background: rgba(177, 140, 255, 0.14);
+  background: var(--pink-soft);
   font-size: 22rpx;
-  font-weight: 750;
+  font-weight: 700;
 }
 .finished {
   color: var(--mint-deep);
@@ -446,13 +445,13 @@ function messageClass(message: CustomMessage) {
   background: #e7e1f0;
   color: var(--text-3);
   font-size: 20rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .progress-step.done .progress-dot,
 .progress-step.current .progress-dot {
   background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 8rpx 18rpx rgba(177, 140, 255, 0.35);
+  box-shadow: var(--shadow-card);
 }
 .progress-label {
   font-size: 20rpx;
@@ -468,7 +467,7 @@ function messageClass(message: CustomMessage) {
   flex-direction: column;
   gap: 12rpx;
   padding: 22rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   background: var(--surface-soft);
 }
 .requirement-label {
@@ -489,7 +488,7 @@ function messageClass(message: CustomMessage) {
 }
 .measure-item {
   padding: 18rpx 10rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   background: var(--surface-soft);
   display: flex;
   flex-direction: column;
@@ -503,7 +502,7 @@ function messageClass(message: CustomMessage) {
 .measure-value {
   color: var(--text-1);
   font-size: 27rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .unit {
   margin-left: 4rpx;
@@ -534,7 +533,7 @@ function messageClass(message: CustomMessage) {
   position: relative;
   width: 100%;
   height: 230rpx;
-  border-radius: 22rpx;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface-soft);
 }
@@ -561,12 +560,12 @@ function messageClass(message: CustomMessage) {
   margin: 20rpx -8rpx 0;
   padding: 8rpx;
   background: #f8f5fb;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
 }
 .welcome {
   padding: 24rpx;
-  border-radius: 24rpx;
-  background: rgba(177, 140, 255, 0.12);
+  border-radius: var(--radius);
+  background: var(--pink-soft);
   color: var(--text-2);
   font-size: 23rpx;
   line-height: 1.55;
@@ -590,7 +589,7 @@ function messageClass(message: CustomMessage) {
 .bubble {
   max-width: 82%;
   padding: 18rpx 22rpx;
-  border-radius: 28rpx;
+  border-radius: var(--radius-lg);
   background: #fff;
   color: var(--text-1);
   font-size: 25rpx;
@@ -634,7 +633,7 @@ function messageClass(message: CustomMessage) {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 25rpx;
-  font-weight: 750;
+  font-weight: 700;
 }
 .send.disabled {
   opacity: 0.55;

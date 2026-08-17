@@ -13,7 +13,7 @@ import { ICON_PATHS, type IconName } from '@/utils/icons'
  * 色值和 App.vue 里的 --text-* / --pink-deep / --purple-deep 保持同步。
  */
 
-type Tone = 'dark' | 'soft' | 'muted' | 'brand' | 'purple' | 'white'
+type Tone = 'dark' | 'soft' | 'muted' | 'light' | 'brand' | 'purple' | 'white'
 
 const props = withDefaults(
   defineProps<{
@@ -28,13 +28,28 @@ const props = withDefaults(
   { size: 40, tone: 'soft', color: '', strokeWidth: 1.7 },
 )
 
-/** 与 App.vue 的 CSS 变量一一对应，改这里记得同步改那边 */
+/*
+ * 与 styles/tokens.css 的 CSS 变量一一对应，**改这里记得同步改那边**。
+ *
+ * 为什么必须重复一遍字面值：SVG 串是运行时拼的字符串，CSS 变量进不去
+ * （`stroke="var(--text-1)"` 在 data-uri 里解析不出来）。所以这是一处
+ * 无法消除的重复，只能靠注释和这条说明维持同步。
+ *
+ * 2026-08-17 已随第二轮换皮更新成 uv-ui 的冷灰四档。
+ * 旧值是紫调灰（dark #2f2a3d / soft #6b6580 / muted #a8a2ba），
+ * 全站 92 个图标都在用它们 —— 改这个表等于一次性给所有图标换色。
+ */
 const TONE_COLORS: Record<Tone, string> = {
-  dark: '#2f2a3d', // --text-1
-  soft: '#6b6580', // --text-2
-  muted: '#a8a2ba', // --text-3
+  dark: '#303133', // --text-1
+  soft: '#606266', // --text-2
+  muted: '#909193', // --text-3
+  light: '#c0c4cc', // --text-4
   brand: '#ff5c9d', // --pink-deep
-  purple: '#9a6bff', // --purple-deep
+  /*
+   * purple 已退役：紫色在第二轮里被收敛进主色（tokens.css 的 --purple-deep 同样是别名）。
+   * 保留这个 tone 名是因为页面里还有调用点传 tone="purple"，改成主色即可，不用去改调用点。
+   */
+  purple: '#ff5c9d',
   white: '#ffffff',
 }
 

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { iconForEmoji } from '@/utils/icons'
 import { computed, onMounted, ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { WardrobeItem } from '@/api/wardrobe'
 import {
@@ -312,7 +310,7 @@ function resetReview() {
 .hero-title {
   margin-top: 20rpx;
   font-size: 38rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .hero-sub {
   margin-top: 12rpx;
@@ -339,7 +337,7 @@ function resetReview() {
 .upload-title {
   margin-top: 18rpx;
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .upload-sub {
@@ -352,7 +350,7 @@ function resetReview() {
 }
 .section-title {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .preview-grid {
@@ -364,7 +362,7 @@ function resetReview() {
 .preview-item {
   position: relative;
   height: 160rpx;
-  border-radius: 20rpx;
+  border-radius: var(--radius);
   overflow: hidden;
   background: #f1ecf8;
 }
@@ -392,7 +390,7 @@ function resetReview() {
   gap: 20rpx;
   padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom, 0px));
   background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 -12rpx 30rpx rgba(150, 120, 200, 0.12);
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 .remain {
   font-size: 24rpx;
@@ -433,7 +431,7 @@ function resetReview() {
 .loading-title {
   margin-top: 22rpx;
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .loading-sub {
   margin-top: 8rpx;
@@ -481,7 +479,7 @@ function resetReview() {
 .recognition-badge {
   align-self: flex-start;
   padding: 6rpx 16rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: #eef4ff;
   color: #5f78a8;
   font-size: 20rpx;
@@ -492,7 +490,7 @@ function resetReview() {
   margin-top: 12rpx;
   padding: 0 20rpx;
   border: 1px solid var(--line);
-  border-radius: 18rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   font-size: 28rpx;
 }
@@ -512,11 +510,11 @@ function resetReview() {
   align-items: center;
   justify-content: center;
   padding: 12rpx 22rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 23rpx;
-  font-weight: 600;
+  font-weight: 500;
 }
 .chip {
   margin-right: 10rpx;
@@ -561,7 +559,7 @@ function resetReview() {
 .frequent {
   flex-shrink: 0;
   padding: 18rpx 28rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--line);
   color: var(--text-2);
   font-size: 25rpx;

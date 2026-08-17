@@ -61,10 +61,22 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
+/*
+ * ⚠️ 这里原来把整套 .btn / .btn-primary / .btn-ghost / .btn-disabled 复制了一份。
+ * scoped 样式编译成 .btn[data-v-xxx]，优先级高于 components.css 里的全局定义 ——
+ * 结果是全局改了按钮，这个组件不跟着变（那份复制里还留着
+ * box-shadow: 0 16rpx 40rpx rgba(177,140,255,0.4) 的紫光晕）。
+ * 已全部删除，改用全局类。本文件只保留「这一处独有」的排版差异。
+ */
 .footer {
   flex-shrink: 0;
-  padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 40%);
+  padding: 24rpx var(--page-x) calc(24rpx + env(safe-area-inset-bottom, 0px));
+  /*
+   * 原来是一层白色渐变蒙版，用来把内容和吸底栏区分开。
+   * uv-ui 用的是发丝线，不是渐变蒙版 —— 换成实心白底 + 顶部一条线。
+   */
+  background: var(--surface);
+  border-top: var(--hairline);
 }
 
 .dots {
@@ -75,17 +87,19 @@ const emit = defineEmits<{
 .dots .dot {
   width: 12rpx;
   height: 12rpx;
-  border-radius: 999px;
-  background: rgba(154, 107, 255, 0.28);
+  border-radius: var(--radius-pill);
+  background: var(--line);
   margin: 0 6rpx;
   transition: all 0.25s ease;
 }
+/* 当前步拉长成胶囊，是这个组件里唯一的主色元素 */
 .dots .dot.on {
   width: 40rpx;
-  background: var(--purple-deep);
+  background: var(--pink-deep);
 }
+/* 已走过的步骤：比未到达的深一档，但不用主色 —— 免得一排全是粉点分不出当前在哪 */
 .dots .dot.passed {
-  background: var(--mint-deep);
+  background: var(--text-4);
 }
 
 .actions {
@@ -105,31 +119,5 @@ const emit = defineEmits<{
   font-size: 26rpx;
   color: var(--text-3);
   padding: 16rpx 20rpx;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 96rpx;
-  padding: 0 48rpx;
-  border-radius: var(--radius-pill);
-  font-size: 32rpx;
-  font-weight: 600;
-}
-.btn-primary {
-  background: var(--brand-gradient);
-  color: var(--text-on-brand);
-  box-shadow: 0 16rpx 40rpx rgba(177, 140, 255, 0.4);
-}
-.btn-ghost {
-  background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow-card);
-}
-.btn-disabled {
-  background: #e6e0ef;
-  color: #b7b0c6;
-  box-shadow: none;
 }
 </style>

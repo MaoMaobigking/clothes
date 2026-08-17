@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import BottomNav from '@/components/BottomNav/BottomNav.vue'
-import CreateBasicInfo from './CreateBasicInfo.vue'
-import CreateToolRail from './CreateToolRail.vue'
 import { STEPS } from '@/data/questions'
 import { AI_TOOLS, HAIR_STYLES, MODEL_IMAGES } from '@/data/mock'
 import { useProfileStore } from '@/stores/profile'
@@ -361,7 +356,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 }
 .test-label {
   font-size: 21rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
 
@@ -395,7 +390,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   border: 2rpx solid var(--line);
   box-shadow: var(--shadow-card);
   font-size: 40rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-2);
   display: flex;
   align-items: center;
@@ -464,7 +459,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 }
 .fav-name {
   font-size: 22rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
   text-align: center;
 }

@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import ProductCard from '@/components/ProductCard/ProductCard.vue'
-import SegTabs from '@/components/SegTabs/SegTabs.vue'
 import { iconForEmoji, type IconName } from '@/utils/icons'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { MODEL_IMAGES, type Garment } from '@/data/mock'
@@ -293,7 +289,7 @@ function goAccessory() {
 }
 .thumb {
   width: 104rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-card);
   transition: transform 0.15s ease;
@@ -334,7 +330,7 @@ function goAccessory() {
 }
 .tool-label {
   font-size: 20rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
 
@@ -381,12 +377,12 @@ function goAccessory() {
   font-size: 30rpx;
 }
 .sel-name {
-  font-weight: 600;
+  font-weight: 500;
 }
 .sel-x {
   font-size: 28rpx;
   color: var(--pink-deep);
-  font-weight: 800;
+  font-weight: 500;
 }
 .sel-empty {
   margin: 0;
@@ -422,7 +418,7 @@ function goAccessory() {
   padding: 12rpx 28rpx;
   border-radius: var(--radius-pill);
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
   background: var(--surface);
   box-shadow: var(--shadow-card);

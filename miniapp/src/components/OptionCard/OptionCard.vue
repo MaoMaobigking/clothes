@@ -39,18 +39,27 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 </script>
 
 <template>
+  <!--
+    根类从 .card 改名成 .opt-card：
+    .card 是 components.css 里的全局类，这里同名会撞（scoped 优先级更高，
+    全局的 .card 在这个组件里永远不生效）—— 功能上没坏，但很误导，
+    css-audit 也会把它算成一处「.card 的重复定义」。
+  -->
   <view
-    class="card"
+    class="opt-card"
     :class="{ selected }"
     @tap="emit('select', option.id)"
   >
     <!-- 优先真实小图预览，缺素材时回落到占位 -->
     <view class="preview" :class="{ 'preview-plain': !isSwatch }" :style="swatchStyle">
-      <image
+      <uv-image
         v-if="option.img && !imgFailed"
-        class="preview-img"
         :src="option.img"
         mode="aspectFill"
+        width="100%"
+        height="100%"
+        :show-loading="false"
+        :show-error="false"
         @error="imgFailed = true"
       />
       <!-- 查不到映射也要给个通用图标，不能留一块空白灰底 -->
@@ -71,31 +80,41 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 </template>
 
 <style scoped>
-.card {
+.opt-card {
   position: relative;
   width: 100%;
   background: var(--surface);
   border-radius: var(--radius);
   padding: 20rpx;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  border: 4rpx solid transparent;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  /*
+   * 边框从 4rpx 降到 2rpx，且未选中时不再是 transparent 而是发丝线色。
+   * 原来靠「透明 4rpx 边 + 选中变色」避免选中时尺寸跳动；
+   * 现在未选中本来就有边（uv-ui 的卡片都带边），选中只换颜色，同样不跳。
+   */
+  border: 2rpx solid var(--line);
+  transition: border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
   box-sizing: border-box;
 }
-.card:active {
-  transform: scale(0.97);
+/* 按压反馈用透明度，对齐 uv-ui 的 .uv-hover-class { opacity: 0.7 } */
+.opt-card:active {
+  opacity: 0.7;
 }
-.card.selected {
-  border-color: var(--pink);
-  box-shadow: 0 20rpx 48rpx rgba(255, 126, 179, 0.28);
+/*
+ * 选中态：主色描边 + 极浅主色底。
+ * 原来是主色描边 + 0 20rpx 48rpx rgba(255,126,179,0.28) 的粉色光晕投影 ——
+ * uv-ui 里没有彩色投影，选中一律靠描边和浅底表达。
+ */
+.opt-card.selected {
+  border-color: var(--pink-deep);
+  background: var(--pink-soft);
 }
 
 .preview {
   position: relative;
   width: 100%;
-  border-radius: 24rpx;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,11 +123,7 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
   height: 180rpx;
 }
 .preview-plain {
-  background: #f2f0f6;
-}
-.preview-img {
-  width: 100%;
-  height: 100%;
+  background: var(--surface-placeholder);
 }
 
 .meta {
@@ -118,8 +133,7 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
   padding: 0 4rpx 4rpx;
 }
 .label {
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: 28rpx;
   color: var(--text-1);
 }
 .desc {
@@ -128,21 +142,20 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
   margin-top: 4rpx;
 }
 
+/* 选中角标：主色实底，无投影 */
 .badge {
   position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  min-width: 48rpx;
-  height: 48rpx;
-  padding: 0 12rpx;
-  border-radius: 999px;
-  background: var(--brand-gradient);
+  top: 14rpx;
+  right: 14rpx;
+  min-width: 40rpx;
+  height: 40rpx;
+  padding: 0 10rpx;
+  border-radius: var(--radius-pill);
+  background: var(--pink-deep);
   color: #fff;
-  font-size: 26rpx;
-  font-weight: 800;
+  font-size: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 20rpx rgba(177, 140, 255, 0.5);
 }
 </style>

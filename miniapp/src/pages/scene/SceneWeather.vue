@@ -276,18 +276,18 @@ defineExpose({ requestLocation })
 }
 .wc-temp {
   font-size: 52px;
-  font-weight: 800;
+  font-weight: 500;
   line-height: 1;
 }
 .wc-cond {
   align-self: flex-end;
   margin-bottom: 6px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .wc-message {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--purple-deep);
 }
 
@@ -315,7 +315,7 @@ defineExpose({ requestLocation })
 }
 .picker-value {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-1);
 }
 .manual-input {
@@ -323,7 +323,7 @@ defineExpose({ requestLocation })
   height: 34px;
   min-width: 0;
   background: rgba(255, 255, 255, 0.86);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 0 10px;
   font-size: 13px;
 }

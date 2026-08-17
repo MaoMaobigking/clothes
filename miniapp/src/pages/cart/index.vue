@@ -8,8 +8,6 @@
  */
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { useCartStore } from '@/stores/cart'
 import { resolveImageUrl } from '@/api/wardrobe'
 import { isAuthError } from '@/api/http'
@@ -249,7 +247,7 @@ function goShopping() {
 .notice {
   margin-bottom: 16rpx;
   padding: 16rpx 20rpx;
-  border-radius: 16rpx;
+  border-radius: var(--radius);
   background: #fff4e5;
   color: #a05a12;
   font-size: 22rpx;
@@ -292,7 +290,7 @@ function goShopping() {
 }
 .tag {
   padding: 4rpx 12rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 19rpx;
@@ -330,7 +328,7 @@ function goShopping() {
   display: flex;
   align-items: center;
   border: 1px solid var(--line);
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   overflow: hidden;
 }
 .step {
@@ -355,7 +353,7 @@ function goShopping() {
 }
 .op-btn {
   padding: 10rpx 18rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--purple-deep);
   font-size: 20rpx;

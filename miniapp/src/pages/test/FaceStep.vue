@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import StepShell from '@/components/StepShell/StepShell.vue'
-import OptionCard from '@/components/OptionCard/OptionCard.vue'
 import { FACE_OPTIONS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
 

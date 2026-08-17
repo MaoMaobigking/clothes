@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import AppHeader from '@/components/AppHeader/AppHeader.vue'
-import StepIndicator from '@/components/StepIndicator/StepIndicator.vue'
-import StepFooter from '@/components/StepFooter/StepFooter.vue'
-import AiRecommendModal from '@/components/AiRecommendModal/AiRecommendModal.vue'
-import StyleStep from './StyleStep.vue'
-import SkinStep from './SkinStep.vue'
-import FaceStep from './FaceStep.vue'
-import BodyStep from './BodyStep.vue'
-import PrefStep from './PrefStep.vue'
 import { STEPS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
 
@@ -144,7 +135,7 @@ function viewReport() {
   transform: translateX(-50%);
   z-index: 30;
   padding: 18rpx 32rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: rgba(47, 47, 58, 0.86);
   color: #fff;
   font-size: 26rpx;

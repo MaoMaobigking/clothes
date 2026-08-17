@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import TileImage from '@/components/TileImage/TileImage.vue'
 import type { MallProduct } from '@/api/mall'
 
 defineProps<{
@@ -74,7 +73,7 @@ const emit = defineEmits<{
 .grip {
   width: 80rpx;
   height: 8rpx;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--line);
   margin: 4rpx auto 8rpx;
 }
@@ -96,7 +95,7 @@ const emit = defineEmits<{
 .name {
   margin: 0;
   font-size: 36rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .fav {
@@ -139,7 +138,7 @@ const emit = defineEmits<{
 }
 .taokouling.missing {
   color: var(--text-3);
-  font-weight: 600;
+  font-weight: 500;
 }
 .desc {
   margin: 0;
@@ -150,7 +149,7 @@ const emit = defineEmits<{
 .price {
   margin: 4rpx 0 0;
   font-size: 48rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--pink-deep);
 }
 .price-symbol {

@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import BottomNav from '@/components/BottomNav/BottomNav.vue'
-import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { fetchMallProducts, type MallCategory, type MallProduct } from '@/api/mall'
 import { isAuthError } from '@/api/http'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
-import MallDetailSheet from './MallDetailSheet.vue'
 import {
   mallProductToAccessoryContext,
   setAccessoryPageContext,
@@ -295,7 +292,7 @@ function goFreeMatch() {
 .title {
   margin: 0;
   font-size: 44rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .cart {
@@ -317,7 +314,7 @@ function goFreeMatch() {
   min-width: 36rpx;
   height: 36rpx;
   padding: 0 8rpx;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--pink-deep);
   color: #fff;
   font-size: 22rpx;
@@ -358,7 +355,7 @@ function goFreeMatch() {
   border-radius: var(--radius-pill);
   background: var(--surface-soft);
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
   transition: all 0.15s ease;
 }
@@ -392,13 +389,13 @@ function goFreeMatch() {
 .b-cn {
   margin: 0;
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-on-brand);
 }
 .b-en {
   margin: 0;
   font-size: 24rpx;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 1rpx;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -450,7 +447,7 @@ function goFreeMatch() {
 }
 .purchase-title {
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .purchase-product {

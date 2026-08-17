@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import {
   fetchCommunityContents,
   toggleCommunityInteraction,
@@ -405,7 +403,7 @@ function showCooperationTip() {
   font-size: 26rpx;
 }
 .state.error {
-  color: var(--accent);
+  color: var(--danger);
 }
 .retry {
   margin-top: 20rpx;
@@ -421,8 +419,8 @@ function showCooperationTip() {
   margin: 18rpx 0 22rpx;
 }
 .section-title {
-  font-size: 32rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-1);
 }
 .section-sub {
@@ -459,7 +457,7 @@ function showCooperationTip() {
 .challenge-card {
   min-width: 0;
   background: var(--surface);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 16rpx;
   box-shadow: var(--shadow-card);
 }
@@ -482,7 +480,7 @@ function showCooperationTip() {
   margin-top: 10rpx;
   font-size: 28rpx;
   line-height: 1.4;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .magazine-subtitle,
@@ -506,12 +504,12 @@ function showCooperationTip() {
   gap: 18rpx;
   margin: 18rpx 0 4rpx;
   padding: 22rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: rgba(169, 220, 214, 0.28);
 }
 .blogger-title {
   font-size: 26rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: #3d716b;
 }
 .blogger-sub {

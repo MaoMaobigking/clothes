@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import StepShell from '@/components/StepShell/StepShell.vue'
-import OptionCard from '@/components/OptionCard/OptionCard.vue'
 import { STYLE_OPTIONS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
 

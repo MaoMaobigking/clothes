@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import StepShell from '@/components/StepShell/StepShell.vue'
 import { PREFERENCE_QUESTIONS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
 import { iconForEmoji } from '@/utils/icons'
@@ -63,11 +62,11 @@ const subtitle = computed(
   align-items: center;
   gap: 10rpx;
   padding: 18rpx 32rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 500;
   border: 4rpx solid transparent;
   transition: all 0.15s ease;
 }
@@ -75,7 +74,7 @@ const subtitle = computed(
   transform: scale(0.96);
 }
 .chip.on {
-  background: rgba(255, 126, 179, 0.12);
+  background: var(--pink-soft);
   border-color: var(--pink);
   color: var(--pink-deep);
 }

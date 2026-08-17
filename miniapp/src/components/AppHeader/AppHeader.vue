@@ -1,5 +1,7 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+
+const props = defineProps<{
   title: string
   /** 当前步（1 起） */
   current: number
@@ -10,86 +12,69 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'back'): void
 }>()
+
+/* total 传 0 时不能除，否则是 NaN，进度条会整条消失 */
+const percent = computed(() => (props.total > 0 ? (props.current / props.total) * 100 : 0))
+
+/* 必须是字面色值：uv-line-progress 把它们拼进 inline style，CSS 变量传不进去 */
+const ACTIVE_COLOR = '#ff5c9d'
+const TRACK_COLOR = '#ececec'
 </script>
 
 <template>
   <view class="app-header">
-    <view class="bar">
-      <view class="back" aria-label="返回" @tap="emit('back')">
-        <text class="arrow-icon">‹</text>
-      </view>
-      <view class="title">{{ title }}</view>
-      <text class="counter">{{ current }}/{{ total }}</text>
-    </view>
+    <!--
+      和 PageHeader 一样：:fixed="false" 保持流内，:safe-area-inset-top 补状态栏
+      （原来这里同样没有状态栏留白，是同一个既有缺陷）。
+      :border="false" —— 下面紧跟着进度条，再来一条发丝线就是两条横线叠着。
+    -->
+    <uv-navbar
+      :title="title"
+      :fixed="false"
+      :placeholder="false"
+      :safe-area-inset-top="true"
+      :border="false"
+      bg-color="#ffffff"
+      left-icon=""
+      @left-click="emit('back')"
+    >
+      <template #left>
+        <UiIcon name="chevron-left" :size="40" tone="dark" :stroke-width="2" />
+      </template>
+      <template #right>
+        <!--
+          步数计数。
+          原来这里是 `position: absolute; right: 32rpx`，但它的父级 .bar 没有
+          position: relative —— 等于按最近的定位祖先（往往是页面）定位，是个隐蔽的错位 bug。
+          放进 uv-navbar 的 #right 插槽后由 flex 排版，不再需要绝对定位。
+        -->
+        <text class="counter">{{ current }}/{{ total }}</text>
+      </template>
+    </uv-navbar>
 
-    <!-- 进度条 -->
-    <view class="progress">
-      <view class="progress-fill" :style="{ width: `${(current / total) * 100}%` }" />
+    <view class="progress-wrap">
+      <uv-line-progress
+        :percentage="percent"
+        :show-text="false"
+        :height="6"
+        :active-color="ACTIVE_COLOR"
+        :inactive-color="TRACK_COLOR"
+      />
     </view>
   </view>
 </template>
 
 <style scoped>
 .app-header {
-  padding: 16rpx 32rpx 24rpx;
   flex-shrink: 0;
+  background: var(--surface);
 }
-
-.bar {
-  display: flex;
-  align-items: center;
+.progress-wrap {
+  /* 左右和 uv-navbar 的内容区对齐（它内部是 0 15px = 0 30rpx） */
+  padding: 0 30rpx 20rpx;
 }
-
-.back {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--text-1);
-  box-shadow: var(--shadow-card);
-  flex-shrink: 0;
-}
-.arrow-icon {
-  font-size: 48rpx;
-  font-weight: 300;
-  line-height: 1;
-  color: var(--text-1);
-}
-
-.title {
-  flex: 1;
-  font-size: 34rpx;
-  font-weight: 700;
-  color: var(--text-1);
-  text-align: center;
-}
-
 .counter {
-  position: absolute;
-  right: 32rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: var(--purple-deep);
-  background: rgba(255, 255, 255, 0.7);
-  padding: 8rpx 20rpx;
-  border-radius: var(--radius-pill);
-}
-
-.progress {
-  margin-top: 28rpx;
-  height: 12rpx;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--brand-gradient);
-  transition: width 0.35s ease;
+  font-size: 24rpx;
+  color: var(--text-3);
 }
 </style>

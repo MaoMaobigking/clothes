@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
   addCommunityComment,
   fetchCommunityContent,
@@ -171,12 +170,12 @@ async function sendComment() {
   font-size: 26rpx;
 }
 .state.error {
-  color: var(--accent);
+  color: var(--danger);
 }
 .hero-image {
   width: 100%;
   aspect-ratio: 4 / 5;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface-soft);
   box-shadow: var(--shadow-float);
 }
@@ -202,7 +201,7 @@ async function sendComment() {
 }
 .name {
   font-size: 27rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .time {
@@ -214,7 +213,7 @@ async function sendComment() {
   margin-top: 24rpx;
   font-size: 32rpx;
   line-height: 1.5;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .description {
@@ -232,7 +231,7 @@ async function sendComment() {
 .topic {
   padding: 8rpx 18rpx;
   border-radius: var(--radius-pill);
-  background: rgba(177, 140, 255, 0.14);
+  background: var(--pink-soft);
   color: var(--purple-deep);
   font-size: 22rpx;
   font-weight: 700;
@@ -249,7 +248,7 @@ async function sendComment() {
   align-items: center;
   justify-content: center;
   gap: 10rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--text-2);
   font-size: 24rpx;
@@ -265,7 +264,7 @@ async function sendComment() {
 .comment-title {
   margin-top: 36rpx;
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .empty-comment {

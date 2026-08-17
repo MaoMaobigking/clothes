@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import BottomNav from '@/components/BottomNav/BottomNav.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import {
   apiGenerateOutfits,
@@ -319,7 +317,7 @@ function goAccessory(item: WardrobeItem) {
 }
 .title {
   font-size: 44rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .subtitle {
@@ -361,7 +359,7 @@ function goAccessory(item: WardrobeItem) {
   gap: 10rpx;
   margin: 4rpx 32rpx 18rpx;
   padding: 8rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.65);
   box-shadow: var(--shadow-card);
 }
@@ -369,7 +367,7 @@ function goAccessory(item: WardrobeItem) {
   flex: 1;
   text-align: center;
   padding: 15rpx 10rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   color: var(--text-2);
   font-size: 27rpx;
   font-weight: 700;
@@ -377,7 +375,7 @@ function goAccessory(item: WardrobeItem) {
 .seg-item.on {
   background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 12rpx 28rpx rgba(177, 140, 255, 0.4);
+  box-shadow: var(--shadow-float);
 }
 .today-panel {
   flex: 1;
@@ -412,7 +410,7 @@ function goAccessory(item: WardrobeItem) {
 }
 .action-title {
   font-size: 31rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .action-sub {
   margin-top: 8rpx;
@@ -473,7 +471,7 @@ function goAccessory(item: WardrobeItem) {
 }
 .cat-label {
   font-size: 20rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-3);
 }
 .cat.on .cat-label {
@@ -510,10 +508,10 @@ function goAccessory(item: WardrobeItem) {
   left: 22rpx;
   z-index: 3;
   padding: 6rpx 14rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.88);
   font-size: 19rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .frequent-badge {
   color: var(--success);
@@ -528,11 +526,11 @@ function goAccessory(item: WardrobeItem) {
   top: 22rpx;
   z-index: 4;
   padding: 7rpx 14rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.9);
   color: var(--purple-deep);
   font-size: 19rpx;
-  font-weight: 800;
+  font-weight: 500;
   box-shadow: var(--shadow-card);
 }
 .cell-name {
@@ -557,7 +555,7 @@ function goAccessory(item: WardrobeItem) {
 .cell-control {
   flex: 1;
   padding: 10rpx 4rpx;
-  border-radius: 14rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   color: var(--text-2);
   font-size: 20rpx;
@@ -596,9 +594,9 @@ function goAccessory(item: WardrobeItem) {
   width: 100%;
   max-height: 82vh;
   padding: 30rpx 30rpx calc(30rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 44rpx 44rpx 0 0;
+  border-radius: var(--radius-lg) 44rpx 0 0;
   background: #fff;
-  box-shadow: 0 -24rpx 80rpx rgba(70, 50, 110, 0.24);
+  box-shadow: 0 -8rpx 24rpx rgba(0, 0, 0, 0.1);
 }
 .sheet-sub {
   margin-top: 8rpx;
@@ -617,7 +615,7 @@ function goAccessory(item: WardrobeItem) {
   height: 114rpx;
   margin-bottom: 12rpx;
   padding: 10rpx 14rpx;
-  border-radius: 22rpx;
+  border-radius: var(--radius);
   background: var(--surface-tint);
   box-shadow: var(--shadow-card);
   transition: transform 0.12s ease, opacity 0.12s ease;
@@ -658,7 +656,7 @@ function goAccessory(item: WardrobeItem) {
   flex-shrink: 0;
   color: var(--purple-deep);
   font-size: 24rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .sort-save {
   margin-top: 24rpx;

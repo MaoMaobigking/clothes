@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
 import { STEPS } from '@/data/questions'
 import { MODEL_IMAGES } from '@/data/mock'
 import { useProfileStore } from '@/stores/profile'
@@ -110,13 +108,13 @@ function start() {
   font-size: 20rpx;
   letter-spacing: 1px;
   color: var(--pink-deep);
-  font-weight: 800;
+  font-weight: 500;
   margin-bottom: 12rpx;
 }
 .title {
   font-size: 46rpx;
   line-height: 1.2;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-1);
 }
 .subtitle {
@@ -135,7 +133,7 @@ function start() {
 }
 .guide-title {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
   margin-bottom: 24rpx;
 }
@@ -152,11 +150,11 @@ function start() {
 .guide-index {
   width: 52rpx;
   height: 52rpx;
-  border-radius: 18rpx;
-  background: rgba(177, 140, 255, 0.15);
+  border-radius: var(--radius);
+  background: var(--pink-soft);
   color: var(--purple-deep);
   font-size: 26rpx;
-  font-weight: 800;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +181,7 @@ function start() {
   color: var(--pink-deep);
   background: rgba(255, 92, 157, 0.1);
   padding: 6rpx 16rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 .guide-tag.optional {

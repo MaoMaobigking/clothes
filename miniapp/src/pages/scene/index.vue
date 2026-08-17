@@ -2,11 +2,6 @@
 import { iconForEmoji } from '@/utils/icons'
 import { computed, ref } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import OutfitPreview from '@/components/OutfitPreview/OutfitPreview.vue'
-import OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
-import SceneWeather from './SceneWeather.vue'
 import {
   SCENE_FILTERS,
   SCENE_FILTER_GRADIENTS,
@@ -582,8 +577,8 @@ function savePoster() {
   gap: 10px;
 }
 .section-title {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-1);
 }
 .section-sub {
@@ -611,7 +606,7 @@ function savePoster() {
 .scene-option.on {
   color: var(--text-on-brand);
   background: var(--brand-gradient);
-  box-shadow: 0 5px 14px rgba(177, 140, 255, 0.35);
+  box-shadow: var(--shadow-card);
 }
 .scene-emoji {
   font-size: 24px;
@@ -677,7 +672,7 @@ function savePoster() {
 }
 .active-title {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 500;
 }
 .active-sub {
   font-size: 12px;
@@ -723,7 +718,7 @@ function savePoster() {
 .plan-count {
   font-size: 12px;
   color: var(--text-2);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .plan-grid {
@@ -759,7 +754,7 @@ function savePoster() {
 .plan-title {
   flex: 1;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
   line-height: 1.35;
 }
@@ -798,15 +793,15 @@ function savePoster() {
 .item-tag {
   align-self: flex-start;
   padding: 2px 5px;
-  border-radius: 6px;
-  background: rgba(177, 140, 255, 0.14);
+  border-radius: var(--radius-sm);
+  background: var(--pink-soft);
   color: var(--purple-deep);
   font-size: 9px;
   font-weight: 700;
 }
 .item-price {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--pink-deep);
 }
 
@@ -815,12 +810,12 @@ function savePoster() {
   flex-direction: column;
   gap: 7px;
   background: var(--surface);
-  border-radius: 9px;
+  border-radius: var(--radius);
   padding: 9px;
 }
 .new-title {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .new-row {
@@ -850,7 +845,7 @@ function savePoster() {
 }
 .difference-title {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .difference-text {
@@ -902,7 +897,7 @@ function savePoster() {
 }
 .modal-title {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
   text-align: center;
 }

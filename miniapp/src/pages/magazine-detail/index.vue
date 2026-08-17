@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import {
   bookmarkCommunityContent,
   fetchCommunityContent,
@@ -197,13 +196,13 @@ function restoreProgress() {
   font-size: 26rpx;
 }
 .state.error {
-  color: var(--accent);
+  color: var(--danger);
 }
 .cover-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-float);
 }
@@ -229,7 +228,7 @@ function restoreProgress() {
   margin-top: 12rpx;
   font-size: 50rpx;
   line-height: 1.2;
-  font-weight: 900;
+  font-weight: 700;
 }
 .cover-subtitle {
   margin-top: 10rpx;
@@ -266,7 +265,7 @@ function restoreProgress() {
 }
 .heading {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--purple-deep);
 }
 .paragraph {
@@ -349,7 +348,7 @@ function restoreProgress() {
 .note-sheet {
   width: 100%;
   padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: 28rpx 28rpx 0 0;
+  border-radius: var(--radius-lg) 28rpx 0 0;
   background: var(--surface);
 }
 .note-input {
@@ -357,7 +356,7 @@ function restoreProgress() {
   height: 260rpx;
   margin-top: 24rpx;
   padding: 22rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface-soft);
   color: var(--text-1);
   font-size: 26rpx;

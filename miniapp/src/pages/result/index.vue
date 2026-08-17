@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import AvatarViewer from '@/components/AvatarViewer/AvatarViewer.vue'
-import RadarChart from '@/components/RadarChart/RadarChart.vue'
 import { useProfileStore } from '@/stores/profile'
 import { PREFERENCE_QUESTIONS } from '@/data/questions'
 import { fetchStyleReport, type StyleReport } from '@/api/ai'
@@ -326,11 +324,11 @@ function goBack() {
 }
 .retest {
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--purple-deep);
   background: rgba(255, 255, 255, 0.7);
   padding: 14rpx 24rpx;
-  border-radius: 9999rpx;
+  border-radius: var(--radius-pill);
 }
 
 .body {
@@ -351,14 +349,14 @@ function goBack() {
   padding: 20rpx 28rpx;
   border-radius: var(--radius);
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
 }
 .ai-banner.loading {
-  background: rgba(177, 140, 255, 0.14);
+  background: var(--pink-soft);
   color: var(--purple-deep);
 }
 .ai-banner.ok {
-  background: rgba(255, 126, 179, 0.12);
+  background: var(--pink-soft);
   color: var(--pink-deep);
 }
 .ai-banner.err {
@@ -381,7 +379,7 @@ function goBack() {
   color: inherit;
   background: rgba(255, 255, 255, 0.6);
   padding: 8rpx 20rpx;
-  border-radius: 9999rpx;
+  border-radius: var(--radius-pill);
 }
 
 .card {
@@ -401,7 +399,7 @@ function goBack() {
   align-items: center;
   gap: 12rpx;
   font-size: 25rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
   margin-bottom: 14rpx;
 }
@@ -421,7 +419,7 @@ function goBack() {
   padding: 14rpx 20rpx;
   margin-right: 14rpx;
   background: var(--surface);
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
 .history-time {
@@ -430,7 +428,7 @@ function goBack() {
 }
 .history-go {
   font-size: 21rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--purple-deep);
 }
 .incomplete-list {
@@ -450,7 +448,7 @@ function goBack() {
 }
 .incomplete-item .dot {
   color: var(--pink-deep);
-  font-weight: 900;
+  font-weight: 700;
 }
 .avatar-card {
   padding-top: 16rpx;
@@ -466,7 +464,7 @@ function goBack() {
 .sec-title {
   margin: 0 0 20rpx;
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 
@@ -478,7 +476,7 @@ function goBack() {
 .sw {
   flex: 1;
   height: 80rpx;
-  border-radius: 20rpx;
+  border-radius: var(--radius);
   box-shadow: inset 0 0 0 2rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -501,7 +499,7 @@ function goBack() {
 }
 .reco-title {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .reco-scene {
@@ -510,7 +508,7 @@ function goBack() {
   color: #fff;
   background: var(--brand-gradient);
   padding: 4rpx 16rpx;
-  border-radius: 9999rpx;
+  border-radius: var(--radius-pill);
 }
 .reco-pieces {
   display: flex;
@@ -524,7 +522,7 @@ function goBack() {
   background: #fff;
   border: 1px solid var(--line);
   padding: 8rpx 20rpx;
-  border-radius: 9999rpx;
+  border-radius: var(--radius-pill);
 }
 .reco-reason {
   margin: 0;
@@ -568,7 +566,7 @@ function goBack() {
 }
 .trait .v {
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--purple-deep);
 }
 
@@ -579,11 +577,11 @@ function goBack() {
 }
 .style-tag {
   padding: 14rpx 28rpx;
-  border-radius: 9999rpx;
-  background: rgba(255, 126, 179, 0.12);
+  border-radius: var(--radius-pill);
+  background: var(--pink-soft);
   color: var(--pink-deep);
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 500;
 }
 .style-tag.empty {
   background: var(--surface-tint);

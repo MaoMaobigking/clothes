@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import { createCommunityShare } from '@/api/community'
 import { isAuthError } from '@/api/http'
 
@@ -190,7 +189,7 @@ async function submit() {
 .photo-box {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow-card);
@@ -222,7 +221,7 @@ async function submit() {
 .error {
   display: block;
   margin-top: 12rpx;
-  color: var(--accent);
+  color: var(--danger);
   font-size: 22rpx;
 }
 .hidden-file {
@@ -238,14 +237,14 @@ async function submit() {
 .label {
   margin-bottom: 12rpx;
   font-size: 25rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .textarea,
 .input {
   width: 100%;
   padding: 22rpx;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--text-1);
   font-size: 26rpx;
@@ -282,7 +281,7 @@ async function submit() {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 500;
   box-shadow: var(--shadow-float);
 }
 .submit.disabled {

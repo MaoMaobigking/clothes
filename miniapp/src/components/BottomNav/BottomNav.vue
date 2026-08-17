@@ -33,84 +33,88 @@ function hideNativeTabBar() {
 
 onMounted(hideNativeTabBar)
 
-function go(t: Tab) {
-  if (t.key === props.active) return
+function go(key: string) {
+  if (key === props.active) return
+  const t = tabs.find((x) => x.key === key)
+  if (!t) return
   // switchTab 之后原生栏可能被重新显示出来，跳完再藏一次
   uni.switchTab({ url: t.route, complete: hideNativeTabBar })
 }
+
+/* 和 uni.scss 的 $uv-primary / $uv-tips-color 同值。
+   这里必须写字面色值：uv-tabbar 把它们拼进 inline style，CSS 变量传不进去。 */
+const ACTIVE_COLOR = '#ff5c9d'
+const INACTIVE_COLOR = '#909193'
 </script>
 
 <template>
-  <view class="tabbar">
-    <view
-      v-for="t in tabs"
-      :key="t.key"
-      class="tab"
-      :class="{ on: active === t.key }"
-      @tap="go(t)"
+  <!--
+    外层这个 view 不能省：
+    .page 是纵向 flex，底栏必须 flex-shrink:0 才不会被内容挤扁。
+    uv-tabbar 的根节点不接 customStyle（它只把 style 加在内部的 __content 上），
+    所以 flex-shrink 只能挂在外面。
+
+    :fixed="false" + :placeholder="false" 是刻意的 ——
+    uv-tabbar 默认 fixed 定位 + 生成等高占位块，那套是给「页面自己不管底栏」的布局用的。
+    本项目的 .page 骨架是把底栏当流内元素排的，改成 fixed 会让 .body 底部被盖住。
+    safeAreaInsetBottom 独立于 fixed 生效（它渲染的是 uv-safe-bottom 子元素），
+    所以流内布局下安全区照样有。
+  -->
+  <view class="tabbar-slot">
+    <uv-tabbar
+      :value="active"
+      :fixed="false"
+      :placeholder="false"
+      :safe-area-inset-bottom="true"
+      :border="true"
+      :active-color="ACTIVE_COLOR"
+      :inactive-color="INACTIVE_COLOR"
+      @change="go"
     >
-      <view class="ico">
-        <!-- Ai：圆角方块徽标 -->
-        <text v-if="t.key === 'ai'" class="ai-badge">Ai</text>
-        <UiIcon
-          v-else-if="t.icon"
-          :name="t.icon"
-          :size="44"
-          :tone="active === t.key ? 'dark' : 'muted'"
-          :stroke-width="active === t.key ? 1.9 : 1.6"
-        />
-      </view>
-      <text class="lbl">{{ t.label }}</text>
-    </view>
+      <uv-tabbar-item v-for="t in tabs" :key="t.key" :name="t.key" :text="t.label">
+        <!--
+          不传 icon prop，走 active-icon / inactive-icon 插槽。
+          原因：icon prop 走的是 uv-icon 的 iconfont（uvicons.ttf），
+          那套 158 个图标里没有「衣橱」这类服装图标，只能用项目自己的 UiIcon。
+        -->
+        <template #active-icon>
+          <text v-if="t.key === 'ai'" class="ai-badge on">Ai</text>
+          <UiIcon v-else-if="t.icon" :name="t.icon" :size="44" tone="brand" :stroke-width="1.9" />
+        </template>
+        <template #inactive-icon>
+          <text v-if="t.key === 'ai'" class="ai-badge">Ai</text>
+          <UiIcon v-else-if="t.icon" :name="t.icon" :size="44" tone="muted" :stroke-width="1.6" />
+        </template>
+      </uv-tabbar-item>
+    </uv-tabbar>
   </view>
 </template>
 
 <style scoped>
-.tabbar {
+.tabbar-slot {
   flex-shrink: 0;
-  display: flex;
-  background: #ffffff;
-  padding: 12rpx 12rpx calc(12rpx + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid #eceaf0;
-}
-.tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8rpx 0;
-  color: #9a94a8;
-  transition: color 0.15s ease;
-}
-.tab.on {
-  color: #2f2a3d;
-}
-.ico {
-  height: 52rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.lbl {
-  font-size: 21rpx;
-  font-weight: 500;
 }
 
-/* Ai 徽标 */
+/*
+ * Ai 徽标：中间那格不是图标而是一个方框「Ai」。
+ * uv-ui 没有对应形态，保留自绘。
+ * 选中态从「深色底」改成主色底 —— uv-ui 的选中一律是主色，不是深灰。
+ */
 .ai-badge {
   width: 54rpx;
   height: 40rpx;
-  border-radius: 12rpx;
-  border: 2px solid currentColor;
+  border-radius: var(--radius-sm);
+  border: 2rpx solid #909193;
+  color: #909193;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  font-weight: 800;
+  font-weight: 700;
 }
-.tab.on .ai-badge {
-  background: #2f2a3d;
+.ai-badge.on {
+  background: var(--pink-deep);
+  border-color: var(--pink-deep);
   color: #fff;
-  border-color: #2f2a3d;
 }
 </style>

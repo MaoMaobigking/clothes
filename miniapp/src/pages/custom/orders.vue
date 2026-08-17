@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import PageHeader from '@/components/PageHeader/PageHeader.vue'
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/data/custom'
 import { fetchCustomRequests, type CustomRequest } from '@/api/custom'
 import { isAuthError } from '@/api/http'
@@ -164,7 +163,7 @@ onShow(loadRequests)
 }
 .type {
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .number {
@@ -178,7 +177,7 @@ onShow(loadRequests)
   background: rgba(255, 92, 157, 0.1);
   color: var(--pink-deep);
   font-size: 23rpx;
-  font-weight: 750;
+  font-weight: 700;
 }
 .requirement {
   display: -webkit-box;
@@ -236,7 +235,7 @@ onShow(loadRequests)
   border: 3rpx solid var(--line);
   color: #fff;
   font-size: 18rpx;
-  font-weight: 800;
+  font-weight: 500;
   line-height: 24rpx;
   text-align: center;
 }
@@ -288,7 +287,7 @@ onShow(loadRequests)
 }
 .empty-title {
   font-size: 31rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .empty-desc {
   font-size: 24rpx;

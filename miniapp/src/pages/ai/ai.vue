@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import BottomNav from '@/components/BottomNav/BottomNav.vue'
-import TileImage from '@/components/TileImage/TileImage.vue'
-import SectionTitle from '@/components/SectionTitle/SectionTitle.vue'
 import { AI_FEATURES, OUTFIT_RECOS } from '@/data/mock'
 
 function navigateTo(url: string) {
@@ -95,7 +92,7 @@ function navigateTo(url: string) {
 .title {
   margin: 0;
   font-size: 48rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .sub {
@@ -131,7 +128,7 @@ function navigateTo(url: string) {
 }
 .banner-title {
   font-size: 34rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .banner-desc {
   font-size: 24rpx;
@@ -170,14 +167,14 @@ function navigateTo(url: string) {
 .f-ico {
   width: 104rpx;
   height: 104rpx;
-  border-radius: 32rpx;
+  border-radius: var(--radius-lg);
   display: grid;
   place-items: center;
   font-size: 56rpx;
 }
 .f-label {
   font-size: 30rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .f-desc {

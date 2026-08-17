@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { iconForEmoji } from '@/utils/icons'
 import { reactive } from 'vue'
-import StepShell from '@/components/StepShell/StepShell.vue'
 import {
   BODY_FIELDS,
   VISUAL_BODY_OPTIONS,
@@ -154,8 +153,8 @@ const bmiTip = (bmi: number) => {
   margin-bottom: 30rpx;
 }
 .section-title {
-  font-size: 28rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-1);
   margin-bottom: 20rpx;
   display: flex;
@@ -167,7 +166,7 @@ const bmiTip = (bmi: number) => {
   color: var(--pink-deep);
   background: rgba(255, 92, 157, 0.12);
   padding: 4rpx 14rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
 }
 
 .body-options {
@@ -197,7 +196,7 @@ const bmiTip = (bmi: number) => {
 .body-preview {
   width: 88rpx;
   height: 88rpx;
-  border-radius: 28rpx;
+  border-radius: var(--radius-lg);
   display: grid;
   place-items: center;
   margin-bottom: 12rpx;
@@ -212,7 +211,7 @@ const bmiTip = (bmi: number) => {
 }
 .body-label {
   font-size: 26rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-1);
 }
 .body-desc {
@@ -231,7 +230,7 @@ const bmiTip = (bmi: number) => {
   background: var(--brand-gradient);
   color: #fff;
   font-size: 22rpx;
-  font-weight: 800;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -259,7 +258,7 @@ const bmiTip = (bmi: number) => {
 .gender-option.on {
   border-color: var(--pink);
   color: var(--pink-deep);
-  background: rgba(255, 126, 179, 0.09);
+  background: var(--pink-soft);
 }
 .gender-emoji {
   font-size: 40rpx;
@@ -292,11 +291,11 @@ const bmiTip = (bmi: number) => {
   color: var(--mint-deep);
   margin-left: 10rpx;
   font-size: 24rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .value {
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--purple-deep);
 }
 .unit {
@@ -340,12 +339,12 @@ const bmiTip = (bmi: number) => {
 }
 .bmi-num {
   font-size: 52rpx;
-  font-weight: 800;
+  font-weight: 500;
 }
 .bmi-tag {
   background: rgba(255, 255, 255, 0.25);
   padding: 12rpx 26rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-pill);
   font-size: 28rpx;
   font-weight: 700;
 }
