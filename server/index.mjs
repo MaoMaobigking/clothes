@@ -22,6 +22,7 @@ import aiRoutes from './routes/ai.mjs'
 import authRoutes from './routes/auth.mjs'
 import profileRoutes from './routes/profile.mjs'
 import wardrobeRoutes from './routes/wardrobe.mjs'
+import diaryRoutes from './routes/diary.mjs'
 import cartRoutes from './routes/cart.mjs'
 import accessoryRoutes from './routes/accessories.mjs'
 import accessoryCartRoutes from './routes/accessoryCart.mjs'
@@ -66,6 +67,7 @@ app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/wardrobe', wardrobeRoutes)
+app.use('/api/diary', diaryRoutes) // 穿搭日记（规格 §11.1）
 app.use('/api/accessories', accessoryRoutes)
 app.use('/api/accessory-cart', accessoryCartRoutes)
 app.use('/api/cart', cartRoutes)

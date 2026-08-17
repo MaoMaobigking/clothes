@@ -15,6 +15,8 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
     >
       <UiIcon :name="t.icon" :size="38" :tone="t.disabled ? 'muted' : 'dark'" />
       <text class="t-label">{{ t.label }}</text>
+      <!-- 只灰不说话会被当成「点了没反应」；和「我的」页未开放菜单用同一句「开发中」 -->
+      <text v-if="t.disabled" class="t-soon">开发中</text>
     </view>
   </view>
 </template>
@@ -44,8 +46,16 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
 .tool.disabled {
   opacity: 0.4;
 }
+.tool.disabled .t-label {
+  color: var(--text-4);
+}
 .tool.disabled:active {
   transform: none;
+}
+.t-soon {
+  font-size: 18rpx;
+  line-height: 1.2;
+  color: var(--text-4);
 }
 .t-label {
   font-size: 20rpx;

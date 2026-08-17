@@ -234,6 +234,7 @@ async function migrateFeatureTwo(conn) {
     ['season', 'VARCHAR(32) NULL'],
     ['occasion', 'VARCHAR(32) NULL'],
     ['algorithm', 'JSON NULL'],
+    ['is_starred', 'TINYINT(1) DEFAULT 0'],
   ]
   for (const [name, ddl] of outfitColumns) {
     await ensureColumn(conn, 'outfits', name, ddl)

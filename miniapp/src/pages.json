@@ -18,6 +18,7 @@
     { "path": "pages/mall/mall", "style": { "navigationStyle": "custom" } },
     { "path": "pages/cart/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/me/me", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/profile-edit/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/body-create/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/create/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/test/index", "style": { "navigationStyle": "custom" } },

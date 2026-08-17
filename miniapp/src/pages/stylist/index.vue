@@ -57,7 +57,7 @@ async function send(text?: string) {
 
 <template>
   <view class="page">
-    <PageHeader title="AI 穿搭顾问" to="/home" sub="灵犀 · 你的私人穿搭助手" />
+    <PageHeader title="AI 穿搭顾问" to="/pages/home/home" sub="灵犀 · 你的私人穿搭助手" />
 
     <scroll-view
       scroll-y

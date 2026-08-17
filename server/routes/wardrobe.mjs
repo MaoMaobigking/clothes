@@ -78,8 +78,29 @@ router.get(
   '/outfits',
   asyncHandler(async (req, res) => {
     const saved = req.query.saved === '1' || req.query.kind === 'saved'
-    const items = await outfitService.listOutfits(req.userId, { saved })
+    const starred = req.query.starred === '1'
+    const kind = req.query.kind === 'manual' || req.query.kind === 'generated' ? req.query.kind : ''
+    const items = await outfitService.listOutfits(req.userId, { saved, starred, kind })
     res.json({ items })
+  }),
+)
+
+/* 自由搭配页的「保存」：把手动挑的一组衣物落成一条 kind='manual' 的搭配 */
+router.post(
+  '/outfits',
+  asyncHandler(async (req, res) => {
+    const item = await outfitService.createManualOutfit(req.userId, req.body || {})
+    res.status(201).json({ item })
+  }),
+)
+
+/* 「收藏」= 星标。和 /save 是两件事：save 只保证留下来，star 是在留下来的里面挑重点 */
+router.post(
+  '/outfits/:id/star',
+  asyncHandler(async (req, res) => {
+    const starred = req.body?.starred !== false
+    const item = await outfitService.setOutfitStar(req.userId, Number(req.params.id), starred)
+    res.json({ item })
   }),
 )
 

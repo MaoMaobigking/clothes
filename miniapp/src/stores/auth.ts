@@ -32,13 +32,15 @@ const USER_SCOPED_STORAGE_KEYS = ['ai-fashion-profile']
 export interface Session {
   userId: number
   nickname: string
+  /** 头像 emoji（规格 §11.2）。空串表示用默认头像，渲染见 utils/icons 的 iconForEmoji */
+  avatarUrl: string
   role: string
   account: string
   demoKind: string | null
 }
 
 function emptySession(): Session {
-  return { userId: 0, nickname: '', role: 'user', account: '', demoKind: null }
+  return { userId: 0, nickname: '', avatarUrl: '', role: 'user', account: '', demoKind: null }
 }
 
 function readSession(): Session {
@@ -95,6 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = {
       userId: result.userId,
       nickname: result.nickname || '',
+      avatarUrl: result.avatarUrl || '',
       role: result.role || 'user',
       account: result.account || '',
       demoKind: result.demoKind ?? null,
@@ -135,6 +138,19 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * 把改完的资料写回会话（规格 §11.2 编辑资料保存后）。
+   * 必须同时落 storage —— 只改内存的话，小程序杀掉重进又是旧昵称。
+   */
+  function applyProfile(profile: { nickname?: string; avatarUrl?: string }) {
+    session.value = {
+      ...session.value,
+      nickname: profile.nickname ?? session.value.nickname,
+      avatarUrl: profile.avatarUrl ?? session.value.avatarUrl,
+    }
+    uni.setStorageSync(SESSION_KEY, JSON.stringify(session.value))
+  }
+
+  /**
    * 用后端校验一次当前 token。
    * 本地有 token 不代表还有效 —— 服务重启换了 JWT 密钥、或者库被重置过，
    * token 就成了空壳，不校验的话人会卡在「看着已登录、每个接口都 401」。
@@ -147,6 +163,8 @@ export const useAuthStore = defineStore('auth', () => {
         session.value = { ...session.value, role: data.user.role }
         uni.setStorageSync(SESSION_KEY, JSON.stringify(session.value))
       }
+      // 顺手对齐昵称和头像：换设备登录时，本地那份可能是几天前的
+      if (data?.profile) applyProfile(data.profile)
       return true
     } catch {
       clearSession()
@@ -177,6 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     displayName,
     applyLogin,
+    applyProfile,
     signInWithPassword,
     signInWithWechat,
     signInAsAdmin,

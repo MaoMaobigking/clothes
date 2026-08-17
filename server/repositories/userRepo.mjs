@@ -103,6 +103,25 @@ export async function setAccountCredentials(id, { account, passwordHash, demoKin
   return result.affectedRows > 0
 }
 
+/**
+ * 用户自己改昵称 / 头像（规格 §11.2「编辑资料」）。
+ *
+ * 和上面的 setAccountCredentials 用同一套「只拼传进来的字段」写法，
+ * 但**故意只认 nickname 和 avatarUrl** —— 这条 SQL 走的是用户可达的接口，
+ * 把 role / account / password_hash 也放进来的话，前端多传一个 role: 'admin'
+ * 就能给自己提权。可改字段白名单必须写死在这一层，别交给调用方。
+ */
+export async function updateUserProfile(id, { nickname, avatarUrl }) {
+  const fields = []
+  const params = []
+  if (nickname !== undefined) { fields.push('nickname = ?'); params.push(nickname) }
+  if (avatarUrl !== undefined) { fields.push('avatar_url = ?'); params.push(avatarUrl) }
+  if (!fields.length) return false
+  params.push(id)
+  const result = await execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params)
+  return result.affectedRows > 0
+}
+
 /** 列出所有预置演示账号（H5 兜底的账号选择器用，不返回密码哈希） */
 export async function listDemoUsers() {
   return getAll(

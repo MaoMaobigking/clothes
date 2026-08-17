@@ -174,6 +174,50 @@ export async function saveOutfit(userId, id) {
   return result
 }
 
+const MANUAL_MAX_ITEMS = 12
+
+/**
+ * 手动搭配落库（规格 §8.9 的「保存」）。
+ *
+ * garmentIds 是字符串（`g1` 这种），不是自增整数 —— garments.id 是 VARCHAR(64)。
+ * 千万别在这里 map(Number)，那会把所有 id 变成 NaN，表现成「保存永远说衣物不存在」。
+ *
+ * 校验 garmentIds 必须全部属于当前用户 —— 前端传的是它本地那份衣橱缓存里的 id，
+ * 换过账号但没清缓存时会把别人的衣物 id 带过来，落库了就成了跨用户数据。
+ */
+export async function createManualOutfit(userId, payload = {}) {
+  const rawIds = Array.isArray(payload.garmentIds) ? payload.garmentIds : []
+  const garmentIds = [...new Set(rawIds.map((id) => String(id).trim()).filter(Boolean))]
+  if (!garmentIds.length) {
+    throw serviceError('至少要选一件衣物', 'OUTFIT_ITEMS_EMPTY')
+  }
+  if (garmentIds.length > MANUAL_MAX_ITEMS) {
+    throw serviceError(`一套搭配最多 ${MANUAL_MAX_ITEMS} 件`, 'OUTFIT_ITEMS_TOO_MANY')
+  }
+
+  const owned = await garmentRepo.listGarmentsByIds(userId, garmentIds)
+  if (owned.length !== garmentIds.length) {
+    throw serviceError('有衣物不存在或不属于当前用户', 'GARMENT_NOT_FOUND', 404)
+  }
+
+  const now = new Date()
+  const stamp = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const title = String(payload.title || '').trim().slice(0, 64) || `自由搭配 · ${stamp}`
+  const scene = String(payload.scene || '').trim().slice(0, 32)
+  const reason = String(payload.reason || '').trim().slice(0, 500)
+    || `手动挑选的 ${garmentIds.length} 件单品组合`
+
+  return outfitRepo.createManualOutfit(userId, { title, scene, reason, garmentIds })
+}
+
+export async function setOutfitStar(userId, id, starred) {
+  const result = await outfitRepo.setOutfitStar(userId, id, Boolean(starred))
+  if (!result) {
+    throw serviceError('搭配不存在或不属于当前用户', 'OUTFIT_NOT_FOUND', 404)
+  }
+  return result
+}
+
 export async function replaceOutfitItem(userId, outfitId, oldGarmentId, newGarmentId) {
   if (oldGarmentId === newGarmentId) return outfitRepo.getOutfit(userId, outfitId)
   const result = await outfitRepo.replaceOutfitItem(

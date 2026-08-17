@@ -173,6 +173,7 @@ CREATE TABLE IF NOT EXISTS outfits (
   batch_id VARCHAR(64),
   kind VARCHAR(24) DEFAULT 'generated',
   is_saved TINYINT(1) DEFAULT 0,
+  is_starred TINYINT(1) DEFAULT 0,
   season VARCHAR(32),
   occasion VARCHAR(32),
   algorithm JSON NULL,
@@ -419,4 +420,28 @@ CREATE TABLE IF NOT EXISTS custom_messages (
   FOREIGN KEY (designer_id) REFERENCES designers(id) ON DELETE SET NULL,
   INDEX idx_custom_message_request (request_id, created_at),
   INDEX idx_custom_message_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 21. 穿搭日记（规格 §11.1）
+-- 「按日期记录 + 回看」：一天一条，所以 (user_id, wear_date) 上有唯一键 ——
+-- 前端的保存动作是 upsert（PUT /api/diary/:date），靠这个唯一键做冲突判定，
+-- 别改成普通索引，否则同一天连点两次保存会留下两条。
+--
+-- outfit_id 允许为空：只写一句「今天穿了牛仔外套」也是一条合法记录，
+-- 不能逼用户先去存一套搭配才让他记日记。
+-- 关联的搭配被删除时置空而不是级联删除 —— 删搭配不该把当天的日记一起删掉。
+CREATE TABLE IF NOT EXISTS outfit_diary (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  wear_date DATE NOT NULL,
+  outfit_id INT NULL,
+  note VARCHAR(255) NULL,
+  weather VARCHAR(32) NULL,
+  mood VARCHAR(32) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (outfit_id) REFERENCES outfits(id) ON DELETE SET NULL,
+  UNIQUE KEY uq_diary_user_date (user_id, wear_date),
+  INDEX idx_diary_user_date (user_id, wear_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

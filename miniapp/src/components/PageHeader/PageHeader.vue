@@ -9,18 +9,44 @@ const props = withDefaults(
   { to: '', sub: '' },
 )
 
+/** tabBar 五页：只能 switchTab，navigateTo 到 tab 页在小程序上必定失败 */
+const TAB_ROUTES = [
+  '/pages/home/home',
+  '/pages/ai/ai',
+  '/pages/closet/closet',
+  '/pages/mall/mall',
+  '/pages/me/me',
+]
+
+/*
+ * 返回。
+ *
+ * 原来非 tab 页一律走 uni.navigateTo(props.to) —— 那是「前进」不是「返回」：
+ * 页面栈只涨不落，定制页 ⇄ 分类页来回点五轮就顶到微信的 10 层上限，
+ * 之后所有 navigateTo 静默失败，表现是「返回键按不了」，而且是全站一起坏。
+ *
+ * 现在分三种情况：
+ *   1. 目标是 tab 页        → switchTab
+ *   2. 上一页正好是目标     → navigateBack 出栈（栈深 -1，且保留用户真实来路）
+ *   3. 其余（深链直接进来） → redirectTo 替换当前页（栈深不变，不再堆积）
+ */
 function back() {
-  if (props.to) {
-    // 判断是否是 tab 页，是则 switchTab
-    const tabRoutes = ['/pages/home/home', '/pages/ai/ai', '/pages/closet/closet', '/pages/mall/mall', '/pages/me/me']
-    if (tabRoutes.includes(props.to)) {
-      uni.switchTab({ url: props.to })
-    } else {
-      uni.navigateTo({ url: props.to })
-    }
-  } else {
+  if (!props.to) {
     uni.navigateBack()
+    return
   }
+  const base = props.to.split('?')[0]
+  if (TAB_ROUTES.includes(base)) {
+    uni.switchTab({ url: props.to })
+    return
+  }
+  const stack = getCurrentPages()
+  const prev = stack.length > 1 ? `/${stack[stack.length - 2].route}` : ''
+  if (prev === base) {
+    uni.navigateBack()
+    return
+  }
+  uni.redirectTo({ url: props.to })
 }
 </script>
 
