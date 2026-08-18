@@ -476,3 +476,74 @@ CREATE TABLE IF NOT EXISTS ai_tasks (
   UNIQUE KEY uq_ai_task_id (task_id),
   INDEX idx_ai_task_user (user_id, capability, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 27. 收货地址（演示结算页）
+--
+-- 为什么不用 wx.chooseAddress：那个接口要求小程序通过特定服务类目的认证，
+-- demo 号拿不到，调用直接返回 fail。所以地址只能自己录。
+--
+-- 这一版**没有**省市区三级字段：标准数据源是 modood/Administrative-divisions-of-China，
+-- 三级 JSON 有 200–700KB，而主包体积已经超标。等分包方案定了再补 province/city/district 三列，
+-- detail 这一列的语义（完整地址文本）届时不受影响。
+CREATE TABLE IF NOT EXISTS shop_addresses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  receiver VARCHAR(32) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  detail VARCHAR(255) NOT NULL,
+  is_default TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_shop_address_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_shop_address_user (user_id, is_default, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 28. 演示订单
+--
+-- 只演示「下单」这一步：没有支付、没有物流、没有退款。status 走
+-- created → paid → shipped → done 四态，由演示按钮手动推进，不是真实状态机。
+--
+-- 金额三列全部落库而不是每次重算：优惠券规则以后会改，改完再回头算历史订单
+-- 会算出和用户当时看到的不一样的数字。订单是「当时这笔账」的快照。
+-- 单位是分，避免 DECIMAL 之外再引入浮点误差。
+CREATE TABLE IF NOT EXISTS shop_orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  order_no VARCHAR(32) NOT NULL,
+  status ENUM('created','paid','shipped','done','cancelled') NOT NULL DEFAULT 'created',
+  receiver VARCHAR(32) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  address_detail VARCHAR(255) NOT NULL,
+  coupon_key VARCHAR(32) NULL,
+  coupon_label VARCHAR(64) NULL,
+  goods_amount INT NOT NULL DEFAULT 0,
+  discount_amount INT NOT NULL DEFAULT 0,
+  pay_amount INT NOT NULL DEFAULT 0,
+  remark VARCHAR(255) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_shop_order_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_shop_order_no (order_no),
+  INDEX idx_shop_order_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 29. 订单明细
+--
+-- 商品名 / 单价 / 图都冗余存一份，不做外键回查：cart_items 的三种来源里
+-- garment 是按用户隔离的旧衣、catalog 和 accessory 是会下架的目录，
+-- 回查等于「商品下架后历史订单变空白」。订单行是成交那一刻的快照。
+CREATE TABLE IF NOT EXISTS shop_order_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  item_type ENUM('garment','accessory','catalog') NOT NULL,
+  item_id VARCHAR(64) NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  image_url VARCHAR(512) NULL,
+  unit_price INT NOT NULL DEFAULT 0,
+  quantity INT UNSIGNED NOT NULL DEFAULT 1,
+  CONSTRAINT fk_shop_order_item_order
+    FOREIGN KEY (order_id) REFERENCES shop_orders(id) ON DELETE CASCADE,
+  INDEX idx_shop_order_item_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

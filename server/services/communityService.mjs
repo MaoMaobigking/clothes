@@ -239,5 +239,7 @@ export async function createShare(userId, input = {}) {
 export async function getAdminDashboard() {
   const stats = await repo.getAdminStats()
   const hotTopics = await repo.getHotTopics()
-  return { stats, hotTopics }
+  // 三个图表指标（近 7 日活跃 / 互动构成 / 会员渗透），全部来自现有表的实时聚合
+  const metrics = await repo.getAdminMetrics()
+  return { stats, hotTopics, metrics }
 }

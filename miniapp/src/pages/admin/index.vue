@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   fetchAdminDashboard,
   type AdminDashboard,
@@ -12,6 +12,124 @@ const password = ref('')
 const logging = ref(false)
 const errorText = ref('')
 const dashboard = ref<AdminDashboard | null>(null)
+
+/*
+ * ── 三个图表指标 ──
+ * 数据全部来自现有表的实时聚合（见 server/repositories/communityRepo.mjs 的 getAdminMetrics），
+ * 没有统计表、没有埋点、没有定时任务，所以「刷新」按钮拿到的就是当下的库里状态。
+ *
+ * canvas 画的是像素，取不到 CSS 变量，色值必须和 tokens.css 手工对齐 ——
+ * 和 RadarChart 里那组常量同样的理由。
+ */
+const BRAND = '#ff5c9d'
+const BRAND_SOFT = 'rgba(255, 92, 157, 0.18)'
+const PURPLE = '#8b6ee8'
+const AXIS = '#c0c4cc'
+const LABEL = '#606266'
+/** 互动构成四种 type 的中文名和配色，顺序和后端返回的顺序一致 */
+const MIX_META: Record<string, { name: string; color: string }> = {
+  like: { name: '点赞', color: BRAND },
+  favorite: { name: '收藏', color: PURPLE },
+  complete: { name: '教程完成', color: '#5ac8b0' },
+  report: { name: '举报', color: '#f0a35e' },
+}
+
+/** 柱状图右上角那个总数。放 computed 而不是模板里写 reduce，模板表达式只放取值 */
+const activeTotal = computed(() =>
+  (dashboard.value?.metrics?.activeDaily || []).reduce((sum, d) => sum + d.count, 0),
+)
+
+const activeOption = computed(() => {  const daily = dashboard.value?.metrics?.activeDaily || []
+  if (!daily.length) return null
+  return {
+    animation: false,
+    grid: { left: 34, right: 12, top: 16, bottom: 24 },
+    xAxis: {
+      type: 'category' as const,
+      data: daily.map((d) => d.label),
+      axisLine: { lineStyle: { color: AXIS } },
+      axisTick: { show: false },
+      axisLabel: { color: LABEL, fontSize: 10 },
+    },
+    yAxis: {
+      type: 'value' as const,
+      // 全 0 的时候 ECharts 会把轴画成 0~1 的小数刻度，minInterval 逼它按整数走
+      minInterval: 1,
+      axisLine: { show: false },
+      axisLabel: { color: LABEL, fontSize: 10 },
+      splitLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
+    },
+    series: [
+      {
+        type: 'bar' as const,
+        data: daily.map((d) => d.count),
+        barMaxWidth: 22,
+        itemStyle: { color: BRAND, borderRadius: [6, 6, 0, 0] },
+        label: { show: true, position: 'top' as const, color: LABEL, fontSize: 10 },
+      },
+    ],
+  }
+})
+
+const mixOption = computed(() => {
+  const mix = (dashboard.value?.metrics?.interactionMix || []).filter((item) => item.count > 0)
+  if (!mix.length) return null
+  return {
+    animation: false,
+    series: [
+      {
+        type: 'pie' as const,
+        radius: ['42%', '68%'],
+        center: ['50%', '52%'],
+        // tooltip 在小程序端弹不出来（见 MetricChart 的注释），数值直接画在引导线上
+        label: {
+          color: LABEL,
+          fontSize: 10,
+          formatter: '{b} {c}',
+        },
+        labelLine: { length: 8, length2: 8 },
+        data: mix.map((item) => ({
+          name: MIX_META[item.type]?.name || item.type,
+          value: item.count,
+          itemStyle: { color: MIX_META[item.type]?.color || AXIS },
+        })),
+      },
+    ],
+  }
+})
+
+const vipOption = computed(() => {
+  const membership = dashboard.value?.metrics?.membership
+  if (!membership) return null
+  return {
+    animation: false,
+    series: [
+      {
+        type: 'gauge' as const,
+        min: 0,
+        max: 100,
+        startAngle: 210,
+        endAngle: -30,
+        radius: '92%',
+        center: ['50%', '58%'],
+        progress: { show: true, width: 14, itemStyle: { color: BRAND } },
+        axisLine: { lineStyle: { width: 14, color: [[1, BRAND_SOFT]] } },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: { show: false },
+        pointer: { show: false },
+        detail: {
+          offsetCenter: [0, '10%'],
+          fontSize: 22,
+          fontWeight: 'bold' as const,
+          color: BRAND,
+          formatter: '{value}%',
+        },
+        data: [{ value: membership.vipRate }],
+      },
+    ],
+  }
+})
 
 /**
  * 管理员密码闸（规格 §5.3）。
@@ -111,9 +229,50 @@ function logout() {
           </view>
         </view>
 
+        <!--
+          三张图的口径都写在图下面的小字里。看板最容易出的事故不是数算错，
+          是「活跃」「渗透率」这类词各人理解不同 —— 所以定义跟着数一起显示。
+        -->
+        <view class="chart-card">
+          <view class="chart-head">
+            <text class="section-title">近 {{ dashboard.metrics.activeDays }} 日活跃用户</text>
+            <text class="chart-badge">
+              {{ activeTotal }} 人次
+            </text>
+          </view>
+          <MetricChart :option="activeOption" :height="380" />
+          <text class="chart-note">
+            口径：当天在社区产生过互动（点赞 / 收藏 / 完成教程 / 评论）的去重用户数。
+            库里没有访问日志表，所以这不是「打开过小程序」意义上的 DAU。
+          </text>
+        </view>
+
+        <view class="chart-card">
+          <view class="chart-head">
+            <text class="section-title">互动构成</text>
+            <text class="chart-badge">{{ dashboard.stats.likeCount + dashboard.stats.favoriteCount }} 次正向</text>
+          </view>
+          <MetricChart :option="mixOption" :height="380" />
+          <text class="chart-note">
+            口径：community_interactions 按 type 分组计数。数量为 0 的类型不画进环里。
+          </text>
+        </view>
+
+        <view class="chart-card">
+          <view class="chart-head">
+            <text class="section-title">会员渗透率</text>
+            <text class="chart-badge">
+              {{ dashboard.metrics.membership.vipCount }} / {{ dashboard.metrics.membership.userTotal }}
+            </text>
+          </view>
+          <MetricChart :option="vipOption" :height="330" />
+          <text class="chart-note">
+            口径：users 表里 membership_level ≠ standard 的用户占全部用户的比例。
+          </text>
+        </view>
+
         <view class="breakdown">
-          <view class="section-title">内容构成</view>
-          <view class="row">
+          <view class="section-title">内容构成</view>          <view class="row">
             <text>杂志</text><text>{{ dashboard.stats.magazineCount }}</text>
           </view>
           <view class="row">
@@ -263,6 +422,39 @@ function logout() {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
+}
+.chart-card {
+  margin-top: 24rpx;
+  padding: 24rpx 20rpx 20rpx;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+.chart-head .section-title {
+  margin-bottom: 0;
+}
+.chart-badge {
+  flex-shrink: 0;
+  padding: 4rpx 18rpx;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  color: var(--purple-deep);
+  font-size: 21rpx;
+  font-weight: 700;
+}
+.chart-note {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  line-height: 1.55;
+  color: var(--text-3);
 }
 .section-title {
   margin-bottom: 16rpx;

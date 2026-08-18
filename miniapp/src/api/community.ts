@@ -101,9 +101,20 @@ export interface AdminStats {
   commentCount: number
 }
 
+/** 看板的三个图表指标，全部由后端从现有表实时聚合，没有独立的统计表 */
+export interface AdminMetrics {
+  /** 活跃统计的窗口天数，柱状图横轴就是这么多根 */
+  activeDays: number
+  /** 缺数据的日期后端已补 0，前端拿到的一定是连续的 */
+  activeDaily: { day: string; label: string; count: number }[]
+  interactionMix: { type: 'like' | 'favorite' | 'complete' | 'report'; count: number }[]
+  membership: { userTotal: number; vipCount: number; vipRate: number }
+}
+
 export interface AdminDashboard {
   stats: AdminStats
   hotTopics: { topic: string; count: number }[]
+  metrics: AdminMetrics
 }
 
 export async function fetchCommunityContents(

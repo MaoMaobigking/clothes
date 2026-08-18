@@ -122,6 +122,11 @@ function copyToken(item: CartItem) {
 function goShopping() {
   uni.navigateTo({ url: '/pages/accessory/index' })
 }
+
+/** 去演示结算页。下架商品不参与结算，结算页会再提示一次，这里不拦。 */
+function goCheckout() {
+  uni.navigateTo({ url: '/pages/checkout/index' })
+}
 </script>
 
 <template>
@@ -205,7 +210,8 @@ function goShopping() {
           <text class="bar-label">合计（{{ cart.count }} 件）</text>
           <text class="bar-price">¥{{ cart.totalPrice }}</text>
         </view>
-        <view class="btn btn-primary bar-btn" @tap="goShopping">继续挑选</view>
+        <view class="btn btn-ghost bar-btn" @tap="goShopping">继续挑选</view>
+        <view class="btn btn-primary bar-btn" @tap="goCheckout">去结算</view>
       </view>
     </template>
   </view>
@@ -392,8 +398,10 @@ function goShopping() {
   font-weight: 700;
 }
 .bar-btn {
-  width: 240rpx;
-  flex-shrink: 0;
+  /* 底部条现在是两个按钮（继续挑选 / 去结算），固定 240rpx 会挤爆小屏 */
+  flex: 1;
+  min-width: 0;
+  max-width: 240rpx;
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;

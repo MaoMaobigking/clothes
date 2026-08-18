@@ -44,6 +44,10 @@
     { "path": "pages/diary/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/achievements/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/admin/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/verify/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/checkout/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/orders/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/order-detail/index", "style": { "navigationStyle": "custom" } },
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
   ],
   "tabBar": {
