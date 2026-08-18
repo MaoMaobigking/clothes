@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { iconForEmoji, type IconName } from '@/utils/icons'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
 import { MODEL_IMAGES, SCENES, type Garment, type Scene } from '@/data/mock'
 import { apiCreateOutfit, apiStarOutfit } from '@/api/wardrobe'
+import { apiTryonEnabled, runTryon } from '@/api/tryon'
 import { isAuthError } from '@/api/http'
 import {
   garmentToAccessoryContext,
@@ -212,13 +213,85 @@ function shuffleOutfit() {
   showToast(`换了一套 ${next.length} 件的搭配`)
 }
 
+/* ---------- AI 试衣（阿里百炼 aitryon） ----------
+ * 这是「把衣服真的穿到人身上」的那条路，和上面的换模特/换场景不是一回事：
+ * 前者只是切预设图，这里是把人像和衣服图发给百炼生成一张上身图。
+ *
+ * 只取上装和下装两件：aitryon 的入参就这两个槽，鞋子包配饰它不认。
+ * 连衣裙按上装传（模型侧就是这么处理的）。
+ */
+const TOP_CATEGORIES = ['top', 'dress']
+const BOTTOM_CATEGORIES = ['pants', 'skirt']
+
+const tryonEnabled = ref(false)
+const tryonImage = ref('')
+const tryonBusy = ref(false)
+
+onMounted(async () => {
+  tryonEnabled.value = await apiTryonEnabled()
+})
+
+/** 出图对应的是「当时那一套」；换了单品就作废，否则会挂着一张对不上的图 */
+watch(
+  () => selected.value.map((s) => s.id).join('|'),
+  () => {
+    tryonImage.value = ''
+  },
+)
+
+async function onTryon() {
+  if (tryonBusy.value) return
+  if (!tryonEnabled.value) {
+    showToast('服务端还没配置百炼 API Key，AI 试衣暂不可用')
+    return
+  }
+  const top = selected.value.find((g) => TOP_CATEGORIES.includes(g.category))
+  const bottom = selected.value.find((g) => BOTTOM_CATEGORIES.includes(g.category))
+  if (!top && !bottom) {
+    showToast('先穿上一件上装或下装')
+    return
+  }
+
+  tryonBusy.value = true
+  uni.showLoading({ title: '正在生成…', mask: true })
+  try {
+    const url = await runTryon(
+      {
+        personImageUrl: currentModel.value.src,
+        topGarmentUrl: top?.img,
+        bottomGarmentUrl: bottom?.img,
+      },
+      // 排队和出图是两种等待，状态变了就把提示也换掉，免得看起来像卡住
+      (task) => uni.showLoading({ title: task.status === 'RUNNING' ? '正在出图…' : '排队中…', mask: true }),
+    )
+    tryonImage.value = url
+    showToast('试衣完成')
+  } catch (error) {
+    reportError(error, '试衣失败，请稍后再试')
+  } finally {
+    uni.hideLoading()
+    tryonBusy.value = false
+  }
+}
+
+/**
+ * 点人台看大图。只在出过图时有意义 —— 预设人台就是个小图，放大没内容。
+ * 出图是 OSS 临时地址，预览页的「保存到相册」在 24h 内可用，过期就只剩记录了。
+ */
+function previewTryon() {
+  if (!tryonImage.value) return
+  uni.previewImage({ urls: [tryonImage.value], current: tryonImage.value })
+}
+
 /* ---------- 右侧工具 ---------- */
 /*
  * 右侧竖排工具，对齐样图的五项：穿搭保存 / 更换模特 / 更换场景 / 更换搭配 / 还原穿搭。
  * 原来是「换鞋子 / 换裙子 / 进阶穿搭」，样图上没有这三项。
+ * 第六项 AI 试衣是样图之外加的：前五项都不出图，这一项才是真的生成上身效果。
  */
 const tools: { key: string; label: string; icon: IconName }[] = [
   { key: 'save', label: '穿搭保存', icon: 'save' },
+  { key: 'tryon', label: 'AI 试衣', icon: 'sparkle' },
   { key: 'model', label: '更换模特', icon: 'model-switch' },
   { key: 'scene', label: '更换场景', icon: 'scene-switch' },
   { key: 'outfit', label: '更换搭配', icon: 'outfit-switch' },
@@ -226,16 +299,18 @@ const tools: { key: string; label: string; icon: IconName }[] = [
 ]
 function onTool(t: { key: string; label: string }) {
   if (t.key === 'save') return void onSave()
+  if (t.key === 'tryon') return void onTryon()
   if (t.key === 'model') return switchModel()
   if (t.key === 'scene') return switchScene()
   if (t.key === 'outfit') return shuffleOutfit()
-  // 还原穿搭：清空已穿上的，背景和模特也一起回到初始态
-  if (!selected.value.length && !sceneKey.value) {
+  // 还原穿搭：清空已穿上的，背景、模特和试衣结果也一起回到初始态
+  if (!selected.value.length && !sceneKey.value && !tryonImage.value) {
     showToast('还没穿上任何单品')
     return
   }
   selected.value = []
   sceneKey.value = ''
+  tryonImage.value = ''
   showToast('已还原为初始形象')
 }
 
@@ -390,9 +465,22 @@ function goAccessory() {
           不做「衣服图层叠到人台上」：衣橱图是不带 alpha 的 RGB PNG，
           叠上去只会得到一堆白底方块。真要做得先有去背景管线。
         -->
-        <view class="model">
-          <TileImage :src="currentModel.src" icon="me" ratio="3 / 4" fit="contain" />
+        <view class="model" @tap="previewTryon">
+          <!--
+            出过图就显示试衣结果，没出过还是原来的预设人台。
+            结果图是百炼的 OSS 临时地址（24h 过期），所以只当「这次的展示」，
+            要留下来得走保存那条路。点一下可以全屏看大图。
+          -->
+          <TileImage
+            v-if="tryonImage"
+            :src="tryonImage"
+            icon="sparkle"
+            ratio="3 / 4"
+            fit="contain"
+          />
+          <TileImage v-else :src="currentModel.src" icon="me" ratio="3 / 4" fit="contain" />
         </view>
+        <view v-if="tryonImage" class="tryon-badge">AI 试衣结果</view>
 
         <!-- 右侧竖排工具 -->
         <scroll-view scroll-y class="tools">
@@ -554,6 +642,23 @@ function goAccessory() {
   border-radius: var(--radius-pill);
   background: var(--pink-soft);
   color: var(--pink-deep);
+  font-size: 20rpx;
+}
+
+/*
+ * 「AI 试衣结果」角标，和左上的「我的虚拟形象」对称放右上。
+ * 必须绝对定位：它在模板里是 .stage-area 这个 flex 行的直接子元素，
+ * 留在流里会挤掉中间人台的宽度。
+ */
+.tryon-badge {
+  position: absolute;
+  top: 14rpx;
+  right: 20rpx;
+  z-index: 3;
+  padding: 6rpx 20rpx;
+  border-radius: var(--radius-pill);
+  background: var(--pink-deep);
+  color: #fff;
   font-size: 20rpx;
 }
 

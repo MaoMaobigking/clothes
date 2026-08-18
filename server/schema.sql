@@ -445,3 +445,34 @@ CREATE TABLE IF NOT EXISTS outfit_diary (
   UNIQUE KEY uq_diary_user_date (user_id, wear_date),
   INDEX idx_diary_user_date (user_id, wear_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 22. AI 异步任务（阿里百炼 / DashScope）
+-- 表名不叫 tryon_tasks：试衣、换脸、场景生成走的是同一套异步协议
+-- （提交拿 task_id → 轮询 → 取图），只有 capability 和 model 不同。
+-- 一张表装下所有能力，加新能力时不用再建表、不用改仓库层。
+--
+-- 为什么要落库而不是把 task_id 丢给前端自己存：
+-- 1. 百炼的 task_id 只保 24 小时，过期后查不到结果，得靠自己留一份出图 URL；
+-- 2. 「我的试衣记录」这类回看需要按用户查历史；
+-- 3. 轮询接口要能校验这个 task_id 是不是当前用户的，否则拿到别人的 id 就能看别人的图。
+--
+-- image_url 单独拎出来做列（而不是只留在 result JSON 里）：列表页要按「有没有出图」
+-- 筛选和展示，JSON 里取值没法走索引也没法在 SQL 里判空。
+CREATE TABLE IF NOT EXISTS ai_tasks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  capability VARCHAR(32) NOT NULL,
+  provider VARCHAR(32) NOT NULL DEFAULT 'bailian',
+  model VARCHAR(64) NOT NULL,
+  task_id VARCHAR(128) NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+  input JSON NULL,
+  result JSON NULL,
+  image_url VARCHAR(1024) NULL,
+  error_message VARCHAR(512) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_ai_task_id (task_id),
+  INDEX idx_ai_task_user (user_id, capability, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
