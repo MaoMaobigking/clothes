@@ -75,7 +75,7 @@ const menus: MenuItem[] = [
   { key: 'orders', emoji: '📦', label: '我的订单', route: '/pages/custom/orders' },
   { key: 'cart', emoji: '🛒', label: '购物车', route: '/pages/cart/index' },
   { key: 'outfits', emoji: '👗', label: '我的搭配', route: '/pages/outfits/index' },
-  { key: 'diary', emoji: '📔', label: '穿搭日记', soon: true },
+  { key: 'diary', emoji: '📔', label: '穿搭日记', route: '/pages/diary/index' },
   { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/community/index?tab=magazine' },
   { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index?tab=share' },
   { key: 'favorites', emoji: '⭐', label: '我的收藏', route: '/pages/my-favorites/index' },

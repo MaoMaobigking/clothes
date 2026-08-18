@@ -33,8 +33,10 @@ import { ensureSceneCatalog } from './services/sceneService.mjs'
 import customRoutes from './routes/custom.mjs'
 import { ensureDesigners } from './services/customService.mjs'
 import communityRoutes from './routes/community.mjs'
+import { createAiTaskRouter } from './routes/aiTasks.mjs'
 import { ensureDemoData } from './services/demoSeedService.mjs'
 import { getAiRuntime } from './services/aiService.mjs'
+import { getBailianRuntime } from './services/bailianService.mjs'
 import { initDb, ping, DB_NAME } from './db/mysql.mjs'
 
 const app = express()
@@ -43,6 +45,7 @@ const uploadDir = join(here, 'uploads')
 mkdirSync(uploadDir, { recursive: true })
 
 const ai = getAiRuntime()
+const bailian = getBailianRuntime()
 const PORT = Number(process.env.PORT || 8787)
 
 app.use(cors())
@@ -58,6 +61,8 @@ app.get('/api/health', (_req, res) => {
     providerLabel: ai.providerLabel,
     model: ai.model,
     hasKey: ai.hasKey,
+    // 前端据此决定「AI 试衣」按钮是可点还是置灰，不用等提交了才知道没配 key
+    bailian: { enabled: bailian.enabled, capabilities: bailian.capabilities },
   })
 })
 
@@ -75,6 +80,9 @@ app.use('/api/scene', sceneRoutes)
 app.use('/api/mall', mallRoutes) // 商城目录复用 scene_catalog，见 services/mallService.mjs
 app.use('/api/custom', customRoutes)
 app.use('/api/community', communityRoutes)
+// 阿里百炼异步任务。加新能力（换脸 / 场景生成）= bailianService 的 CAPABILITIES
+// 加一条 + 这里加一行，路由和服务层都不用改。
+app.use('/api/tryon', createAiTaskRouter('tryon'))
 
 /* ============ 统一错误处理（必须放在所有路由之后） ============ */
 app.use(errorHandler)

@@ -313,10 +313,15 @@ function goOutfits() {
 
 /*
  * 穿搭日记（样图里天气卡右上角那个入口）。
- * 页面还没做 —— 和「我的」页里同名菜单项保持一致的处理：只提示，不假装能进。
+ * 带上今天的日期，进去直接是「记录今天」的面板，不用再点一次日历。
+ * 日期在这里拼成 YYYY-MM-DD 字符串 —— 不能用 toISOString()，那个按 UTC 算，
+ * 东八区上午 8 点前会退回前一天。
  */
 function goDiary() {
-  showToast('穿搭日记开发中～')
+  const d = new Date()
+  const p = (n: number) => (n < 10 ? `0${n}` : String(n))
+  const today = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+  uni.navigateTo({ url: `/pages/diary/index?date=${today}` })
 }
 
 /** 「个性化定制」→ 差异化定制页 */
