@@ -40,6 +40,7 @@ import { useWardrobeStore } from '@/stores/wardrobe'
  * `import type` 会被编译器完全擦除，产物里不会留 require —— 两边都满足。
  */
 import type OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
+import { MOMENT_HINT } from '@/utils/share'
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
@@ -307,8 +308,36 @@ async function buyAll() {
   }
 }
 
-function goOutfits() {
-  uni.navigateTo({ url: '/pages/outfits/index' })
+/*
+ * 单品详情（客户需求原文：单品列表可点击跳转详情）。
+ *
+ * 做成页内弹层而不是跳商城详情页，是因为商城页在 tabBar 里 ——
+ * switchTab 不接受 query 参数，要跳过去还得靠 storage 传 id，
+ * 反而比在本页展示更绕。plan.items 里已有 name/price/season/tags/淘口令，
+ * 详情要显示的字段一个不缺。
+ */
+const itemDetail = ref<ScenePlanItem | null>(null)
+
+/** 详情里单件加购：复用整套购买那条接口，只传这一个 id */
+async function addDetailToCart() {
+  const item = itemDetail.value
+  if (!item || !item.isNew || !activePlan.value) return
+  loading.value = true
+  try {
+    purchaseSummary.value = await buySceneOutfit([item.id], activePlan.value.id)
+    itemDetail.value = null
+  } catch (error) {
+    if (!isAuthError(error)) {
+      showToast(error instanceof Error ? error.message : '加入购物车失败')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+function goClosetFromDetail() {
+  itemDetail.value = null
+  uni.switchTab({ url: '/pages/closet/closet' })
 }
 
 /*
@@ -555,9 +584,13 @@ function savePoster() {
           </view>
         </view>
 
-        <!-- 2×3 单品网格。样图就是 6 格，gridItems 已经截到 6 件 -->
+        <!--
+          2×3 单品网格。样图就是 6 格，gridItems 已经截到 6 件。
+          点格子开单品详情弹层 —— 和下面「虚拟试穿」tab 的 .item-grid 同一个弹层，
+          客户原文的「点击单品跳转详情」指的就是默认这屏看得见的这批格子。
+        -->
         <view class="rec-grid">
-          <view v-for="item in gridItems" :key="item.id" class="rec-cell" @tap="goOutfits">
+          <view v-for="item in gridItems" :key="item.id" class="rec-cell" @tap="itemDetail = item">
             <TileImage :src="item.imageUrl" :emoji="item.emoji" ratio="1 / 1" />
           </view>
         </view>
@@ -637,7 +670,12 @@ function savePoster() {
             </view>
 
             <view class="item-grid">
-              <view v-for="item in plan.items" :key="item.id" class="item">
+              <view
+                v-for="item in plan.items"
+                :key="item.id"
+                class="item"
+                @tap="itemDetail = item"
+              >
                 <TileImage
                   :src="item.imageUrl"
                   :from="item.from"
@@ -694,6 +732,44 @@ function savePoster() {
 
     <BottomNav active="ai" />
 
+    <!-- 单品详情弹层：新品给价格 + 淘口令 + 加购，旧衣给衣橱入口 -->
+    <view v-if="itemDetail" class="modal-mask" @tap="itemDetail = null">
+      <view class="modal-sheet" @tap.stop>
+        <text class="modal-title">{{ itemDetail.name }}</text>
+        <view class="detail-body">
+          <TileImage
+            class="detail-image"
+            :src="itemDetail.imageUrl"
+            :from="itemDetail.from"
+            :to="itemDetail.to"
+            :emoji="itemDetail.emoji"
+            ratio="1 / 1"
+            rounded="24rpx"
+          />
+          <view class="detail-meta">
+            <text class="detail-tag" :class="{ fresh: itemDetail.isNew }">
+              {{ itemDetail.isNew ? '新增单品' : '衣橱旧衣' }}
+            </text>
+            <text class="detail-line">品类：{{ itemDetail.category }}</text>
+            <text class="detail-line">适用季节：{{ itemDetail.season }}</text>
+            <text v-if="itemDetail.tags?.length" class="detail-line">
+              标签：{{ itemDetail.tags.join(' / ') }}
+            </text>
+            <text v-if="itemDetail.isNew" class="detail-price">¥{{ itemDetail.price.toFixed(2) }}</text>
+            <text v-else class="detail-line">旧衣不计入购买清单</text>
+          </view>
+        </view>
+        <view class="detail-actions">
+          <template v-if="itemDetail.isNew">
+            <button class="action-button" @tap="copyTaokouling(itemDetail)">复制淘口令</button>
+            <button class="action-button primary" @tap="addDetailToCart">加入购物车</button>
+          </template>
+          <button v-else class="action-button primary" @tap="goClosetFromDetail">去衣橱查看</button>
+        </view>
+        <button class="btn btn-ghost modal-close" @tap="itemDetail = null">关闭</button>
+      </view>
+    </view>
+
     <view v-if="purchaseSummary" class="modal-mask" @tap="purchaseSummary = null">
       <view class="modal-sheet" @tap.stop>
         <text class="modal-title">已加入购物车</text>
@@ -732,6 +808,8 @@ function savePoster() {
           <button class="action-button" @tap="shareScene">复制文案</button>
           <button class="action-button primary" @tap="savePoster">保存图片</button>
         </view>
+        <!-- 小程序发不了朋友圈，这条限制必须写在界面上，见 utils/share.ts -->
+        <text class="poster-message weak">{{ MOMENT_HINT }}</text>
         <button class="btn btn-ghost modal-close" @tap="posterVisible = false">关闭</button>
       </view>
     </view>
@@ -1308,6 +1386,50 @@ function savePoster() {
   color: var(--text-1);
   text-align: center;
 }
+/* 单品详情弹层 */
+.detail-body {
+  display: flex;
+  gap: 24rpx;
+}
+.detail-image {
+  width: 220rpx;
+  flex-shrink: 0;
+}
+.detail-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.detail-tag {
+  align-self: flex-start;
+  font-size: 22rpx;
+  color: var(--text-2);
+  background: var(--surface-placeholder);
+  border-radius: var(--radius-pill);
+  padding: 4rpx 16rpx;
+}
+.detail-tag.fresh {
+  color: #fff;
+  background: var(--pink-deep);
+}
+.detail-line {
+  font-size: 25rpx;
+  color: var(--text-2);
+}
+.detail-price {
+  font-size: 34rpx;
+  color: var(--pink-deep);
+  margin-top: 4rpx;
+}
+.detail-actions {
+  display: flex;
+  gap: 16rpx;
+}
+.detail-actions .action-button {
+  flex: 1;
+}
 .purchase-row {
   display: flex;
   align-items: center;
@@ -1343,6 +1465,11 @@ function savePoster() {
   font-size: 24rpx;
   color: var(--text-2);
   text-align: center;
+}
+.poster-message.weak {
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: var(--text-3);
 }
 
 </style>

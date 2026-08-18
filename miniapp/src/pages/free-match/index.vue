@@ -11,6 +11,7 @@ import {
   garmentToAccessoryContext,
   setAccessoryPageContext,
 } from '@/utils/accessoryContext'
+import { MOMENT_HINT_PREVIEW, copyText } from '@/utils/share'
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
@@ -131,9 +132,9 @@ async function onStar() {
  */
 const MODEL_VIEWS = [
   { key: 'female-front', label: '女生 · 正面', src: MODEL_IMAGES.front },
-  { key: 'female-back', label: '女生 · 背面', src: MODEL_IMAGES.back },
   { key: 'male-front', label: '男生 · 正面', src: MODEL_IMAGES.frontMale },
-  { key: 'male-back', label: '男生 · 背面', src: MODEL_IMAGES.backMale },
+  // 官方示例人像：AI 试衣用它出图质量有保证（百炼文档配套素材）
+  { key: 'official', label: '官方 · 人像', src: MODEL_IMAGES.official },
 ]
 /** 默认跟随身形档案的性别；没填过就用女生正面 */
 const modelIndex = ref(profile.profile.gender === 'male' ? 2 : 0)
@@ -219,6 +220,11 @@ function shuffleOutfit() {
  *
  * 只取上装和下装两件：aitryon 的入参就这两个槽，鞋子包配饰它不认。
  * 连衣裙按上装传（模型侧就是这么处理的）。
+ *
+ * 素材说明（2026-08-18）：官方示例图（images/tryon/）已加入素材池 ——
+ * 衣橱里多了「官方示例」上装/下装两件，模特列表里多了「官方 · 人像」一项。
+ * 选中它们再点 AI 试衣，就是官方验证过的输入，出图质量有保证；
+ * 不选它们就用当前穿搭，逻辑不写死。
  */
 const TOP_CATEGORIES = ['top', 'dress']
 const BOTTOM_CATEGORIES = ['pants', 'skirt']
@@ -255,6 +261,7 @@ async function onTryon() {
   tryonBusy.value = true
   uni.showLoading({ title: '正在生成…', mask: true })
   try {
+    // 用「当前人像 + 当前选中单品」：衣橱里选了官方示例衣服就是官方验证过的输入
     const url = await runTryon(
       {
         personImageUrl: currentModel.value.src,
@@ -281,6 +288,25 @@ async function onTryon() {
 function previewTryon() {
   if (!tryonImage.value) return
   uni.previewImage({ urls: [tryonImage.value], current: tryonImage.value })
+}
+
+/**
+ * 发朋友圈要配的那段字。
+ * 图存了相册、文案在剪贴板，用户切到微信只要粘贴 —— 这是小程序能做到的极限，
+ * 「一键发朋友圈」的 API 不存在（见 utils/share.ts 的说明）。
+ */
+function copyLookText() {
+  const names = selected.value.map((g) => g.name).join(' + ')
+  copyText(
+    [
+      currentScene.value ? `${currentScene.value.label} · 今日穿搭` : '今日穿搭',
+      names,
+      '由 灵犀 AI 穿搭 生成',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    '搭配文案已复制',
+  )
 }
 
 /* ---------- 右侧工具 ---------- */
@@ -482,6 +508,16 @@ function goAccessory() {
         </view>
         <view v-if="tryonImage" class="tryon-badge">AI 试衣结果</view>
 
+        <!--
+          试衣结果出来之后，用户真正想做的两件事：发出去、留个文案。
+          小程序发不了朋友圈（见 utils/share.ts），所以这里只给「保存 → 手动发」的说明，
+          不给一个点了没反应的「分享到朋友圈」按钮。
+        -->
+        <view v-if="tryonImage" class="tryon-share">
+          <button class="tryon-share-btn" @tap="copyLookText">复制搭配文案</button>
+          <text class="tryon-share-hint">{{ MOMENT_HINT_PREVIEW }}</text>
+        </view>
+
         <!-- 右侧竖排工具 -->
         <scroll-view scroll-y class="tools">
           <button
@@ -662,6 +698,43 @@ function goAccessory() {
   font-size: 20rpx;
 }
 
+/* 试衣结果下方的「复制文案 + 怎么发朋友圈」，绝对定位贴在人台底部，不挤压舞台布局 */
+.tryon-share {
+  position: absolute;
+  left: 50%;
+  bottom: 16rpx;
+  z-index: 3;
+  transform: translateX(-50%);
+  width: 78%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+.tryon-share-btn {
+  height: 56rpx;
+  padding: 0 28rpx;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--pink-deep);
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--shadow-card);
+}
+.tryon-share-btn::after {
+  border: none;
+}
+.tryon-share-hint {
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 19rpx;
+  text-align: center;
+}
 /* 左侧竖排缩略 */
 .thumbs {
   flex-shrink: 0;
