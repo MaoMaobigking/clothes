@@ -21,32 +21,35 @@ const TAB_ROUTES = [
 /*
  * 返回。
  *
- * 原来非 tab 页一律走 uni.navigateTo(props.to) —— 那是「前进」不是「返回」：
- * 页面栈只涨不落，定制页 ⇄ 分类页来回点五轮就顶到微信的 10 层上限，
- * 之后所有 navigateTo 静默失败，表现是「返回键按不了」，而且是全站一起坏。
+ * 一次踩过两个坑，所以逻辑是现在这个形状：
  *
- * 现在分三种情况：
- *   1. 目标是 tab 页        → switchTab
- *   2. 上一页正好是目标     → navigateBack 出栈（栈深 -1，且保留用户真实来路）
- *   3. 其余（深链直接进来） → redirectTo 替换当前页（栈深不变，不再堆积）
+ * 坑一（旧）：非 tab 页一律走 uni.navigateTo(props.to) —— 那是「前进」不是「返回」，
+ *   页面栈只涨不落，定制页 ⇄ 分类页来回点五轮就顶到微信的 10 层上限，
+ *   之后所有 navigateTo 静默失败，表现是「返回键按不了」，而且是全站一起坏。
+ *
+ * 坑二（本次）：上一版把 props.to 当成了「返回目标」，只要它是 tab 页就无条件 switchTab。
+ *   可 props.to 写的是**典型**来路，不是**真实**来路：
+ *   「我的 → 时尚社群」的社群页 to="/pages/home/home"，返回就跳去了首页而不是我的。
+ *   全站 24 处 to= 里有 17 处指向 tab 页，这个错是普遍的。
+ *
+ * 所以现在以页面栈为准，props.to 退化成兜底：
+ *   1. 栈里有上一页 → navigateBack 出栈。回用户真实来路，栈深 -1，两个坑都不沾。
+ *   2. 栈底（分享/深链/扫码直接落在这一页，没有上一页可回）→ 用 props.to：
+ *      tab 页只能 switchTab（navigateTo 到 tab 页在小程序上必定失败），
+ *      其余 redirectTo 替换当前页（栈深不变，不堆积）。
  */
 function back() {
-  if (!props.to) {
+  // getCurrentPages() 至少含当前页；> 1 才说明真有上一页
+  if (getCurrentPages().length > 1) {
     uni.navigateBack()
     return
   }
-  const base = props.to.split('?')[0]
-  if (TAB_ROUTES.includes(base)) {
-    uni.switchTab({ url: props.to })
+  const target = props.to || '/pages/home/home'
+  if (TAB_ROUTES.includes(target.split('?')[0])) {
+    uni.switchTab({ url: target })
     return
   }
-  const stack = getCurrentPages()
-  const prev = stack.length > 1 ? `/${stack[stack.length - 2].route}` : ''
-  if (prev === base) {
-    uni.navigateBack()
-    return
-  }
-  uni.redirectTo({ url: props.to })
+  uni.redirectTo({ url: target })
 }
 </script>
 
