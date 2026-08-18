@@ -61,13 +61,6 @@ interface MenuItem {
   route?: string
   /** 右侧小字，用来提前说明「点进去还要过一道」 */
   hint?: string
-  /**
-   * 功能还没做。置灰 + 右侧「开发中」角标 + 不可点。
-   *
-   * 原来这类项和正常项长得一模一样，点下去只弹一句「功能敬请期待～」——
-   * 用户的反馈是「有些按钮不能点」。既然点了没用，就不要让它看起来能点。
-   */
-  soon?: boolean
 }
 
 const menus: MenuItem[] = [
@@ -84,13 +77,13 @@ const menus: MenuItem[] = [
   { key: 'admin', emoji: '📊', label: '管理员看板', route: '/pages/admin/index', hint: '需密码' },
   { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/index' },
   { key: 'custom', emoji: '🧵', label: '差异化定制', route: '/pages/custom/index' },
-  { key: 'setting', emoji: '⚙️', label: '设置', soon: true },
+  // 「设置」原来是置灰的「开发中」占位项。用户 2026-08-18 决定：没做就别摆着，删掉。
+  // 一并删掉的还有只为它服务的 soon 置灰机制（MenuItem.soon / .menu-item.soon / .mi-soon）。
+  // 真要做设置页、或再出现别的「开发中」项时，去 58d155e 之前的 me.vue 捡回那套。
   { key: 'logout', emoji: '🚪', label: '退出登录' },
 ]
 
 function onMenu(m: MenuItem) {
-  // 置灰项直接不响应 —— 视觉上已经表明不可点，再弹 toast 是多余的噪音
-  if (m.soon) return
   if (m.key === 'logout') {
     confirmLogout()
     return
@@ -205,15 +198,13 @@ onMounted(async () => {
             v-for="m in menus"
             :key="m.key"
             class="menu-item"
-            :class="{ soon: m.soon }"
-            :hover-class="m.soon ? 'none' : 'menu-item-hover'"
+            hover-class="menu-item-hover"
             @tap="onMenu(m)"
           >
-            <UiIcon :name="menuIcon(m.emoji)" :size="38" :tone="m.soon ? 'light' : 'soft'" />
+            <UiIcon :name="menuIcon(m.emoji)" :size="38" tone="soft" />
             <text class="mi-label">{{ m.label }}</text>
-            <text v-if="m.soon" class="mi-soon">开发中</text>
-            <text v-else-if="m.hint" class="mi-hint">{{ m.hint }}</text>
-            <text v-if="!m.soon" class="mi-arrow">›</text>
+            <text v-if="m.hint" class="mi-hint">{{ m.hint }}</text>
+            <text class="mi-arrow">›</text>
           </view>
         </view>
       </view>
@@ -429,22 +420,6 @@ onMounted(async () => {
 }
 .menu-item-hover {
   opacity: 0.6;
-}
-/*
- * 未上线的功能项。
- * 不用 opacity 压整行 —— 那样图标和文字一起发灰，在浅灰底上糊成一片；
- * 分别给文字降到 --text-4、图标传 tone="light"，并去掉右侧箭头
- * （箭头是「可进入」的信号，留着就还是在骗人）。
- */
-.menu-item.soon .mi-label {
-  color: var(--text-4);
-}
-.mi-soon {
-  font-size: 20rpx;
-  color: var(--text-4);
-  padding: 4rpx 14rpx;
-  border: var(--hairline);
-  border-radius: var(--radius-pill);
 }
 .mi-label {
   flex: 1;
