@@ -403,3 +403,81 @@ export async function getHotTopics(limit = 6) {
     .sort((a, b) => b.count - a.count || a.topic.localeCompare(b.topic))
     .slice(0, safeLimit)
 }
+
+/**
+ * 看板的三个可视化指标（规格 §5.3）。
+ *
+ * 三个都是纯 SQL：现有 26 张表里 community_interactions(user_id,type,created_at)、
+ * community_comments(user_id,created_at)、users(created_at,membership_level)
+ * 已经把公式要的列凑齐了，不用建表、不用埋点、也不用造假数据。
+ *
+ * 1) 近 7 日活跃用户：把「点赞/收藏/完成教程」和「评论」两张表 UNION 起来按天去重计数。
+ *    没有独立的登录/访问日志表，所以「活跃」的口径是**产生过互动行为**，
+ *    而不是「打开过小程序」—— 这个口径差异要写在卡片下面，不能让人误读成 DAU。
+ * 2) 互动构成：community_interactions 按 type 分组。四种 type 是枚举，直接 GROUP BY。
+ * 3) 会员渗透率：users 里 membership_level <> 'standard' 的占比。
+ */
+export async function getAdminMetrics(days = 7) {
+  const span = Math.max(1, Math.min(Number(days) || 7, 30))
+  const [activeRows, typeRows, membership] = await Promise.all([
+    getAll(
+      // 两张表的时间列语义一致（都是行为发生时刻），UNION ALL 之后再按天去重用户
+      `SELECT DATE_FORMAT(t.created_at, '%Y-%m-%d') AS day,
+              COUNT(DISTINCT t.user_id) AS n
+         FROM (
+           SELECT user_id, created_at FROM community_interactions
+            WHERE created_at >= CURDATE() - INTERVAL ? DAY
+           UNION ALL
+           SELECT user_id, created_at FROM community_comments
+            WHERE created_at >= CURDATE() - INTERVAL ? DAY
+         ) AS t
+        GROUP BY day
+        ORDER BY day ASC`,
+      [span - 1, span - 1],
+    ),
+    getAll(
+      `SELECT type, COUNT(*) AS n FROM community_interactions GROUP BY type`,
+    ),
+    getOne(
+      `SELECT COUNT(*) AS total,
+              SUM(membership_level <> 'standard') AS vip
+         FROM users`,
+    ),
+  ])
+
+  // SQL 只会返回**有数据的那几天**。前端画柱状图要的是连续 7 根柱子，
+  // 缺的那几天必须补 0，否则「周三没人来」会被画成「周三不存在」。
+  const byDay = new Map(activeRows.map((row) => [row.day, Number(row.n || 0)]))
+  const today = new Date()
+  const activeDaily = []
+  for (let offset = span - 1; offset >= 0; offset -= 1) {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset)
+    const pad = (n) => String(n).padStart(2, '0')
+    const key = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+    activeDaily.push({
+      day: key,
+      label: `${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+      count: byDay.get(key) || 0,
+    })
+  }
+
+  const interactionMix = ['like', 'favorite', 'complete', 'report'].map((type) => ({
+    type,
+    count: Number(typeRows.find((row) => row.type === type)?.n || 0),
+  }))
+
+  const userTotal = Number(membership?.total || 0)
+  const vipCount = Number(membership?.vip || 0)
+
+  return {
+    activeDays: span,
+    activeDaily,
+    interactionMix,
+    membership: {
+      userTotal,
+      vipCount,
+      // 一位小数够了：看板上是个仪表盘，不是财务报表
+      vipRate: userTotal ? Math.round((vipCount / userTotal) * 1000) / 10 : 0,
+    },
+  }
+}

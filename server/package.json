@@ -20,6 +20,7 @@
     "check:community": "node --env-file=.env scripts/checkCommunity.mjs",
     "check:auth": "node --env-file=.env scripts/checkAuth.mjs",
     "check:cart": "node --env-file=.env scripts/checkCart.mjs",
+    "check:checkout": "node --env-file=.env scripts/checkCheckout.mjs",
     "check:diary": "node --env-file=.env scripts/checkDiary.mjs",
     "check:tryon": "node --env-file=.env scripts/checkTryon.mjs",
     "seed:demo": "node --env-file=.env scripts/seedDemoAccounts.mjs",

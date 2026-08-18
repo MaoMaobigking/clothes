@@ -64,8 +64,11 @@ interface MenuItem {
 }
 
 const menus: MenuItem[] = [
+  // 商城订单（购物车结算出来的 shop_orders）和定制订单（custom_requests）是两套状态机，
+  // 分成两个入口列，不合并成一个「我的订单」——合并只会让两种进度条混在一条时间线上
+  { key: 'shopOrders', emoji: '📦', label: '商城订单', route: '/pages/orders/index' },
   // 定制订单列表页是现成的（pages/custom/orders），直接接上，不用再弹「敬请期待」
-  { key: 'orders', emoji: '📦', label: '我的订单', route: '/pages/custom/orders' },
+  { key: 'orders', emoji: '🧾', label: '定制订单', route: '/pages/custom/orders' },
   { key: 'cart', emoji: '🛒', label: '购物车', route: '/pages/cart/index' },
   { key: 'outfits', emoji: '👗', label: '我的搭配', route: '/pages/outfits/index' },
   { key: 'diary', emoji: '📔', label: '穿搭日记', route: '/pages/diary/index' },
@@ -73,6 +76,8 @@ const menus: MenuItem[] = [
   { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index?tab=share' },
   { key: 'favorites', emoji: '⭐', label: '我的收藏', route: '/pages/my-favorites/index' },
   { key: 'achievements', emoji: '🏅', label: '学习成就', route: '/pages/achievements/index' },
+  // 只校验号码编得对不对，不接三要素比对，所以 hint 直接把话说在门口
+  { key: 'verify', emoji: '🪪', label: '实名认证', route: '/pages/verify/index', hint: '演示' },
   // 看板本身有密码闸（pages/admin/index.vue），这里只提示，不重复弹一次输入框
   { key: 'admin', emoji: '📊', label: '管理员看板', route: '/pages/admin/index', hint: '需密码' },
   { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/index' },

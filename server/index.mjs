@@ -33,6 +33,7 @@ import { ensureSceneCatalog } from './services/sceneService.mjs'
 import customRoutes from './routes/custom.mjs'
 import { ensureDesigners } from './services/customService.mjs'
 import communityRoutes from './routes/community.mjs'
+import orderRoutes from './routes/orders.mjs'
 import { createAiTaskRouter } from './routes/aiTasks.mjs'
 import { ensureDemoData } from './services/demoSeedService.mjs'
 import { getAiRuntime } from './services/aiService.mjs'
@@ -80,6 +81,8 @@ app.use('/api/scene', sceneRoutes)
 app.use('/api/mall', mallRoutes) // 商城目录复用 scene_catalog，见 services/mallService.mjs
 app.use('/api/custom', customRoutes)
 app.use('/api/community', communityRoutes)
+// 演示结算：收货地址 + 订单（无支付，状态由演示按钮推进，见 services/orderService.mjs）
+app.use('/api/orders', orderRoutes)
 // 阿里百炼异步任务。加新能力（换脸 / 场景生成）= bailianService 的 CAPABILITIES
 // 加一条 + 这里加一行，路由和服务层都不用改。
 app.use('/api/tryon', createAiTaskRouter('tryon'))

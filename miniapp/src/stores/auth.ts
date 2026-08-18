@@ -27,7 +27,7 @@ const SESSION_KEY = 'ai-fashion-session'
  * 不清的话：从演示女性退出、用空白账号登录，五步测试页 loadPersisted()
  * 会把上一个人的画像读回来，「空白账号从零开始」这条验收当场就假了。
  */
-const USER_SCOPED_STORAGE_KEYS = ['ai-fashion-profile']
+const USER_SCOPED_STORAGE_KEYS = ['ai-fashion-profile', 'ai-fashion-verify']
 
 export interface Session {
   userId: number
