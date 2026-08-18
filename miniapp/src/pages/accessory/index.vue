@@ -682,7 +682,7 @@ function copyCartItem(item: AccessoryCartItem) {
     </view>
 
     <view v-if="cartOpen" class="mask" @tap="cartOpen = false">
-      <view class="sheet cart-sheet" @tap.stop>
+      <view class="sheet" @tap.stop>
         <view class="sheet-title">配饰购物车</view>
         <scroll-view scroll-y class="cart-list">
           <view v-if="cart.items.length">
@@ -1274,10 +1274,8 @@ function copyCartItem(item: AccessoryCartItem) {
   color: var(--text-3);
   font-size: 23rpx;
 }
-.cart-sheet {
-  display: flex;
-  flex-direction: column;
-}
+/* .cart-sheet 原来在这里本地补 display:flex + flex-direction:column。
+   现在全局 .sheet 自带了（styles/components.css），规则和类名一并删掉。 */
 .cart-list {
   max-height: 56vh;
   margin-top: 22rpx;

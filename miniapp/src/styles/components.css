@@ -319,10 +319,26 @@
  * 它需要「脱离纸面」的层级暗示，uv-popup 自己也是有投影的。
  * 圆角用 --radius-lg（16rpx）：uv-popup 的 round 默认是 0（直角），
  * 但直角底部抽屉在实际产品里几乎没人用，uv-ui 的示例也都传了 round。
+ *
+ * ⚠️ display:flex + flex-direction:column + overflow:hidden 三条是**必需的**，
+ * 不是审美选择。这里原来只有 max-height:82vh，是块级盒子，后果：
+ *   1. 子元素写 `flex:1; min-height:0` 想吃掉剩余高度 —— 父级不是 flex 容器，没有效果。
+ *      内容超过 82vh 时溢出到面板背景之外，「信息显示不全 + 底部提交按钮按不到」。
+ *   2. 面板内的 <scroll-view> 拿不到确定高度，scroll-y 也就滚不动，整个弹窗像卡死。
+ * 这个坑之前被踩过两次，都是在页面 scoped 里各自补一遍 flex-column
+ * （accessory 的 .cart-sheet、diary 的 .sheet 覆写）；custom/category 漏补就炸了。
+ * 补在这里之后不要再往页面里复制。
+ *
+ * 面板内要滚的那块自己写 `flex:1; min-height:0`，固定的头/底写 `flex-shrink:0`。
+ * 注意别把 display:flex 写到 <scroll-view> 本体上 —— 微信下那会让 scroll-y 失效，
+ * flex 和 gap 要写在 scroll-view **里面**包一层 view。
  */
 .sheet {
   position: relative;
   z-index: var(--z-sheet);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   width: 100%;
   max-height: 82vh;
   padding: 32rpx 30rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
