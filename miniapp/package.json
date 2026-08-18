@@ -17,6 +17,7 @@
     "@dcloudio/uni-components": "vue3",
     "@dcloudio/uni-h5": "vue3",
     "@dcloudio/uni-mp-weixin": "vue3",
+    "echarts": "^6.1.0",
     "pinia": "^2.0.36",
     "vue": "^3.4.21"
   },
