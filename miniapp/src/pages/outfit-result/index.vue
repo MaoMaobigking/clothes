@@ -4,6 +4,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useCartStore } from '@/stores/cart'
 import {
+  apiGenerateOutfits,
   apiGetOutfitBatch,
   apiReplaceOutfitItem,
   apiSaveOutfit,
@@ -27,6 +28,7 @@ import { piecesFromOutfit } from '@/utils/outfitPieces'
  * `import type` 会被编译器完全擦除，产物里不会留 require —— 两边都满足。
  */
 import type OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
+import { MOMENT_HINT, copyText } from '@/utils/share'
 
 interface ReplaceTarget {
   outfitId: number
@@ -70,6 +72,53 @@ const replacementItems = computed(() =>
     ? wardrobe.items.filter((item) => item.category === replacing.value?.category)
     : [],
 )
+
+/*
+ * 左栏「勾选参与搭配」（客户需求原文：左侧衣物列表可勾选参与搭配）。
+ *
+ * 语义要和后端对齐，别自己造第三种：`apiGenerateOutfits(ids)` 传空数组时，
+ * 服务端按「最近上传 + 常穿」自己挑（top_30 策略）。所以这里**不默认全选** ——
+ * 默认一件不勾 = 交给 AI 挑；勾了就是用户指定这几件。
+ * 少于 2 件生不成一套上下装，所以按钮 2 件起才亮。
+ */
+const participants = ref<string[]>([])
+const regenerating = ref(false)
+const canRegenerate = computed(() => participants.value.length >= 2 && !regenerating.value)
+
+function toggleParticipant(id: string) {
+  const index = participants.value.indexOf(id)
+  if (index >= 0) participants.value.splice(index, 1)
+  else participants.value.push(id)
+}
+
+async function regenerateWithSelection() {
+  if (participants.value.length < 2) {
+    toast('至少勾选 2 件才能重新生成')
+    return
+  }
+  regenerating.value = true
+  loading.value = true
+  try {
+    batch.value = await apiGenerateOutfits(participants.value)
+    toast(`已用勾选的 ${participants.value.length} 件重新生成`)
+  } catch (error) {
+    if (!isAuthError(error)) {
+      toast((error as Error).message || '生成失败')
+    }
+  } finally {
+    regenerating.value = false
+    loading.value = false
+  }
+}
+
+/*
+ * 底部 Tab 切「我的搭配」（客户需求原文：历史搭配记录 · 底部 Tab 切换「我的搭配」）。
+ * 注意**不能**做成第 6 个全局 tabBar —— 微信 tabBar 最多 5 项，现在正好占满
+ * （pages.json 的 tabBar.list）。所以这是搭配页自己的页内底部 Tab。
+ */
+function goMyOutfits() {
+  uni.navigateTo({ url: '/pages/outfits/index?source=wardrobe' })
+}
 
 onLoad(async (query) => {
   const batchId = typeof query?.batchId === 'string' ? query.batchId : ''
@@ -197,10 +246,10 @@ function goAccessory(outfit: Outfit) {
 function copyShareText() {
   if (!shareTarget.value) return
   const names = shareTarget.value.items.map((entry) => entry.garment.name).join('、')
-  uni.setClipboardData({
-    data: `${shareTarget.value.title}：${names}。来自 AI 旧衣智能搭配。`,
-    success: () => toast('搭配文案已复制'),
-  })
+  copyText(
+    `${shareTarget.value.title}：${names}。来自 AI 旧衣智能搭配。`,
+    '搭配文案已复制',
+  )
 }
 
 function saveSharePoster() {
@@ -228,7 +277,14 @@ function saveSharePoster() {
 
     <view v-else class="stage">
       <scroll-view scroll-y class="left-column hide-scrollbar">
-        <view v-for="entry in leftItems" :key="entry.item.id" class="wardrobe-item">
+        <view class="left-hint">勾选参与</view>
+        <view
+          v-for="entry in leftItems"
+          :key="entry.item.id"
+          class="wardrobe-item"
+          :class="{ picked: participants.includes(entry.item.id) }"
+          @tap="toggleParticipant(entry.item.id)"
+        >
           <TileImage
             :src="entry.item.img"
             :from="entry.item.primaryColor || entry.item.from"
@@ -238,6 +294,9 @@ function saveSharePoster() {
             rounded="20rpx"
           />
           <view class="wardrobe-index">{{ entry.index }}</view>
+          <view class="wardrobe-check">
+            <text v-if="participants.includes(entry.item.id)">✓</text>
+          </view>
           <view class="wardrobe-name">{{ entry.item.name }}</view>
         </view>
       </scroll-view>
@@ -304,6 +363,27 @@ function saveSharePoster() {
       </scroll-view>
     </view>
 
+    <!--
+      页内底部 Tab（客户需求原文：历史搭配记录 · 底部 Tab 切换「我的搭配」）。
+      勾了参与衣物时上面多一条重新生成，没勾就只有两个 Tab，不占地方。
+    -->
+    <view v-if="!loading" class="result-footer">
+      <view v-if="participants.length" class="regen-row">
+        <text class="regen-hint">已勾选 {{ participants.length }} 件参与搭配</text>
+        <view
+          class="btn btn-primary regen-btn"
+          :class="{ 'btn-disabled': !canRegenerate }"
+          @tap="regenerateWithSelection"
+        >
+          {{ regenerating ? '生成中…' : '重新生成' }}
+        </view>
+      </view>
+      <view class="result-tabs">
+        <view class="result-tab on">今日搭配</view>
+        <view class="result-tab" @tap="goMyOutfits">我的搭配 ›</view>
+      </view>
+    </view>
+
     <view v-if="replacing" class="mask" @tap="closeReplace">
       <view class="sheet" @tap.stop>
         <view class="sheet-title">替换单品</view>
@@ -341,6 +421,13 @@ function saveSharePoster() {
     <view v-if="algorithmTarget" class="mask" @tap="algorithmTarget = null">
       <view class="sheet" @tap.stop>
         <view class="sheet-title">为什么这样搭配</view>
+        <!--
+          客户需求原文里 AI 算法说明浮层的那句话，件数是真实参与数量，
+          不是写死的文案（规格 §8.10 要求浮层展示当前实际参与衣物数量）。
+        -->
+        <view class="algorithm-lead">
+          本搭配基于你上传的 {{ algorithmTarget.algorithm?.garmentCount ?? 0 }} 件衣物，结合季节 / 场合 / 流行趋势生成
+        </view>
         <view class="algorithm-row">
           <text class="algorithm-label">参与旧衣</text>
           <text class="algorithm-value">{{ algorithmTarget.algorithm?.garmentCount }} 件</text>
@@ -383,6 +470,8 @@ function saveSharePoster() {
           <view class="btn btn-ghost share-btn" @tap="saveSharePoster">保存图片</view>
           <view class="btn btn-primary share-btn" @tap="copyShareText">复制分享文案</view>
         </view>
+        <!-- 小程序发不了朋友圈，这条限制必须写在界面上，见 utils/share.ts -->
+        <text class="share-hint">{{ MOMENT_HINT }}</text>
       </view>
     </view>
   </view>
@@ -449,6 +538,82 @@ function saveSharePoster() {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-card);
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+}
+/* 勾中「参与搭配」的衣物：主色描边，和右侧方案里的选中态一个语言 */
+.wardrobe-item.picked {
+  border-color: var(--pink-deep);
+}
+.left-hint {
+  font-size: 20rpx;
+  color: var(--text-3);
+  text-align: center;
+  padding-bottom: 8rpx;
+}
+.wardrobe-check {
+  position: absolute;
+  right: -2rpx;
+  bottom: 34rpx;
+  z-index: 3;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2rpx solid var(--line);
+  color: #fff;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wardrobe-item.picked .wardrobe-check {
+  background: var(--pink-deep);
+  border-color: var(--pink-deep);
+}
+
+/* 页内底部 Tab + 重新生成条 */
+.result-footer {
+  flex-shrink: 0;
+  padding: 0 24rpx calc(16rpx + env(safe-area-inset-bottom));
+}
+.regen-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 12rpx 0;
+}
+.regen-hint {
+  font-size: 24rpx;
+  color: var(--text-2);
+}
+.regen-btn {
+  height: var(--btn-h-sm, 64rpx);
+  padding: 0 28rpx;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+}
+.result-tabs {
+  display: flex;
+  gap: 12rpx;
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  padding: 8rpx;
+  box-shadow: var(--shadow-card);
+}
+.result-tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: var(--radius-pill);
+  font-size: 26rpx;
+  color: var(--text-2);
+}
+.result-tab.on {
+  background: var(--pink-deep);
+  color: #fff;
 }
 .wardrobe-index {
   position: absolute;
@@ -533,6 +698,13 @@ function saveSharePoster() {
 }
 .outfit-item-name {
   margin: 8rpx 2rpx 0;
+  /*
+   * 右边留出「换一件」的位置。
+   * 它是 absolute 浮在右下角的，名字却按整格宽度截断，
+   * 「红色链条包」「宽松工装外套」这种长名字的尾巴会被它盖住糊成一团。
+   * 74rpx = 三个 18rpx 字 + right:14rpx 的偏移。
+   */
+  padding-right: 74rpx;
   font-size: 19rpx;
   color: var(--text-2);
   overflow: hidden;
@@ -618,6 +790,15 @@ function saveSharePoster() {
 .replace-submit {
   margin-top: 24rpx;
 }
+.algorithm-lead {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--text-1);
+  background: var(--pink-soft);
+  border-radius: var(--radius-sm);
+  padding: 18rpx 20rpx;
+  margin-bottom: 4rpx;
+}
 .algorithm-row {
   display: flex;
   justify-content: space-between;
@@ -658,6 +839,14 @@ function saveSharePoster() {
 }
 .share-btn {
   flex: 1;
+}
+.share-hint {
+  display: block;
+  margin-top: 16rpx;
+  text-align: center;
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: var(--text-3);
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
