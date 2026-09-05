@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/data/custom'
+import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/constants/custom'
 import { fetchCustomRequests, type CustomRequest } from '@/api/custom'
 import { isAuthError } from '@/utils/request'
 

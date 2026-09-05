@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { STYLE_OPTIONS } from '@/data/questions'
+import { STYLE_OPTIONS } from '@/constants/questions'
 import { useProfileStore } from '@/stores/profile'
 
 const store = useProfileStore()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { STEPS } from '@/data/questions'
-import { MODEL_IMAGES } from '@/data/mock'
+import { STEPS } from '@/constants/questions'
+import { MODEL_IMAGES } from '@/constants/ui'
 import { useProfileStore } from '@/stores/profile'
 import { iconForEmoji } from '@/utils/icons'
 

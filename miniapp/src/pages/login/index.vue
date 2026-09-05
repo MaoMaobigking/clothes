@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import setting from '@/setting'
 /*
  * 登录页（规格 §5.1~5.4）。
  *
@@ -136,7 +137,7 @@ onMounted(() => {
       <!-- 品牌区 -->
       <view class="brand">
         <UiIcon class="brand-logo" name="cat-skirt" :size="96" tone="brand" :stroke-width="1.5" />
-        <text class="brand-title">灵犀穿搭</text>
+        <text class="brand-title">{{ setting.fullName }}</text>
         <text class="brand-sub">登录后你的衣橱、画像和搭配都会留在账号里</text>
       </view>
 

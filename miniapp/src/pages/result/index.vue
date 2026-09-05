@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useProfileStore } from '@/stores/profile'
-import { PREFERENCE_QUESTIONS } from '@/data/questions'
+import { PREFERENCE_QUESTIONS } from '@/constants/questions'
 import { fetchStyleReport, type StyleReport } from '@/api/ai'
 import {
   fetchCurrentProfile,
@@ -11,8 +11,8 @@ import {
   toProfilePayload,
   type StyleReportListItem,
 } from '@/api/profile'
-import { buildLocalStyleReport } from '@/data/localReport'
-import { MODEL_IMAGES } from '@/data/mock'
+import { buildLocalStyleReport } from '@/utils/localReport'
+import { MODEL_IMAGES } from '@/constants/ui'
 
 const store = useProfileStore()
 

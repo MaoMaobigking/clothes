@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { STEPS } from '@/data/questions'
-import { AI_TOOLS, HAIR_STYLES, MODEL_IMAGES } from '@/data/mock'
+import { STEPS } from '@/constants/questions'
+import { AI_TOOLS, HAIR_STYLES, MODEL_IMAGES } from '@/constants/ui'
 import { useProfileStore } from '@/stores/profile'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { Gender, HairStyleId } from '@/types'

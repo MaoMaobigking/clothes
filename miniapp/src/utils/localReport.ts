@@ -1,5 +1,14 @@
+/*
+ * 风格报告的本地兜底。
+ *
+ * 后端 AI 没配 key 或调用失败时，用规则在端上拼一份报告顶上，
+ * 保证结果页不空。原先放在 data/localReport.ts —— 它是纯逻辑，不是数据。
+ *
+ * 真实报告走 api/ai 的 fetchStyleReport()；这里产出的 StyleReport
+ * 会带 source:'rule'，页面据此提示「AI 没连上」，别让用户以为是 AI 生成的。
+ */
 import type { AiRadarDim, StyleReport } from '@/api/ai'
-import { FACE_OPTIONS, PREFERENCE_QUESTIONS, SKIN_OPTIONS, STYLE_OPTIONS } from '@/data/questions'
+import { FACE_OPTIONS, PREFERENCE_QUESTIONS, SKIN_OPTIONS, STYLE_OPTIONS } from '@/constants/questions'
 import type { Gender, HairStyleId } from '@/types'
 
 export interface LocalProfileInput {

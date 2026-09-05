@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { fetchSceneWeather, type SceneWeatherInfo } from '@/api/scene'
 import { iconForEmoji } from '@/utils/icons'
-import { MANUAL_WEATHER } from '@/data/scene'
+import { MANUAL_WEATHER } from '@/constants/scene'
 
 const props = withDefaults(
   defineProps<{

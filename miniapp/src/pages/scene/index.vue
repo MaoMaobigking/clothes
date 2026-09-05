@@ -13,8 +13,8 @@ import {
   type SceneFilterKey,
   type SceneKey,
   type SceneMode,
-} from '@/data/scene'
-import { MODEL_IMAGES } from '@/data/mock'
+} from '@/constants/scene'
+import { MODEL_IMAGES } from '@/constants/ui'
 import { piecesFromSceneItems } from '@/utils/outfitPieces'
 import {
   buySceneOutfit,

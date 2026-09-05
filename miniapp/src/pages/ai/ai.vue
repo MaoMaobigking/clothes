@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { AI_FEATURES, OUTFIT_RECOS } from '@/data/mock'
+import { AI_FEATURES } from '@/constants/ui'
+import { OUTFIT_RECOS } from '@/mocks/demo'
 
 function navigateTo(url: string) {
   uni.navigateTo({ url })

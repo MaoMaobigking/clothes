@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FACE_OPTIONS } from '@/data/questions'
+import { FACE_OPTIONS } from '@/constants/questions'
 import { useProfileStore } from '@/stores/profile'
 
 const store = useProfileStore()

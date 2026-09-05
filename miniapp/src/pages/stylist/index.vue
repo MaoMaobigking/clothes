@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import setting from '@/setting'
 import { nextTick, ref } from 'vue'
 import { sendChat, type ChatMessage } from '@/api/ai'
 
@@ -11,7 +12,7 @@ const messages = ref<Msg[]>([
   {
     id: 0,
     role: 'assistant',
-    content: '嗨，我是你的 AI 穿搭顾问「灵犀」～ 想问什么都可以，比如「约会穿什么」「小个子怎么显高」。',
+    content: `嗨，我是你的 AI 穿搭顾问「${setting.name}」～ 想问什么都可以，比如「约会穿什么」「小个子怎么显高」。`,
   },
 ])
 const input = ref('')
@@ -57,7 +58,7 @@ async function send(text?: string) {
 
 <template>
   <view class="page">
-    <PageHeader title="AI 穿搭顾问" to="/pages/home/home" sub="灵犀 · 你的私人穿搭助手" />
+    <PageHeader title="AI 穿搭顾问" to="/pages/home/home" :sub="`${setting.name} · ${setting.slogan}`" />
 
     <scroll-view scroll-y :scroll-top="scrollTop" class="chat hide-scrollbar">
       <view v-for="m in messages" :key="m.id" class="row" :class="m.role">

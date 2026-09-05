@@ -2,7 +2,7 @@
 import { iconForEmoji } from '@/utils/icons'
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { CUSTOM_CATEGORIES, CUSTOM_STEPS, REQUEST_STATUS_LABELS } from '@/data/custom'
+import { CUSTOM_CATEGORIES, CUSTOM_STEPS, REQUEST_STATUS_LABELS } from '@/constants/custom'
 import {
   fetchCustomRequests,
   fetchCustomSummary,

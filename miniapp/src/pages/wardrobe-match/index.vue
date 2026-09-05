@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { apiGenerateOutfits } from '@/api/wardrobe'
-import { WARDROBE_CATEGORIES, categoryLabel } from '@/data/wardrobeOptions'
+import { WARDROBE_CATEGORIES, categoryLabel } from '@/constants/wardrobe'
 
 const wardrobe = useWardrobeStore()
 const selectedIds = ref<string[]>([])

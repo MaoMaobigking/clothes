@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { iconForEmoji } from '@/utils/icons'
 import { reactive } from 'vue'
-import { BODY_FIELDS, VISUAL_BODY_OPTIONS } from '@/data/questions'
+import { BODY_FIELDS, VISUAL_BODY_OPTIONS } from '@/constants/questions'
 import { useProfileStore } from '@/stores/profile'
 import type { BodyMetricKey, Gender } from '@/types'
 

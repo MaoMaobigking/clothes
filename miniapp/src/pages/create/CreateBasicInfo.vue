@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { BODY_FIELDS } from '@/data/questions'
+import { BODY_FIELDS } from '@/constants/questions'
 import type { BodyField } from '@/types'
 import { useProfileStore } from '@/stores/profile'
 

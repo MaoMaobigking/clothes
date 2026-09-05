@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import setting from '@/setting'
 import { computed, onMounted, ref } from 'vue'
 import { fetchMallProducts, type MallCategory, type MallProduct } from '@/api/mall'
 import { isAuthError } from '@/utils/request'
@@ -190,7 +191,7 @@ function goFreeMatch() {
       <!-- 系列 banner -->
       <view class="banner">
         <view class="banner-txt">
-          <text class="b-cn">灵犀严选</text>
+          <text class="b-cn">{{ setting.shopBrand }}</text>
           <text class="b-en">Lingxi selected series</text>
         </view>
         <UiIcon class="banner-emoji" name="gem" :size="64" tone="white" :stroke-width="1.4" />
