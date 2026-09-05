@@ -11,15 +11,19 @@
 import { USE_CLOUD, cloudRequest, rewriteAssetPaths } from './cloud'
 
 /*
- * 接口根地址。打包时用 VITE_API_BASE_URL 注入，不注入则退回本机开发地址。
+ * 接口根地址。打包时用 VITE_API_BASE_URL 注入，不注入则退回开发地址。
  *
  * H5 默认留空 = 走同源 /api/*：开发时被 vite proxy 转到 8787，
  * 部署时由后端自己托管 H5 产物（server/index.mjs 末尾那段 static），
  * 所以前后端天然同域，不用配 CORS 也不用填地址。
  *
- * 小程序没有「同源」这回事，必须写全 URL。默认值 127.0.0.1 只在
- * 开发者工具里有效——真机上它指的是手机自己。要发体验版给别人看，
- * 打包前必须注入公网地址：
+ * 小程序没有「同源」这回事，必须写全 URL，所以单独留了
+ * VITE_MP_DEV_API_BASE_URL（见 miniapp/.env.development）：
+ * 默认 127.0.0.1 只在开发者工具里有效，真机上它指的是手机自己 ——
+ * 用真机调试时把它改成你电脑的局域网 IP，比如 http://192.168.1.5:8787，
+ * 不用再改源码。
+ *
+ * 要发体验版给别人看，打包前注入公网地址：
  *   VITE_API_BASE_URL=https://demo.example.com npm run build:mp-weixin
  */
 export const API_BASE_URL = (() => {
@@ -29,7 +33,8 @@ export const API_BASE_URL = (() => {
   return ''
   // #endif
   // #ifndef H5
-  return 'http://127.0.0.1:8787'
+  // 末位兜底保留字面量：没有任何 .env 文件时也能在开发者工具里直接跑起来
+  return (import.meta.env.VITE_MP_DEV_API_BASE_URL as string) || 'http://127.0.0.1:8787'
   // #endif
 })()
 
