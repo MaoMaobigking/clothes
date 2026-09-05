@@ -26,6 +26,13 @@ const reviewItems = ref<WardrobeItem[]>([])
 const drafts = ref<Record<string, ReviewDraft>>({})
 const uploading = ref(false)
 
+/*
+ * 单次上传上限 9 张，是客户需求原文「支持多张上传（最多9张）」。
+ * 之前放宽到 20 是项目自己的规格改的，2026-08-18 按客户原文收回来。
+ * 衣橱总量 100 件不是客户提的，属于防炸库的实现约束，保留。
+ */
+const BATCH_LIMIT = 9
+
 const remaining = computed(() => Math.max(0, 100 - wardrobe.items.length))
 const canUpload = computed(() => selectedPaths.value.length > 0 && remaining.value > 0)
 
@@ -40,12 +47,17 @@ function chooseImages(source: 'album' | 'camera') {
     toast('衣橱最多 100 件，请先整理')
     return
   }
+  const room = Math.min(BATCH_LIMIT - selectedPaths.value.length, remaining.value)
+  if (room <= 0) {
+    toast(`单次最多 ${BATCH_LIMIT} 张，请先识别当前这批`)
+    return
+  }
   uni.chooseImage({
-    count: Math.min(20, remaining.value),
+    count: room,
     sourceType: [source],
     success: (res) => {
       const next = [...selectedPaths.value, ...res.tempFilePaths]
-      selectedPaths.value = next.slice(0, 20)
+      selectedPaths.value = next.slice(0, BATCH_LIMIT)
     },
     fail: () => toast('没有选择图片'),
   })
@@ -240,7 +252,7 @@ function resetReview() {
         <view class="hero">
           <UiIcon class="hero-icon" name="camera" :size="72" tone="purple" :stroke-width="1.4" />
           <view class="hero-title">把旧衣拍成穿搭灵感</view>
-          <view class="hero-sub">单次最多 20 张，衣橱最多 100 件</view>
+          <view class="hero-sub">单次最多 {{ BATCH_LIMIT }} 张，衣橱最多 100 件</view>
         </view>
 
         <view class="upload-grid">
@@ -257,7 +269,7 @@ function resetReview() {
         </view>
 
         <view v-if="selectedPaths.length" class="preview-panel">
-          <view class="section-title">待识别图片</view>
+          <view class="section-title">待识别图片（{{ selectedPaths.length }}/{{ BATCH_LIMIT }}）</view>
           <view class="preview-grid">
             <view v-for="(path, index) in selectedPaths" :key="path" class="preview-item">
               <image :src="path" mode="aspectFill" class="preview-img" />

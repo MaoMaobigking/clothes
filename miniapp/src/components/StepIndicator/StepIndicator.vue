@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import type { StepMeta } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   steps: StepMeta[]
   /** 当前步（1 起） */
   current: number
@@ -10,49 +11,88 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'select', step: number): void
 }>()
+
+/*
+ * 轮播式步骤引导（客户需求原文「步骤引导区（轮播式）」）。
+ *
+ * 一屏显示 3 步，当前步尽量居中：左端两步和右端两步没法居中，
+ * 所以 leftmost = clamp(current - 2, 0, steps - 3)。
+ *
+ * viewIndex 是**本地**的，不是直接绑 props.current 算出来的值 ——
+ * 用户手动滑动引导区时 swiper 会自己改 current，若直接绑计算值，
+ * Vue 下一次渲染就把它拽回去，手感像滑不动。所以本地存一份，
+ * props.current 变化（真的进了下一步）时才同步过去。
+ */
+const PER_VIEW = 3
+
+function centered(step: number) {
+  const max = Math.max(0, props.steps.length - PER_VIEW)
+  return Math.min(Math.max(step - 2, 0), max)
+}
+
+const viewIndex = ref(centered(props.current))
+
+watch(
+  () => props.current,
+  (step) => {
+    viewIndex.value = centered(step)
+  },
+)
+
+function onSwiperChange(e: { detail: { current: number } }) {
+  viewIndex.value = e.detail.current
+}
 </script>
 
 <template>
-  <scroll-view scroll-x class="steps" :show-scrollbar="false">
-    <view
-      v-for="(s, i) in steps"
-      :key="s.key"
-      class="step"
-      :class="{
-        active: current === i + 1,
-        done: current > i + 1,
-      }"
-      @tap="emit('select', i + 1)"
-    >
-      <view class="dot">
-        <text v-if="current > i + 1" class="check">✓</text>
-        <UiIcon v-else :name="s.icon" :size="34" :tone="current === i + 1 ? 'white' : 'light'" />
+  <swiper
+    class="steps"
+    :current="viewIndex"
+    :display-multiple-items="PER_VIEW"
+    :circular="false"
+    :duration="240"
+    @change="onSwiperChange"
+  >
+    <swiper-item v-for="(s, i) in steps" :key="s.key">
+      <view
+        class="step"
+        :class="{
+          active: current === i + 1,
+          done: current > i + 1,
+        }"
+        @tap="emit('select', i + 1)"
+      >
+        <view class="dot">
+          <text v-if="current > i + 1" class="check">✓</text>
+          <UiIcon v-else :name="s.icon" :size="34" :tone="current === i + 1 ? 'white' : 'light'" />
+        </view>
+        <text class="label">{{ s.title }}</text>
       </view>
-      <text class="label">{{ s.title }}</text>
-    </view>
-  </scroll-view>
+    </swiper-item>
+  </swiper>
 </template>
 
 <style scoped>
 /*
  * 这个组件**保留自绘，没换成 uv-steps** —— uv-steps-item 没有点击事件，
  * 换过去会丢掉「点某一步跳转」的功能（pages/test/index.vue 用了 @select）。
- * 所以这里只做换皮，结构不动。
+ *
+ * 2026-08-18 从 scroll-view 换成 swiper（客户要「轮播式」）。
+ * swiper 必须有显式高度，height:auto 在小程序端会塌成 0。
  */
 .steps {
-  display: flex;
-  padding: 8rpx var(--page-x) 24rpx;
+  height: 156rpx;
+  padding: 8rpx var(--page-x) 16rpx;
   flex-shrink: 0;
-  white-space: nowrap;
+  box-sizing: content-box;
 }
 
 .step {
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 112rpx;
-  margin-right: 12rpx;
+  justify-content: center;
+  height: 100%;
 }
 /*
  * 未到达的步骤原来是整块 opacity: 0.55 压暗，这里已去掉。
