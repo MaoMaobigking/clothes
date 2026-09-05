@@ -207,10 +207,8 @@ onMounted(() => {
 <style scoped>
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 32rpx;
-  min-height: 0;
   padding: calc(env(safe-area-inset-top, 24rpx) + 48rpx) 40rpx 48rpx;
 }
 

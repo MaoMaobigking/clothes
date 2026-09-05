@@ -996,10 +996,8 @@ function savePoster() {
 
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 28rpx;
-  min-height: 0;
   padding: 24rpx 32rpx 44rpx;
 }
 

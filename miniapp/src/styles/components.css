@@ -305,6 +305,60 @@
   margin-top: var(--gap-xs);
 }
 
+/*
+ * 加载中 / 出错时的单行状态提示。
+ *
+ * 和 .empty 的分工：.empty 是「本来就没数据」的空态（有标题、副标题、按钮），
+ * .state 是「正在加载」或「加载失败」的一行字。原先 11 个页面各写一份。
+ *
+ * 这里**只放各页一致的两条**。flex / padding / color 故意不进来：
+ * .page 是 flex column，给全局 .state 加 flex:1 会让 cart 页的加载提示
+ * 撑满整屏。各页边距本来就不同，继续留在自己的 <style scoped> 里覆盖。
+ */
+.state {
+  font-size: 26rpx;
+  text-align: center;
+}
+
+/*
+ * 错误态的基准色。
+ *
+ * ⚠️ 这条**不能**代替页面里的 .state.error —— scoped 样式会多带一个属性
+ * 选择器，页面的 `.state[data-v-x]{color:…}` 和这里的 `.state.error` 特异度
+ * 同为 (0,2,0)，而小程序里 page.wxss 在 app.wxss 之后加载，页面那条会赢，
+ * 错误文字就变回正文色了。所以页面若在 .state 上设了 color，
+ * 必须自己再写一条 .state.error。这里只是给「没设 color 的页面」兜底，
+ * 同时充当颜色的唯一出处。
+ */
+.state.error {
+  color: var(--danger);
+}
+
+/* ---------------- 横向选项条 ---------------- */
+
+/*
+ * 测试流程里「一行横滑的大卡片选项」。三个步骤页（风格/肤色/脸型）
+ * 原先各写了一份逐字相同的样式，提到这里。
+ * 用法见 pages/test/StyleStep.vue：
+ *   <scroll-view scroll-x class="options"><view class="options-row">
+ *     <view class="options-item">…
+ */
+.options {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.options-row {
+  display: inline-flex;
+  gap: 22rpx;
+  padding: 2rpx 0 12rpx;
+}
+
+.options-item {
+  flex-shrink: 0;
+  width: 320rpx;
+}
+
 /* ---------------- 遮罩 + 弹出面板 ---------------- */
 
 /*

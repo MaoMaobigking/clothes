@@ -78,20 +78,16 @@ function goShopping() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 12rpx 30rpx 48rpx;
 }
 
 .state {
   padding: 120rpx 40rpx;
-  font-size: 26rpx;
   color: var(--text-3);
-  text-align: center;
 }
 
 .state.error {
-  color: #d04c5b;
+  color: var(--danger);
 }
 
 .empty-title {

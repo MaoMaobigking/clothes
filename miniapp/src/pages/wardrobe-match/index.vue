@@ -174,8 +174,6 @@ async function generate() {
 }
 
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 8rpx 32rpx 28rpx;
 }
 

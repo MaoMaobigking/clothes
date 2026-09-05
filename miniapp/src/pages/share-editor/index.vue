@@ -167,8 +167,6 @@ async function submit() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
 

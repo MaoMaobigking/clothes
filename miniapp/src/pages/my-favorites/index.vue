@@ -65,19 +65,15 @@ function openItem(item: CommunityContent) {
 <style scoped>
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 18rpx;
-  min-height: 0;
   padding: 12rpx 32rpx 44rpx;
 }
 
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  font-size: 26rpx;
   color: var(--text-2);
-  text-align: center;
 }
 
 .state.error {

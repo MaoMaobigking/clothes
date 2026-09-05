@@ -191,10 +191,8 @@ onShow(loadData)
 <style scoped>
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 34rpx;
-  min-height: 0;
   padding: 12rpx 32rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
 }
 

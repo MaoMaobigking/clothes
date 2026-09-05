@@ -370,8 +370,6 @@ function goFreeMatch() {
 }
 
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 4rpx 32rpx 24rpx;
 }
 
