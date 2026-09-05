@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { VISUAL_BODY_OPTIONS } from '@/data/questions'
+import { VISUAL_BODY_OPTIONS } from '@/constants/questions'
 import { iconForEmoji } from '@/utils/icons'
 import type { AvatarShape, VisualBodyId } from '@/types'
 

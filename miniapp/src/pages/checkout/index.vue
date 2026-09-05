@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import setting from '@/setting'
 /*
  * 演示结算页。
  *
@@ -237,7 +238,7 @@ async function submit() {
             <TileImage :src="item.imageUrl" icon="cat-shirt" ratio="1 / 1" class="goods-img" />
             <view class="goods-main">
               <text class="goods-name">{{ item.name }}</text>
-              <text class="goods-brand">{{ item.brand || '灵犀甄选' }}</text>
+              <text class="goods-brand">{{ item.brand || setting.goodsBrand }}</text>
             </view>
             <view class="goods-right">
               <text class="goods-price">¥{{ item.price ?? 0 }}</text>

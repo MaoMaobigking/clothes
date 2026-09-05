@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MODEL_IMAGES } from '@/data/mock'
+import { MODEL_IMAGES } from '@/constants/ui'
 import { iconForEmoji } from '@/utils/icons'
-import { categoryLabel } from '@/data/wardrobeOptions'
+import { categoryLabel } from '@/constants/wardrobe'
 import type { OutfitPiece } from '@/utils/outfitPieces'
 
 const props = withDefaults(

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { PREFERENCE_QUESTIONS } from '@/data/questions'
+import { PREFERENCE_QUESTIONS } from '@/constants/questions'
 import { useProfileStore } from '@/stores/profile'
 import { iconForEmoji } from '@/utils/icons'
 

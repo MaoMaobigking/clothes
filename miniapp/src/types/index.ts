@@ -96,12 +96,12 @@ export interface StepMeta {
 
 /* --------------------------- 领域实体 --------------------------- */
 /*
- * 以下两个接口原先定义在 data/mock.ts 里。那是个 mock 数据文件，
- * 而它们是被 api 层、store、utils 和页面共同依赖的生产类型 ——
+ * 这两个接口原先定义在 data/mock.ts 里 —— 那是个 mock 数据文件，
+ * 而它们是被 api 层、store、utils 和页面共同依赖的生产类型，
  * 从「mock」里导生产类型会让人误以为这些结构只是演示用的，故迁至此处。
  *
- * 只搬了这两个：Post / WeatherDay / OutfitPiece / OutfitReco 在 mock.ts
- * 之外没有任何消费方，只用于标注 mock 数组自身的形状，留在原文件更合适。
+ * 只搬了这两个：Post / WeatherDay / OutfitPiece / OutfitReco 只用于标注
+ * 演示数组自身的形状，没有外部消费方，留在 mocks/demo.ts 里更合适。
  */
 
 /** 衣物单品。衣橱、搭配、配饰上下文都以它为基础 */
@@ -130,7 +130,7 @@ export interface Garment {
 
 /**
  * 自由搭配页的场景选项。
- * 注意与 @/data/scene 的 SceneKey / SceneMode 不是一回事：那套是功能四
+ * 注意与 @/constants/scene 的 SceneKey / SceneMode 不是一回事：那套是功能四
  * 场景模拟的枚举，这个只是选场景时的展示卡片。
  */
 export interface Scene {

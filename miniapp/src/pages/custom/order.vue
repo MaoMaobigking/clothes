@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/data/custom'
+import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/constants/custom'
 import {
   advanceCustomRequest,
   fetchCustomRequestDetail,

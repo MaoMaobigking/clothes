@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { apiGenerateOutfits, type WardrobeItem } from '@/api/wardrobe'
-import { categoryLabel, seasonLabel } from '@/data/wardrobeOptions'
-import { CLOSET_CATEGORIES } from '@/data/mock'
+import { categoryLabel, seasonLabel } from '@/constants/wardrobe'
+import { CLOSET_CATEGORIES } from '@/constants/ui'
 import { iconForEmoji } from '@/utils/icons'
 import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 

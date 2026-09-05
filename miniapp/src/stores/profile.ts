@@ -8,7 +8,7 @@ import {
   STEPS,
   STYLE_OPTIONS,
   VISUAL_BODY_OPTIONS,
-} from '@/data/questions'
+} from '@/constants/questions'
 import type {
   AvatarShape,
   BodyMetricKey,

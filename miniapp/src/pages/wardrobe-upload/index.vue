@@ -3,7 +3,7 @@ import { iconForEmoji } from '@/utils/icons'
 import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { WardrobeItem } from '@/api/wardrobe'
-import { WARDROBE_CATEGORIES, WARDROBE_COLORS, WARDROBE_OCCASIONS, WARDROBE_SEASONS } from '@/data/wardrobeOptions'
+import { WARDROBE_CATEGORIES, WARDROBE_COLORS, WARDROBE_OCCASIONS, WARDROBE_SEASONS } from '@/constants/wardrobe'
 
 interface ReviewDraft {
   name: string

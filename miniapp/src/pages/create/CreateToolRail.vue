@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AI_TOOLS } from '@/data/mock'
+import { AI_TOOLS } from '@/constants/ui'
 
 const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>()
 </script>

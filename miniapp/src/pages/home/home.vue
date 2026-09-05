@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue'
-import { AI_FEATURES, OUTFIT_RECOS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
+import setting from '@/setting'
+import { AI_FEATURES, MODEL_IMAGES } from '@/constants/ui'
+import { OUTFIT_RECOS, WEATHER } from '@/mocks/demo'
 import { iconForEmoji } from '@/utils/icons'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { isAuthError } from '@/utils/request'
@@ -51,7 +53,7 @@ function goMall() {
       <view class="hero">
         <view class="brand-wrap">
           <TileImage
-            :src="LOGO"
+            :src="setting.logo"
             from="#8fe3d8"
             to="#4fc7bb"
             emoji="👗"

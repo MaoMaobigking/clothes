@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import setting from '@/setting'
 /*
  * 搭配海报导出（规格 §8.9「生成当前搭配海报，支持保存图片」、
  * §10.10「海报包含真实搭配、场景背景和滤镜」）。
@@ -215,7 +216,7 @@ async function draw(): Promise<void> {
     ctx.fillText(props.footnote || today(), PAD, H - PAD - 14)
     ctx.setFillStyle(ink.foot)
     ctx.setFontSize(10)
-    ctx.fillText('灵犀 AI 穿搭 · 真实衣物搭配', PAD, H - PAD)
+    ctx.fillText(`${setting.fullName} · 真实衣物搭配`, PAD, H - PAD)
 
     await new Promise<void>((resolve) => {
       ctx.draw(false, () => setTimeout(resolve, 80))

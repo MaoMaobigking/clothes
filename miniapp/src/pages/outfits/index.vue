@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import setting from '@/setting'
 /*
  * 我的搭配（规格 §8.11 §10.10）。
  *
@@ -66,7 +67,7 @@ const entries = computed<OutfitEntry[]>(() => {
     tag: SOURCE_LABELS.wardrobe,
     pieces: piecesFromOutfit(outfit),
     route: `/pages/outfit-result/index?batchId=${outfit.batchId}`,
-    shareText: `${outfit.title}\n${outfit.items.map((item) => item.garment.name).join(' / ')}\n来自灵犀 AI 旧衣智能搭配。`,
+    shareText: `${outfit.title}\n${outfit.items.map((item) => item.garment.name).join(' / ')}\n来自${setting.fullName} · 旧衣智能搭配。`,
   }))
 
   const fromScene: OutfitEntry[] = sceneOutfits.value.map((outfit) => ({

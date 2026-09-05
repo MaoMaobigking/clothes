@@ -1,10 +1,10 @@
 /*
  * 场景模拟（功能四）的数据结构。
  *
- * SceneKey / SceneMode / SceneFilterKey 是前端的场景枚举，定义在 @/data/scene，
+ * SceneKey / SceneMode / SceneFilterKey 是前端的场景枚举，定义在 @/constants/scene，
  * 这里直接复用，不重复声明一份。
  */
-import type { SceneFilterKey, SceneKey, SceneMode } from '@/data/scene'
+import type { SceneFilterKey, SceneKey, SceneMode } from '@/constants/scene'
 
 export interface SceneWeatherInfo {
   city: string

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { STEPS } from '@/data/questions'
+import { STEPS } from '@/constants/questions'
 import { useProfileStore } from '@/stores/profile'
 
 const store = useProfileStore()

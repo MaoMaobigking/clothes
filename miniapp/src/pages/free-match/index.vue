@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import setting from '@/setting'
 import { ref, computed, watch, onMounted } from 'vue'
 import { iconForEmoji, type IconName } from '@/utils/icons'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
-import { MODEL_IMAGES, SCENES } from '@/data/mock'
+import { MODEL_IMAGES } from '@/constants/ui'
+import { SCENES } from '@/mocks/demo'
 import type { Garment, Scene } from '@/types'
 import { apiCreateOutfit, apiStarOutfit } from '@/api/wardrobe'
 import { apiTryonEnabled, runTryon } from '@/api/tryon'
@@ -287,7 +289,7 @@ function previewTryon() {
 function copyLookText() {
   const names = selected.value.map((g) => g.name).join(' + ')
   copyText(
-    [currentScene.value ? `${currentScene.value.label} · 今日穿搭` : '今日穿搭', names, '由 灵犀 AI 穿搭 生成']
+    [currentScene.value ? `${currentScene.value.label} · 今日穿搭` : '今日穿搭', names, `由 ${setting.fullName} 生成`]
       .filter(Boolean)
       .join('\n'),
     '搭配文案已复制',

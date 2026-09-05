@@ -2,7 +2,7 @@
  * 场景模拟接口（功能四）。
  */
 import { request } from '@/utils/request'
-import type { SceneFilterKey, SceneKey, SceneMode } from '@/data/scene'
+import type { SceneFilterKey, SceneKey, SceneMode } from '@/constants/scene'
 import type { SavedSceneOutfit, ScenePlanItem, ScenePlanResult, SceneWeatherInfo } from './type'
 
 enum API {

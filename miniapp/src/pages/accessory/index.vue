@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
-import { MODEL_IMAGES } from '@/data/mock'
+import { MODEL_IMAGES } from '@/constants/ui'
 import type { Garment } from '@/types'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { resolveImageUrl } from '@/api/wardrobe'
@@ -28,7 +28,7 @@ import {
   loadLocalAccessoryCart,
   saveLocalAccessoryCart,
   saveLocalAccessoryRating,
-} from '@/data/accessories'
+} from '@/utils/accessoryFallback'
 import {
   garmentToAccessoryContext,
   getAccessoryPageContext,

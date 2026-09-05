@@ -1,3 +1,14 @@
+/*
+ * 配饰推荐的本地兜底（功能三）。
+ *
+ * 接口不可用时在端上算一份推荐顶上，外加评分与购物车的本地缓存读写。
+ * 原先放在 data/accessories.ts —— 但这里 550 行有一多半是算法和
+ * localStorage 读写，不是数据，放在名为 data 的目录里会误导人。
+ * 内嵌的 LOCAL_ACCESSORIES 是这套算法的输入，和算法强耦合，一并留在本文件。
+ *
+ * 真实推荐走 api/accessories 的 fetchAccessoryRecommendations()，
+ * 这里只在它失败时兜底，别把两者的结果混着用。
+ */
 import type { Accessory, AccessoryCart, AccessoryContextItem, AccessoryRecommendations } from '@/api/accessories'
 
 const RATINGS_KEY = 'ai-fashion-accessory-ratings'
