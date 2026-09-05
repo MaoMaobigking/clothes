@@ -52,6 +52,12 @@ export default defineConfig(({ mode }) => {
    */
   const env = loadEnv(mode, __dirname, 'VITE_')
   const imgBase = IMG_BASE || env.VITE_CLOUD_IMG_BASE || ''
+  /*
+   * dev server 把 /api 和 /uploads 转发到哪。
+   * 优先级：命令行 API_PROXY_TARGET > .env.development 的 VITE_DEV_PROXY_TARGET > 本机默认。
+   * 接同事的后端或换端口时改 .env.development 一行即可，不用动这个文件。
+   */
+  const proxyTarget = process.env.API_PROXY_TARGET || env.VITE_DEV_PROXY_TARGET || 'http://localhost:8787'
   // 只在小程序端改写。H5 没有包体上限，图留在本地反而更快，
   // 而 cloud:// 在浏览器里根本加载不出来。
   const rewrite = imgBase && process.env.UNI_PLATFORM === 'mp-weixin'
@@ -64,11 +70,11 @@ export default defineConfig(({ mode }) => {
       port: Number(process.env.H5_PORT || 5173),
       proxy: {
         '/api': {
-          target: process.env.API_PROXY_TARGET || 'http://localhost:8787',
+          target: proxyTarget,
           changeOrigin: true,
         },
         '/uploads': {
-          target: 'http://localhost:8787',
+          target: proxyTarget,
           changeOrigin: true,
         },
       },
