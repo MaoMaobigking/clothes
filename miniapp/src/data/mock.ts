@@ -9,11 +9,11 @@ export const LOGO = '/static/images/logo.png'
 
 /** 虚拟形象模特图 */
 export const MODEL_IMAGES = {
-  front: '/static/images/model/front.png',
-  frontMale: '/static/images/model/front-male.png',
-  back: '/static/images/model/back.png',
-  backMale: '/static/images/model/back-male.png',
-  outfit: '/static/images/model/outfit.png',
+  front: '/static/images/model/front.jpg',
+  frontMale: '/static/images/model/front-male.jpg',
+  outfit: '/static/images/model/outfit.jpg',
+  /** 百炼官方示例人像（720×1280，AI 试衣出图质量有保证） */
+  official: '/static/images/tryon/person.jpg',
 }
 
 /*
@@ -52,7 +52,7 @@ export interface Garment {
   recognitionSource?: string
   uploadedAt?: string
 }
-type RawGarment = Omit<Garment, 'img'>
+type RawGarment = Omit<Garment, 'img'> & { img?: string }
 
 export const CLOSET_CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: 'all', label: '全部', emoji: '🗂️' },
@@ -86,10 +86,12 @@ const GARMENTS_RAW: RawGarment[] = [
   { id: 'g16', name: '银色耳夹', category: 'jewelry', brand: 'GLOW', emoji: '💍', from: '#eef1f6', to: '#c3ccdb', price: 84, season: '四季', tags: ['精致'] },
   { id: 'g17', name: '格纹羊毛围巾', category: 'accessory', brand: 'VINTAGE', emoji: '🧣', from: '#f0d3d0', to: '#c98f8a', price: 129, season: '秋冬', tags: ['复古'] },
   { id: 'g18', name: '羊羔毛夹克', category: 'top', brand: 'WARM', emoji: '🧥', from: '#f3ead6', to: '#cbb488', price: 519, season: '秋冬', tags: ['保暖'] },
+  { id: 'g19', name: '官方示例 · 短袖上衣', category: 'top', brand: 'BAILIAN', emoji: '👕', from: '#ffffff', to: '#e7e7ef', price: 0, season: '四季', tags: ['官方素材', 'AI试衣'], img: '/static/images/tryon/top.jpeg' },
+  { id: 'g20', name: '官方示例 · 直筒长裤', category: 'pants', brand: 'BAILIAN', emoji: '👖', from: '#cfd4e6', to: '#8a90ad', price: 0, season: '四季', tags: ['官方素材', 'AI试衣'], img: '/static/images/tryon/bottom.jpeg' },
 ]
 export const GARMENTS: Garment[] = GARMENTS_RAW.map((g) => ({
   ...g,
-  img: `/static/images/closet/${g.id}.png`,
+  img: g.img || `/static/images/closet/${g.id}.jpg`,
 }))
 
 /* ----------------------------- 商城 ----------------------------- */
@@ -143,7 +145,7 @@ const POSTS_RAW: RawPost[] = [
 ]
 export const POSTS: Post[] = POSTS_RAW.map((p) => ({
   ...p,
-  img: `/static/images/community/${p.id}.png`,
+  img: `/static/images/community/${p.id}.jpg`,
 }))
 
 /* ----------------------------- 天气 ----------------------------- */
@@ -229,7 +231,7 @@ const OUTFIT_RECOS_RAW: RawReco[] = [
 ]
 export const OUTFIT_RECOS: OutfitReco[] = OUTFIT_RECOS_RAW.map((r) => ({
   ...r,
-  pieces: r.pieces.map((p, i) => ({ ...p, img: `/static/images/outfit/${r.id}-${i + 1}.png` })),
+  pieces: r.pieces.map((p, i) => ({ ...p, img: `/static/images/outfit/${r.id}-${i + 1}.jpg` })),
 }))
 
 /* ----------------------------- 场景 / 模式 / 工具 ----------------------------- */
@@ -255,7 +257,7 @@ const SCENES_RAW: Omit<Scene, 'img'>[] = [
 ]
 export const SCENES: Scene[] = SCENES_RAW.map((s) => ({
   ...s,
-  img: `/static/images/scene/${s.key}.png`,
+  img: `/static/images/scene/${s.key}.jpg`,
 }))
 
 /** 情景模拟底部三种模式 */

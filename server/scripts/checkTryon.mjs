@@ -26,8 +26,8 @@ const SAMPLE = {
 
 /** 小程序包内的演示素材，服务端按 MINIAPP_STATIC_DIR 找得到 */
 const LOCAL = {
-  person: '/images/model/front.png',
-  top: '/images/closet/g1.png',
+  person: '/images/model/front.jpg',
+  top: '/images/closet/g1.jpg',
 }
 
 /** 出图 15–30s，留够余量；超了不算失败，任务本身还在跑 */
@@ -154,7 +154,7 @@ async function main() {
   // 本地路径是支持的（会先传到百炼临时空间），但文件得真存在
   const missingLocal = await api(token, '/api/tryon', {
     method: 'POST',
-    body: { personImageUrl: '/images/model/no-such-file.png', topGarmentUrl: SAMPLE.top },
+    body: { personImageUrl: '/images/model/no-such-file.jpg', topGarmentUrl: SAMPLE.top },
   })
   assert(
     missingLocal.data?.error === 'AI_TASK_IMAGE_NOT_FOUND',

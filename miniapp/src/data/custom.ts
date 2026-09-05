@@ -23,7 +23,7 @@ export interface CustomCategory {
  * 四类定制服务与真实案例（规格 §11.2）。
  *
  * 案例图路径按 `/static/images/custom/<类目>-<序号>.jpg` 约定预留，素材到位即生效。
- * 以前这里全部指向 `/static/images/model/front.png` —— 那是人台图，
+ * 以前这里全部指向 `/static/images/model/front.jpg` —— 那是人台图，
  * 拿它当「孕妇定制连衣裙」的案例照，看起来像有素材，其实是张无关图（§4.3）。
  * 现在缺图就退回色块 + emoji 的中性占位，一眼能看出素材没到位。
  */
