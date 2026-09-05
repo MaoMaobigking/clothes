@@ -3,6 +3,8 @@
  * 图片路径适配为 miniapp static 目录
  */
 import type { IconName } from '@/utils/icons'
+// Garment / Scene 已迁至共享类型层（生产代码在用，不该从 mock 文件导出）
+import type { Garment, Scene } from '@/types'
 
 /** App logo */
 export const LOGO = '/static/images/logo.png'
@@ -30,28 +32,6 @@ export const HAIR_STYLES: { id: string; label: string; emoji: string; icon: Icon
 
 /* ----------------------------- 衣橱 / 衣物 ----------------------------- */
 
-export interface Garment {
-  id: string
-  name: string
-  category: string
-  brand: string
-  emoji: string
-  from: string
-  to: string
-  price: number
-  season: string
-  img: string
-  tags?: string[]
-  primaryColor?: string
-  secondaryColors?: string[]
-  seasons?: string[]
-  occasions?: string[]
-  frequentlyWorn?: boolean
-  sortOrder?: number
-  recognitionStatus?: string
-  recognitionSource?: string
-  uploadedAt?: string
-}
 type RawGarment = Omit<Garment, 'img'> & { img?: string }
 
 export const CLOSET_CATEGORIES: { key: string; label: string; emoji: string }[] = [
@@ -524,12 +504,6 @@ export const OUTFIT_RECOS: OutfitReco[] = OUTFIT_RECOS_RAW.map((r) => ({
 
 /* ----------------------------- 场景 / 模式 / 工具 ----------------------------- */
 
-export interface Scene {
-  key: string
-  label: string
-  emoji: string
-  img: string
-}
 /*
  * 六个场景，key 必须和 static/images/scene/ 下的文件名一一对应。
  * 之前这里是 play/work/sport/party，磁盘上根本没有这四张图，

@@ -1,11 +1,10 @@
 /*
  * 衣橱与搭配的数据结构。
  *
- * WardrobeItem = Garment + fav。Garment 是衣物的领域实体，
- * 目前还定义在 @/data/mock —— 那是 mock 数据文件，放生产类型并不合适，
- * 归位工作在下一步单独做。
+ * WardrobeItem = Garment + fav。Garment 是跨 api / store / utils / 页面
+ * 四层共用的领域实体，所以放在共享类型层 @/types，不放在本文件里。
  */
-import type { Garment } from '@/data/mock'
+import type { Garment } from '@/types'
 
 export type WardrobeItem = Garment & { fav: boolean }
 

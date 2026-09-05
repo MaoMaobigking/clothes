@@ -93,3 +93,49 @@ export interface StepMeta {
   /** 线性图标名，见 components/UiIcon/icons.ts；emoji 保留给还没换皮的地方兜底 */
   icon: IconName
 }
+
+/* --------------------------- 领域实体 --------------------------- */
+/*
+ * 以下两个接口原先定义在 data/mock.ts 里。那是个 mock 数据文件，
+ * 而它们是被 api 层、store、utils 和页面共同依赖的生产类型 ——
+ * 从「mock」里导生产类型会让人误以为这些结构只是演示用的，故迁至此处。
+ *
+ * 只搬了这两个：Post / WeatherDay / OutfitPiece / OutfitReco 在 mock.ts
+ * 之外没有任何消费方，只用于标注 mock 数组自身的形状，留在原文件更合适。
+ */
+
+/** 衣物单品。衣橱、搭配、配饰上下文都以它为基础 */
+export interface Garment {
+  id: string
+  name: string
+  category: string
+  brand: string
+  emoji: string
+  from: string
+  to: string
+  price: number
+  season: string
+  img: string
+  tags?: string[]
+  primaryColor?: string
+  secondaryColors?: string[]
+  seasons?: string[]
+  occasions?: string[]
+  frequentlyWorn?: boolean
+  sortOrder?: number
+  recognitionStatus?: string
+  recognitionSource?: string
+  uploadedAt?: string
+}
+
+/**
+ * 自由搭配页的场景选项。
+ * 注意与 @/data/scene 的 SceneKey / SceneMode 不是一回事：那套是功能四
+ * 场景模拟的枚举，这个只是选场景时的展示卡片。
+ */
+export interface Scene {
+  key: string
+  label: string
+  emoji: string
+  img: string
+}
