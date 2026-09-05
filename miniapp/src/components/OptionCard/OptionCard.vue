@@ -9,8 +9,10 @@ const props = withDefaults(
     selected: boolean
     /** 选中角标里显示的序号（风格多选时用），不传则显示对勾 */
     order?: number
+    /** 小图高度。横滑卡片比网格卡片大一号，靠调用方给 */
+    previewHeight?: string
   }>(),
-  { order: undefined },
+  { order: undefined, previewHeight: '180rpx' },
 )
 
 const emit = defineEmits<{
@@ -51,7 +53,11 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
     @tap="emit('select', option.id)"
   >
     <!-- 优先真实小图预览，缺素材时回落到占位 -->
-    <view class="preview" :class="{ 'preview-plain': !isSwatch }" :style="swatchStyle">
+    <view
+      class="preview"
+      :class="{ 'preview-plain': !isSwatch }"
+      :style="{ ...swatchStyle, height: previewHeight }"
+    >
       <uv-image
         v-if="option.img && !imgFailed"
         :src="option.img"
@@ -119,7 +125,7 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* aspect-ratio: 1.35 在小程序不支持，用固定高度 */
+  /* aspect-ratio: 1.35 在小程序不支持，高度由 previewHeight 内联给，这里只兜底 */
   height: 180rpx;
 }
 .preview-plain {

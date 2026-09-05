@@ -43,32 +43,34 @@ const bmiTip = (bmi: number) => {
   >
     <view class="section">
       <view class="section-title">视觉体型</view>
-      <view class="body-options">
-        <view
-          v-for="opt in VISUAL_BODY_OPTIONS"
-          :key="opt.id"
-          class="body-option"
-          :class="{ on: store.profile.visualBody === opt.id }"
-          @tap="store.setVisualBody(opt.id)"
-        >
+      <scroll-view scroll-x class="body-options" :show-scrollbar="false">
+        <view class="body-options-row">
           <view
-            class="body-preview"
-            :style="{ background: opt.color }"
+            v-for="opt in VISUAL_BODY_OPTIONS"
+            :key="opt.id"
+            class="body-option"
+            :class="{ on: store.profile.visualBody === opt.id }"
+            @tap="store.setVisualBody(opt.id)"
           >
-            <image
-              v-if="opt.img && !imgFailed[opt.id]"
-              class="body-preview-img"
-              :src="opt.img"
-              mode="aspectFill"
-              @error="imgFailed[opt.id] = true"
-            />
-            <UiIcon v-else class="body-emoji" :name="iconForEmoji(opt.emoji) ?? 'body'" :size="64" tone="muted" :stroke-width="1.4" />
+            <view
+              class="body-preview"
+              :style="{ background: opt.color }"
+            >
+              <image
+                v-if="opt.img && !imgFailed[opt.id]"
+                class="body-preview-img"
+                :src="opt.img"
+                mode="aspectFill"
+                @error="imgFailed[opt.id] = true"
+              />
+              <UiIcon v-else class="body-emoji" :name="iconForEmoji(opt.emoji) ?? 'body'" :size="64" tone="muted" :stroke-width="1.4" />
+            </view>
+            <text class="body-label">{{ opt.label }}</text>
+            <text class="body-desc">{{ opt.desc }}</text>
+            <view v-if="store.profile.visualBody === opt.id" class="check">✓</view>
           </view>
-          <text class="body-label">{{ opt.label }}</text>
-          <text class="body-desc">{{ opt.desc }}</text>
-          <view v-if="store.profile.visualBody === opt.id" class="check">✓</view>
         </view>
-      </view>
+      </scroll-view>
     </view>
 
     <view class="section">
@@ -169,13 +171,23 @@ const bmiTip = (bmi: number) => {
   border-radius: var(--radius-pill);
 }
 
+/*
+ * 视觉体型改横滑（客户需求原文「选项卡片（横向滑动）」，与前三步统一）。
+ * 内层 inline-flex 的理由同 StyleStep：flex 写在 scroll-view 本体上安卓会压扁子项。
+ */
 .body-options {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  white-space: nowrap;
+}
+.body-options-row {
+  display: inline-flex;
   gap: 18rpx;
+  padding-bottom: 4rpx;
 }
 .body-option {
   position: relative;
+  width: 208rpx;
+  flex-shrink: 0;
   background: var(--surface);
   border: 3rpx solid transparent;
   border-radius: var(--radius-sm);
@@ -185,6 +197,7 @@ const bmiTip = (bmi: number) => {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  box-sizing: border-box;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .body-option:active {

@@ -154,10 +154,9 @@ function goScene() {
 }
 
 function goCloset() {
-  uni.switchTab({
-    url: '/pages/closet/closet',
-    fail: () => uni.navigateTo({ url: '/pages/closet/closet' }),
-  })
+  // closet 是 pages.json 里的 tabBar 页，只能 switchTab；
+  // navigateTo 到 tabBar 页在任何端都必定失败，别再加「兜底」。
+  uni.switchTab({ url: '/pages/closet/closet' })
 }
 </script>
 

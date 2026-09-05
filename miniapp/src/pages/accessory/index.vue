@@ -238,9 +238,10 @@ async function submitRating(item: Accessory, score: number) {
   await loadRecommendations()
 }
 
-function toLocalCartItem(item: Accessory): AccessoryCartItem {
+function toLocalCartItem(item: Accessory, seq = 0): AccessoryCartItem {
   return {
-    cartId: Date.now(),
+    // seq 用于批量加购：同一毫秒内连续建多条时 Date.now() 会撞成同一个 key
+    cartId: Date.now() + seq,
     itemType: 'accessory',
     itemId: item.id,
     quantity: 1,
@@ -280,6 +281,40 @@ async function addAccessory(item: Accessory) {
     saveLocalAccessoryCart(cart.value)
   }
   toast('已加入购物车')
+}
+
+/*
+ * 分类维度「一键加入购物车」（客户需求原文：支持"一键加入购物车"或"单独购买"）。
+ * 把当前分类下的推荐配饰整批写入购物车，走已有的 batch 接口，
+ * 断网兜底分支与 addAccessory 用同一套本地累加规则。
+ */
+async function addActiveCategoryToCart() {
+  const items = activeItems.value
+  if (!items.length) {
+    toast('这个分类暂无推荐')
+    return
+  }
+  if (usingApi.value) {
+    try {
+      cart.value = await addAccessoryCartBatch(
+        items.map((item) => ({ itemType: 'accessory' as const, itemId: item.id })),
+      )
+    } catch (error) {
+      toast((error as Error).message || '加入购物车失败')
+      return
+    }
+  } else {
+    items.forEach((item, index) => {
+      const existing = cart.value.items.find(
+        (entry) => entry.itemType === 'accessory' && entry.itemId === item.id,
+      )
+      if (existing) existing.quantity += 1
+      else cart.value.items.push(toLocalCartItem(item, index))
+    })
+    cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
+    saveLocalAccessoryCart(cart.value)
+  }
+  toast(`${activeCategoryData.value?.label || '本类'} ${items.length} 件已加入购物车`)
 }
 
 async function addOutfitToCart() {
@@ -510,6 +545,16 @@ function copyCartItem(item: AccessoryCartItem) {
             <text>{{ category.label }}</text>
           </view>
         </scroll-view>
+
+        <!-- 分类维度的一键加购（客户需求原文的「一键加入购物车」） -->
+        <view v-if="activeItems.length" class="category-bulk">
+          <text class="category-bulk-label">
+            {{ activeCategoryData?.label || '本类' }}推荐 {{ activeItems.length }} 件
+          </text>
+          <view class="btn btn-primary category-bulk-btn" @tap="addActiveCategoryToCart">
+            一键加入购物车
+          </view>
+        </view>
 
         <view v-if="activeItems.length" class="accessory-list">
           <view v-for="item in activeItems" :key="item.id" class="accessory-card">
@@ -914,6 +959,24 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 .tryon-status.on {
   color: var(--success);
+}
+.category-bulk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 0 4rpx 18rpx;
+}
+.category-bulk-label {
+  font-size: 24rpx;
+  color: var(--text-2);
+}
+.category-bulk-btn {
+  height: var(--btn-h-sm);
+  padding: 0 26rpx;
+  font-size: 25rpx;
+  display: flex;
+  align-items: center;
 }
 .category-tabs {
   margin-top: 22rpx;

@@ -47,6 +47,34 @@ const visibleShares = computed(() =>
 )
 
 /*
+ * 用户分享的双列瀑布流（客户需求原文「瀑布流展示用户上传的穿搭照」）。
+ *
+ * 原来是 2 列 grid —— 同一行的两张卡强制等高，矮的那张下面留一块白，
+ * 那是网格不是瀑布流。这里改成两条独立的列，按估算高度贪心分配：
+ * 卡片高 ≈ 封面比例高度 + 作者/文案/话题/按钮的固定开销，
+ * 每张都放进当前较矮的那一列，两列自然错落。
+ *
+ * 封面比例按**在 visibleShares 里的位置**算好后随卡片一起传下去，
+ * 不能在模板里用列内下标重算 —— 否则切话题筛选时同一张图会换比例，看着像闪。
+ */
+const RATIO_HEIGHT: Record<string, number> = { '3 / 4': 1.333, '1 / 1': 1, '4 / 5': 1.25 }
+/** 封面以外那部分（作者行 + 文案 + 话题 + 互动按钮）折算成封面宽度的倍数 */
+const CARD_OVERHEAD = 0.95
+
+const shareColumns = computed(() => {
+  type Entry = { item: (typeof visibleShares.value)[number]; ratio: string }
+  const columns: Entry[][] = [[], []]
+  const heights = [0, 0]
+  visibleShares.value.forEach((item, index) => {
+    const ratio = index % 3 === 0 ? '3 / 4' : index % 2 === 0 ? '1 / 1' : '4 / 5'
+    const target = heights[0] <= heights[1] ? 0 : 1
+    columns[target].push({ item, ratio })
+    heights[target] += (RATIO_HEIGHT[ratio] ?? 1) + CARD_OVERHEAD
+  })
+  return columns
+})
+
+/*
  * 当前 tab 手里有没有可显示的数据。
  * 用来决定「加载中」要不要盖住整页 —— 见下面 loadCurrentTab 的注释。
  */
@@ -288,48 +316,54 @@ function showCooperationTip() {
             <text class="clear-topic" @tap="clearTopic">清除</text>
           </view>
           <view v-if="!visibleShares.length" class="state">这个话题下还没有内容</view>
-          <view class="feed">
+          <view class="feed-masonry">
             <view
-              v-for="(item, index) in visibleShares"
-              :key="item.id"
-              class="share-card"
-              @tap="openContent(item)"
+              v-for="(column, colIndex) in shareColumns"
+              :key="colIndex"
+              class="feed-column"
             >
-              <TileImage
-                :src="item.coverUrl"
-                :emoji="item.authorAvatar"
-                from="#ffd6e8"
-                to="#c9b8ff"
-                :ratio="index % 3 === 0 ? '3 / 4' : index % 2 === 0 ? '1 / 1' : '4 / 5'"
-                rounded="24rpx"
-              />
-              <view class="share-author">
-                <text class="author-avatar">{{ item.authorAvatar }}</text>
-                <text class="author-name">{{ item.authorName }}</text>
-              </view>
-              <view class="share-caption">{{ item.title }}</view>
-              <view class="share-topics">
-                <text v-for="topic in item.topics" :key="topic" class="topic">{{ topic }}</text>
-              </view>
-              <view class="share-actions">
-                <view
-                  class="action"
-                  :class="{ on: item.liked }"
-                  @tap.stop="toggleAction(item, 'like')"
-                >
-                  <UiIcon name="heart" :size="28" :tone="item.liked ? 'brand' : 'muted'" :stroke-width="item.liked ? 2.6 : 1.7" /><text>{{ item.likeCount }}</text>
+              <view
+                v-for="entry in column"
+                :key="entry.item.id"
+                class="share-card"
+                @tap="openContent(entry.item)"
+              >
+                <TileImage
+                  :src="entry.item.coverUrl"
+                  :emoji="entry.item.authorAvatar"
+                  from="#ffd6e8"
+                  to="#c9b8ff"
+                  :ratio="entry.ratio"
+                  rounded="24rpx"
+                />
+                <view class="share-author">
+                  <text class="author-avatar">{{ entry.item.authorAvatar }}</text>
+                  <text class="author-name">{{ entry.item.authorName }}</text>
                 </view>
-                <view class="action" @tap.stop="openContent(item)">
-                  <UiIcon name="comment" :size="28" tone="muted" /><text>{{ item.commentCount }}</text>
+                <view class="share-caption">{{ entry.item.title }}</view>
+                <view class="share-topics">
+                  <text v-for="topic in entry.item.topics" :key="topic" class="topic">{{ topic }}</text>
                 </view>
-                <view
-                  class="action"
-                  :class="{ on: item.favorited }"
-                  @tap.stop="toggleAction(item, 'favorite')"
-                >
-                  <UiIcon name="star" :size="28" :tone="item.favorited ? 'brand' : 'muted'" :stroke-width="item.favorited ? 2.6 : 1.7" /><text>{{ item.favoriteCount }}</text>
+                <view class="share-actions">
+                  <view
+                    class="action"
+                    :class="{ on: entry.item.liked }"
+                    @tap.stop="toggleAction(entry.item, 'like')"
+                  >
+                    <UiIcon name="heart" :size="28" :tone="entry.item.liked ? 'brand' : 'muted'" :stroke-width="entry.item.liked ? 2.6 : 1.7" /><text>{{ entry.item.likeCount }}</text>
+                  </view>
+                  <view class="action" @tap.stop="openContent(entry.item)">
+                    <UiIcon name="comment" :size="28" tone="muted" /><text>{{ entry.item.commentCount }}</text>
+                  </view>
+                  <view
+                    class="action"
+                    :class="{ on: entry.item.favorited }"
+                    @tap.stop="toggleAction(entry.item, 'favorite')"
+                  >
+                    <UiIcon name="star" :size="28" :tone="entry.item.favorited ? 'brand' : 'muted'" :stroke-width="entry.item.favorited ? 2.6 : 1.7" /><text>{{ entry.item.favoriteCount }}</text>
+                  </view>
+                  <view class="action subtle" @tap.stop="toggleAction(entry.item, 'report')">举报</view>
                 </view>
-                <view class="action subtle" @tap.stop="toggleAction(item, 'report')">举报</view>
               </view>
             </view>
           </view>
@@ -469,10 +503,25 @@ function showCooperationTip() {
 }
 .magazine-grid,
 .tutorial-grid,
-.feed,
 .challenge-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24rpx;
+}
+/*
+ * 用户分享是瀑布流，不能和上面几个共用 grid：
+ * grid 会把同一行两张卡拉成等高，矮的下面留白。两条独立的列各自堆叠才是瀑布流。
+ */
+.feed-masonry {
+  display: flex;
+  align-items: flex-start;
+  gap: 24rpx;
+}
+.feed-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   gap: 24rpx;
 }
 .magazine-card,

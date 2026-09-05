@@ -1,8 +1,16 @@
 <script setup lang="ts">
-defineProps<{
-  title: string
-  subtitle?: string
-}>()
+withDefaults(
+  defineProps<{
+    title: string
+    subtitle?: string
+    /**
+     * 内容只有一横排卡片时（风格 / 肤色 / 脸型三步改横滑之后）打开：
+     * 让内容块撑满滚动区并垂直居中，否则卡片挤在顶部、下面空一大片。
+     */
+    center?: boolean
+  }>(),
+  { subtitle: '', center: false },
+)
 </script>
 
 <template>
@@ -11,7 +19,16 @@ defineProps<{
       <view class="title">{{ title }}</view>
       <view v-if="subtitle" class="subtitle">{{ subtitle }}</view>
     </view>
-    <scroll-view scroll-y class="content" :show-scrollbar="false">
+    <!--
+      center 模式直接用普通 view，不套 scroll-view。
+      原因：uni 的 scroll-view 在 H5 端会多包一层高度 auto 的 .uni-scroll-view-content，
+      里面写 min-height:100% 会按 auto 的父级解析成 0，居中根本不生效。
+      走这条分支的三步内容只有一横排卡片，本来也不需要竖向滚动。
+    -->
+    <view v-if="center" class="content center-box">
+      <slot />
+    </view>
+    <scroll-view v-else scroll-y class="content" :show-scrollbar="false">
       <view class="content-inner">
         <slot />
       </view>
@@ -54,5 +71,12 @@ defineProps<{
 }
 .content-inner {
   padding-bottom: 40rpx;
+}
+.center-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 40rpx;
+  box-sizing: border-box;
 }
 </style>
