@@ -251,10 +251,8 @@ function goCloset() {
 
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 12px;
-  min-height: 0;
   padding: 12px 16px 22px;
 }
 

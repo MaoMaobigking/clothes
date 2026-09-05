@@ -433,16 +433,12 @@ function showCooperationTip() {
 }
 
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 8rpx 32rpx 44rpx;
 }
 
 .state {
   padding: 64rpx 24rpx;
-  font-size: 26rpx;
   color: var(--text-2);
-  text-align: center;
 }
 
 .state.error {

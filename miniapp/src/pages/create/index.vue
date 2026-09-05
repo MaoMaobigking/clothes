@@ -201,9 +201,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 .body {
   position: relative;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  min-height: 0;
   padding: 16rpx 24rpx 24rpx;
 }
 

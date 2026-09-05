@@ -326,10 +326,8 @@ function goBack() {
 
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 28rpx;
-  min-height: 0;
   padding: 12rpx 32rpx 32rpx;
 }
 

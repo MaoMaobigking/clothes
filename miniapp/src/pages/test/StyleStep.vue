@@ -36,21 +36,3 @@ function orderOf(id: string) {
     </scroll-view>
   </StepShell>
 </template>
-
-<style scoped>
-.options {
-  width: 100%;
-  white-space: nowrap;
-}
-
-.options-row {
-  display: inline-flex;
-  gap: 22rpx;
-  padding: 2rpx 0 12rpx;
-}
-
-.options-item {
-  flex-shrink: 0;
-  width: 320rpx;
-}
-</style>

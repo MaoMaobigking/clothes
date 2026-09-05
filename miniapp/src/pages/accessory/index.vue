@@ -723,8 +723,6 @@ function copyCartItem(item: AccessoryCartItem) {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 12rpx 30rpx 40rpx;
 }
 

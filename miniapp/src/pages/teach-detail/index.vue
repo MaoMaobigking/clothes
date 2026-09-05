@@ -130,17 +130,13 @@ async function finishTutorial() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
 
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  font-size: 26rpx;
   color: var(--text-2);
-  text-align: center;
 }
 
 .state.error {

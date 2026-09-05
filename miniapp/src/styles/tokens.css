@@ -234,7 +234,9 @@ page {
    * 透明度压到 0.26 / 0.22 —— 再高就从「微光」变成「彩色卡片」，
    * 而这卡片上要放 52rpx 的温度数字和 24rpx 的说明文字，底色必须让位给文字。
    */
-  --glass-tint: radial-gradient(120% 90% at 8% 0%, rgb(255 156 196 / 26%) 0%, rgb(255 156 196 / 0%) 58%), radial-gradient(110% 85% at 100% 100%, rgb(126 228 196 / 22%) 0%, rgb(126 228 196 / 0%) 55%);
+  --glass-tint:
+    radial-gradient(120% 90% at 8% 0%, rgb(255 156 196 / 26%) 0%, rgb(255 156 196 / 0%) 58%),
+    radial-gradient(110% 85% at 100% 100%, rgb(126 228 196 / 22%) 0%, rgb(126 228 196 / 0%) 55%);
 
   /* 高光描边：玻璃的「厚度」全靠这条亮边，比 --line 的冷灰更亮更透 */
   --glass-line: rgb(255 255 255 / 90%);
@@ -278,7 +280,8 @@ page {
   --macaron-violet-ink: #5442b5;
 
   /* 果冻感 = 内发光（上亮下暗）+ 一层浅投影。只给 .pill-macaron-*，不外溢 */
-  --shadow-jelly: inset 0 1rpx 0 rgb(255 255 255 / 95%), inset 0 -1rpx 2rpx rgb(0 0 0 / 3%), 0 2rpx 8rpx rgb(88 120 160 / 10%);
+  --shadow-jelly:
+    inset 0 1rpx 0 rgb(255 255 255 / 95%), inset 0 -1rpx 2rpx rgb(0 0 0 / 3%), 0 2rpx 8rpx rgb(88 120 160 / 10%);
 
   /* ---------------- 控件高度 ---------------- */
 

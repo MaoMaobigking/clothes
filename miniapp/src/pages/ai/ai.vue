@@ -69,10 +69,8 @@ function navigateTo(url: string) {
 <style scoped>
 .body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 36rpx;
-  min-height: 0;
   padding: calc(env(safe-area-inset-top, 24rpx) + 24rpx) 32rpx 32rpx;
 }
 

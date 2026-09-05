@@ -75,8 +75,6 @@ function start() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 12rpx 32rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
 }
 

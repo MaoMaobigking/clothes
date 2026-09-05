@@ -121,8 +121,6 @@ onShow(loadRequests)
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
   padding: 12rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
 }
 
@@ -131,7 +129,6 @@ onShow(loadRequests)
   padding-top: 40rpx;
   font-size: 25rpx;
   color: var(--text-3);
-  text-align: center;
 }
 
 .state.error {
