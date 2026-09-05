@@ -16,14 +16,63 @@ import { dirname, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-const DB_CONFIG = {
-  host: process.env.MYSQL_HOST || 'localhost',
-  port: Number(process.env.MYSQL_PORT) || 3306,
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || '',
-  charset: 'utf8mb4',
+/**
+ * 归一化 + 体检数据库连接配置。
+ *
+ * 为什么值得单独一个函数：这些值是人在云托管的环境变量面板里手敲的，
+ * 填错的代价是「构建等一分钟 → 容器起不来 → 日志里一行看不懂的报错」。
+ * 下面两条都是真实踩过的（2026-08-19，prod-d7goaleke29399395）：
+ *
+ *   1. MYSQL_HOST=10.13.103.11:3306  —— 内网地址连端口一起粘进来了
+ *      症状：getaddrinfo EAI_AGAIN 10.13.103.11:3306
+ *      看着像 DNS 挂了，其实是把「地址:端口」整串当域名去解析
+ *   2. MYSQL_PORT=80  —— 被「PORT 必须是 80」那条说明带偏，填到数据库端口这栏了
+ *      症状：connection refused，因为连到服务自己身上
+ *
+ * 能自动纠的就纠（带端口的 host 拆开），不能纠的就在连库之前把话说清楚，
+ * 别让人对着驱动层的报错猜。
+ */
+function resolveDbConfig() {
+  const notes = []
+  let host = (process.env.MYSQL_HOST || '').trim()
+  let port = Number(process.env.MYSQL_PORT) || 0
+
+  // 只在「恰好一个冒号 + 后半是纯数字」时才拆，免得误伤 IPv6 字面量（::1 这种）
+  const parts = host.split(':')
+  if (parts.length === 2 && /^\d+$/.test(parts[1])) {
+    const embedded = Number(parts[1])
+    host = parts[0]
+    notes.push(`MYSQL_HOST 里带了端口，已按 host=${host} port=${embedded} 处理 —— 这一栏只填地址，别带「:端口」`)
+    if (!port) port = embedded
+    else if (port !== embedded) {
+      notes.push(`MYSQL_HOST 里的端口(${embedded}) 和 MYSQL_PORT(${port}) 对不上，以 MYSQL_PORT 为准`)
+    }
+  }
+
+  if (!port) port = 3306
+
+  const servicePort = Number(process.env.PORT) || 0
+  if (servicePort && port === servicePort) {
+    notes.push(
+      `MYSQL_PORT=${port} 和服务端口 PORT=${servicePort} 一样，几乎可以肯定是填串了 —— ` +
+        'PORT 是服务自己监听的端口（云托管按它探活），数据库端口通常是 3306',
+    )
+  }
+
+  return {
+    host: host || 'localhost',
+    port,
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    charset: 'utf8mb4',
+    notes,
+  }
 }
+
+const { notes: DB_CONFIG_NOTES, ...DB_CONFIG } = resolveDbConfig()
 const DB_NAME = process.env.MYSQL_DATABASE || 'lingxi'
+/** 给日志用的 host:port，别再让调用方自己去拼环境变量 —— 拼错了就是那串 `10.13.103.11:3306:80` */
+const DB_TARGET = `${DB_CONFIG.host}:${DB_CONFIG.port}`
 
 const pool = mysql.createPool({
   ...DB_CONFIG,
@@ -357,4 +406,4 @@ export async function migrateCartForCheck() {
   }
 }
 
-export { pool, DB_NAME }
+export { pool, DB_NAME, DB_TARGET, DB_CONFIG_NOTES }

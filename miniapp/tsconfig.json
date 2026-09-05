@@ -11,7 +11,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["@dcloudio/types"],
+    "types": ["@dcloudio/types", "vite/client"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

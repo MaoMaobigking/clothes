@@ -1,0 +1,10 @@
+{
+  "timeout": 60,
+  "installDependency": true,
+  "envVariables": {
+    "API_ORIGIN": "https://express-q6b8-299096-11-1470997981.sh.run.tcloudbase.com"
+  },
+  "permissions": {
+    "openapi": []
+  }
+}

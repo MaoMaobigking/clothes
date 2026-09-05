@@ -4,9 +4,11 @@ dist-ssr
 *.local
 
 # 环境变量（含密钥，别提交）
+# 例外：*.example 模板不含真值，要跟着仓库走，否则同事拿不到配置说明
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # 冒烟测试截图产物
 .smoke

@@ -121,6 +121,11 @@ export async function toggleFrequentlyWorn(userId, id) {
   return item
 }
 
+/** 只改图片地址，云开发模式下把 /uploads/ 路径改写成云存储 fileID 用 */
+export function updateGarmentImage(userId, id, img) {
+  return repo.updateGarmentImage(userId, id, img)
+}
+
 const UPLOAD_CATEGORIES = [
   'top',
   'pants',

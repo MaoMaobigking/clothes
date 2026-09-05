@@ -1,5 +1,20 @@
 # 微信开发者工具打开指南
 
+> ⚠️ **两套产物目录，别混用。**
+>
+> | 命令 | 产物目录 |
+> | --- | --- |
+> | `npm run dev:mp-weixin` | `miniapp/dist/dev/mp-weixin/` |
+> | `npm run build:mp-weixin` | `miniapp/dist/build/mp-weixin/` |
+>
+> 微信开发者工具打开哪个目录，就只读那个目录的代码。跑 dev 命令却把工具开在 build 目录（或反过来），表现是**「改了代码模拟器毫无反应」，而且不报任何错**——曾经因此白改了 4 天。
+>
+> 根目录 `project.config.json` 的 `miniprogramRoot` 指向 **build**，所以「用工具打开仓库根目录」等于走 build 流程。要走 dev 热更新，必须让工具直接打开 `miniapp/dist/dev/mp-weixin`。
+>
+> 想知道工具当前开在哪个目录：看哪个产物目录里有工具自己写的 `project.private.config.json`。
+>
+> 另外注意 `dev:mp-weixin` / `build:mp-weixin` 这些脚本在 `miniapp/package.json` 里，**根目录直接敲会报 `Missing script`**。根目录有对应的转发脚本：`npm run mp:dev` / `npm run mp:build`。
+
 ## 前置条件
 
 1. 安装 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
@@ -11,7 +26,7 @@
 
 ```bash
 cd miniapp
-npm run build:mp-weixin
+npm run build:mp-weixin    # 或在根目录：npm run mp:build
 ```
 
 编译产物在 `miniapp/dist/build/mp-weixin/`。
@@ -32,14 +47,22 @@ npm run build:mp-weixin
 - 模拟器可切换不同机型测试适配效果
 - 「调试器」面板可查看 console / network / storage
 
-### 4. 开发模式（热更新）
+### 4. 开发模式（热更新，日常迭代走这条）
 
 ```bash
 cd miniapp
-npm run dev:mp-weixin
+npm run dev:mp-weixin      # 或在根目录：npm run mp:dev
 ```
 
-然后在微信开发者工具中打开 `miniapp/dist/dev/mp-weixin`，修改代码后自动编译。
+这条命令会**常驻 watch，终端不要关**。首次编译约 15 秒，看到 `DONE Build complete. Watching for changes...` 即成功（uv-ui 会刷一批 Sass `@import` / `variable-exists` 弃用警告，是依赖自身的问题，不影响编译）。
+
+然后：
+
+1. 微信开发者工具打开 `miniapp/dist/dev/mp-weixin` —— **是 dev，不是 build**
+2. 工具「设置 → 通用 → 文件保存时自动编译」勾上
+3. 改 `miniapp/src/` 下的文件 → 终端自动重编译 → 模拟器自动刷新
+
+产物是编译生成的 wxml / wxss / js，**不要在开发者工具里直接改产物**：下次编译就被覆盖，而且改动无法回流到源码。源码只有 `miniapp/src/`，开发者工具在这套流程里只负责跑模拟器、看调试器、生成预览二维码和上传。
 
 ## H5 模式（浏览器调试）
 

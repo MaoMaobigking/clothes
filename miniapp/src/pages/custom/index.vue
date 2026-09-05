@@ -11,6 +11,9 @@ import {
   type CustomSummary,
 } from '@/api/custom'
 import { isAuthError } from '@/api/http'
+// 模板里的静态图不能写死路径：走云图方案时它得换成远程地址，
+// 而 .vue 模板的 src 字面量会被 uni 当资源引用处理（见 vite.config.ts）
+import { assetUrl } from '@/api/cloud'
 
 const summary = ref<CustomSummary | null>(null)
 const requests = ref<CustomRequest[]>([])
@@ -87,7 +90,7 @@ onShow(loadData)
           <text class="desc">按身材、场合和真实需求进入定制，提交后可追踪进度并与设计师持续沟通。</text>
         </view>
         <view class="intro-image">
-          <image src="/static/images/model/front.png" mode="aspectFit" />
+          <image :src="assetUrl('/static/images/model/front.jpg')" mode="aspectFit" />
         </view>
       </view>
 

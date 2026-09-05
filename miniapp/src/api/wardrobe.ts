@@ -1,5 +1,6 @@
 import type { Garment } from '@/data/mock'
 import { API_BASE_URL, request, uploadFile } from './http'
+import { USE_CLOUD, cloudUploadImage } from './cloud'
 
 export type WardrobeItem = Garment & { fav: boolean }
 
@@ -83,6 +84,29 @@ export async function apiToggleFrequentlyWorn(id: string): Promise<WardrobeItem>
 
 export async function apiUploadGarments(filePaths: string[]): Promise<WardrobeItem[]> {
   const items: WardrobeItem[] = []
+
+  /*
+   * 云开发模式：wx.uploadFile 和 request 受同一套域名校验，传不到裸 IP。
+   * 改成「传云存储 → 换 https → 交给后端下载落盘」，落盘后与 multipart
+   * 那条路产出完全一致（见 server/routes/wardrobe.mjs 的 /upload-remote）。
+   */
+  if (USE_CLOUD) {
+    const urls: string[] = []
+    const fileIDs: string[] = []
+    for (const filePath of filePaths) {
+      const up = await cloudUploadImage(filePath, 'garments')
+      urls.push(up.url)
+      // fileID 一起传：后端拿 url 下载留底，拿 fileID 落库当显示地址
+      fileIDs.push(up.fileID)
+    }
+    const d = await request<{ items?: WardrobeItem[] }>({
+      url: '/api/wardrobe/upload-remote',
+      method: 'POST',
+      data: { urls, fileIDs },
+    })
+    return (d.items || []).map(normalizeGarment)
+  }
+
   for (const filePath of filePaths) {
     const d = await uploadFile<{ item?: WardrobeItem; items?: WardrobeItem[] }>({
       url: '/api/wardrobe/upload',

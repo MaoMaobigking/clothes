@@ -235,6 +235,17 @@ export async function updateGarment(userId, id, partial = {}) {
   return findGarment(userId, id)
 }
 
+/**
+ * 只改图片地址。
+ *
+ * 不能借 updateGarment 办这件事：它整行覆盖那十几个字段，且压根不含 image_url。
+ * 云开发模式下衣物先按 /uploads/ 落库，拿到云存储 fileID 再回来改写成 cloud://。
+ */
+export async function updateGarmentImage(userId, id, img) {
+  await execute('UPDATE garments SET image_url = ? WHERE id = ? AND user_id = ?', [img, id, userId])
+  return findGarment(userId, id)
+}
+
 export async function reorderGarments(userId, ids) {
   await withTransaction(async (conn) => {
     for (let index = 0; index < ids.length; index += 1) {

@@ -12,9 +12,9 @@
  */
 import express from 'express'
 import cors from 'cors'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { logger } from './middleware/logger.mjs'
 import { errorHandler } from './middleware/errorHandler.mjs'
 import garmentRoutes from './routes/garments.mjs'
@@ -38,7 +38,7 @@ import { createAiTaskRouter } from './routes/aiTasks.mjs'
 import { ensureDemoData } from './services/demoSeedService.mjs'
 import { getAiRuntime } from './services/aiService.mjs'
 import { getBailianRuntime } from './services/bailianService.mjs'
-import { initDb, ping, DB_NAME } from './db/mysql.mjs'
+import { initDb, ping, DB_NAME, DB_TARGET, DB_CONFIG_NOTES } from './db/mysql.mjs'
 
 const app = express()
 const here = dirname(fileURLToPath(import.meta.url))
@@ -54,7 +54,37 @@ app.use(express.json({ limit: '12mb' }))
 app.use(logger)
 app.use('/uploads', express.static(uploadDir))
 
+/*
+ * 演示素材（139 张，3.5 MB）。
+ *
+ * 为什么后端要管静态图：微信小程序主包上限 2 MB，这堆图必须出包，
+ * 打包时用 VITE_CLOUD_IMG_BASE 把 /static/images/... 改写成
+ * http://本机地址:8787/images/...（见 miniapp/vite.config.ts）。
+ *
+ * 两个候选目录，按顺序取第一个存在的：
+ *   - <上一级>/images        ← 容器里的布局（deploy/pack-cloudrun.mjs 打出来的
+ *                              zip 里 server/ 和 images/ 是同级）
+ *   - <上一级>/miniapp/src/static/images ← 本机开发时图的原始位置
+ * 想放别处就用环境变量 IMAGES_DIR 指定。
+ */
+const imagesDir = (() => {
+  if (process.env.IMAGES_DIR) return resolve(process.env.IMAGES_DIR)
+  for (const dir of [join(here, '..', 'images'), join(here, '..', 'miniapp', 'src', 'static', 'images')]) {
+    if (existsSync(dir)) return dir
+  }
+  return join(here, '..', 'images')
+})()
+// immutable：这些图文件名固定、内容不变，让微信/浏览器长期缓存，别每次演示都重下
+app.use('/images', express.static(imagesDir, { maxAge: '30d', immutable: true }))
+
 /* ============ 健康检查 ============ */
+/*
+ * 根路径探活。微信云托管默认拿 GET / 判断容器是否健康，返回 404 会被判定为
+ * 启动失败、然后无限重启 —— 而日志里看不出任何错误，属于纯浪费时间的坑。
+ * 保持极轻：不碰数据库，只证明进程活着在监听。
+ */
+app.get('/', (_req, res) => res.json({ ok: true, service: 'ai-fashion-server' }))
+
 app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
@@ -97,7 +127,10 @@ app.use(errorHandler)
  * 每个请求各自 500 —— 属于最难查的那类故障。宁可起不来，也别半死不活。
  */
 async function bootstrap() {
-  const dbHost = `${process.env.MYSQL_HOST || 'localhost'}:${process.env.MYSQL_PORT || 3306}`
+  // 配置体检要在连库【之前】打，否则一旦连不上，人只看得到驱动层那句
+  // getaddrinfo / ECONNREFUSED，看不出是自己哪一格填串了。
+  for (const note of DB_CONFIG_NOTES) console.warn(`⚠️ 数据库配置：${note}`)
+  const dbHost = DB_TARGET
   try {
     await initDb()
     await ping()
@@ -116,8 +149,19 @@ async function bootstrap() {
     const demoSeed = await ensureDemoData()
     console.log(`✅ 演示账号已就绪: ${demoSeed.filter((item) => item.ok).length}/${demoSeed.length}`)
   } catch (err) {
-    console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${err.message}`)
-    console.error('   排查：1) 容器是否启动 docker ps  2) .env 里 MYSQL_PORT/PASSWORD 是否对\n')
+    const reason = [err.code, err.message].filter(Boolean).join(' ') || '(驱动没给原因)'
+    console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${reason}`)
+    if (!process.env.MYSQL_HOST) {
+      // 云托管上最常见的死法：环境变量面板漏了 MYSQL_HOST，于是回落到上面那个
+      // localhost，而容器里当然没有 MySQL —— 表现成「镜像构建成功，部署时反复重启」
+      // （Back-off restarting failed container）。所以这里要把「兜底值」这件事说出来，
+      // 否则日志里那个 localhost 看着像是配错了地址。
+      console.error('   ⚠️ MYSQL_HOST 没有设置，上面的 localhost 是代码兜底值，不是你配的地址。')
+      console.error('   · 云托管：服务设置 → 环境变量，补 MYSQL_HOST（MySQL 实例的【内网】地址）和 MYSQL_PASSWORD，然后重新部署')
+      console.error('   · 本机：检查 server/.env\n')
+    } else {
+      console.error('   排查：1) 数据库实例在不在运行  2) MYSQL_PORT / MYSQL_PASSWORD 对不对  3) 容器到数据库网络通不通\n')
+    }
     process.exit(1)
   }
 
