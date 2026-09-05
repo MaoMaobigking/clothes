@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { fetchMallProducts, type MallCategory, type MallProduct } from '@/api/mall'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
 import { mallProductToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'

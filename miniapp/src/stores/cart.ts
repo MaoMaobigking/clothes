@@ -12,7 +12,7 @@ import {
   type CartItem,
   type CartItemType,
 } from '@/api/cart'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 /**
  * 购物车 store（规格 §4.5 §13）

@@ -16,7 +16,7 @@
  * 排查只能靠猜。这三个钩子把错误直接弹到屏幕上，白屏至少变成「白屏 + 一句话原因」。
  */
 import { fetchMe } from '@/api/auth'
-import { getToken, redirectToLogin } from '@/api/http'
+import { getToken, redirectToLogin } from '@/utils/request'
 
 // 同一条错误只弹一次，否则渲染循环里抛错会把弹窗刷爆
 const reported = new Set()

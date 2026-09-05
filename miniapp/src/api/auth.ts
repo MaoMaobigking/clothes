@@ -10,7 +10,7 @@
  * 全部走 publicRequest：登录时手里的 token 可能已经失效，
  * 带上去只会被 401 拦截器踢回登录页。
  */
-import { getDevTag, publicRequest, request } from './http'
+import { getDevTag, publicRequest, request } from '@/utils/request'
 
 export interface LoginResult {
   token: string

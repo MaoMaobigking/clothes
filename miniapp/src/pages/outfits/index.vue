@@ -13,7 +13,7 @@ import { computed, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { listSceneOutfits, type SavedSceneOutfit } from '@/api/scene'
 import { apiListOutfits, type Outfit } from '@/api/wardrobe'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { piecesFromOutfit, piecesFromSceneItems, type OutfitPiece } from '@/utils/outfitPieces'
 
 type SourceKey = 'wardrobe' | 'scene'

@@ -5,7 +5,7 @@
  * 提交订单后状态停在 created，付款 / 发货 / 收货由订单详情页的演示按钮推进。
  * 微信支付需要商户号和企业主体，demo 拿不到，所以不做半截的假支付。
  */
-import { request } from './http'
+import { request } from '@/utils/request'
 import type { CartItem } from './cart'
 
 export interface ShopAddress {

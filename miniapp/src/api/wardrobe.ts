@@ -1,6 +1,6 @@
 import type { Garment } from '@/data/mock'
-import { API_BASE_URL, request, uploadFile } from './http'
-import { USE_CLOUD, cloudUploadImage } from './cloud'
+import { API_BASE_URL, request, uploadFile } from '@/utils/request'
+import { USE_CLOUD, cloudUploadImage } from '@/utils/cloud'
 
 export type WardrobeItem = Garment & { fav: boolean }
 

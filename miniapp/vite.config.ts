@@ -27,7 +27,7 @@ function rewriteStaticImages(base: string): Plugin {
     enforce: 'pre',
     transform(code, id) {
       // cloud.ts 里的 assetUrl 自己要拿这个前缀做判断，替了它就永远不匹配了
-      if (id.includes('node_modules') || id.includes('api/cloud.ts')) return null
+      if (id.includes('node_modules') || id.includes('utils/cloud.ts')) return null
       /*
        * 只处理 .ts。.vue 模板里的 `<image src="/static/...">` 会被 uni 的
        * transformAssetUrls 当成资源引用提升成 import，改成 cloud:// 之后

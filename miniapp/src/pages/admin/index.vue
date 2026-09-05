@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { fetchAdminDashboard, type AdminDashboard } from '@/api/community'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()

@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { bookmarkCommunityContent, fetchCommunityContent, type CommunityContent } from '@/api/community'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)

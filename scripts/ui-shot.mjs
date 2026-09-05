@@ -64,7 +64,7 @@ const page = await ctx.newPage()
  * 把后端请求就地伪造成 503，让截图结果和后端状态解耦。
  *
  * 匹配用的是「路径以 /api/ 开头」而不是 glob `**\/api/**`：后者会连
- * /src/api/http.ts 这些**应用自己的源码模块**一起拦掉（dev 下 Vite 就是按源码
+ * /src/api/wardrobe/index.ts 这些**应用自己的源码模块**一起拦掉（dev 下 Vite 就是按源码
  * 路径提供的），等于把 app 的 JS 换成 JSON，整页白屏。
  *
  * 为什么不是 abort：abort 掉的请求会让 waitUntil:'networkidle' 永远等不到，

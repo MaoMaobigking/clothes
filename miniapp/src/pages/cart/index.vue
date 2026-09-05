@@ -10,7 +10,7 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/stores/cart'
 import { resolveImageUrl } from '@/api/wardrobe'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import type { CartItem } from '@/api/cart'
 
 const cart = useCartStore()

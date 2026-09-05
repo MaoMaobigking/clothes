@@ -13,7 +13,7 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { apiUpdateMe, fetchMe } from '@/api/auth'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { useAuthStore } from '@/stores/auth'
 import { iconForEmoji } from '@/utils/icons'
 

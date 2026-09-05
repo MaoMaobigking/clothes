@@ -7,7 +7,7 @@ import {
   type CommunityContent,
   type CommunityContentType,
 } from '@/api/community'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const TABS: { key: CommunityContentType; label: string }[] = [
   { key: 'magazine', label: '杂志推送' },

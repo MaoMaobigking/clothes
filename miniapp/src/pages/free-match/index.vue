@@ -6,7 +6,7 @@ import { useProfileStore } from '@/stores/profile'
 import { MODEL_IMAGES, SCENES, type Garment, type Scene } from '@/data/mock'
 import { apiCreateOutfit, apiStarOutfit } from '@/api/wardrobe'
 import { apiTryonEnabled, runTryon } from '@/api/tryon'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 import { MOMENT_HINT_PREVIEW, copyText } from '@/utils/share'
 

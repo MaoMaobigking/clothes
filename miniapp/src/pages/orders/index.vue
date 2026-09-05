@@ -9,7 +9,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { fetchOrders, type ShopOrder } from '@/api/order'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const orders = ref<ShopOrder[]>([])
 const loading = ref(true)

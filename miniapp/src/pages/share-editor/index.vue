@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { createCommunityShare } from '@/api/community'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const caption = ref('')
 const description = ref('')

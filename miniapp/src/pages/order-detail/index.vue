@@ -13,7 +13,7 @@
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { advanceOrder, fetchOrder, type ShopOrder } from '@/api/order'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const order = ref<ShopOrder | null>(null)
 const loading = ref(true)

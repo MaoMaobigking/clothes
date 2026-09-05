@@ -3,7 +3,7 @@ import { onMounted, computed, ref } from 'vue'
 import { AI_FEATURES, OUTFIT_RECOS, WEATHER, LOGO, MODEL_IMAGES } from '@/data/mock'
 import { iconForEmoji } from '@/utils/icons'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { useProfileStore } from '@/stores/profile'
 import { useWishlistStore } from '@/stores/wishlist'
 

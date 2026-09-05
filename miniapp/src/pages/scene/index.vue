@@ -27,7 +27,7 @@ import {
   type ScenePlanResult,
   type SceneWeatherInfo,
 } from '@/api/scene'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { useProfileStore } from '@/stores/profile'
 import { useWardrobeStore } from '@/stores/wardrobe'
 /*

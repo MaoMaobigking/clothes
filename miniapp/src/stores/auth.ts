@@ -15,7 +15,7 @@ import {
   loginByWechatCode,
   type LoginResult,
 } from '@/api/auth'
-import { LOGIN_PAGE, clearToken, getToken, setAuthToken } from '@/api/http'
+import { LOGIN_PAGE, clearToken, getToken, setAuthToken } from '@/utils/request'
 import { useProfileStore } from './profile'
 import { useWardrobeStore } from './wardrobe'
 import { useCartStore } from './cart'

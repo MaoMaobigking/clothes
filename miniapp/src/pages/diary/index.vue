@@ -13,7 +13,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { apiDeleteDiary, apiListDiary, apiSaveDiary, type DiaryEntry } from '@/api/diary'
 import { apiListOutfits, type Outfit } from '@/api/wardrobe'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
