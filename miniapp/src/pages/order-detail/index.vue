@@ -193,43 +193,51 @@ function confirmCancel() {
   min-height: 0;
   padding: 12rpx 30rpx 48rpx;
 }
+
 .state {
   padding: 120rpx 40rpx;
-  text-align: center;
-  color: var(--text-3);
   font-size: 26rpx;
+  color: var(--text-3);
+  text-align: center;
 }
+
 .state.error {
   color: #d04c5b;
 }
+
 .card {
-  margin-top: 20rpx;
   padding: 22rpx;
-  border-radius: var(--radius);
+  margin-top: 20rpx;
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .head {
   display: flex;
+  gap: 16rpx;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .status {
   font-size: 32rpx;
   font-weight: 700;
   color: var(--pink-deep);
 }
+
 .order-no {
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .card-title {
   margin-bottom: 10rpx;
   font-size: 28rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .cancelled-tip {
   display: block;
   font-size: 21rpx;
@@ -242,56 +250,64 @@ function confirmCancel() {
   margin-top: 28rpx;
   margin-bottom: 20rpx;
 }
+
 .progress-step {
-  flex: 1;
-  min-width: 0;
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
+  min-width: 0;
   color: var(--text-3);
 }
+
 .progress-step::before {
-  content: '';
   position: absolute;
   top: 23rpx;
   right: 50%;
   width: 100%;
   height: 4rpx;
+  content: '';
   background: #e7e1f0;
 }
+
 .progress-step:first-child::before {
   display: none;
 }
+
 .progress-step.done::before,
 .progress-step.current::before {
   background: linear-gradient(90deg, var(--pink), var(--purple));
 }
+
 .progress-dot {
   position: relative;
   z-index: 1;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e7e1f0;
-  color: var(--text-3);
+  width: 48rpx;
+  height: 48rpx;
   font-size: 20rpx;
   font-weight: 500;
+  color: var(--text-3);
+  background: #e7e1f0;
+  border-radius: 50%;
 }
+
 .progress-step.done .progress-dot,
 .progress-step.current .progress-dot {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
   box-shadow: var(--shadow-card);
 }
+
 .progress-label {
   font-size: 20rpx;
   white-space: nowrap;
 }
+
 .progress-step.done,
 .progress-step.current {
   color: var(--text-1);
@@ -299,80 +315,94 @@ function confirmCancel() {
 
 .row {
   display: flex;
+  gap: 24rpx;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24rpx;
   padding: 12rpx 0;
   border-bottom: 1px solid var(--line);
 }
+
 .row:last-of-type {
   border-bottom: none;
 }
+
 .row.total {
   padding-top: 16rpx;
   border-top: 1px solid var(--line);
   border-bottom: none;
 }
+
 .k {
   flex-shrink: 0;
   font-size: 23rpx;
   color: var(--text-3);
 }
+
 .v {
   flex: 1;
   min-width: 0;
-  text-align: right;
   font-size: 24rpx;
   color: var(--text-1);
+  text-align: right;
 }
+
 .cut,
 .pay {
   color: var(--pink-deep);
 }
+
 .pay {
   font-size: 32rpx;
   font-weight: 700;
 }
+
 .goods {
   display: flex;
-  align-items: center;
   gap: 16rpx;
+  align-items: center;
   padding: 12rpx 0;
   border-bottom: 1px solid var(--line);
 }
+
 .goods:last-of-type {
   border-bottom: none;
 }
+
 .goods-img {
-  width: 88rpx;
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
+  width: 88rpx;
   overflow: hidden;
+  border-radius: var(--radius-sm);
 }
+
 .goods-name {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 24rpx;
   color: var(--text-1);
-  overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
+
 .goods-right {
   flex-shrink: 0;
   text-align: right;
 }
+
 .goods-price {
   display: block;
   font-size: 24rpx;
   font-weight: 700;
   color: var(--pink-deep);
 }
+
 .goods-qty {
   display: block;
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .demo-note {
   display: block;
   margin-top: 22rpx;
@@ -380,17 +410,21 @@ function confirmCancel() {
   line-height: 1.55;
   color: var(--text-3);
 }
+
 .actions {
   display: flex;
   gap: 16rpx;
   margin-top: 16rpx;
 }
+
 .act {
   flex: 1;
 }
+
 .act.disabled {
   opacity: 0.6;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

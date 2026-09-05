@@ -49,9 +49,11 @@
 .hairline {
   border: var(--hairline);
 }
+
 .hairline-t {
   border-top: var(--hairline);
 }
+
 .hairline-b {
   border-bottom: var(--hairline);
 }
@@ -69,10 +71,11 @@
   justify-content: center;
   height: 100rpx;
   padding: 0 30rpx;
-  border-radius: var(--radius-pill);
   font-size: 30rpx;
   font-weight: 500;
+  border-radius: var(--radius-pill);
 }
+
 /*
  * 主按钮。
  * --brand-gradient 现在是纯色 #ff5c9d（不再是渐变），63 处调用点跟着一起变。
@@ -80,25 +83,28 @@
  * 原来这里是 0 16rpx 40rpx rgba(177,140,255,0.4) —— 40rpx 扩散的紫光晕。
  */
 .btn-primary {
-  background: var(--brand-gradient);
   color: var(--text-on-brand);
+  background: var(--brand-gradient);
 }
+
 /* 次按钮＝uv-ui 的 plain 形态：白底 + 发丝边 + 主文字色，不是白底 + 投影 */
 .btn-ghost {
+  color: var(--text-1);
   background: var(--surface);
   border: var(--hairline);
-  color: var(--text-1);
 }
+
 /* 禁用态取 uv-ui 的 $uv-bg-color 底 + $uv-light-color 字 */
 .btn-disabled {
-  background: var(--bg-page);
   color: var(--text-4);
+  background: var(--bg-page);
   box-shadow: none;
 }
+
 /* 小按钮对齐 uv-button 的 small 档：height 30px = 60rpx、font-size 12px = 24rpx */
 .btn-sm {
-  height: 60rpx;
   min-width: 120rpx;
+  height: 60rpx;
   padding: 0 24rpx;
   font-size: 24rpx;
 }
@@ -111,12 +117,13 @@
  * --shadow-card 有 104 处调用点，值已在 tokens.css 收到近乎不可见，这里靠边框承担分离感。
  */
 .card {
+  padding: var(--gap);
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius);
-  padding: var(--gap);
   box-shadow: var(--shadow-card);
 }
+
 /*
  * 毛玻璃卡。第二轮曾把它压成实心白（理由：uv-ui 无半透明面，
  * 且 backdrop-filter 在安卓端小程序不生效）；第三轮按「顶部微气象/情景卡走毛玻璃」
@@ -155,36 +162,38 @@
   align-items: center;
   align-self: flex-start;
   padding: 8rpx 24rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  border: var(--hairline);
   font-size: 24rpx;
   color: var(--text-2);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-pill);
 }
+
 /* 品牌色标签＝uv-ui 的 primary plain tag：极浅主色底 + 主色字 + 无边框 */
 .tag-pill-brand {
+  color: var(--pink-deep);
   background: var(--pink-soft);
   border-color: transparent;
-  color: var(--pink-deep);
 }
 
 /* 可点的筛选片，配合 .row-scroll 用 */
 .chip {
   display: inline-flex;
   align-items: center;
-  margin-right: 12rpx;
   padding: 10rpx 26rpx;
-  border-radius: var(--radius-pill);
+  margin-right: 12rpx;
+  font-size: 24rpx;
+  color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
-  color: var(--text-2);
-  font-size: 24rpx;
+  border-radius: var(--radius-pill);
 }
+
 /* 选中态：主色实底。uv-ui 的选中就是纯主色，不是渐变 */
 .chip.on {
+  color: var(--text-on-brand);
   background: var(--pink-deep);
   border-color: var(--pink-deep);
-  color: var(--text-on-brand);
   box-shadow: none;
 }
 
@@ -211,13 +220,14 @@
   justify-content: center;
   height: var(--btn-h-sm);
   padding: 0 26rpx;
-  border: none;
-  border-radius: var(--radius-pill);
   font-size: 24rpx;
   font-weight: 500;
   line-height: 1;
+  border: none;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-jelly);
 }
+
 /*
  * uni-app 给 <button> 塞了一个 ::after 伪元素做默认边框
  * （1px solid rgba(0,0,0,.2) + border-radius:10px）。
@@ -228,23 +238,28 @@
 .pill-macaron::after {
   border: none;
 }
+
 .pill-macaron-pink {
-  background: var(--macaron-pink);
   color: var(--macaron-pink-ink);
+  background: var(--macaron-pink);
 }
+
 .pill-macaron-mint {
-  background: var(--macaron-mint);
   color: var(--macaron-mint-ink);
+  background: var(--macaron-mint);
 }
+
 .pill-macaron-violet {
-  background: var(--macaron-violet);
   color: var(--macaron-violet-ink);
+  background: var(--macaron-violet);
 }
+
 /* 按下 / 忙碌态：压扁内发光，果冻被按下去的感觉。不改颜色，改的是光 */
 .pill-macaron.busy,
 .pill-macaron:active {
-  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 2rpx 4rpx rgb(0 0 0 / 6%);
 }
+
 .pill-macaron.busy {
   opacity: 0.7;
 }
@@ -256,6 +271,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: var(--gap);
 }
+
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -266,22 +282,25 @@
 
 /* 文字规格对齐 uv-empty：14px = 28rpx，色用 $uv-tips-color */
 .empty {
-  padding: 96rpx 40rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: var(--gap-sm);
+  align-items: center;
+  padding: 96rpx 40rpx;
   text-align: center;
 }
+
 .empty-title {
   font-size: 28rpx;
   color: var(--text-3);
 }
+
 .empty-sub {
   font-size: 24rpx;
-  color: var(--text-4);
   line-height: 1.5;
+  color: var(--text-4);
 }
+
 .empty-btn {
   margin-top: var(--gap-xs);
 }
@@ -299,16 +318,14 @@
  */
 .mask {
   position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   z-index: var(--z-mask);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgb(0 0 0 / 35%);
 }
+
 /* 居中弹窗而不是底部抽屉 */
 .mask-center {
   align-items: center;
@@ -338,20 +355,22 @@
   z-index: var(--z-sheet);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   width: 100%;
   max-height: 82vh;
   padding: 32rpx 30rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  overflow: hidden;
   background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: var(--shadow-float);
 }
+
 .sheet-center {
   width: 84%;
   max-width: 640rpx;
-  border-radius: var(--radius-lg);
   padding: 40rpx;
+  border-radius: var(--radius-lg);
 }
+
 /* 标题规格对齐 uv-cell-group 的 title：30rpx + 主文字色，不加粗 */
 .sheet-title {
   margin-bottom: var(--gap-lg);
@@ -365,17 +384,17 @@
 /* 对齐 uv-toast：深色实底 + 小圆角（4px = 8rpx），不是胶囊 */
 .toast {
   position: fixed;
-  left: 50%;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 160rpx);
-  transform: translateX(-50%);
+  left: 50%;
   z-index: var(--z-toast);
   max-width: 80%;
   padding: 18rpx 32rpx;
-  border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
   font-size: 28rpx;
+  color: #fff;
   text-align: center;
+  background: rgb(0 0 0 / 75%);
+  border-radius: var(--radius);
+  transform: translateX(-50%);
 }
 
 /* ---------------- 小节标题 ---------------- */
@@ -392,6 +411,7 @@
   font-size: 30rpx;
   color: var(--text-1);
 }
+
 .section-sub {
   margin-top: 4rpx;
   font-size: 24rpx;

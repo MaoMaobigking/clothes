@@ -362,31 +362,35 @@ defineExpose({ resetView, zoom, setEngine, setView })
 
 .stage {
   position: relative;
-  width: 100%;
-  /* 比人台基准高度留出余量，身高拉满时不被裁掉 */
-  height: 680rpx;
-  perspective: 900px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+
+  /* 比人台基准高度留出余量，身高拉满时不被裁掉 */
+  height: 680rpx;
   overflow: hidden;
+  perspective: 900px;
 }
 
 .figure {
   position: relative;
+  z-index: 2;
   width: 360rpx;
   height: 560rpx;
-  transform-style: preserve-3d;
+  filter: drop-shadow(0 32rpx 48rpx rgb(0 0 0 / 18%));
+
   /* 以脚下为基准缩放：长高往上长，不会陷进地台 */
   transform-origin: center bottom;
+  transform-style: preserve-3d;
   transition: transform 0.06s linear;
-  filter: drop-shadow(0 32rpx 48rpx rgba(0, 0, 0, 0.18));
-  z-index: 2;
 }
+
 .model-img {
   width: 100%;
   height: 100%;
 }
+
 /* 肩 / 腰 / 臀分段：段内图片按整体高度排版后裁切，再各自横向缩放 */
 .seg {
   position: absolute;
@@ -394,11 +398,13 @@ defineExpose({ resetView, zoom, setEngine, setView })
   width: 100%;
   overflow: hidden;
 }
+
 .seg-img {
   position: absolute;
   left: 0;
   width: 100%;
 }
+
 .emoji {
   font-size: 192rpx;
 }
@@ -411,49 +417,57 @@ defineExpose({ resetView, zoom, setEngine, setView })
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 4rpx solid rgba(255, 255, 255, 0.86);
-  box-shadow: 0 8rpx 22rpx rgba(0, 0, 0, 0.14);
+  border: 4rpx solid rgb(255 255 255 / 86%);
+  box-shadow: 0 8rpx 22rpx rgb(0 0 0 / 14%);
   transform: translateX(-50%);
 }
+
 /* 背面视角整个人台是镜像的，配饰再反一次才不会左右颠倒 */
 .accessory-overlay.mirrored {
   transform: translateX(-50%) scaleX(-1);
 }
+
 .slot-jewelry {
   top: 20%;
   width: 54rpx;
   height: 54rpx;
   border-radius: 50%;
 }
+
 .slot-hat {
   top: -3%;
   width: 150rpx;
   height: 82rpx;
   border-radius: 48% 48% 20rpx 20rpx;
 }
+
 .slot-scarf {
   top: 31%;
   width: 126rpx;
   height: 60rpx;
   border-radius: var(--radius-pill);
 }
+
 .slot-belt {
   top: 63%;
   width: 134rpx;
   height: 28rpx;
   border-radius: var(--radius-pill);
 }
+
 .slot-shoes {
-  bottom: 1%;
   top: auto;
+  bottom: 1%;
   width: 146rpx;
   height: 54rpx;
   border-radius: var(--radius-pill) 999rpx 28rpx 28rpx;
 }
+
 .accessory-overlay-img {
   width: 100%;
   height: 100%;
 }
+
 .accessory-overlay-emoji {
   font-size: 38rpx;
   line-height: 1;
@@ -463,21 +477,21 @@ defineExpose({ resetView, zoom, setEngine, setView })
 .podium {
   position: absolute;
   bottom: 68rpx;
+  z-index: 1;
   width: 380rpx;
   height: 96rpx;
+  background: radial-gradient(ellipse at center, rgb(0 0 0 / 18%), rgb(0 0 0 / 6%) 70%, transparent);
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.06) 70%, transparent);
-  z-index: 1;
 }
 
 .tag {
   position: absolute;
   top: 24rpx;
   right: 24rpx;
+  padding: 8rpx 20rpx;
   font-size: 22rpx;
   color: var(--text-3);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 8rpx 20rpx;
+  background: rgb(255 255 255 / 72%);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
@@ -487,11 +501,11 @@ defineExpose({ resetView, zoom, setEngine, setView })
   bottom: 20rpx;
   left: 24rpx;
   z-index: 3;
+  padding: 8rpx 20rpx;
   font-size: 22rpx;
   font-weight: 700;
   color: var(--purple-deep);
-  background: rgba(255, 255, 255, 0.78);
-  padding: 8rpx 20rpx;
+  background: rgb(255 255 255 / 78%);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
@@ -503,59 +517,64 @@ defineExpose({ resetView, zoom, setEngine, setView })
   right: 24rpx;
   z-index: 6;
   max-width: 62%;
+  padding: 10rpx 20rpx;
   font-size: 21rpx;
   font-weight: 700;
   color: var(--warning);
-  background: rgba(255, 243, 240, 0.94);
-  padding: 10rpx 20rpx;
+  background: rgb(255 243 240 / 94%);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
 
 .controls {
   display: flex;
-  align-items: center;
   gap: 24rpx;
+  align-items: center;
   margin-top: 12rpx;
 }
+
 .view-switch {
   display: flex;
   gap: 8rpx;
-  margin-top: 18rpx;
-  background: rgba(255, 255, 255, 0.72);
-  border-radius: var(--radius-pill);
   padding: 6rpx;
+  margin-top: 18rpx;
+  background: rgb(255 255 255 / 72%);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .view-option {
-  min-width: 112rpx;
-  height: 56rpx;
-  padding: 0 24rpx;
-  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 112rpx;
+  height: 56rpx;
+  padding: 0 24rpx;
   font-size: 24rpx;
   font-weight: 700;
   color: var(--text-2);
+  border-radius: var(--radius-pill);
 }
+
 .view-option.on {
   color: #fff;
   background: var(--brand-gradient);
 }
+
 .ctrl {
-  width: 84rpx;
-  height: 80rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text-1);
-  font-size: 36rpx;
-  font-weight: 700;
-  box-shadow: var(--shadow-card);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 84rpx;
+  height: 80rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-1);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
+
 .ctrl.reset {
   font-size: 40rpx;
   color: var(--purple-deep);

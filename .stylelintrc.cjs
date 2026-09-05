@@ -49,5 +49,9 @@ module.exports = {
         ignorePseudoClasses: ['global', 'v-deep', 'deep'],
       },
     ],
+    // word-break: break-word 已被标记废弃，但它和标准替代 overflow-wrap: break-word
+    // 的断行行为并不完全等价。仓库里有两处在用，纯为过 lint 去改文字排版不划算，
+    // 放行；将来要迁移得连带回归这两个页面的换行效果。
+    'declaration-property-value-keyword-no-deprecated': [true, { ignoreKeywords: ['break-word'] }],
   },
 }

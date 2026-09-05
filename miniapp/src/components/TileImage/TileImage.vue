@@ -159,30 +159,32 @@ const tileStyle = computed(() => ({
   width: 100%;
   overflow: hidden;
 }
+
 /* 中性占位底：浅灰偏冷。只在「没有图」时铺，图加载出来了就不该再垫一层灰底
    —— 抠图立绘（模特那种透明 PNG）会被这层灰框住，看着像贴了张卡片。 */
 .tile-plain {
   background: var(--surface-placeholder);
 }
+
 .tile-inner {
   position: relative;
   width: 100%;
 }
+
 /* fill 模式下撑满父容器，供左图右文这类需要图片占满整列的卡片使用 */
 .tile-fill {
   height: 100%;
   padding-top: 0;
 }
+
 .tile-content {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 /* 原来这里有 .img { width:100%; height:100% }，随 <image> 换成 <uv-image> 一起删掉了
    —— 尺寸现在由 uv-image 的 width/height prop 传，不再靠 class */
 .label {

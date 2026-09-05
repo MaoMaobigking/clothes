@@ -212,186 +212,220 @@ function goCheckout() {
   min-height: 0;
   padding: 12rpx 30rpx 24rpx;
 }
+
 .state {
   padding: 120rpx 40rpx;
-  text-align: center;
-  color: var(--text-3);
   font-size: 26rpx;
+  color: var(--text-3);
+  text-align: center;
 }
+
 .state.error {
   color: #d04c5b;
 }
+
 .empty-emoji {
   display: block;
-  font-size: 96rpx;
   margin-bottom: 18rpx;
+  font-size: 96rpx;
 }
+
 .empty-title {
-  color: var(--text-1);
   font-size: 30rpx;
   font-weight: 700;
+  color: var(--text-1);
 }
+
 .empty-sub {
   margin-top: 10rpx;
   font-size: 24rpx;
 }
+
 .empty-btn {
-  margin: 36rpx auto 0;
   width: 320rpx;
+  margin: 36rpx auto 0;
 }
+
 .notice {
-  margin-bottom: 16rpx;
   padding: 16rpx 20rpx;
-  border-radius: var(--radius);
-  background: #fff4e5;
-  color: #a05a12;
+  margin-bottom: 16rpx;
   font-size: 22rpx;
+  color: #a05a12;
+  background: #fff4e5;
+  border-radius: var(--radius);
 }
+
 .row {
   display: flex;
   gap: 18rpx;
   padding: 22rpx 0;
   border-bottom: 1px solid var(--line);
 }
+
 .row.off {
   opacity: 0.6;
 }
+
 .thumb {
-  width: 150rpx;
   flex-shrink: 0;
+  width: 150rpx;
 }
+
 .info {
   flex: 1;
   min-width: 0;
 }
+
 .name-line {
   display: flex;
   align-items: center;
 }
+
 .name {
   flex: 1;
-  color: var(--text-1);
-  font-size: 27rpx;
-  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 27rpx;
+  font-weight: 700;
+  color: var(--text-1);
   white-space: nowrap;
 }
+
 .tags {
-  margin-top: 8rpx;
   display: flex;
   flex-wrap: wrap;
   gap: 8rpx;
+  margin-top: 8rpx;
 }
+
 .tag {
   padding: 4rpx 12rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface-tint);
-  color: var(--purple-deep);
   font-size: 19rpx;
+  color: var(--purple-deep);
+  background: var(--surface-tint);
+  border-radius: var(--radius-pill);
 }
+
 .tag-outfit {
-  background: #ffeef5;
   color: #c0507a;
+  background: #ffeef5;
 }
+
 .tag-off {
-  background: #eee;
   color: #888;
+  background: #eee;
 }
+
 .price-line {
-  margin-top: 10rpx;
   display: flex;
-  align-items: baseline;
   gap: 12rpx;
+  align-items: baseline;
+  margin-top: 10rpx;
 }
+
 .price {
-  color: #d04c5b;
   font-size: 28rpx;
   font-weight: 700;
+  color: #d04c5b;
 }
+
 .brand {
-  color: var(--text-3);
   font-size: 20rpx;
+  color: var(--text-3);
 }
+
 .ops {
-  margin-top: 14rpx;
   display: flex;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
+  margin-top: 14rpx;
 }
+
 .stepper {
   display: flex;
   align-items: center;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
-  overflow: hidden;
 }
+
 .step {
-  width: 52rpx;
-  height: 48rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-1);
+  width: 52rpx;
+  height: 48rpx;
   font-size: 30rpx;
+  color: var(--text-1);
   background: var(--surface-tint);
 }
+
 .step.disabled {
   color: #c4c0cc;
 }
+
 .qty {
   min-width: 56rpx;
-  text-align: center;
   font-size: 24rpx;
   font-weight: 700;
   color: var(--text-1);
+  text-align: center;
 }
+
 .op-btn {
   padding: 10rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface-tint);
-  color: var(--purple-deep);
   font-size: 20rpx;
   font-weight: 700;
+  color: var(--purple-deep);
+  background: var(--surface-tint);
+  border-radius: var(--radius-pill);
 }
+
 .op-del {
-  background: #fdeef0;
   color: #d04c5b;
+  background: #fdeef0;
 }
+
 .tail {
   padding: 30rpx 0 10rpx;
-  text-align: center;
-  color: var(--text-3);
   font-size: 21rpx;
+  color: var(--text-3);
+  text-align: center;
 }
+
 .bar {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
   padding: 20rpx 30rpx calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
   background: #fff;
+  border-top: 1px solid var(--line);
 }
+
 .bar-sum {
   flex: 1;
   min-width: 0;
 }
+
 .bar-label {
   display: block;
-  color: var(--text-3);
   font-size: 21rpx;
+  color: var(--text-3);
 }
+
 .bar-price {
-  color: #d04c5b;
   font-size: 34rpx;
   font-weight: 700;
+  color: #d04c5b;
 }
+
 .bar-btn {
   /* 底部条现在是两个按钮（继续挑选 / 去结算），固定 240rpx 会挤爆小屏 */
   flex: 1;
   min-width: 0;
   max-width: 240rpx;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

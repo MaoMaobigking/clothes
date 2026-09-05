@@ -121,144 +121,165 @@ async function generate() {
 
 <style scoped>
 .summary {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   padding: 12rpx 32rpx 18rpx;
 }
+
 .summary-title {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .summary-sub {
   margin-top: 4rpx;
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .clear {
   padding: 12rpx 24rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  color: var(--pink-deep);
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--pink-deep);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
+
 .filters {
   flex-shrink: 0;
   padding: 4rpx 32rpx 20rpx;
   white-space: nowrap;
 }
+
 .filter {
   display: inline-flex;
-  margin-right: 14rpx;
   padding: 13rpx 28rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface-soft);
-  box-shadow: var(--shadow-card);
-  color: var(--text-2);
+  margin-right: 14rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-soft);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
+
 .filter.on {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
 }
+
 .body {
   flex: 1;
   min-height: 0;
   padding: 8rpx 32rpx 28rpx;
 }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18rpx;
 }
+
 .garment {
   position: relative;
   padding: 10rpx;
+  background: var(--surface);
   border: 4rpx solid transparent;
   border-radius: var(--radius-lg);
-  background: var(--surface);
   box-shadow: var(--shadow-card);
 }
+
 .garment.selected {
   border-color: var(--pink);
   transform: translateY(-4rpx);
 }
+
 .check {
   position: absolute;
   top: 22rpx;
   right: 22rpx;
   z-index: 3;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--pink-deep);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
   font-size: 28rpx;
   font-weight: 500;
+  color: var(--pink-deep);
+  background: rgb(255 255 255 / 90%);
+  border-radius: 50%;
 }
+
 .garment-name {
   margin: 14rpx 4rpx 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 23rpx;
   font-weight: 700;
   color: var(--text-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .garment-tags {
   margin: 4rpx 4rpx 8rpx;
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .frequent {
   margin-left: 8rpx;
-  color: var(--success);
   font-weight: 700;
+  color: var(--success);
 }
+
 .empty {
   padding-top: 180rpx;
-  text-align: center;
-  color: var(--text-3);
   font-size: 27rpx;
+  color: var(--text-3);
+  text-align: center;
 }
+
 .footer {
   flex-shrink: 0;
   padding: 16rpx 32rpx calc(18rpx + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  background: rgb(255 255 255 / 84%);
+  box-shadow: 0 -4rpx 16rpx rgb(0 0 0 / 6%);
 }
+
 .selected-list {
   min-height: 58rpx;
   margin-bottom: 10rpx;
 }
+
 .selected-scroll {
   white-space: nowrap;
 }
+
 .selected-chip {
   display: inline-flex;
   max-width: 300rpx;
-  margin-right: 10rpx;
   padding: 10rpx 20rpx;
-  border-radius: var(--radius-pill);
-  background: #fff0f5;
-  color: var(--pink-deep);
-  font-size: 21rpx;
-  font-weight: 700;
+  margin-right: 10rpx;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 21rpx;
+  font-weight: 700;
+  color: var(--pink-deep);
   white-space: nowrap;
+  background: #fff0f5;
+  border-radius: var(--radius-pill);
 }
+
 .generate {
   width: 100%;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

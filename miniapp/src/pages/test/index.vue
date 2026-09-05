@@ -112,10 +112,12 @@ function viewReport() {
     opacity 0.2s ease,
     transform 0.2s ease;
 }
+
 .slide-enter-from {
   opacity: 0;
   transform: translateX(48rpx);
 }
+
 .slide-leave-to {
   opacity: 0;
   transform: translateX(-48rpx);
@@ -123,16 +125,16 @@ function viewReport() {
 
 .hint-toast {
   position: absolute;
-  left: 50%;
   bottom: 192rpx;
-  transform: translateX(-50%);
+  left: 50%;
   z-index: 30;
   padding: 18rpx 32rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 47, 58, 0.86);
-  color: #fff;
   font-size: 26rpx;
+  color: #fff;
   white-space: nowrap;
+  background: rgb(47 47 58 / 86%);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
 }
 </style>

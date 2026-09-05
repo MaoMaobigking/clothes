@@ -340,23 +340,26 @@ defineExpose({ savePoster, draw })
   display: flex;
   justify-content: center;
 }
+
 .poster-canvas {
+  background: #fff;
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  background: #fff;
 }
+
 .poster-hint {
   position: absolute;
-  left: 50%;
   bottom: 16rpx;
-  transform: translateX(-50%);
+  left: 50%;
   padding: 8rpx 20rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
   font-size: 20rpx;
   font-weight: 700;
+  color: #fff;
+  background: rgb(0 0 0 / 70%);
+  border-radius: var(--radius-pill);
+  transform: translateX(-50%);
 }
+
 .poster-hint.err {
   background: var(--warning);
 }

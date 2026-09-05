@@ -68,12 +68,12 @@ function navigateTo(url: string) {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: calc(env(safe-area-inset-top, 24rpx) + 24rpx) 32rpx 32rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 36rpx;
+  min-height: 0;
+  padding: calc(env(safe-area-inset-top, 24rpx) + 24rpx) 32rpx 32rpx;
 }
 
 .hero {
@@ -81,12 +81,14 @@ function navigateTo(url: string) {
   flex-direction: column;
   gap: 8rpx;
 }
+
 .title {
   margin: 0;
   font-size: 48rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .sub {
   margin: 0;
   font-size: 26rpx;
@@ -95,43 +97,49 @@ function navigateTo(url: string) {
 
 .banner {
   display: flex;
-  align-items: center;
   gap: 24rpx;
+  align-items: center;
   padding: 32rpx;
-  border-radius: var(--radius-lg);
-  background: var(--brand-gradient);
-  box-shadow: var(--shadow-float);
   color: var(--text-on-brand);
   text-align: left;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
   transition: transform 0.15s ease;
 }
+
 .banner:active {
   transform: scale(0.98);
 }
+
 .banner-emoji {
-  font-size: 80rpx;
   flex-shrink: 0;
+  font-size: 80rpx;
 }
+
 .banner-text {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8rpx;
 }
+
 .banner-title {
   font-size: 34rpx;
   font-weight: 500;
 }
+
 .banner-desc {
   font-size: 24rpx;
   opacity: 0.9;
 }
+
 .banner-go {
   flex-shrink: 0;
+  padding: 12rpx 24rpx;
   font-size: 26rpx;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.25);
-  padding: 12rpx 24rpx;
+  background: rgb(255 255 255 / 25%);
   border-radius: var(--radius-pill);
 }
 
@@ -141,59 +149,67 @@ function navigateTo(url: string) {
   gap: 24rpx;
   margin-top: 24rpx;
 }
+
 .feature {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 32rpx 28rpx;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 16rpx;
-  box-shadow: var(--shadow-card);
+  align-items: flex-start;
+  padding: 32rpx 28rpx;
   text-align: left;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
   transition: transform 0.15s ease;
 }
+
 .feature:active {
   transform: scale(0.96);
 }
+
 .f-ico {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: var(--radius-lg);
   display: grid;
   place-items: center;
+  width: 104rpx;
+  height: 104rpx;
   font-size: 56rpx;
+  border-radius: var(--radius-lg);
 }
+
 .f-label {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .f-desc {
   font-size: 22rpx;
-  color: var(--text-3);
   line-height: 1.4;
+  color: var(--text-3);
 }
 
 .recos {
   display: flex;
   gap: 24rpx;
-  overflow-x: auto;
-  margin-top: 24rpx;
   padding-bottom: 8rpx;
+  margin-top: 24rpx;
+  overflow-x: auto;
 }
+
 .reco {
   flex: 0 0 400rpx;
+  padding: 24rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 24rpx;
   box-shadow: var(--shadow-card);
 }
+
 .reco-pieces {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12rpx;
 }
+
 .reco-title {
   margin: 20rpx 4rpx 4rpx;
   font-size: 26rpx;

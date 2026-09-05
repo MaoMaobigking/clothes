@@ -78,49 +78,54 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 <style scoped>
 .opt-card {
   position: relative;
-  width: 100%;
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 20rpx;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  padding: 20rpx;
+  background: var(--surface);
+
   /*
    * 边框从 4rpx 降到 2rpx，且未选中时不再是 transparent 而是发丝线色。
    * 原来靠「透明 4rpx 边 + 选中变色」避免选中时尺寸跳动；
    * 现在未选中本来就有边（uv-ui 的卡片都带边），选中只换颜色，同样不跳。
    */
   border: 2rpx solid var(--line);
+  border-radius: var(--radius);
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
     opacity 0.15s ease;
-  box-sizing: border-box;
 }
+
 /* 按压反馈用透明度，对齐 uv-ui 的 .uv-hover-class { opacity: 0.7 } */
 .opt-card:active {
   opacity: 0.7;
 }
+
 /*
  * 选中态：主色描边 + 极浅主色底。
  * 原来是主色描边 + 0 20rpx 48rpx rgba(255,126,179,0.28) 的粉色光晕投影 ——
  * uv-ui 里没有彩色投影，选中一律靠描边和浅底表达。
  */
 .opt-card.selected {
-  border-color: var(--pink-deep);
   background: var(--pink-soft);
+  border-color: var(--pink-deep);
 }
 
 .preview {
   position: relative;
-  width: 100%;
-  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  width: 100%;
+
   /* aspect-ratio: 1.35 在小程序不支持，高度由 previewHeight 内联给，这里只兜底 */
   height: 180rpx;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
 }
+
 .preview-plain {
   background: var(--surface-placeholder);
 }
@@ -128,17 +133,19 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 .meta {
   display: flex;
   flex-direction: column;
-  margin-top: 16rpx;
   padding: 0 4rpx 4rpx;
+  margin-top: 16rpx;
 }
+
 .label {
   font-size: 28rpx;
   color: var(--text-1);
 }
+
 .desc {
+  margin-top: 4rpx;
   font-size: 24rpx;
   color: var(--text-3);
-  margin-top: 4rpx;
 }
 
 /* 选中角标：主色实底，无投影 */
@@ -146,15 +153,15 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
   position: absolute;
   top: 14rpx;
   right: 14rpx;
-  min-width: 40rpx;
-  height: 40rpx;
-  padding: 0 10rpx;
-  border-radius: var(--radius-pill);
-  background: var(--pink-deep);
-  color: #fff;
-  font-size: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 40rpx;
+  height: 40rpx;
+  padding: 0 10rpx;
+  font-size: 24rpx;
+  color: #fff;
+  background: var(--pink-deep);
+  border-radius: var(--radius-pill);
 }
 </style>

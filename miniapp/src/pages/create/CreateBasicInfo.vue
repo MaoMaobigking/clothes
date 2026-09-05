@@ -65,89 +65,100 @@ function save() {
   /* 设计稿里这块只占屏宽约 38%，主角是中间的模特。之前 330rpx 太宽，
      把模特挤成一条。步进器缩小、标签缩窄，压到 288rpx。 */
   width: 288rpx;
-  background: var(--surface-glass);
-  backdrop-filter: blur(8px);
-  border-radius: var(--radius);
   padding: 16rpx 14rpx;
-  box-shadow: var(--shadow-card);
+  background: var(--surface-glass);
   border: 2rpx solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(8px);
 }
+
 .head {
   display: flex;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
   margin: 0 0 14rpx 4rpx;
 }
+
 .head-text {
   font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .rows {
   display: flex;
   flex-direction: column;
   gap: 6rpx;
 }
+
 .row {
   display: flex;
-  align-items: center;
   gap: 6rpx;
+  align-items: center;
   height: 44rpx;
 }
+
 .label {
-  width: 64rpx;
   flex-shrink: 0;
+  width: 64rpx;
   font-size: 20rpx;
   color: var(--text-2);
 }
+
 .check {
-  width: 26rpx;
-  height: 26rpx;
-  flex-shrink: 0;
-  border-radius: 50%;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  background: var(--brand-gradient);
-  color: #fff;
+  width: 26rpx;
+  height: 26rpx;
   font-size: 16rpx;
   font-weight: 700;
   line-height: 1;
-}
-.pm {
-  width: 34rpx;
-  height: 34rpx;
-  flex-shrink: 0;
+  color: #fff;
+  background: var(--brand-gradient);
   border-radius: 50%;
+}
+
+.pm {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  background: var(--surface);
-  color: var(--purple-deep);
+  width: 34rpx;
+  height: 34rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--purple-deep);
+  background: var(--surface);
+  border-radius: 50%;
   box-shadow: var(--shadow-soft);
 }
+
 .val {
   flex: 1;
-  text-align: center;
   font-size: 22rpx;
   font-weight: 700;
   color: var(--text-1);
+  text-align: center;
   white-space: nowrap;
 }
+
 .unit {
   margin-left: 2rpx;
   font-size: 18rpx;
   font-style: normal;
   color: var(--text-3);
 }
+
 .save {
-  height: 60rpx;
   width: 100%;
+  height: 60rpx;
   margin-top: 16rpx;
   font-size: 25rpx;
 }
+
 .save.ok {
   filter: saturate(0.85);
 }

@@ -89,52 +89,58 @@ async function send(text?: string) {
 
 <style scoped>
 .chat {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16rpx 32rpx 8rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 28rpx;
+  min-height: 0;
+  padding: 16rpx 32rpx 8rpx;
+  overflow-y: auto;
 }
+
 .row {
   display: flex;
   gap: 16rpx;
   align-items: flex-end;
   max-width: 100%;
 }
+
 .row.user {
   flex-direction: row-reverse;
 }
+
 .avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
   width: 64rpx;
   height: 64rpx;
-  flex-shrink: 0;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
   font-size: 36rpx;
   background: var(--surface);
+  border-radius: 50%;
   box-shadow: var(--shadow-card);
 }
+
 .bubble {
   max-width: 76%;
   padding: 20rpx 28rpx;
-  border-radius: var(--radius-lg);
   font-size: 28rpx;
   line-height: 1.55;
-  white-space: pre-wrap;
   word-break: break-word;
+  white-space: pre-wrap;
+  border-radius: var(--radius-lg);
 }
+
 .row.assistant .bubble {
-  background: var(--surface);
   color: var(--text-1);
+  background: var(--surface);
   border-bottom-left-radius: 8rpx;
   box-shadow: var(--shadow-card);
 }
+
 .row.user .bubble {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
   border-bottom-right-radius: 8rpx;
 }
 
@@ -143,77 +149,87 @@ async function send(text?: string) {
   gap: 8rpx;
   align-items: center;
 }
+
 .typing text {
   width: 12rpx;
   height: 12rpx;
-  border-radius: 50%;
   background: var(--text-3);
+  border-radius: 50%;
   animation: blink 1.2s infinite both;
 }
+
 .typing text:nth-child(2) {
   animation-delay: 0.2s;
 }
+
 .typing text:nth-child(3) {
   animation-delay: 0.4s;
 }
+
 @keyframes blink {
   0%,
   80%,
   100% {
     opacity: 0.25;
   }
+
   40% {
     opacity: 1;
   }
 }
 
 .quick {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   gap: 16rpx;
-  overflow-x: auto;
   padding: 16rpx 32rpx;
+  overflow-x: auto;
 }
+
 .q {
   flex-shrink: 0;
   padding: 16rpx 28rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  color: var(--purple-deep);
   font-size: 26rpx;
   font-weight: 500;
+  color: var(--purple-deep);
   white-space: nowrap;
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
 
 .composer {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   gap: 20rpx;
   padding: 16rpx 32rpx calc(24rpx + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, 0.7);
+  background: rgb(255 255 255 / 70%);
   border-top: 1px solid var(--line);
 }
+
 .input {
   flex: 1;
   height: 92rpx;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--line);
-  background: #fff;
   padding: 0 36rpx;
   font-size: 30rpx;
   outline: none;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
 }
+
 .input:focus {
   border-color: var(--pink);
 }
+
 .send {
+  flex-shrink: 0;
   height: 92rpx;
   padding: 0 40rpx;
-  flex-shrink: 0;
 }
+
 .btn-disabled {
-  opacity: 0.5;
   pointer-events: none;
+  opacity: 0.5;
 }
 </style>

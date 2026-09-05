@@ -224,98 +224,115 @@ function revoke() {
   min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
+
 .notice {
-  margin-top: 18rpx;
-  padding: 24rpx;
   display: flex;
   gap: 16rpx;
-  border-radius: var(--radius);
+  padding: 24rpx;
+  margin-top: 18rpx;
   background: var(--surface-soft);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .notice-text {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8rpx;
+  min-width: 0;
 }
+
 .notice-title {
   font-size: 27rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .notice-desc {
   font-size: 22rpx;
   line-height: 1.6;
   color: var(--text-3);
 }
+
 .card {
-  margin-top: 22rpx;
   padding: 24rpx;
-  border-radius: var(--radius);
+  margin-top: 22rpx;
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12rpx;
 }
+
 .card-title {
   font-size: 30rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .vip-tag {
   padding: 4rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
   font-size: 20rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .row {
   display: flex;
+  gap: 20rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
   padding: 16rpx 0;
   border-bottom: 1px solid var(--line);
 }
+
 .row:last-of-type {
   border-bottom: none;
 }
+
 .k {
   font-size: 24rpx;
   color: var(--text-3);
 }
+
 .v {
   font-size: 25rpx;
-  color: var(--text-1);
   font-weight: 500;
+  color: var(--text-1);
 }
+
 .card-foot {
   display: block;
   margin-top: 12rpx;
   font-size: 21rpx;
   color: var(--text-3);
 }
+
 .wide {
   width: 100%;
   margin-top: 26rpx;
 }
+
 .wide.disabled {
   opacity: 0.6;
 }
+
 .foot {
   display: block;
   margin-top: 16rpx;
-  text-align: center;
   font-size: 21rpx;
   color: var(--text-3);
+  text-align: center;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

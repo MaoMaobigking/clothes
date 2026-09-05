@@ -73,47 +73,55 @@ function progressWidth() {
   min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
+
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  text-align: center;
-  color: var(--text-2);
   font-size: 26rpx;
+  color: var(--text-2);
+  text-align: center;
 }
+
 .state.error {
   color: var(--danger);
 }
+
 .points-card {
   display: flex;
   flex-direction: column;
   gap: 8rpx;
   padding: 34rpx;
-  border-radius: var(--radius);
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-float);
 }
+
 .points-label {
   font-size: 24rpx;
   font-weight: 700;
   opacity: 0.88;
 }
+
 .points-number {
   font-size: 76rpx;
-  line-height: 1;
   font-weight: 700;
+  line-height: 1;
 }
+
 .points-sub {
   font-size: 22rpx;
   opacity: 0.82;
 }
+
 .progress-card {
-  margin-top: 22rpx;
   padding: 24rpx;
-  border-radius: var(--radius);
+  margin-top: 22rpx;
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .progress-head {
   display: flex;
   align-items: center;
@@ -122,56 +130,65 @@ function progressWidth() {
   font-weight: 500;
   color: var(--text-1);
 }
+
 .progress-track {
   height: 14rpx;
   margin-top: 18rpx;
-  border-radius: var(--radius-pill);
-  background: #e8e2ef;
   overflow: hidden;
+  background: #e8e2ef;
+  border-radius: var(--radius-pill);
 }
+
 .progress-fill {
   height: 100%;
-  border-radius: var(--radius-pill);
   background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .section-title {
   margin: 30rpx 0 18rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .empty {
   padding: 24rpx;
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-  color: var(--text-3);
   font-size: 24rpx;
+  color: var(--text-3);
   text-align: center;
+  background: var(--surface-soft);
+  border-radius: var(--radius);
 }
+
 .badge-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20rpx;
 }
+
 .badge {
-  padding: 28rpx 20rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
+  padding: 28rpx 20rpx;
   text-align: center;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
+
 .badge-emoji {
   font-size: 64rpx;
 }
+
 .badge-title {
   font-size: 25rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .badge-points {
   font-size: 20rpx;
   color: var(--text-3);

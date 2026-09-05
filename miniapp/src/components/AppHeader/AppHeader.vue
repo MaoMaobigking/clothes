@@ -69,10 +69,12 @@ const TRACK_COLOR = '#ececec'
   flex-shrink: 0;
   background: var(--surface);
 }
+
 .progress-wrap {
   /* 左右和 uv-navbar 的内容区对齐（它内部是 0 15px = 0 30rpx） */
   padding: 0 30rpx 20rpx;
 }
+
 .counter {
   font-size: 24rpx;
   color: var(--text-3);

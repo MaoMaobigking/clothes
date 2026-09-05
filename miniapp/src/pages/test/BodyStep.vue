@@ -134,20 +134,22 @@ const bmiTip = (bmi: number) => {
 .section {
   margin-bottom: 30rpx;
 }
+
 .section-title {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+  margin-bottom: 20rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
-  margin-bottom: 20rpx;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
 }
+
 .required {
+  padding: 4rpx 14rpx;
   font-size: 20rpx;
   color: var(--pink-deep);
-  background: rgba(255, 92, 157, 0.12);
-  padding: 4rpx 14rpx;
+  background: rgb(255 92 157 / 12%);
   border-radius: var(--radius-pill);
 }
 
@@ -159,76 +161,86 @@ const bmiTip = (bmi: number) => {
   width: 100%;
   white-space: nowrap;
 }
+
 .body-options-row {
   display: inline-flex;
   gap: 18rpx;
   padding-bottom: 4rpx;
 }
+
 .body-option {
   position: relative;
-  width: 208rpx;
+  box-sizing: border-box;
+  display: flex;
   flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  width: 208rpx;
+  padding: 20rpx 14rpx;
+  text-align: center;
   background: var(--surface);
   border: 3rpx solid transparent;
   border-radius: var(--radius-sm);
-  padding: 20rpx 14rpx;
   box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  box-sizing: border-box;
   transition:
     transform 0.15s ease,
     border-color 0.15s ease;
 }
+
 .body-option:active {
   transform: scale(0.96);
 }
+
 .body-option.on {
   border-color: var(--pink);
 }
+
 .body-preview {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: var(--radius-lg);
   display: grid;
   place-items: center;
+  width: 88rpx;
+  height: 88rpx;
   margin-bottom: 12rpx;
   overflow: hidden;
+  border-radius: var(--radius-lg);
 }
+
 .body-preview-img {
   width: 100%;
   height: 100%;
 }
+
 .body-emoji {
   font-size: 46rpx;
 }
+
 .body-label {
   font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .body-desc {
-  font-size: 20rpx;
-  color: var(--text-3);
   margin-top: 8rpx;
+  font-size: 20rpx;
   line-height: 1.35;
+  color: var(--text-3);
 }
+
 .check {
   position: absolute;
   top: 10rpx;
   right: 10rpx;
-  width: 34rpx;
-  height: 34rpx;
-  border-radius: 50%;
-  background: var(--brand-gradient);
-  color: #fff;
-  font-size: 22rpx;
-  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 34rpx;
+  height: 34rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: 50%;
 }
 
 .gender-options {
@@ -236,73 +248,83 @@ const bmiTip = (bmi: number) => {
   grid-template-columns: 1fr 1fr;
   gap: 20rpx;
 }
+
 .gender-option {
-  height: 108rpx;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 3rpx solid var(--line);
-  box-shadow: var(--shadow-card);
   display: flex;
+  gap: 12rpx;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  color: var(--text-2);
+  height: 108rpx;
   font-size: 30rpx;
   font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 3rpx solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
 }
+
 .gender-option.on {
-  border-color: var(--pink);
   color: var(--pink-deep);
   background: var(--pink-soft);
+  border-color: var(--pink);
 }
+
 .gender-emoji {
   font-size: 40rpx;
 }
 
 .fields {
+  padding: 8rpx 30rpx 32rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 8rpx 30rpx 32rpx;
   box-shadow: var(--shadow-card);
 }
+
 .field {
   padding-top: 26rpx;
 }
+
 .row {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
+  justify-content: space-between;
 }
+
 .name {
   font-size: 28rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .required-dot {
-  color: var(--pink-deep);
   margin-left: 4rpx;
+  color: var(--pink-deep);
 }
+
 .done-dot {
-  color: var(--mint-deep);
   margin-left: 10rpx;
   font-size: 24rpx;
   font-weight: 500;
+  color: var(--mint-deep);
 }
+
 .value {
   font-size: 32rpx;
   font-weight: 500;
   color: var(--purple-deep);
 }
+
 .unit {
+  margin-left: 4rpx;
   font-size: 22rpx;
   color: var(--text-3);
-  margin-left: 4rpx;
 }
 
 .slider {
   width: 100%;
-  margin-top: 18rpx;
   min-height: 48rpx;
+  margin-top: 18rpx;
 }
 
 .optional-hint {
@@ -313,34 +335,38 @@ const bmiTip = (bmi: number) => {
 }
 
 .bmi-card {
-  background: var(--brand-gradient);
-  border-radius: var(--radius);
-  padding: 30rpx 34rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #fff;
-  box-shadow: var(--shadow-float);
+  padding: 30rpx 34rpx;
   margin-top: 4rpx;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-float);
 }
+
 .bmi-left {
   display: flex;
   flex-direction: column;
   gap: 4rpx;
 }
+
 .bmi-label {
   font-size: 24rpx;
   opacity: 0.9;
 }
+
 .bmi-num {
   font-size: 52rpx;
   font-weight: 500;
 }
+
 .bmi-tag {
-  background: rgba(255, 255, 255, 0.25);
   padding: 12rpx 26rpx;
-  border-radius: var(--radius-pill);
   font-size: 28rpx;
   font-weight: 700;
+  background: rgb(255 255 255 / 25%);
+  border-radius: var(--radius-pill);
 }
 </style>

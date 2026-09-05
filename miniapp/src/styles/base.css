@@ -17,15 +17,16 @@
  */
 
 page {
+  min-height: 100%;
+  font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: var(--text-1);
+
   /*
    * 页面底。原来是 var(--bg-gradient) 的粉紫渐变，已随第二轮换皮退役 ——
    * uv-cell / uv-list 是通栏白底，铺上去会把渐变盖掉九成，
    * 只在区块缝隙里露一道和 uv-ui 冷灰调撞色的暖边。
    */
   background: var(--bg-page);
-  min-height: 100%;
-  font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  color: var(--text-1);
 }
 
 view,
@@ -40,6 +41,9 @@ scroll-view {
 /* ---------------- 骨架 ---------------- */
 
 .page {
+  display: flex;
+  flex-direction: column;
+
   /*
    * height:100% 和 min-height:100vh 都要写。
    * 只写 100%：父链（uni-page-body）没有确定高度时解析不出来，页面会缩成内容高度，
@@ -49,8 +53,6 @@ scroll-view {
    */
   height: 100%;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 /* 内部有绝对定位浮层的页面（个性化创建、自由搭配）加这个，给浮层定位用 */
@@ -79,8 +81,8 @@ scroll-view {
 
 /* 内容要自己贴边（左右不留白）时用，比如整宽的横滑区 */
 .body-flush {
-  padding-left: 0;
   padding-right: 0;
+  padding-left: 0;
 }
 
 /* ---------------- 滚动 ---------------- */
@@ -102,6 +104,7 @@ scroll-view {
 .row-scroll {
   white-space: nowrap;
 }
+
 .row-scroll > view,
 .row-scroll > button {
   display: inline-flex;

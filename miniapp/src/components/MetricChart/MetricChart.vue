@@ -58,14 +58,16 @@ watch(() => props.option, apply, { deep: true })
 .metric-chart-wrap {
   width: 100%;
 }
+
 .metric-chart {
   width: 100%;
 }
+
 .metric-chart-failed {
   display: block;
   padding: 20rpx 0;
-  text-align: center;
   font-size: 22rpx;
   color: var(--text-3);
+  text-align: center;
 }
 </style>

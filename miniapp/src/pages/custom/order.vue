@@ -271,20 +271,21 @@ function messageClass(message: CustomMessage) {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: 12rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 24rpx;
+  min-height: 0;
+  padding: 12rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
 }
+
 .loading-wrap {
-  flex: 1;
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  color: var(--text-3);
   font-size: 26rpx;
+  color: var(--text-3);
 }
 
 .designer-card,
@@ -295,54 +296,62 @@ function messageClass(message: CustomMessage) {
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .designer-card {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
 }
+
 .designer-avatar {
+  flex-shrink: 0;
   width: 132rpx;
   height: 132rpx;
-  border-radius: var(--radius);
-  flex-shrink: 0;
   background: #f0e6fb;
+  border-radius: var(--radius);
 }
+
 .designer-avatar-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(150deg, #ffe6f2, #e7dcff);
-  color: var(--purple-deep);
   font-size: 52rpx;
   font-weight: 500;
+  color: var(--purple-deep);
+  background: linear-gradient(150deg, #ffe6f2, #e7dcff);
 }
+
 .designer-copy {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 7rpx;
+  min-width: 0;
 }
+
 .designer-label {
-  color: var(--text-3);
   font-size: 20rpx;
+  color: var(--text-3);
 }
+
 .designer-name {
   font-size: 30rpx;
   font-weight: 500;
 }
+
 .designer-specialty {
   font-size: 22rpx;
   color: var(--text-2);
 }
+
 .source {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(169, 220, 214, 0.22);
-  color: #388d83;
   font-size: 21rpx;
   font-weight: 700;
+  color: #388d83;
+  background: rgb(169 220 214 / 22%);
+  border-radius: var(--radius-pill);
 }
 
 .card-title,
@@ -352,25 +361,28 @@ function messageClass(message: CustomMessage) {
   font-weight: 500;
   color: var(--text-1);
 }
+
 .card-head {
   display: flex;
+  gap: 18rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 18rpx;
 }
+
 .advance {
   flex-shrink: 0;
   padding: 10rpx 20rpx;
-  border-radius: var(--radius-pill);
+  font-size: 22rpx;
+  font-weight: 700;
   color: var(--purple-deep);
   background: var(--pink-soft);
-  font-size: 22rpx;
-  font-weight: 700;
+  border-radius: var(--radius-pill);
 }
+
 .finished {
-  color: var(--mint-deep);
   font-size: 22rpx;
   font-weight: 700;
+  color: var(--mint-deep);
 }
 
 .progress {
@@ -378,56 +390,64 @@ function messageClass(message: CustomMessage) {
   margin-top: 28rpx;
   margin-bottom: 28rpx;
 }
+
 .progress-step {
-  flex: 1;
-  min-width: 0;
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
+  min-width: 0;
   color: var(--text-3);
 }
+
 .progress-step::before {
-  content: '';
   position: absolute;
   top: 23rpx;
   right: 50%;
   width: 100%;
   height: 4rpx;
+  content: '';
   background: #e7e1f0;
 }
+
 .progress-step:first-child::before {
   display: none;
 }
+
 .progress-step.done::before,
 .progress-step.current::before {
   background: linear-gradient(90deg, var(--pink), var(--purple));
 }
+
 .progress-dot {
   position: relative;
   z-index: 1;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e7e1f0;
-  color: var(--text-3);
+  width: 48rpx;
+  height: 48rpx;
   font-size: 20rpx;
   font-weight: 500;
+  color: var(--text-3);
+  background: #e7e1f0;
+  border-radius: 50%;
 }
+
 .progress-step.done .progress-dot,
 .progress-step.current .progress-dot {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
   box-shadow: var(--shadow-card);
 }
+
 .progress-label {
   font-size: 20rpx;
   white-space: nowrap;
 }
+
 .progress-step.done,
 .progress-step.current {
   color: var(--text-1);
@@ -438,13 +458,15 @@ function messageClass(message: CustomMessage) {
   flex-direction: column;
   gap: 12rpx;
   padding: 22rpx;
-  border-radius: var(--radius);
   background: var(--surface-soft);
+  border-radius: var(--radius);
 }
+
 .requirement-label {
-  color: var(--text-3);
   font-size: 21rpx;
+  color: var(--text-3);
 }
+
 .requirement-text {
   font-size: 25rpx;
   line-height: 1.55;
@@ -457,41 +479,48 @@ function messageClass(message: CustomMessage) {
   gap: 14rpx;
   margin-top: 22rpx;
 }
+
 .measure-item {
-  padding: 18rpx 10rpx;
-  border-radius: var(--radius);
-  background: var(--surface-soft);
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
+  padding: 18rpx 10rpx;
+  background: var(--surface-soft);
+  border-radius: var(--radius);
 }
+
 .measure-label {
-  color: var(--text-3);
   font-size: 21rpx;
+  color: var(--text-3);
 }
+
 .measure-value {
-  color: var(--text-1);
   font-size: 27rpx;
   font-weight: 500;
+  color: var(--text-1);
 }
+
 .unit {
   margin-left: 4rpx;
-  color: var(--text-3);
   font-size: 19rpx;
   font-weight: 500;
+  color: var(--text-3);
 }
+
 .notes {
   display: block;
   margin-top: 16rpx;
-  color: var(--text-2);
   font-size: 23rpx;
   line-height: 1.5;
+  color: var(--text-2);
 }
+
 .card-subtitle {
   margin-top: 24rpx;
   font-size: 25rpx;
 }
+
 .photo-grid,
 .reference-grid {
   display: grid;
@@ -499,113 +528,129 @@ function messageClass(message: CustomMessage) {
   gap: 14rpx;
   margin-top: 16rpx;
 }
+
 .photo,
 .reference {
   position: relative;
   width: 100%;
   height: 230rpx;
-  border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface-soft);
+  border-radius: var(--radius);
 }
+
 .photo image {
   width: 100%;
   height: 100%;
 }
+
 .photo-label {
   position: absolute;
-  left: 8rpx;
   bottom: 8rpx;
+  left: 8rpx;
   padding: 6rpx 13rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(47, 47, 58, 0.74);
-  color: #fff;
   font-size: 18rpx;
+  color: #fff;
+  background: rgb(47 47 58 / 74%);
+  border-radius: var(--radius-pill);
 }
+
 .reference {
   height: 210rpx;
 }
 
 .chat {
   height: 500rpx;
-  margin: 20rpx -8rpx 0;
   padding: 8rpx;
+  margin: 20rpx -8rpx 0;
   background: #f8f5fb;
   border-radius: var(--radius);
 }
+
 .welcome {
   padding: 24rpx;
-  border-radius: var(--radius);
-  background: var(--pink-soft);
-  color: var(--text-2);
   font-size: 23rpx;
   line-height: 1.55;
+  color: var(--text-2);
   text-align: center;
+  background: var(--pink-soft);
+  border-radius: var(--radius);
 }
+
 .message {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 7rpx;
+  align-items: flex-start;
   margin-bottom: 20rpx;
 }
+
 .message.user {
   align-items: flex-end;
 }
+
 .message-role {
   padding-left: 8rpx;
-  color: var(--text-3);
   font-size: 19rpx;
+  color: var(--text-3);
 }
+
 .bubble {
   max-width: 82%;
   padding: 18rpx 22rpx;
-  border-radius: var(--radius-lg);
-  background: #fff;
-  color: var(--text-1);
   font-size: 25rpx;
   line-height: 1.5;
+  color: var(--text-1);
   word-break: break-word;
   white-space: pre-wrap;
+  background: #fff;
+  border-radius: var(--radius-lg);
 }
+
 .message.user .bubble {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
 }
+
 .typing {
   color: var(--text-3);
 }
+
 .message-time {
   padding: 0 8rpx;
-  color: var(--text-3);
   font-size: 18rpx;
+  color: var(--text-3);
 }
+
 .composer {
   display: flex;
-  align-items: center;
   gap: 14rpx;
+  align-items: center;
   margin-top: 18rpx;
 }
+
 .message-input {
   flex: 1;
   min-width: 0;
   height: 82rpx;
   padding: 0 26rpx;
+  font-size: 26rpx;
+  background: #fff;
   border: 2rpx solid var(--line);
   border-radius: var(--radius-pill);
-  background: #fff;
-  font-size: 26rpx;
 }
+
 .send {
   flex-shrink: 0;
   height: 82rpx;
   padding: 0 30rpx;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
   font-size: 25rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .send.disabled {
   opacity: 0.55;
 }

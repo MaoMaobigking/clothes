@@ -28,13 +28,15 @@ const store = useProfileStore()
   width: 100%;
   white-space: nowrap;
 }
+
 .options-row {
   display: inline-flex;
   gap: 22rpx;
   padding: 2rpx 0 12rpx;
 }
+
 .options-item {
-  width: 320rpx;
   flex-shrink: 0;
+  width: 320rpx;
 }
 </style>

@@ -53,13 +53,14 @@ const emit = defineEmits<{
  * 白底 + 发丝边 + 8rpx 圆角，分离感靠边框不靠阴影。
  */
 .pcard {
+  padding: 12rpx;
+  overflow: hidden;
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius);
-  padding: 12rpx;
-  overflow: hidden;
   transition: opacity 0.15s ease;
 }
+
 /*
  * 按压反馈从 transform: scale(0.97) 改成透明度。
  * uv-ui 全库的按压态就是 .uv-hover-class { opacity: 0.7 }，没有缩放动效；
@@ -68,9 +69,11 @@ const emit = defineEmits<{
 .pcard:active {
   opacity: 0.7;
 }
+
 .thumb {
   position: relative;
 }
+
 /*
  * 角标。原来是 rgba(0,0,0,0.35) 的半透黑药丸 ——
  * 换成 uv-ui 的 primary 实底小标签（它的 uv-tags 就是这个形态）。
@@ -79,41 +82,45 @@ const emit = defineEmits<{
   position: absolute;
   top: 12rpx;
   left: 12rpx;
+  padding: 4rpx 12rpx;
   font-size: 20rpx;
   color: #fff;
   background: var(--pink-deep);
-  padding: 4rpx 12rpx;
   border-radius: var(--radius-sm);
 }
+
 /* 收藏键：白底圆钮 + 发丝边，去掉投影 */
 .fav {
   position: absolute;
   top: 12rpx;
   right: 12rpx;
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  border: var(--hairline);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  background: rgb(255 255 255 / 92%);
+  border: var(--hairline);
+  border-radius: 50%;
 }
+
 .fav.on {
   background: #fff;
 }
+
 /* 商品名：uv-ui 不给正文加粗，两行截断 */
 .name {
+  display: -webkit-box;
   margin-top: 14rpx;
   margin-left: 4rpx;
-  font-size: 26rpx;
-  color: var(--text-1);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: 26rpx;
+  line-height: 1.4;
+  color: var(--text-1);
+  -webkit-box-orient: vertical;
 }
+
 /*
  * 价格是全卡唯一的主色元素，所以这里保留 bold ——
  * 电商场景下价格必须最先被看到，这一处偏离 uv-ui 的「不加粗」是有意的。
@@ -121,14 +128,15 @@ const emit = defineEmits<{
  */
 .price {
   margin-top: 8rpx;
-  margin-left: 4rpx;
   margin-bottom: 8rpx;
+  margin-left: 4rpx;
   font-size: 32rpx;
   font-weight: 700;
   color: var(--price);
 }
+
 .price-symbol {
-  font-size: 22rpx;
   margin-right: 2rpx;
+  font-size: 22rpx;
 }
 </style>

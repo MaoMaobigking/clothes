@@ -134,49 +134,58 @@ async function finishTutorial() {
   min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
+
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  text-align: center;
-  color: var(--text-2);
   font-size: 26rpx;
+  color: var(--text-2);
+  text-align: center;
 }
+
 .state.error {
   color: var(--danger);
 }
+
 .player {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: var(--radius);
   overflow: hidden;
+
   /* 播放器底色。原来是 #2f2a3d（旧调色板的紫调黑），换成 uv-ui 的 $uv-main-color */
   background: var(--text-1);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-float);
 }
+
 .video {
   width: 100%;
   height: 100%;
 }
+
 .video-note {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.82);
   font-size: 24rpx;
   font-weight: 700;
+  color: rgb(255 255 255 / 82%);
   pointer-events: none;
 }
+
 .header {
   margin-top: 28rpx;
 }
+
 .category {
   font-size: 22rpx;
   font-weight: 700;
   color: var(--purple-deep);
 }
+
 .verified {
   display: inline-block;
   margin-left: 10rpx;
@@ -184,103 +193,118 @@ async function finishTutorial() {
   font-weight: 700;
   color: var(--mint-deep);
 }
+
 .title {
   margin-top: 12rpx;
   font-size: 40rpx;
-  line-height: 1.35;
   font-weight: 700;
+  line-height: 1.35;
   color: var(--text-1);
 }
+
 .subtitle {
   margin-top: 10rpx;
   font-size: 25rpx;
   line-height: 1.55;
   color: var(--text-2);
 }
+
 .steps {
-  margin-top: 28rpx;
   display: flex;
   flex-direction: column;
   gap: 16rpx;
+  margin-top: 28rpx;
 }
+
 .step {
   display: flex;
-  align-items: flex-start;
   gap: 20rpx;
+  align-items: flex-start;
   padding: 22rpx;
-  border-radius: var(--radius);
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .step.on {
   border: 2rpx solid var(--pink);
 }
+
 .step-index {
-  flex: 0 0 54rpx;
-  width: 54rpx;
-  height: 54rpx;
   display: flex;
+  flex: 0 0 54rpx;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: var(--surface-soft);
-  color: var(--text-2);
+  width: 54rpx;
+  height: 54rpx;
   font-size: 25rpx;
   font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-soft);
+  border-radius: 50%;
 }
+
 .step.on .step-index {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
 }
+
 .step-text {
   flex: 1;
   min-width: 0;
 }
+
 .step-title {
   font-size: 27rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .step-desc {
   margin-top: 10rpx;
   font-size: 24rpx;
   line-height: 1.55;
   color: var(--text-2);
 }
+
 .finish-panel {
   display: flex;
+  gap: 20rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
-  margin-top: 28rpx;
   padding: 24rpx;
+  margin-top: 28rpx;
+  background: rgb(255 255 255 / 72%);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.72);
   box-shadow: var(--shadow-card);
 }
+
 .finish-title {
   font-size: 27rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .finish-sub {
   margin-top: 8rpx;
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .finish-button {
-  flex-shrink: 0;
-  height: 74rpx;
-  padding: 0 26rpx;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
+  height: 74rpx;
+  padding: 0 26rpx;
   font-size: 25rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .finish-button.done {
   background: var(--mint);
 }

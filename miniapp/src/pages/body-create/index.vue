@@ -82,104 +82,118 @@ function start() {
 
 .hero {
   position: relative;
-  min-height: 520rpx;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: linear-gradient(155deg, rgba(255, 230, 242, 0.95), rgba(239, 226, 255, 0.92));
-  box-shadow: var(--shadow-card);
   display: flex;
   align-items: flex-end;
+  min-height: 520rpx;
+  overflow: hidden;
+  background: linear-gradient(155deg, rgb(255 230 242 / 95%), rgb(239 226 255 / 92%));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
+
 .hero-model {
   width: 44%;
   margin-left: 20rpx;
 }
+
 .hero-copy {
-  flex: 1;
-  padding: 0 26rpx 34rpx 8rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  padding: 0 26rpx 34rpx 8rpx;
 }
+
 .eyebrow {
-  font-size: 20rpx;
-  letter-spacing: 1px;
-  color: var(--pink-deep);
-  font-weight: 500;
   margin-bottom: 12rpx;
+  font-size: 20rpx;
+  font-weight: 500;
+  color: var(--pink-deep);
+  letter-spacing: 1px;
 }
+
 .title {
   font-size: 46rpx;
-  line-height: 1.2;
   font-weight: 700;
+  line-height: 1.2;
   color: var(--text-1);
 }
+
 .subtitle {
   margin-top: 16rpx;
   font-size: 24rpx;
-  color: var(--text-2);
   line-height: 1.5;
+  color: var(--text-2);
 }
 
 .guide-card {
+  padding: 30rpx 28rpx;
   margin-top: 28rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 30rpx 28rpx;
   box-shadow: var(--shadow-card);
 }
+
 .guide-title {
+  margin-bottom: 24rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
-  margin-bottom: 24rpx;
 }
+
 .guide-row {
   display: flex;
-  align-items: center;
   gap: 18rpx;
+  align-items: center;
   min-height: 78rpx;
   border-bottom: 1rpx solid var(--line);
 }
+
 .guide-row:last-child {
   border-bottom: 0;
 }
+
 .guide-index {
-  width: 52rpx;
-  height: 52rpx;
-  border-radius: var(--radius);
-  background: var(--pink-soft);
-  color: var(--purple-deep);
-  font-size: 26rpx;
-  font-weight: 500;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  width: 52rpx;
+  height: 52rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--purple-deep);
+  background: var(--pink-soft);
+  border-radius: var(--radius);
 }
+
 .guide-meta {
-  flex: 1;
   display: flex;
+  flex: 1;
+  gap: 16rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .guide-label {
   font-size: 27rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .guide-emoji {
   font-size: 30rpx;
 }
+
 .guide-tag {
+  flex-shrink: 0;
+  padding: 6rpx 16rpx;
   font-size: 20rpx;
   font-weight: 700;
   color: var(--pink-deep);
-  background: rgba(255, 92, 157, 0.1);
-  padding: 6rpx 16rpx;
+  background: rgb(255 92 157 / 10%);
   border-radius: var(--radius-pill);
-  flex-shrink: 0;
 }
+
 .guide-tag.optional {
   color: var(--text-3);
   background: var(--surface-tint);
@@ -188,6 +202,7 @@ function start() {
 .foot {
   margin-top: 28rpx;
 }
+
 .start {
   width: 100%;
 }
