@@ -4,14 +4,16 @@
   "private": true,
   "description": "AI 服装 · Monorepo 根目录",
   "scripts": {
-    "dev": "npm run dev -w ai-fashion-web",
     "server": "npm run dev -w ai-fashion-server",
-    "dev:all": "concurrently -n web,api -c cyan,magenta \"npm run dev -w ai-fashion-web\" \"npm run dev -w ai-fashion-server\"",
-    "build": "npm run build -w ai-fashion-web",
-    "preview": "npm run preview -w ai-fashion-web"
+    "mp:dev": "npm --prefix miniapp run dev:mp-weixin",
+    "mp:build": "npm --prefix miniapp run build:mp-weixin",
+    "h5:dev": "npm --prefix miniapp run dev:h5",
+    "admin:dev": "npm --prefix admin run dev",
+    "dev:all": "concurrently -n h5,api -c cyan,magenta \"npm --prefix miniapp run dev:h5\" \"npm run dev -w ai-fashion-server\"",
+    "mp:build:cloud": "npm run mp:build && node scripts/pack-mp.mjs",
+    "pack:cloudrun": "node deploy/pack-cloudrun.mjs"
   },
   "workspaces": [
-    "web",
     "server"
   ],
   "devDependencies": {

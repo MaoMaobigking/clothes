@@ -8,7 +8,23 @@
  * 现在无 token 一律抛 NO_AUTH 并跳登录页，身份只能从登录页拿。
  */
 
+import { USE_CLOUD, cloudRequest, rewriteAssetPaths } from './cloud'
+
+/*
+ * 接口根地址。打包时用 VITE_API_BASE_URL 注入，不注入则退回本机开发地址。
+ *
+ * H5 默认留空 = 走同源 /api/*：开发时被 vite proxy 转到 8787，
+ * 部署时由后端自己托管 H5 产物（server/index.mjs 末尾那段 static），
+ * 所以前后端天然同域，不用配 CORS 也不用填地址。
+ *
+ * 小程序没有「同源」这回事，必须写全 URL。默认值 127.0.0.1 只在
+ * 开发者工具里有效——真机上它指的是手机自己。要发体验版给别人看，
+ * 打包前必须注入公网地址：
+ *   VITE_API_BASE_URL=https://demo.example.com npm run build:mp-weixin
+ */
 export const API_BASE_URL = (() => {
+  const injected = import.meta.env.VITE_API_BASE_URL as string | undefined
+  if (injected) return injected.replace(/\/$/, '')
   // #ifdef H5
   return ''
   // #endif
@@ -145,16 +161,36 @@ function notifySessionExpired() {
 }
 
 function rawRequest<T>(options: RequestOptions): Promise<T> {
+  const header = {
+    'Content-Type': 'application/json',
+    ...(options.withAuth === false ? {} : { Authorization: `Bearer ${getToken()}` }),
+    ...(options.header || {}),
+  }
+
+  /*
+   * 走云函数转发。原因见 cloudfunctions/api/index.js：小程序 request 只认
+   * 已备案域名，裸公网 IP 填不进去；云函数出网没这个限制。
+   * 没开云开发时这段整个跳过，链路和以前完全一样。
+   */
+  if (USE_CLOUD) {
+    return cloudRequest({ url: options.url, method: options.method || 'GET', data: options.data, header }).then(
+      (res) => {
+        if (res.statusCode >= 400) {
+          const payload = res.data as any
+          const message = payload?.message || payload?.error || `请求失败（${res.statusCode}）`
+          throw makeError(message, res.statusCode, payload?.error)
+        }
+        return rewriteAssetPaths(res.data as T)
+      },
+    )
+  }
+
   return new Promise((resolve, reject) => {
     uni.request({
       url: `${API_BASE_URL}${options.url}`,
       method: (options.method || 'GET') as any,
       data: options.data,
-      header: {
-        'Content-Type': 'application/json',
-        ...(options.withAuth === false ? {} : { Authorization: `Bearer ${getToken()}` }),
-        ...(options.header || {}),
-      },
+      header,
       success: (res) => {
         if (res.statusCode >= 400) {
           const payload = res.data as any
@@ -162,7 +198,7 @@ function rawRequest<T>(options: RequestOptions): Promise<T> {
           reject(makeError(message, res.statusCode, payload?.error))
           return
         }
-        resolve(res.data as T)
+        resolve(rewriteAssetPaths(res.data as T))
       },
       fail: (err) => reject(new Error(err.errMsg || '网络请求失败')),
     })
