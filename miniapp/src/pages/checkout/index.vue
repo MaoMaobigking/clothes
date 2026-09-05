@@ -16,7 +16,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { createAddress, fetchCheckoutPreview, submitOrder, type CheckoutPreview } from '@/api/order'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { validatePhone, validateRealName } from '@/utils/idCard'
 
 const preview = ref<CheckoutPreview | null>(null)

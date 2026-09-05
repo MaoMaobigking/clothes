@@ -11,7 +11,7 @@ import {
   uploadCustomImages,
   type CustomSummary,
 } from '@/api/custom'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const category = ref<CustomCategory>(getCustomCategory())
 const summary = ref<CustomSummary | null>(null)

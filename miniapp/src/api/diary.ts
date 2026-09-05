@@ -7,7 +7,7 @@
  * 前端再 new Date('2026-08-18') 会按 UTC 零点解析，getDate() 在东八区仍然是 18，
  * 但换个负时区就变 17 号了。所以：字符串进、字符串出，只在拼日历格子时做数字运算。
  */
-import { request } from './http'
+import { request } from '@/utils/request'
 
 export interface DiaryEntry {
   id: number

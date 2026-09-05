@@ -1,4 +1,4 @@
-import { request } from './http'
+import { request } from '@/utils/request'
 
 export type CommunityContentType = 'magazine' | 'tutorial' | 'share' | 'challenge'
 

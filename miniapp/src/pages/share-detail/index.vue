@@ -8,7 +8,7 @@ import {
   type CommunityComment,
   type CommunityContent,
 } from '@/api/community'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)

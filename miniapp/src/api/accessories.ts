@@ -1,4 +1,4 @@
-import { request } from './http'
+import { request } from '@/utils/request'
 import { addCartBatch, addCartItem, fetchCart, removeCartItem, type Cart, type CartItem } from './cart'
 
 export interface AccessoryContextItem {

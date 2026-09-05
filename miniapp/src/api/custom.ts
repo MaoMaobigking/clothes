@@ -1,5 +1,5 @@
-import { API_BASE_URL, ensureToken, request } from './http'
-import { USE_CLOUD, cloudUploadImage } from './cloud'
+import { API_BASE_URL, ensureToken, request } from '@/utils/request'
+import { USE_CLOUD, cloudUploadImage } from '@/utils/cloud'
 
 export type CustomRequestStatus = 'submitted' | 'design' | 'sample' | 'production' | 'shipped'
 
@@ -94,7 +94,7 @@ export function resolveMediaUrl(url: string) {
 }
 
 export async function uploadCustomImage(filePath: string) {
-  // 云开发模式下改走「云存储 → 后端下载落盘」，理由见 api/cloud.ts
+  // 云开发模式下改走「云存储 → 后端下载落盘」，理由见 utils/cloud.ts
   if (USE_CLOUD) {
     const { url } = await cloudUploadImage(filePath, 'custom')
     return await request<{ url: string }>({

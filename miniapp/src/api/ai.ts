@@ -1,5 +1,5 @@
 /* 调后端 AI 接口（统一经过 http.ts 建立开发用户身份） */
-import { request } from './http'
+import { request } from '@/utils/request'
 
 export interface AiRadarDim {
   name: string

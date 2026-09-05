@@ -5,7 +5,7 @@
  * /api/accessory-cart 统一到 cart_items 单表，前端也只留这一个入口。
  * api/accessories.ts 里的 /api/accessory-cart 系列已弃用，勿再新增调用。
  */
-import { request } from './http'
+import { request } from '@/utils/request'
 
 /** 三种来源：旧衣（按人隔离）、配饰目录、场景新品目录 */
 export type CartItemType = 'garment' | 'accessory' | 'catalog'

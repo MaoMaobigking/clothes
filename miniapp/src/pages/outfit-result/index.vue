@@ -11,7 +11,7 @@ import {
   type Outfit,
   type OutfitBatch,
 } from '@/api/wardrobe'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { categoryLabel, occasionLabel, seasonLabel } from '@/data/wardrobeOptions'
 import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 import { piecesFromOutfit } from '@/utils/outfitPieces'

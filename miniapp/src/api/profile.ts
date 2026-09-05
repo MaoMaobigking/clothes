@@ -1,4 +1,4 @@
-import { request } from './http'
+import { request } from '@/utils/request'
 import type { BodyMetricKey, UserProfile } from '@/types'
 
 export interface ProfileRecord {

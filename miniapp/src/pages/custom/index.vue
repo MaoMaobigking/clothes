@@ -10,10 +10,10 @@ import {
   type CustomRequest,
   type CustomSummary,
 } from '@/api/custom'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 // 模板里的静态图不能写死路径：走云图方案时它得换成远程地址，
 // 而 .vue 模板的 src 字面量会被 uni 当资源引用处理（见 vite.config.ts）
-import { assetUrl } from '@/api/cloud'
+import { assetUrl } from '@/utils/cloud'
 
 const summary = ref<CustomSummary | null>(null)
 const requests = ref<CustomRequest[]>([])

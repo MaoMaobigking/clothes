@@ -1,4 +1,4 @@
-import { request } from './http'
+import { request } from '@/utils/request'
 import type { SceneFilterKey, SceneKey, SceneMode } from '@/data/scene'
 
 export interface SceneWeatherInfo {

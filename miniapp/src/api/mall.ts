@@ -6,7 +6,7 @@
  * 「商品必须包含淘宝链接和淘口令」这条也只能靠假数据糊过去。
  * 加购统一走 api/cart.ts 的 item_type='catalog'，这里不重复实现。
  */
-import { API_BASE_URL, request } from './http'
+import { API_BASE_URL, request } from '@/utils/request'
 
 export interface MallCategory {
   key: string

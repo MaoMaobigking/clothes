@@ -10,7 +10,7 @@ import {
   type CustomMessage,
   type CustomRequestDetail,
 } from '@/api/custom'
-import { isAuthError } from '@/api/http'
+import { isAuthError } from '@/utils/request'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()

@@ -8,7 +8,7 @@
  * 公网 http(s)、/uploads/...（用户上传的）、/static/images/...（包内演示素材）。
  * 后两种由服务端读盘传到百炼的临时空间，前端不用管。
  */
-import { API_BASE_URL, request, publicRequest } from './http'
+import { API_BASE_URL, request, publicRequest } from '@/utils/request'
 
 export type AiTaskStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELED' | 'UNKNOWN'
 
