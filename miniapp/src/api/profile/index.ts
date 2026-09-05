@@ -1,38 +1,21 @@
+/*
+ * 个人档案 / 风格报告接口。
+ */
 import { request } from '@/utils/request'
 import type { BodyMetricKey, UserProfile } from '@/types'
+import type { ProfileRecord, StyleReportListItem, StyleReportRecord } from './type'
 
-export interface ProfileRecord {
-  id: number
-  gender: string
-  styles: string[]
-  skin: string
-  face: string
-  visualBody: string
-  height: number | null
-  weight: number | null
-  bmi: number | null
-  bust: number | null
-  waist: number | null
-  hips: number | null
-  shoulder: number | null
-  thigh: number | null
-  calf: number | null
-  preferences: Record<string, string>
-  createdAt: string
-  updatedAt: string
+enum API {
+  /** 当前用户档案，GET 读 / PUT 写 */
+  CURRENT_PROFILE_URL = '/api/profile/current',
+  /** 风格报告列表 */
+  STYLE_REPORTS_URL = '/api/style-reports',
+  /** 单份风格报告，后面接 id */
+  STYLE_REPORT_URL = '/api/style-reports/',
 }
 
-export interface StyleReportListItem {
-  id: number
-  created_at: string
-}
-
-export interface StyleReportRecord {
-  id: number
-  answers: any
-  result: any
-  created_at: string
-}
+/** 类型再导出的理由见 api/diary/index.ts 的说明 */
+export type { ProfileRecord, StyleReportListItem, StyleReportRecord } from './type'
 
 export function toProfilePayload(profile: UserProfile) {
   const body: Record<string, number> = {}
@@ -61,14 +44,14 @@ export function toProfilePayload(profile: UserProfile) {
 
 export async function fetchCurrentProfile(): Promise<ProfileRecord | null> {
   const data = await request<{ profile?: ProfileRecord | null }>({
-    url: '/api/profile/current',
+    url: API.CURRENT_PROFILE_URL,
   })
   return data.profile || null
 }
 
 export async function saveCurrentProfile(profile: UserProfile): Promise<ProfileRecord> {
   const data = await request<{ profile: ProfileRecord }>({
-    url: '/api/profile/current',
+    url: API.CURRENT_PROFILE_URL,
     method: 'PUT',
     data: toProfilePayload(profile),
   })
@@ -77,14 +60,14 @@ export async function saveCurrentProfile(profile: UserProfile): Promise<ProfileR
 
 export async function fetchStyleReports(): Promise<StyleReportListItem[]> {
   const data = await request<{ items?: StyleReportListItem[] }>({
-    url: '/api/style-reports',
+    url: API.STYLE_REPORTS_URL,
   })
   return data.items || []
 }
 
 export async function fetchStyleReportById(id: number): Promise<StyleReportRecord> {
   const data = await request<{ report: StyleReportRecord }>({
-    url: `/api/style-reports/${id}`,
+    url: API.STYLE_REPORT_URL + id,
   })
   return data.report
 }

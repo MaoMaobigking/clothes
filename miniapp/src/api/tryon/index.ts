@@ -9,28 +9,19 @@
  * 后两种由服务端读盘传到百炼的临时空间，前端不用管。
  */
 import { API_BASE_URL, request, publicRequest } from '@/utils/request'
+import type { AiTask, AiTaskStatus, TryonPayload } from './type'
 
-export type AiTaskStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELED' | 'UNKNOWN'
-
-export interface AiTask {
-  id: number
-  capability: string
-  provider: string
-  model: string
-  taskId: string
-  status: AiTaskStatus
-  input: Record<string, any>
-  imageUrl: string
-  errorMessage: string
-  createdAt: string
+enum API {
+  /** 健康检查，用来判断服务端有没有配百炼的 key */
+  HEALTH_URL = '/api/health',
+  /** 提交试衣 / 列历史 */
+  TRYON_URL = '/api/tryon',
+  /** 查单个任务，后面接 taskId */
+  TRYON_TASK_URL = '/api/tryon/',
 }
 
-export interface TryonPayload {
-  personImageUrl: string
-  topGarmentUrl?: string
-  bottomGarmentUrl?: string
-  model?: string
-}
+/** 类型再导出的理由见 api/diary/index.ts 的说明 */
+export type { AiTask, AiTaskStatus, TryonPayload } from './type'
 
 const TERMINAL: AiTaskStatus[] = ['SUCCEEDED', 'FAILED', 'CANCELED', 'UNKNOWN']
 
@@ -55,7 +46,7 @@ export function toServerImageRef(src?: string): string {
 /** 服务端有没有配百炼的 key。没配的话入口应该置灰，而不是点了才报错。 */
 export async function apiTryonEnabled(): Promise<boolean> {
   try {
-    const d = await publicRequest<{ bailian?: { enabled?: boolean } }>({ url: '/api/health' })
+    const d = await publicRequest<{ bailian?: { enabled?: boolean } }>({ url: API.HEALTH_URL })
     return Boolean(d.bailian?.enabled)
   } catch {
     // 健康检查失败不该让按钮永久置灰：真提交时该报什么错还是会报
@@ -65,7 +56,7 @@ export async function apiTryonEnabled(): Promise<boolean> {
 
 export async function apiSubmitTryon(payload: TryonPayload): Promise<AiTask> {
   const d = await request<{ task: AiTask }>({
-    url: '/api/tryon',
+    url: API.TRYON_URL,
     method: 'POST',
     data: {
       personImageUrl: toServerImageRef(payload.personImageUrl),
@@ -78,12 +69,12 @@ export async function apiSubmitTryon(payload: TryonPayload): Promise<AiTask> {
 }
 
 export async function apiGetTryon(taskId: string): Promise<AiTask> {
-  const d = await request<{ task: AiTask }>({ url: `/api/tryon/${taskId}` })
+  const d = await request<{ task: AiTask }>({ url: API.TRYON_TASK_URL + taskId })
   return d.task
 }
 
 export async function apiListTryon(limit = 20): Promise<AiTask[]> {
-  const d = await request<{ tasks: AiTask[] }>({ url: `/api/tryon?limit=${limit}` })
+  const d = await request<{ tasks: AiTask[] }>({ url: `${API.TRYON_URL}?limit=${limit}` })
   return d.tasks || []
 }
 

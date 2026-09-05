@@ -1,78 +1,25 @@
+/*
+ * 场景模拟接口（功能四）。
+ */
 import { request } from '@/utils/request'
 import type { SceneFilterKey, SceneKey, SceneMode } from '@/data/scene'
+import type { SavedSceneOutfit, ScenePlanItem, ScenePlanResult, SceneWeatherInfo } from './type'
 
-export interface SceneWeatherInfo {
-  city: string
-  temp: number
-  condition: string
-  icon: string
-  source: 'located' | 'fallback' | 'manual'
-  latitude?: number
-  longitude?: number
-  season?: string
+enum API {
+  /** 生成搭配方案 */
+  PLANS_URL = '/api/scene/plans',
+  /** 天气（定位或手填） */
+  WEATHER_URL = '/api/scene/weather',
+  /** 保存 / 列出场景搭配 */
+  OUTFITS_URL = '/api/scene/outfits',
+  /** 单条场景搭配，后面接 id */
+  OUTFIT_URL = '/api/scene/outfits/',
+  /** 新品一键加购 */
+  BUY_URL = '/api/scene/buy',
 }
 
-export interface ScenePlanItem {
-  id: string
-  name: string
-  category: string
-  price: number
-  imageUrl: string
-  from: string
-  to: string
-  emoji: string
-  season: string
-  tags: string[]
-  isNew: boolean
-  source: 'garment' | 'catalog'
-  taobaoUrl?: string
-  taokouling?: string
-  keywords?: string[]
-}
-
-export interface ScenePlan {
-  id: string
-  title: string
-  scene: string
-  sceneKey: SceneKey
-  season: string
-  mode: SceneMode
-  reason: string
-  items: ScenePlanItem[]
-  weather: SceneWeatherInfo
-  newItemCount: number
-  oldItemCount: number
-  missingSlots?: string[]
-}
-
-export interface ScenePlanResult {
-  scene: { key: SceneKey; label: string; keywords: string[] }
-  season: string
-  weather: SceneWeatherInfo
-  profile: {
-    styles: string[]
-    visualBody: string
-  }
-  wardrobeCount: number
-  activatedGarmentCount: number
-  plans: {
-    pure: ScenePlan[]
-    mixed: ScenePlan[]
-  }
-  missingSlots: string[]
-}
-
-export interface SavedSceneOutfit {
-  id: number
-  sceneKey: SceneKey
-  title: string
-  season: string
-  mode: SceneMode
-  filterKey: SceneFilterKey
-  weather: SceneWeatherInfo
-  composition: ScenePlanItem[]
-  createdAt: string
-}
+/** 类型再导出的理由见 api/diary/index.ts 的说明 */
+export type { SavedSceneOutfit, ScenePlan, ScenePlanItem, ScenePlanResult, SceneWeatherInfo } from './type'
 
 export async function fetchScenePlans(input: {
   sceneKey: SceneKey
@@ -80,7 +27,7 @@ export async function fetchScenePlans(input: {
   weather?: SceneWeatherInfo
 }): Promise<ScenePlanResult> {
   return request<ScenePlanResult>({
-    url: '/api/scene/plans',
+    url: API.PLANS_URL,
     method: 'POST',
     data: input,
   })
@@ -96,7 +43,7 @@ export async function fetchSceneWeather(input: {
   season?: string
 }): Promise<SceneWeatherInfo> {
   const data = await request<{ weather: SceneWeatherInfo }>({
-    url: '/api/scene/weather',
+    url: API.WEATHER_URL,
     method: 'GET',
     data: input,
   })
@@ -113,7 +60,7 @@ export async function saveSceneOutfit(input: {
   composition: ScenePlanItem[]
 }): Promise<SavedSceneOutfit> {
   const data = await request<{ outfit: SavedSceneOutfit }>({
-    url: '/api/scene/outfits',
+    url: API.OUTFITS_URL,
     method: 'POST',
     data: input,
   })
@@ -122,7 +69,7 @@ export async function saveSceneOutfit(input: {
 
 export async function listSceneOutfits(): Promise<SavedSceneOutfit[]> {
   const data = await request<{ items: SavedSceneOutfit[] }>({
-    url: '/api/scene/outfits',
+    url: API.OUTFITS_URL,
     method: 'GET',
   })
   return data.items
@@ -130,7 +77,7 @@ export async function listSceneOutfits(): Promise<SavedSceneOutfit[]> {
 
 export async function getSceneOutfit(id: number): Promise<SavedSceneOutfit> {
   const data = await request<{ outfit: SavedSceneOutfit }>({
-    url: `/api/scene/outfits/${id}`,
+    url: API.OUTFIT_URL + id,
     method: 'GET',
   })
   return data.outfit
@@ -149,7 +96,7 @@ export async function buySceneOutfit(
   ignored: string[]
 }> {
   return request({
-    url: '/api/scene/buy',
+    url: API.BUY_URL,
     method: 'POST',
     data: { itemIds, sourceOutfitId },
   })

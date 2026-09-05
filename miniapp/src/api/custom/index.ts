@@ -1,91 +1,48 @@
+/*
+ * 高级定制接口（功能六）。
+ */
 import { API_BASE_URL, ensureToken, request } from '@/utils/request'
 import { USE_CLOUD, cloudUploadImage } from '@/utils/cloud'
+import type {
+  CustomMessage,
+  CustomRequest,
+  CustomRequestDetail,
+  CustomSummary,
+  InquiryPayload,
+  MeasurementPayload,
+} from './type'
 
-export type CustomRequestStatus = 'submitted' | 'design' | 'sample' | 'production' | 'shipped'
-
-export interface CustomSummary {
-  role: string
-  membershipLevel: 'standard' | 'vip' | string
-  requestCount: number
+enum API {
+  /** 当前用户的定制概况（会员等级、已提交数） */
+  ME_URL = '/api/custom/me',
+  /** 定制申请列表 */
+  REQUESTS_URL = '/api/custom/requests',
+  /** 单条申请，后面接 id 再拼 /advance、/messages */
+  REQUEST_URL = '/api/custom/requests/',
+  /** 咨询式提交 */
+  INQUIRIES_URL = '/api/custom/inquiries',
+  /** 量体式提交 */
+  MEASUREMENTS_URL = '/api/custom/measurements',
+  /** 会员升级 */
+  MEMBERSHIP_UPGRADE_URL = '/api/custom/membership/upgrade',
+  /** multipart 上传 */
+  UPLOAD_URL = '/api/custom/upload',
+  /** 云开发链路：传云存储后交给后端下载落盘 */
+  UPLOAD_REMOTE_URL = '/api/custom/upload-remote',
 }
 
-export interface CustomDesigner {
-  id: number
-  name: string
-  specialty: string
-  avatarUrl: string
-}
-
-export interface CustomMeasurement {
-  id: number
-  serviceType: string
-  dimensions: {
-    height: number
-    weight: number
-    bust: number
-    waist: number
-    hips: number
-    shoulder: number
-  }
-  frontImage: string
-  sideImage: string
-  backImage: string
-  detailImages: string[]
-  notes: string
-  createdAt: string
-}
-
-export interface CustomRequest {
-  id: number
-  serviceType: string
-  source: 'inquiry' | 'measurement'
-  status: CustomRequestStatus
-  requirements: Record<string, any>
-  referenceImages: string[]
-  measurementId: number | null
-  designer: CustomDesigner | null
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CustomMessage {
-  id: number
-  sender: 'user' | 'designer' | 'system'
-  content: string
-  designerId: number | null
-  createdAt: string
-}
-
-export interface CustomRequestDetail {
-  request: CustomRequest
-  measurement: CustomMeasurement | null
-  messages: CustomMessage[]
-}
-
-export interface InquiryPayload {
-  serviceType: string
-  requirements: string
-  budget?: string
-  sizeNotes?: string
-  referenceImages: string[]
-  vipOnly?: boolean
-}
-
-export interface MeasurementPayload {
-  serviceType: string
-  height: number
-  weight: number
-  bust: number
-  waist: number
-  hips: number
-  shoulder: number
-  frontImage: string
-  sideImage: string
-  backImage?: string
-  detailImages?: string[]
-  notes?: string
-  vipOnly?: boolean
-}
+/** 类型再导出的理由见 api/diary/index.ts 的说明 */
+export type {
+  CustomDesigner,
+  CustomMeasurement,
+  CustomMessage,
+  CustomRequest,
+  CustomRequestDetail,
+  CustomRequestStatus,
+  CustomSummary,
+  InquiryPayload,
+  MeasurementPayload,
+} from './type'
 
 export function resolveMediaUrl(url: string) {
   if (!url) return ''
@@ -98,7 +55,7 @@ export async function uploadCustomImage(filePath: string) {
   if (USE_CLOUD) {
     const { url } = await cloudUploadImage(filePath, 'custom')
     return await request<{ url: string }>({
-      url: '/api/custom/upload-remote',
+      url: API.UPLOAD_REMOTE_URL,
       method: 'POST',
       data: { url },
     })
@@ -106,7 +63,7 @@ export async function uploadCustomImage(filePath: string) {
   const token = await ensureToken()
   return new Promise<{ url: string }>((resolve, reject) => {
     uni.uploadFile({
-      url: `${API_BASE_URL}/api/custom/upload`,
+      url: `${API_BASE_URL}${API.UPLOAD_URL}`,
       filePath,
       name: 'file',
       header: {
@@ -143,19 +100,19 @@ export async function uploadCustomImages(paths: string[]) {
 }
 
 export function fetchCustomSummary() {
-  return request<CustomSummary>({ url: '/api/custom/me' })
+  return request<CustomSummary>({ url: API.ME_URL })
 }
 
 export async function fetchCustomRequests() {
   const data = await request<{ requests?: CustomRequest[] }>({
-    url: '/api/custom/requests',
+    url: API.REQUESTS_URL,
   })
   return data.requests || []
 }
 
 export async function submitCustomInquiry(payload: InquiryPayload) {
   const data = await request<{ request: CustomRequest }>({
-    url: '/api/custom/inquiries',
+    url: API.INQUIRIES_URL,
     method: 'POST',
     data: payload,
   })
@@ -164,7 +121,7 @@ export async function submitCustomInquiry(payload: InquiryPayload) {
 
 export async function submitCustomMeasurement(payload: MeasurementPayload) {
   const data = await request<{ request: CustomRequest }>({
-    url: '/api/custom/measurements',
+    url: API.MEASUREMENTS_URL,
     method: 'POST',
     data: payload,
   })
@@ -173,13 +130,13 @@ export async function submitCustomMeasurement(payload: MeasurementPayload) {
 
 export function fetchCustomRequestDetail(id: number) {
   return request<CustomRequestDetail>({
-    url: `/api/custom/requests/${id}`,
+    url: API.REQUEST_URL + id,
   })
 }
 
 export async function advanceCustomRequest(id: number) {
   const data = await request<{ request: CustomRequest }>({
-    url: `/api/custom/requests/${id}/advance`,
+    url: `${API.REQUEST_URL}${id}/advance`,
     method: 'POST',
   })
   return data.request
@@ -187,7 +144,7 @@ export async function advanceCustomRequest(id: number) {
 
 export async function sendDesignerMessage(id: number, content: string) {
   const data = await request<{ messages: CustomMessage[] }>({
-    url: `/api/custom/requests/${id}/messages`,
+    url: `${API.REQUEST_URL}${id}/messages`,
     method: 'POST',
     data: { content },
   })
@@ -196,7 +153,7 @@ export async function sendDesignerMessage(id: number, content: string) {
 
 export function upgradeCustomMembership() {
   return request<CustomSummary>({
-    url: '/api/custom/membership/upgrade',
+    url: API.MEMBERSHIP_UPGRADE_URL,
     method: 'POST',
   })
 }
