@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { type Garment } from '@/data/mock'
+import type { Garment } from '@/types'
 import {
   apiAddGarment,
   apiDeleteGarment,

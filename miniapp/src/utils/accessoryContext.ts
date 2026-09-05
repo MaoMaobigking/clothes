@@ -1,5 +1,5 @@
 import type { AccessoryContextItem } from '@/api/accessories'
-import type { Garment } from '@/data/mock'
+import type { Garment } from '@/types'
 
 const CONTEXT_KEY = 'ai-fashion-accessory-context'
 

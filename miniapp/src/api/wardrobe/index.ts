@@ -1,7 +1,7 @@
 /*
  * 衣橱与搭配接口（功能一 / 功能二）。
  */
-import type { Garment } from '@/data/mock'
+import type { Garment } from '@/types'
 import { API_BASE_URL, request, uploadFile } from '@/utils/request'
 import { USE_CLOUD, cloudUploadImage } from '@/utils/cloud'
 import type { Outfit, OutfitBatch, WardrobeItem } from './type'
