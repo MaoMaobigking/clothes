@@ -135,7 +135,8 @@ onMounted(async () => {
           <view class="uc-text">
             <text class="uc-name">{{ auth.displayName }}</text>
             <text class="uc-sign">
-              <text v-if="auth.session.account">账号 {{ auth.session.account }} · </text>用穿搭记录每一天的好心情
+              <text v-if="auth.session.account">账号 {{ auth.session.account }} ·</text>
+              用穿搭记录每一天的好心情
             </text>
           </view>
           <view class="uc-edit" hover-class="uc-edit-hover" @tap="goProfileEdit">编辑资料</view>
@@ -184,12 +185,12 @@ onMounted(async () => {
             <view class="learning-line">
               <view
                 class="learning-fill"
-                :style="{ width: `${Math.min(100, Math.round(achievements.completed.length / 4 * 100))}%` }"
+                :style="{ width: `${Math.min(100, Math.round((achievements.completed.length / 4) * 100))}%` }"
               />
             </view>
             <text class="learning-meta">
               已完成 {{ achievements.completed.length }} 个教程
-              <text v-if="achievements.badges.length"> · {{ achievements.badges.length }} 枚徽章</text>
+              <text v-if="achievements.badges.length">· {{ achievements.badges.length }} 枚徽章</text>
             </text>
           </view>
         </view>
@@ -199,13 +200,7 @@ onMounted(async () => {
       <view>
         <SectionTitle title="更多功能" />
         <view class="menu-card">
-          <view
-            v-for="m in menus"
-            :key="m.key"
-            class="menu-item"
-            hover-class="menu-item-hover"
-            @tap="onMenu(m)"
-          >
+          <view v-for="m in menus" :key="m.key" class="menu-item" hover-class="menu-item-hover" @tap="onMenu(m)">
             <UiIcon :name="menuIcon(m.emoji)" :size="38" tone="soft" />
             <text class="mi-label">{{ m.label }}</text>
             <text v-if="m.hint" class="mi-hint">{{ m.hint }}</text>

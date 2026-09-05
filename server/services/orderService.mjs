@@ -108,11 +108,7 @@ export function listCoupons(goodsAmount) {
       key: coupon.key,
       label: coupon.label,
       usable,
-      reason: usable
-        ? ''
-        : amount <= 0
-          ? '购物车为空'
-          : `还差 ${yuan(coupon.threshold - amount)} 元可用`,
+      reason: usable ? '' : amount <= 0 ? '购物车为空' : `还差 ${yuan(coupon.threshold - amount)} 元可用`,
       discount: yuan(discount),
     }
   })
@@ -177,16 +173,10 @@ export async function deleteAddress(userId, id) {
 
 /** 结算页要的一整屏数据：车里的东西、地址、可用券、试算金额 */
 export async function getCheckoutPreview(userId, couponKey = '') {
-  const [cart, addresses] = await Promise.all([
-    cartService.listCart(userId),
-    listAddresses(userId),
-  ])
+  const [cart, addresses] = await Promise.all([cartService.listCart(userId), listAddresses(userId)])
   // 下架商品（available=false）不参与结算：它没有价格，算进去只会得到一个错的合计
   const items = cart.items.filter((item) => item.available)
-  const goodsAmount = items.reduce(
-    (sum, item) => sum + toCents(item.price) * item.quantity,
-    0,
-  )
+  const goodsAmount = items.reduce((sum, item) => sum + toCents(item.price) * item.quantity, 0)
   const { coupon, discount, payAmount } = calcDiscount(goodsAmount, couponKey)
   return {
     items,
@@ -247,7 +237,10 @@ export async function createOrder(userId, input = {}) {
       goodsAmount,
       discountAmount: discount,
       payAmount,
-      remark: String(input.remark || '').trim().slice(0, 200) || null,
+      remark:
+        String(input.remark || '')
+          .trim()
+          .slice(0, 200) || null,
     },
     preview.items.map((item) => ({
       itemType: item.itemType,
@@ -295,9 +288,7 @@ function toOrder(row, items = []) {
 
 export async function listOrders(userId) {
   const rows = await orderRepo.listOrders(userId)
-  const orders = await Promise.all(
-    rows.map(async (row) => toOrder(row, await orderRepo.listOrderItems(row.id))),
-  )
+  const orders = await Promise.all(rows.map(async (row) => toOrder(row, await orderRepo.listOrderItems(row.id))))
   return orders
 }
 

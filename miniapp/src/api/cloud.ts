@@ -105,10 +105,7 @@ export async function cloudRequest(payload: {
  * - `fileID` 是永久的 cloud:// 地址，`<image src>` 原生支持且免域名配置。
  *   落库存它，衣橱列表才不会两小时后集体图裂。
  */
-export async function cloudUploadImage(
-  filePath: string,
-  dir = 'uploads',
-): Promise<{ url: string; fileID: string }> {
+export async function cloudUploadImage(filePath: string, dir = 'uploads'): Promise<{ url: string; fileID: string }> {
   await initCloud()
   // #ifdef MP-WEIXIN
   const ext = (filePath.match(/\.(\w+)$/)?.[1] || 'png').toLowerCase()

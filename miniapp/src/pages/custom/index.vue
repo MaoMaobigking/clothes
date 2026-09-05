@@ -33,10 +33,7 @@ async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    const [summaryData, requestData] = await Promise.all([
-      fetchCustomSummary(),
-      fetchCustomRequests(),
-    ])
+    const [summaryData, requestData] = await Promise.all([fetchCustomSummary(), fetchCustomRequests()])
     summary.value = summaryData
     requests.value = requestData.slice(0, 5)
   } catch (err) {
@@ -105,14 +102,13 @@ onShow(loadData)
             @tap="openCategory(category.key)"
           >
             <view class="category-image-wrap">
-              <TileImage
-                :src="category.image"
-                from="#ffe6f2"
-                to="#e7dcff"
-                fill
-                rounded="0"
+              <TileImage :src="category.image" from="#ffe6f2" to="#e7dcff" fill rounded="0" />
+              <UiIcon
+                class="category-emoji"
+                :name="iconForEmoji(category.emoji) ?? 'scissors'"
+                :size="44"
+                tone="soft"
               />
-              <UiIcon class="category-emoji" :name="iconForEmoji(category.emoji) ?? 'scissors'" :size="44" tone="soft" />
             </view>
             <view class="category-meta">
               <text class="category-label">{{ category.shortLabel }}</text>
@@ -474,5 +470,4 @@ onShow(loadData)
   height: 80rpx;
   margin-top: 10rpx;
 }
-
 </style>

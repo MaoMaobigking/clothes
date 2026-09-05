@@ -1,10 +1,4 @@
-export type SceneKey =
-  | 'daily'
-  | 'business'
-  | 'date'
-  | 'travel'
-  | 'academy'
-  | 'cosplay'
+export type SceneKey = 'daily' | 'business' | 'date' | 'travel' | 'academy' | 'cosplay'
 
 export type SceneMode = 'pure' | 'mixed'
 export type SceneFilterKey = 'day' | 'night' | 'indoor' | 'outdoor'
@@ -120,11 +114,10 @@ export const MANUAL_WEATHER = [
   { city: '北京', temp: 24, condition: '阴', icon: '☁️' },
 ]
 
-export function currentSeason(): typeof SCENE_SEASONS[number] {
+export function currentSeason(): (typeof SCENE_SEASONS)[number] {
   const month = new Date().getMonth() + 1
   if (month >= 3 && month <= 5) return '春季'
   if (month >= 6 && month <= 8) return '夏季'
   if (month >= 9 && month <= 11) return '秋季'
   return '冬季'
 }
-

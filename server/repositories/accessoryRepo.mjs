@@ -63,18 +63,12 @@ export async function listAccessories() {
 export async function listAccessoriesByIds(ids) {
   if (!ids.length) return []
   const placeholders = ids.map(() => '?').join(', ')
-  const rows = await getAll(
-    `SELECT ${SELECT_COLS} FROM accessories WHERE id IN (${placeholders})`,
-    ids,
-  )
+  const rows = await getAll(`SELECT ${SELECT_COLS} FROM accessories WHERE id IN (${placeholders})`, ids)
   return rows.map(rowToAccessory)
 }
 
 export async function findAccessoryById(id) {
-  const row = await getOne(
-    `SELECT ${SELECT_COLS} FROM accessories WHERE id = ?`,
-    [id],
-  )
+  const row = await getOne(`SELECT ${SELECT_COLS} FROM accessories WHERE id = ?`, [id])
   return rowToAccessory(row)
 }
 
@@ -151,10 +145,7 @@ export async function seedAccessories() {
 }
 
 export async function getUserRatings(userId) {
-  const rows = await getAll(
-    'SELECT accessory_id, score FROM accessory_ratings WHERE user_id = ?',
-    [userId],
-  )
+  const rows = await getAll('SELECT accessory_id, score FROM accessory_ratings WHERE user_id = ?', [userId])
   return new Map(rows.map((row) => [row.accessory_id, Number(row.score)]))
 }
 

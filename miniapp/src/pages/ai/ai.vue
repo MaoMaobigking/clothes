@@ -29,16 +29,8 @@ function navigateTo(url: string) {
       <view>
         <SectionTitle title="全部功能" />
         <view class="features">
-          <view
-            v-for="f in AI_FEATURES"
-            :key="f.key"
-            class="feature"
-            @tap="navigateTo(f.route)"
-          >
-            <text
-              class="f-ico"
-              :style="{ background: `linear-gradient(140deg, ${f.from}, ${f.to})` }"
-            >
+          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="navigateTo(f.route)">
+            <text class="f-ico" :style="{ background: `linear-gradient(140deg, ${f.from}, ${f.to})` }">
               <UiIcon :name="f.icon" :size="44" tone="dark" />
             </text>
             <text class="f-label">{{ f.label }}</text>

@@ -88,7 +88,11 @@ const cloudEnv = (() => {
   const f = join(root, 'miniapp', '.env.production')
   if (!existsSync(f)) return ''
   // 只吃行内空格：写成 \s* 的话会连换行一起吞掉，空值行会误读到下一行的内容
-  return readFileSync(f, 'utf8').match(/^[ \t]*VITE_CLOUD_ENV[ \t]*=[ \t]*(.*)$/m)?.[1].trim() || ''
+  return (
+    readFileSync(f, 'utf8')
+      .match(/^[ \t]*VITE_CLOUD_ENV[ \t]*=[ \t]*(.*)$/m)?.[1]
+      .trim() || ''
+  )
 })()
 const fnSrc = join(root, 'cloudfunctions')
 const fnDest = join(outDir, 'cloudfunctions')

@@ -34,9 +34,7 @@ import {
   mallProductToAccessoryContext,
 } from '@/utils/accessoryContext'
 
-type PickerItem =
-  | { kind: 'garment'; item: Garment }
-  | { kind: 'mall'; item: MallProduct }
+type PickerItem = { kind: 'garment'; item: Garment } | { kind: 'mall'; item: MallProduct }
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
@@ -62,26 +60,18 @@ const activeCategoryData = computed(() =>
 
 const activeItems = computed(() => activeCategoryData.value?.items || [])
 
-const currentOutfitTitle = computed(() =>
-  contextTitle.value ||
-  recommendations.value?.currentOutfit.anchor.name ||
-  '当前服装',
+const currentOutfitTitle = computed(
+  () => contextTitle.value || recommendations.value?.currentOutfit.anchor.name || '当前服装',
 )
 
 const currentOutfitTags = computed(() => {
   const data = recommendations.value
   if (!data) return []
-  const tags = [
-    data.currentOutfit.anchor.categoryLabel,
-    ...data.currentOutfit.occasions,
-    ...data.currentOutfit.seasons,
-  ]
+  const tags = [data.currentOutfit.anchor.categoryLabel, ...data.currentOutfit.occasions, ...data.currentOutfit.seasons]
   return Array.from(new Set(tags.filter(Boolean))).slice(0, 5)
 })
 
-const tryonModelSrc = computed(() =>
-  profile.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front,
-)
+const tryonModelSrc = computed(() => (profile.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front))
 
 const pickerGarments = computed<PickerItem[]>(() =>
   wardrobe.items.slice(0, 40).map((item) => ({ kind: 'garment', item })),
@@ -95,9 +85,7 @@ const pickerMallItems = computed<PickerItem[]>(() =>
   mallProducts.value.slice(0, 10).map((item) => ({ kind: 'mall', item })),
 )
 
-const pickerItems = computed(() =>
-  pickerTab.value === 'garment' ? pickerGarments.value : pickerMallItems.value,
-)
+const pickerItems = computed(() => (pickerTab.value === 'garment' ? pickerGarments.value : pickerMallItems.value))
 
 onLoad(async () => {
   // #ifdef H5
@@ -192,9 +180,7 @@ async function selectGarment(garment: Garment) {
 }
 
 async function selectMallProduct(product: MallProduct) {
-  currentOutfit.value = [
-    mallProductToAccessoryContext({ ...product, img: product.imageUrl }),
-  ]
+  currentOutfit.value = [mallProductToAccessoryContext({ ...product, img: product.imageUrl })]
   contextSource.value = 'mall'
   contextTitle.value = product.name
   pickerOpen.value = false
@@ -269,9 +255,7 @@ async function addAccessory(item: Accessory) {
       return
     }
   } else {
-    const existing = cart.value.items.find(
-      (entry) => entry.itemType === 'accessory' && entry.itemId === item.id,
-    )
+    const existing = cart.value.items.find((entry) => entry.itemType === 'accessory' && entry.itemId === item.id)
     if (existing) {
       existing.quantity += 1
     } else {
@@ -305,9 +289,7 @@ async function addActiveCategoryToCart() {
     }
   } else {
     items.forEach((item, index) => {
-      const existing = cart.value.items.find(
-        (entry) => entry.itemType === 'accessory' && entry.itemId === item.id,
-      )
+      const existing = cart.value.items.find((entry) => entry.itemType === 'accessory' && entry.itemId === item.id)
       if (existing) existing.quantity += 1
       else cart.value.items.push(toLocalCartItem(item, index))
     })
@@ -488,11 +470,7 @@ function copyCartItem(item: AccessoryCartItem) {
           <view class="current-tags">
             <text v-for="tag in currentOutfitTags" :key="tag" class="current-tag">{{ tag }}</text>
           </view>
-          <view
-            v-if="contextSource !== 'mall'"
-            class="outfit-cart-btn"
-            @tap="addOutfitToCart"
-          >
+          <view v-if="contextSource !== 'mall'" class="outfit-cart-btn" @tap="addOutfitToCart">
             将当前服装加入购物车以享搭配价
           </view>
         </view>
@@ -514,14 +492,18 @@ function copyCartItem(item: AccessoryCartItem) {
             :src="tryonModelSrc"
             label="我的虚拟形象"
             :shape="profile.avatarShape"
-            :overlay="selectedAccessory ? {
-              slot: selectedAccessory.tryonSlot,
-              emoji: accessoryEmoji(selectedAccessory),
-              from: selectedAccessory.primaryColor,
-              to: selectedAccessory.secondaryColor,
-              imageUrl: selectedAccessory.imageUrl,
-              enabled: selectedAccessory.tryonEnabled,
-            } : null"
+            :overlay="
+              selectedAccessory
+                ? {
+                    slot: selectedAccessory.tryonSlot,
+                    emoji: accessoryEmoji(selectedAccessory),
+                    from: selectedAccessory.primaryColor,
+                    to: selectedAccessory.secondaryColor,
+                    imageUrl: selectedAccessory.imageUrl,
+                    enabled: selectedAccessory.tryonEnabled,
+                  }
+                : null
+            "
           />
           <view class="tryon-info">
             <template v-if="selectedAccessory">
@@ -551,9 +533,7 @@ function copyCartItem(item: AccessoryCartItem) {
           <text class="category-bulk-label">
             {{ activeCategoryData?.label || '本类' }}推荐 {{ activeItems.length }} 件
           </text>
-          <view class="btn btn-primary category-bulk-btn" @tap="addActiveCategoryToCart">
-            一键加入购物车
-          </view>
+          <view class="btn btn-primary category-bulk-btn" @tap="addActiveCategoryToCart">一键加入购物车</view>
         </view>
 
         <view v-if="activeItems.length" class="accessory-list">
@@ -577,7 +557,7 @@ function copyCartItem(item: AccessoryCartItem) {
                   <view class="accessory-name">{{ item.name }}</view>
                   <view class="accessory-meta">
                     {{ item.brand }} · {{ item.aggregateRating.toFixed(1) }} 分
-                    <text v-if="item.ratingCount"> · {{ item.ratingCount }} 人评</text>
+                    <text v-if="item.ratingCount">· {{ item.ratingCount }} 人评</text>
                   </view>
                 </view>
                 <view class="price-block">
@@ -606,13 +586,7 @@ function copyCartItem(item: AccessoryCartItem) {
               </view>
 
               <view class="accessory-actions">
-                <view
-                  class="accessory-action"
-                  :class="{ disabled: !item.tryonEnabled }"
-                  @tap="tryOn(item)"
-                >
-                  试戴
-                </view>
+                <view class="accessory-action" :class="{ disabled: !item.tryonEnabled }" @tap="tryOn(item)">试戴</view>
                 <view class="accessory-action" @tap="addAccessory(item)">加购</view>
                 <view class="accessory-action primary" @tap="openPurchase(item)">购买</view>
               </view>
@@ -632,11 +606,7 @@ function copyCartItem(item: AccessoryCartItem) {
             </view>
             <text class="demo-tag">{{ recommendations?.source === 'rule' ? '真实数据' : '本地演示' }}</text>
           </view>
-          <view
-            v-for="(combo, index) in recommendations?.hotCombos || []"
-            :key="combo.id"
-            class="hot-card"
-          >
+          <view v-for="(combo, index) in recommendations?.hotCombos || []" :key="combo.id" class="hot-card">
             <view class="hot-rank">{{ index + 1 }}</view>
             <view class="hot-main">
               <view class="hot-title">{{ combo.title }}</view>
@@ -666,20 +636,8 @@ function copyCartItem(item: AccessoryCartItem) {
       <view class="sheet picker-sheet" @tap.stop>
         <view class="sheet-title">选择当前服装</view>
         <view class="picker-tabs">
-          <view
-            class="picker-tab"
-            :class="{ on: pickerTab === 'garment' }"
-            @tap="pickerTab = 'garment'"
-          >
-            我的衣橱
-          </view>
-          <view
-            class="picker-tab"
-            :class="{ on: pickerTab === 'mall' }"
-            @tap="pickerTab = 'mall'"
-          >
-            商城商品
-          </view>
+          <view class="picker-tab" :class="{ on: pickerTab === 'garment' }" @tap="pickerTab = 'garment'">我的衣橱</view>
+          <view class="picker-tab" :class="{ on: pickerTab === 'mall' }" @tap="pickerTab = 'mall'">商城商品</view>
         </view>
         <scroll-view scroll-y class="picker-list">
           <view v-if="pickerItems.length" class="picker-grid">
@@ -687,9 +645,7 @@ function copyCartItem(item: AccessoryCartItem) {
               v-for="entry in pickerItems"
               :key="`${entry.kind}-${entry.item.id}`"
               class="picker-item"
-              @tap="entry.kind === 'garment'
-                ? selectGarment(entry.item)
-                : selectMallProduct(entry.item)"
+              @tap="entry.kind === 'garment' ? selectGarment(entry.item) : selectMallProduct(entry.item)"
             >
               <TileImage
                 :src="pickerImage(entry)"
@@ -704,9 +660,7 @@ function copyCartItem(item: AccessoryCartItem) {
           </view>
           <view v-else class="picker-empty">
             <text>暂无可选服装</text>
-            <text v-if="pickerTab === 'garment'" class="picker-link" @tap="wardrobe.load()">
-              刷新衣橱
-            </text>
+            <text v-if="pickerTab === 'garment'" class="picker-link" @tap="wardrobe.load()">刷新衣橱</text>
           </view>
         </scroll-view>
       </view>
@@ -743,9 +697,7 @@ function copyCartItem(item: AccessoryCartItem) {
               />
               <view class="cart-info">
                 <view class="cart-name">{{ item.name }}</view>
-                <view class="cart-meta">
-                  ¥{{ item.price }} × {{ item.quantity }}
-                </view>
+                <view class="cart-meta">¥{{ item.price }} × {{ item.quantity }}</view>
                 <view class="cart-stepper">
                   <view class="cart-step" @tap="changeCartQuantity(item, -1)">−</view>
                   <text class="cart-qty">{{ item.quantity }}</text>
@@ -820,7 +772,9 @@ function copyCartItem(item: AccessoryCartItem) {
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .current-card,
 .tryon-card,
@@ -1288,7 +1242,9 @@ function copyCartItem(item: AccessoryCartItem) {
   animation: pulse 0.9s ease-in-out infinite;
 }
 @keyframes pulse {
-  50% { transform: scale(1.08); }
+  50% {
+    transform: scale(1.08);
+  }
 }
 .purchase-title {
   margin-top: 24rpx;
@@ -1309,10 +1265,16 @@ function copyCartItem(item: AccessoryCartItem) {
   background: var(--pink);
   animation: blink 1s ease-in-out infinite;
 }
-.purchase-dot:nth-child(2) { animation-delay: 0.2s; }
-.purchase-dot:nth-child(3) { animation-delay: 0.4s; }
+.purchase-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.purchase-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
 @keyframes blink {
-  50% { opacity: 0.25; }
+  50% {
+    opacity: 0.25;
+  }
 }
 .purchase-product {
   margin-top: 22rpx;

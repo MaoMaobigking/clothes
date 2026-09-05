@@ -54,10 +54,7 @@ try {
     const row = accounts.find((item) => item.kind === meta.kind)
     check(`${meta.label} 存在`, Boolean(row), row ? `账号 ${row.account}` : '缺失')
   }
-  check(
-    '管理员账号角色为 admin',
-    accounts.find((item) => item.kind === 'admin')?.role === 'admin',
-  )
+  check('管理员账号角色为 admin', accounts.find((item) => item.kind === 'admin')?.role === 'admin')
 
   console.log('\n【2】账号密码登录')
   const female = DEMO_ACCOUNTS.find((item) => item.kind === 'female')
@@ -103,9 +100,7 @@ try {
 
   console.log('\n【6】跨用户隔离')
   const other = await wxLogin(`auth_check_other_${Date.now().toString(36)}`)
-  const otherGarmentIds = new Set(
-    (await garmentService.listGarments(other.userId)).map((item) => item.id),
-  )
+  const otherGarmentIds = new Set((await garmentService.listGarments(other.userId)).map((item) => item.id))
   check(
     '读不到演示女性的衣物',
     femaleGarments.every((item) => !otherGarmentIds.has(item.id)),
@@ -115,16 +110,9 @@ try {
     (await outfitService.getOutfit(other.userId, femaleOutfits[0]?.id)) === null ||
       (await outfitService.getOutfit(other.userId, femaleOutfits[0]?.id)) === undefined,
   )
-  check(
-    '读不到演示女性的风格报告',
-    (await aiRepo.findStyleReport(other.userId, femaleReports[0].id)) === null,
-  )
+  check('读不到演示女性的风格报告', (await aiRepo.findStyleReport(other.userId, femaleReports[0].id)) === null)
 
-  console.log(
-    failed === 0
-      ? '\n🎉 登录与演示账号全部通过\n'
-      : `\n❌ ${failed} 项未通过\n`,
-  )
+  console.log(failed === 0 ? '\n🎉 登录与演示账号全部通过\n' : `\n❌ ${failed} 项未通过\n`)
   process.exitCode = failed === 0 ? 0 : 1
 } finally {
   await closeDb()

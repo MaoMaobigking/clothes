@@ -61,10 +61,7 @@ export async function updateAddress(userId, id, input) {
 }
 
 export async function deleteAddress(userId, id) {
-  const result = await execute('DELETE FROM shop_addresses WHERE user_id = ? AND id = ?', [
-    userId,
-    Number(id) || 0,
-  ])
+  const result = await execute('DELETE FROM shop_addresses WHERE user_id = ? AND id = ?', [userId, Number(id) || 0])
   return result.affectedRows > 0
 }
 
@@ -147,9 +144,10 @@ export async function listOrderItems(orderId) {
 
 /** 推进状态。WHERE 带 user_id，别人的订单改不动。 */
 export async function updateOrderStatus(userId, id, status) {
-  const result = await execute(
-    'UPDATE shop_orders SET status = ? WHERE user_id = ? AND id = ?',
-    [status, userId, Number(id) || 0],
-  )
+  const result = await execute('UPDATE shop_orders SET status = ? WHERE user_id = ? AND id = ?', [
+    status,
+    userId,
+    Number(id) || 0,
+  ])
   return result.affectedRows > 0
 }

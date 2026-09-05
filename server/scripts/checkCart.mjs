@@ -61,7 +61,10 @@ try {
   check('garment 可入车', Boolean(byType('garment')))
   check('accessory 可入车', Boolean(byType('accessory')))
   check('catalog 可入车（旧实现会被静默丢弃）', Boolean(byType('catalog')))
-  check('三条都解析出了真实明细', cart1.items.every((item) => item.available && item.name))
+  check(
+    '三条都解析出了真实明细',
+    cart1.items.every((item) => item.available && item.name),
+  )
   check(
     '明细带价格，可用于合计',
     cart1.items.every((item) => typeof item.price === 'number'),
@@ -72,10 +75,7 @@ try {
   await cartService.addItem(a.userId, { itemType: 'accessory', itemId: accessory.id, quantity: 2 })
   const cart2 = await cartService.listCart(a.userId)
   check('行数不变', cart2.items.length === cart1.items.length, `${cart2.items.length}`)
-  check(
-    '数量累加为 3',
-    cart2.items.find((item) => item.itemType === 'accessory')?.quantity === 3,
-  )
+  check('数量累加为 3', cart2.items.find((item) => item.itemType === 'accessory')?.quantity === 3)
 
   console.log('\n【3】整套搭配拆成单品并记录来源')
   const batch = await generateOutfits(a.userId, {})
@@ -83,18 +83,16 @@ try {
   const cart3 = await cartService.addOutfitToCart(a.userId, outfit.id)
   const fromOutfit = cart3.items.filter((item) => String(item.sourceOutfitId) === String(outfit.id))
   check('搭配单品已入车', fromOutfit.length > 0, `${fromOutfit.length} 件`)
-  check('来源搭配 id 被记录', fromOutfit.every((item) => item.sourceOutfitId === String(outfit.id)))
-  check('拆出来的都是 garment', fromOutfit.every((item) => item.itemType === 'garment'))
-  await expectStatus(
-    '加购不存在的搭配返回 404',
-    () => cartService.addOutfitToCart(a.userId, 99999999),
-    404,
+  check(
+    '来源搭配 id 被记录',
+    fromOutfit.every((item) => item.sourceOutfitId === String(outfit.id)),
   )
-  await expectStatus(
-    'B 加购 A 的搭配返回 404',
-    () => cartService.addOutfitToCart(b.userId, outfit.id),
-    404,
+  check(
+    '拆出来的都是 garment',
+    fromOutfit.every((item) => item.itemType === 'garment'),
   )
+  await expectStatus('加购不存在的搭配返回 404', () => cartService.addOutfitToCart(a.userId, 99999999), 404)
+  await expectStatus('B 加购 A 的搭配返回 404', () => cartService.addOutfitToCart(b.userId, outfit.id), 404)
 
   console.log('\n【4】改数量与删除')
   const target = (await cartService.listCart(a.userId)).items[0]
@@ -115,13 +113,12 @@ try {
   const aItem = (await cartService.listCart(a.userId)).items[0]
   await cartService.addItem(b.userId, { itemType: 'accessory', itemId: accessory.id })
   const bCart = await cartService.listCart(b.userId)
-  check('B 看不到 A 的条目', bCart.items.every((item) => item.cartId !== aItem.cartId))
-  check('B 删不掉 A 的条目', (await cartService.removeItem(b.userId, aItem.cartId)) === false)
-  await expectStatus(
-    'B 改不动 A 的数量',
-    () => cartService.setCartQuantity(b.userId, aItem.cartId, 9),
-    404,
+  check(
+    'B 看不到 A 的条目',
+    bCart.items.every((item) => item.cartId !== aItem.cartId),
   )
+  check('B 删不掉 A 的条目', (await cartService.removeItem(b.userId, aItem.cartId)) === false)
+  await expectStatus('B 改不动 A 的数量', () => cartService.setCartQuantity(b.userId, aItem.cartId, 9), 404)
   check(
     'A 的条目仍在',
     (await cartService.listCart(a.userId)).items.some((item) => item.cartId === aItem.cartId),
@@ -152,10 +149,11 @@ try {
        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   )
-  await execute(
-    'DELETE FROM cart_items WHERE user_id = ? AND item_type = ? AND item_id = ?',
-    [a.userId, 'garment', legacyGarment.id],
-  )
+  await execute('DELETE FROM cart_items WHERE user_id = ? AND item_type = ? AND item_id = ?', [
+    a.userId,
+    'garment',
+    legacyGarment.id,
+  ])
   await execute(
     `INSERT INTO feature2_cart_items (user_id, source_outfit_id, garment_id, quantity)
      VALUES (?, NULL, ?, 2), (?, NULL, ?, 3)`,
@@ -181,18 +179,13 @@ try {
 
   console.log('\n【7】历史脏数据改判与搭配优惠')
   // 模拟功能四旧写法：scene_catalog 的 id 以 garment 类型入车
-  await execute(
-    'DELETE FROM cart_items WHERE user_id = ? AND item_id = ?',
-    [a.userId, catalog.id],
-  )
-  await execute(
-    `INSERT INTO cart_items (user_id, item_type, item_id, quantity) VALUES (?, 'garment', ?, 1)`,
-    [a.userId, catalog.id],
-  )
+  await execute('DELETE FROM cart_items WHERE user_id = ? AND item_id = ?', [a.userId, catalog.id])
+  await execute(`INSERT INTO cart_items (user_id, item_type, item_id, quantity) VALUES (?, 'garment', ?, 1)`, [
+    a.userId,
+    catalog.id,
+  ])
   await migrateCartForCheck()
-  const fixed = (await cartService.listCart(a.userId)).items.find(
-    (item) => item.itemId === catalog.id,
-  )
+  const fixed = (await cartService.listCart(a.userId)).items.find((item) => item.itemId === catalog.id)
   check('脏数据被改判成 catalog', fixed?.itemType === 'catalog')
   check('改判后明细能查出来', fixed?.available === true, fixed?.name)
 
@@ -206,20 +199,11 @@ try {
   // 缺一件就该回原价，这是 §9.7「未包含时显示原价」的判定边界
   await cartService.removeItem(
     a.userId,
-    (await cartService.listCart(a.userId)).items.find(
-      (item) => item.itemId === outfitGarmentIds[0],
-    ).cartId,
+    (await cartService.listCart(a.userId)).items.find((item) => item.itemId === outfitGarmentIds[0]).cartId,
   )
-  check(
-    '缺一件就不再触发优惠',
-    (await cartService.hasOutfitInCart(a.userId, outfitGarmentIds)) === false,
-  )
+  check('缺一件就不再触发优惠', (await cartService.hasOutfitInCart(a.userId, outfitGarmentIds)) === false)
 
-  console.log(
-    failed === 0
-      ? '\n🎉 购物车统一验收全部通过\n'
-      : `\n❌ 有 ${failed} 项未通过\n`,
-  )
+  console.log(failed === 0 ? '\n🎉 购物车统一验收全部通过\n' : `\n❌ 有 ${failed} 项未通过\n`)
 } catch (error) {
   console.error('\n💥 验收脚本异常：', error)
   failed += 1

@@ -107,10 +107,7 @@ export function fetchMe() {
 }
 
 /** 保存昵称 / 头像。只传要改的字段，后端也只认这两个。 */
-export async function apiUpdateMe(patch: {
-  nickname?: string
-  avatarUrl?: string
-}): Promise<MyProfile> {
+export async function apiUpdateMe(patch: { nickname?: string; avatarUrl?: string }): Promise<MyProfile> {
   const data = await request<{ profile: MyProfile }>({
     url: '/api/auth/me',
     method: 'PUT',

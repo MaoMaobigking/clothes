@@ -98,11 +98,7 @@ async function sendComment() {
     <view v-else-if="errorText || !content" class="state error">{{ errorText }}</view>
 
     <view v-else class="body scroll-y hide-scrollbar">
-      <image
-        class="hero-image"
-        :src="content.coverUrl"
-        mode="aspectFill"
-      />
+      <image class="hero-image" :src="content.coverUrl" mode="aspectFill" />
 
       <view class="poster">
         <text class="avatar">{{ content.authorAvatar }}</text>
@@ -120,11 +116,23 @@ async function sendComment() {
 
       <view class="actions">
         <view class="action" :class="{ on: content.liked }" @tap="toggleAction('like')">
-          <UiIcon class="action-icon" name="heart" :size="34" :tone="content.liked ? 'brand' : 'muted'" :stroke-width="content.liked ? 2.6 : 1.7" />
+          <UiIcon
+            class="action-icon"
+            name="heart"
+            :size="34"
+            :tone="content.liked ? 'brand' : 'muted'"
+            :stroke-width="content.liked ? 2.6 : 1.7"
+          />
           <text>{{ content.likeCount }}</text>
         </view>
         <view class="action" @tap="toggleAction('favorite')">
-          <UiIcon class="action-icon" name="star" :size="34" :tone="content.favorited ? 'brand' : 'muted'" :stroke-width="content.favorited ? 2.6 : 1.7" />
+          <UiIcon
+            class="action-icon"
+            name="star"
+            :size="34"
+            :tone="content.favorited ? 'brand' : 'muted'"
+            :stroke-width="content.favorited ? 2.6 : 1.7"
+          />
           <text>{{ content.favoriteCount }}</text>
         </view>
         <view class="action" @tap="toggleAction('report')">
@@ -144,12 +152,7 @@ async function sendComment() {
       </view>
 
       <view class="comment-input">
-        <input
-          v-model="commentDraft"
-          class="input"
-          maxlength="500"
-          placeholder="写下你的评论..."
-        />
+        <input v-model="commentDraft" class="input" maxlength="500" placeholder="写下你的评论..." />
         <view class="send" @tap="sendComment">发送</view>
       </view>
     </view>

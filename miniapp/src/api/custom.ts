@@ -1,12 +1,7 @@
 import { API_BASE_URL, ensureToken, request } from './http'
 import { USE_CLOUD, cloudUploadImage } from './cloud'
 
-export type CustomRequestStatus =
-  | 'submitted'
-  | 'design'
-  | 'sample'
-  | 'production'
-  | 'shipped'
+export type CustomRequestStatus = 'submitted' | 'design' | 'sample' | 'production' | 'shipped'
 
 export interface CustomSummary {
   role: string

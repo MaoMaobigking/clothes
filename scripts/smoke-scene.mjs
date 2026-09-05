@@ -52,10 +52,10 @@ try {
   throw error
 }
 
-check('六个场景入口全部渲染', await page.locator('.scene-option').count() === 6)
+check('六个场景入口全部渲染', (await page.locator('.scene-option').count()) === 6)
 await page.getByText('已为你激活').waitFor({ timeout: 15000 })
 check('场景方案自动生成', true)
-check('默认展示新旧混搭', await page.getByText('新旧混搭', { exact: true }).count() > 0)
+check('默认展示新旧混搭', (await page.getByText('新旧混搭', { exact: true }).count()) > 0)
 
 await page.getByText('夜晚', { exact: true }).click()
 await page.getByText('对比旧衣', { exact: true }).click()
@@ -77,9 +77,7 @@ await page.getByText('我的搭配', { exact: true }).first().click()
 await page.locator('.outfit-card').first().waitFor({ timeout: 8000 })
 check('我的搭配可重新打开刚保存的模板', true)
 
-const realErrors = errors.filter(
-  (error) => !/Failed to load resource|404|net::ERR/i.test(error),
-)
+const realErrors = errors.filter((error) => !/Failed to load resource|404|net::ERR/i.test(error))
 console.log(`\n运行时错误(已忽略图片 404): ${realErrors.length}`)
 if (realErrors.length) console.log(realErrors.join('\n'))
 

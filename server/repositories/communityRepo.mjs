@@ -93,7 +93,7 @@ export async function listContents(
     params.push(category)
   }
   if (topic) {
-    where.push("JSON_CONTAINS(IFNULL(c.topics, JSON_ARRAY()), JSON_QUOTE(?))")
+    where.push('JSON_CONTAINS(IFNULL(c.topics, JSON_ARRAY()), JSON_QUOTE(?))')
     params.push(topic)
   }
   if (excludeReported) {
@@ -203,10 +203,10 @@ export async function saveBookmark(userId, contentId, note = '') {
        updated_at = CURRENT_TIMESTAMP`,
     [contentId, userId, String(note || '').slice(0, 2000)],
   )
-  const row = await getOne(
-    'SELECT note FROM community_bookmarks WHERE user_id = ? AND content_id = ?',
-    [userId, contentId],
-  )
+  const row = await getOne('SELECT note FROM community_bookmarks WHERE user_id = ? AND content_id = ?', [
+    userId,
+    contentId,
+  ])
   return row?.note || ''
 }
 
@@ -263,22 +263,13 @@ export async function grantAchievement(userId, achievement) {
        title = VALUES(title),
        badge = VALUES(badge),
        points = VALUES(points)`,
-    [
-      userId,
-      achievement.key,
-      achievement.title,
-      achievement.badge,
-      achievement.points,
-    ],
+    [userId, achievement.key, achievement.title, achievement.badge, achievement.points],
   )
 }
 
 export async function createShare(userId, input) {
   const id = `share_u${userId}_${Date.now().toString(36)}`
-  const author = await getOne(
-    'SELECT nickname, avatar_url FROM users WHERE id = ?',
-    [userId],
-  )
+  const author = await getOne('SELECT nickname, avatar_url FROM users WHERE id = ?', [userId])
   await execute(
     `INSERT INTO community_contents
       (id, type, author_user_id, author_name, author_avatar,
@@ -337,13 +328,7 @@ export async function countCompletedTutorials(userId) {
 }
 
 export async function getAdminStats() {
-  const [
-    users,
-    contents,
-    interactions,
-    tutorialCompletions,
-    comments,
-  ] = await Promise.all([
+  const [users, contents, interactions, tutorialCompletions, comments] = await Promise.all([
     getOne('SELECT COUNT(*) AS n FROM users'),
     getOne(
       `SELECT COUNT(*) AS total,
@@ -365,9 +350,7 @@ export async function getAdminStats() {
          FROM community_interactions
         WHERE type = 'complete'`,
     ),
-    getOne(
-      `SELECT COUNT(*) AS n FROM community_comments`,
-    ),
+    getOne(`SELECT COUNT(*) AS n FROM community_comments`),
   ])
 
   return {
@@ -435,9 +418,7 @@ export async function getAdminMetrics(days = 7) {
         ORDER BY day ASC`,
       [span - 1, span - 1],
     ),
-    getAll(
-      `SELECT type, COUNT(*) AS n FROM community_interactions GROUP BY type`,
-    ),
+    getAll(`SELECT type, COUNT(*) AS n FROM community_interactions GROUP BY type`),
     getOne(
       `SELECT COUNT(*) AS total,
               SUM(membership_level <> 'standard') AS vip

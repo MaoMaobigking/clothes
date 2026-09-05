@@ -37,14 +37,18 @@ try {
 }
 
 const stamp = Date.now().toString(36)
-const A = (await req('/auth/dev-token', {
-  method: 'POST',
-  body: { tag: `community_a_${stamp}` },
-})).data
-const B = (await req('/auth/dev-token', {
-  method: 'POST',
-  body: { tag: `community_b_${stamp}` },
-})).data
+const A = (
+  await req('/auth/dev-token', {
+    method: 'POST',
+    body: { tag: `community_a_${stamp}` },
+  })
+).data
+const B = (
+  await req('/auth/dev-token', {
+    method: 'POST',
+    body: { tag: `community_b_${stamp}` },
+  })
+).data
 
 console.log('\n【1】真实用户与公共内容')
 check('两个身份不同', A.userId !== B.userId)
@@ -69,7 +73,10 @@ const comment = await req('/community/contents/share-demo-01/comments', {
 })
 check('评论落库', comment.status === 201)
 const detail = await req('/community/contents/share-demo-01', { token: A.token })
-check('评论在详情可见', detail.data.content.comments.some((item) => item.id === comment.data.comment.id))
+check(
+  '评论在详情可见',
+  detail.data.content.comments.some((item) => item.id === comment.data.comment.id),
+)
 
 console.log('\n【3】举报过滤与书签')
 await req('/community/contents/share-demo-02/interactions', {
@@ -80,7 +87,10 @@ await req('/community/contents/share-demo-02/interactions', {
 const aShares = await req('/community/contents?type=share', { token: A.token })
 const bShares = await req('/community/contents?type=share', { token: B.token })
 check('举报后从当前用户列表过滤', !aShares.data.items.some((item) => item.id === 'share-demo-02'))
-check('举报不影响其他用户', bShares.data.items.some((item) => item.id === 'share-demo-02'))
+check(
+  '举报不影响其他用户',
+  bShares.data.items.some((item) => item.id === 'share-demo-02'),
+)
 
 await req(`/community/contents/${articleId}/bookmark`, {
   method: 'POST',
@@ -88,7 +98,10 @@ await req(`/community/contents/${articleId}/bookmark`, {
   body: { note: '验收笔记' },
 })
 const bookmarks = await req('/community/bookmarks', { token: A.token })
-check('书签与笔记可回看', bookmarks.data.items.some((item) => item.id === articleId && item.note === '验收笔记'))
+check(
+  '书签与笔记可回看',
+  bookmarks.data.items.some((item) => item.id === articleId && item.note === '验收笔记'),
+)
 
 console.log('\n【4】教程积分与管理员统计')
 await req('/community/tutorials/tut-basic-layering/complete', {
@@ -97,7 +110,10 @@ await req('/community/tutorials/tut-basic-layering/complete', {
 })
 const achievements = await req('/community/achievements', { token: A.token })
 check('完成教程获得积分', achievements.data.points >= 10)
-check('解锁新手徽章', achievements.data.badges.some((item) => item.key === 'learning_starter'))
+check(
+  '解锁新手徽章',
+  achievements.data.badges.some((item) => item.key === 'learning_starter'),
+)
 check('普通用户访问看板 403', (await req('/community/admin/stats', { token: A.token })).status === 403)
 
 const admin = await req('/auth/admin-login', {

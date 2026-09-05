@@ -16,8 +16,7 @@ import { authRequired } from '../middleware/auth.mjs'
 import * as cartService from '../services/cartService.mjs'
 
 const router = Router()
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next)
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 
 router.use(authRequired)
 
@@ -54,11 +53,7 @@ router.post(
 router.patch(
   '/:id',
   asyncHandler(async (req, res) => {
-    const item = await cartService.setCartQuantity(
-      req.userId,
-      Number(req.params.id),
-      req.body?.quantity,
-    )
+    const item = await cartService.setCartQuantity(req.userId, Number(req.params.id), req.body?.quantity)
     res.json({ item })
   }),
 )

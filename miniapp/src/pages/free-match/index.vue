@@ -7,10 +7,7 @@ import { MODEL_IMAGES, SCENES, type Garment, type Scene } from '@/data/mock'
 import { apiCreateOutfit, apiStarOutfit } from '@/api/wardrobe'
 import { apiTryonEnabled, runTryon } from '@/api/tryon'
 import { isAuthError } from '@/api/http'
-import {
-  garmentToAccessoryContext,
-  setAccessoryPageContext,
-} from '@/utils/accessoryContext'
+import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 import { MOMENT_HINT_PREVIEW, copyText } from '@/utils/share'
 
 const wardrobe = useWardrobeStore()
@@ -150,9 +147,7 @@ function switchModel() {
  * 不认本地路径，只吃 base64 和网络图，写了就是不显示。
  */
 const sceneKey = ref('')
-const currentScene = computed<Scene | null>(
-  () => SCENES.find((s) => s.key === sceneKey.value) || null,
-)
+const currentScene = computed<Scene | null>(() => SCENES.find((s) => s.key === sceneKey.value) || null)
 function switchScene() {
   const options = ['默认（无背景）', ...SCENES.map((s) => s.label)]
   uni.showActionSheet({
@@ -175,12 +170,7 @@ function switchScene() {
  * 本地规则随机，不落库也不调 AI：每个部位从衣橱里随机抽一件。
  * 「智能生成」是首页那条链路（/api/wardrobe/generate），这里只是换个组合看看。
  */
-const SHUFFLE_GROUPS = [
-  ['top'],
-  ['pants', 'skirt', 'dress'],
-  ['shoes'],
-  ['bag', 'hat', 'jewelry', 'accessory'],
-]
+const SHUFFLE_GROUPS = [['top'], ['pants', 'skirt', 'dress'], ['shoes'], ['bag', 'hat', 'jewelry', 'accessory']]
 function pickRandom<T>(list: T[]): T | undefined {
   if (!list.length) return undefined
   return list[Math.floor(Math.random() * list.length)]
@@ -194,9 +184,7 @@ function shuffleOutfit() {
   const used = new Set<string>()
   const next: Garment[] = []
   for (const group of SHUFFLE_GROUPS) {
-    const picked = pickRandom(
-      pool.filter((g) => group.includes(g.category) && !used.has(g.id)),
-    )
+    const picked = pickRandom(pool.filter((g) => group.includes(g.category) && !used.has(g.id)))
     if (!picked) continue
     used.add(picked.id)
     next.push(picked)
@@ -298,11 +286,7 @@ function previewTryon() {
 function copyLookText() {
   const names = selected.value.map((g) => g.name).join(' + ')
   copyText(
-    [
-      currentScene.value ? `${currentScene.value.label} · 今日穿搭` : '今日穿搭',
-      names,
-      '由 灵犀 AI 穿搭 生成',
-    ]
+    [currentScene.value ? `${currentScene.value.label} · 今日穿搭` : '今日穿搭', names, '由 灵犀 AI 穿搭 生成']
       .filter(Boolean)
       .join('\n'),
     '搭配文案已复制',
@@ -449,12 +433,7 @@ function goAccessory() {
           小程序 WXSS 的 background-image 不认 /static/ 这种本地路径。
           上面再压一层半透明白遮罩，免得背景把人台和衣物压得看不清。
         -->
-        <image
-          v-if="currentScene"
-          class="stage-bg"
-          :src="currentScene.img"
-          mode="aspectFill"
-        />
+        <image v-if="currentScene" class="stage-bg" :src="currentScene.img" mode="aspectFill" />
         <view v-if="currentScene" class="stage-mask" />
 
         <!-- 样图左上那个「我的虚拟形象」标签 -->
@@ -463,11 +442,7 @@ function goAccessory() {
         <!-- 左侧竖排可替换缩略 -->
         <scroll-view scroll-y class="thumbs">
           <view v-for="g in quickThumbs" :key="g.id" class="thumb-wrap">
-            <button
-              class="thumb"
-              :aria-label="`换上${g.name}`"
-              @tap="wear(g)"
-            >
+            <button class="thumb" :aria-label="`换上${g.name}`" @tap="wear(g)">
               <TileImage :src="g.img" :emoji="g.emoji" ratio="1 / 1" />
             </button>
             <!--
@@ -475,12 +450,7 @@ function goAccessory() {
               只在「这件已经穿上了」时出现 —— 它的语义是脱下来，
               没穿的衣服给个 × 无处可去。
             -->
-            <view
-              v-if="isWearing(g.id)"
-              class="thumb-x"
-              :aria-label="`脱下${g.name}`"
-              @tap.stop="takeOff(g.id)"
-            >
+            <view v-if="isWearing(g.id)" class="thumb-x" :aria-label="`脱下${g.name}`" @tap.stop="takeOff(g.id)">
               <UiIcon name="close" :size="20" tone="white" :stroke-width="2.4" />
             </view>
           </view>
@@ -497,13 +467,7 @@ function goAccessory() {
             结果图是百炼的 OSS 临时地址（24h 过期），所以只当「这次的展示」，
             要留下来得走保存那条路。点一下可以全屏看大图。
           -->
-          <TileImage
-            v-if="tryonImage"
-            :src="tryonImage"
-            icon="sparkle"
-            ratio="3 / 4"
-            fit="contain"
-          />
+          <TileImage v-if="tryonImage" :src="tryonImage" icon="sparkle" ratio="3 / 4" fit="contain" />
           <TileImage v-else :src="currentModel.src" icon="me" ratio="3 / 4" fit="contain" />
         </view>
         <view v-if="tryonImage" class="tryon-badge">AI 试衣结果</view>
@@ -520,13 +484,7 @@ function goAccessory() {
 
         <!-- 右侧竖排工具 -->
         <scroll-view scroll-y class="tools">
-          <button
-            v-for="t in tools"
-            :key="t.key"
-            class="tool"
-            :aria-label="t.label"
-            @tap="onTool(t)"
-          >
+          <button v-for="t in tools" :key="t.key" class="tool" :aria-label="t.label" @tap="onTool(t)">
             <UiIcon :name="t.icon" :size="36" tone="dark" />
             <text class="tool-label">{{ t.label }}</text>
           </button>
@@ -946,7 +904,9 @@ function goAccessory() {
 /* ---------- 轻提示 ---------- */
 .toast-enter-active,
 .toast-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 .toast-enter-from,
 .toast-leave-to {

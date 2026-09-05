@@ -36,9 +36,7 @@ const visibleTutorials = computed(() =>
     : contentByType.tutorial.filter((item) => item.category === activeCategory.value),
 )
 
-const verifiedTutorials = computed(() =>
-  contentByType.tutorial.filter((item) => item.body.verified),
-)
+const verifiedTutorials = computed(() => contentByType.tutorial.filter((item) => item.body.verified))
 
 const visibleShares = computed(() =>
   topicFilter.value
@@ -153,10 +151,7 @@ function publishShare() {
   uni.navigateTo({ url: '/pages/share-editor/index' })
 }
 
-async function toggleAction(
-  item: CommunityContent,
-  action: 'like' | 'favorite' | 'report',
-) {
+async function toggleAction(item: CommunityContent, action: 'like' | 'favorite' | 'report') {
   try {
     const result = await toggleCommunityInteraction(item.id, action)
     Object.assign(item, result.content)
@@ -241,14 +236,7 @@ function showCooperationTip() {
               :class="{ feature: index === 0 }"
               @tap="openContent(item)"
             >
-              <TileImage
-                :src="item.coverUrl"
-                emoji="📖"
-                from="#f3e0d6"
-                to="#c98fb0"
-                ratio="3 / 4"
-                rounded="24rpx"
-              />
+              <TileImage :src="item.coverUrl" emoji="📖" from="#f3e0d6" to="#c98fb0" ratio="3 / 4" rounded="24rpx" />
               <view class="magazine-meta">
                 <text class="magazine-month">{{ item.publishedMonth }}</text>
                 <view class="magazine-title">{{ item.title }}</view>
@@ -278,12 +266,7 @@ function showCooperationTip() {
             </view>
           </view>
           <view class="tutorial-grid">
-            <view
-              v-for="item in visibleTutorials"
-              :key="item.id"
-              class="tutorial-card"
-              @tap="openContent(item)"
-            >
+            <view v-for="item in visibleTutorials" :key="item.id" class="tutorial-card" @tap="openContent(item)">
               <TileImage
                 :src="item.coverUrl"
                 :emoji="item.authorAvatar"
@@ -317,17 +300,8 @@ function showCooperationTip() {
           </view>
           <view v-if="!visibleShares.length" class="state">这个话题下还没有内容</view>
           <view class="feed-masonry">
-            <view
-              v-for="(column, colIndex) in shareColumns"
-              :key="colIndex"
-              class="feed-column"
-            >
-              <view
-                v-for="entry in column"
-                :key="entry.item.id"
-                class="share-card"
-                @tap="openContent(entry.item)"
-              >
+            <view v-for="(column, colIndex) in shareColumns" :key="colIndex" class="feed-column">
+              <view v-for="entry in column" :key="entry.item.id" class="share-card" @tap="openContent(entry.item)">
                 <TileImage
                   :src="entry.item.coverUrl"
                   :emoji="entry.item.authorAvatar"
@@ -345,22 +319,31 @@ function showCooperationTip() {
                   <text v-for="topic in entry.item.topics" :key="topic" class="topic">{{ topic }}</text>
                 </view>
                 <view class="share-actions">
-                  <view
-                    class="action"
-                    :class="{ on: entry.item.liked }"
-                    @tap.stop="toggleAction(entry.item, 'like')"
-                  >
-                    <UiIcon name="heart" :size="28" :tone="entry.item.liked ? 'brand' : 'muted'" :stroke-width="entry.item.liked ? 2.6 : 1.7" /><text>{{ entry.item.likeCount }}</text>
+                  <view class="action" :class="{ on: entry.item.liked }" @tap.stop="toggleAction(entry.item, 'like')">
+                    <UiIcon
+                      name="heart"
+                      :size="28"
+                      :tone="entry.item.liked ? 'brand' : 'muted'"
+                      :stroke-width="entry.item.liked ? 2.6 : 1.7"
+                    />
+                    <text>{{ entry.item.likeCount }}</text>
                   </view>
                   <view class="action" @tap.stop="openContent(entry.item)">
-                    <UiIcon name="comment" :size="28" tone="muted" /><text>{{ entry.item.commentCount }}</text>
+                    <UiIcon name="comment" :size="28" tone="muted" />
+                    <text>{{ entry.item.commentCount }}</text>
                   </view>
                   <view
                     class="action"
                     :class="{ on: entry.item.favorited }"
                     @tap.stop="toggleAction(entry.item, 'favorite')"
                   >
-                    <UiIcon name="star" :size="28" :tone="entry.item.favorited ? 'brand' : 'muted'" :stroke-width="entry.item.favorited ? 2.6 : 1.7" /><text>{{ entry.item.favoriteCount }}</text>
+                    <UiIcon
+                      name="star"
+                      :size="28"
+                      :tone="entry.item.favorited ? 'brand' : 'muted'"
+                      :stroke-width="entry.item.favorited ? 2.6 : 1.7"
+                    />
+                    <text>{{ entry.item.favoriteCount }}</text>
                   </view>
                   <view class="action subtle" @tap.stop="toggleAction(entry.item, 'report')">举报</view>
                 </view>
@@ -377,11 +360,7 @@ function showCooperationTip() {
             </view>
           </view>
           <view class="challenge-list">
-            <view
-              v-for="item in contentByType.challenge"
-              :key="item.id"
-              class="challenge-card"
-            >
+            <view v-for="item in contentByType.challenge" :key="item.id" class="challenge-card">
               <TileImage
                 :src="item.coverUrl"
                 :emoji="item.authorAvatar"

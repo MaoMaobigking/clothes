@@ -13,10 +13,7 @@ import {
 } from '@/api/wardrobe'
 import { isAuthError } from '@/api/http'
 import { categoryLabel, occasionLabel, seasonLabel } from '@/data/wardrobeOptions'
-import {
-  garmentToAccessoryContext,
-  setAccessoryPageContext,
-} from '@/utils/accessoryContext'
+import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 import { piecesFromOutfit } from '@/utils/outfitPieces'
 /*
  * 只导入**类型**，不导入值。
@@ -62,15 +59,9 @@ const posterDate = computed(() => {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`
 })
-const leftItems = computed(() =>
-  wardrobe.items
-    .map((item, index) => ({ item, index: index + 1 }))
-    .slice(0, 100),
-)
+const leftItems = computed(() => wardrobe.items.map((item, index) => ({ item, index: index + 1 })).slice(0, 100))
 const replacementItems = computed(() =>
-  replacing.value
-    ? wardrobe.items.filter((item) => item.category === replacing.value?.category)
-    : [],
+  replacing.value ? wardrobe.items.filter((item) => item.category === replacing.value?.category) : [],
 )
 
 /*
@@ -167,11 +158,7 @@ function closeReplace() {
 async function replaceWith(newGarmentId: string) {
   if (!replacing.value || !newGarmentId) return
   try {
-    const updated = await apiReplaceOutfitItem(
-      replacing.value.outfitId,
-      replacing.value.oldGarmentId,
-      newGarmentId,
-    )
+    const updated = await apiReplaceOutfitItem(replacing.value.outfitId, replacing.value.oldGarmentId, newGarmentId)
     const index = outfits.value.findIndex((outfit) => outfit.id === updated.id)
     if (index >= 0) {
       batch.value = {
@@ -246,10 +233,7 @@ function goAccessory(outfit: Outfit) {
 function copyShareText() {
   if (!shareTarget.value) return
   const names = shareTarget.value.items.map((entry) => entry.garment.name).join('、')
-  copyText(
-    `${shareTarget.value.title}：${names}。来自 AI 旧衣智能搭配。`,
-    '搭配文案已复制',
-  )
+  copyText(`${shareTarget.value.title}：${names}。来自 AI 旧衣智能搭配。`, '搭配文案已复制')
 }
 
 function saveSharePoster() {
@@ -308,9 +292,7 @@ function saveSharePoster() {
             <view class="plan-head">
               <view>
                 <view class="plan-title">{{ outfit.title }}</view>
-                <view class="plan-scene">
-                  {{ occasionLabel(outfit.occasion) }} · {{ seasonLabel(outfit.season) }}
-                </view>
+                <view class="plan-scene">{{ occasionLabel(outfit.occasion) }} · {{ seasonLabel(outfit.season) }}</view>
               </view>
               <view class="algorithm-link" @tap="algorithmTarget = outfit">算法依据</view>
             </view>
@@ -342,7 +324,13 @@ function saveSharePoster() {
                 <text>加入购物车</text>
               </view>
               <view class="plan-action" @tap="saveOutfit(outfit)">
-                <UiIcon class="action-icon" name="star" :size="34" :tone="outfit.isSaved ? 'brand' : 'muted'" :stroke-width="outfit.isSaved ? 2.6 : 1.7" />
+                <UiIcon
+                  class="action-icon"
+                  name="star"
+                  :size="34"
+                  :tone="outfit.isSaved ? 'brand' : 'muted'"
+                  :stroke-width="outfit.isSaved ? 2.6 : 1.7"
+                />
                 <text>{{ outfit.isSaved ? '已收藏' : '收藏' }}</text>
               </view>
               <view class="plan-action" @tap="openShare(outfit)">
@@ -511,7 +499,9 @@ function saveSharePoster() {
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .stage {
   flex: 1;

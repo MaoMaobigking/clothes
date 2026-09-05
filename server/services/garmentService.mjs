@@ -13,17 +13,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const MAX_GARMENTS = 100
-const ALLOWED_CATEGORIES = new Set([
-  'top',
-  'pants',
-  'skirt',
-  'dress',
-  'shoes',
-  'bag',
-  'hat',
-  'jewelry',
-  'accessory',
-])
+const ALLOWED_CATEGORIES = new Set(['top', 'pants', 'skirt', 'dress', 'shoes', 'bag', 'hat', 'jewelry', 'accessory'])
 
 function badRequest(message, code = 'INVALID_GARMENT') {
   const err = new Error(message)
@@ -126,17 +116,7 @@ export function updateGarmentImage(userId, id, img) {
   return repo.updateGarmentImage(userId, id, img)
 }
 
-const UPLOAD_CATEGORIES = [
-  'top',
-  'pants',
-  'skirt',
-  'dress',
-  'shoes',
-  'bag',
-  'hat',
-  'jewelry',
-  'accessory',
-]
+const UPLOAD_CATEGORIES = ['top', 'pants', 'skirt', 'dress', 'shoes', 'bag', 'hat', 'jewelry', 'accessory']
 const CATEGORY_EMOJI = {
   top: '馃憰',
   pants: '馃憱',
@@ -149,8 +129,16 @@ const CATEGORY_EMOJI = {
   accessory: '馃В',
 }
 const COLOR_PALETTE = [
-  '#4f5668', '#d9e2ee', '#f1e7d8', '#d16f5f', '#b6a6d8',
-  '#88c7b5', '#9d5c50', '#f0b7c1', '#c9d2dd', '#6e7c91',
+  '#4f5668',
+  '#d9e2ee',
+  '#f1e7d8',
+  '#d16f5f',
+  '#b6a6d8',
+  '#88c7b5',
+  '#9d5c50',
+  '#f0b7c1',
+  '#c9d2dd',
+  '#6e7c91',
 ]
 
 function currentSeasonKey() {

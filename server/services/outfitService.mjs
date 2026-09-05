@@ -141,16 +141,15 @@ export async function generateOutfits(userId, selectedIds) {
       .sort((a, b) => b.score - a.score || a.item.id.localeCompare(b.item.id))
       .slice(0, 30)
       .map((entry) => entry.item)
-    inputLabel = all.length > pool.length
-      ? `衣橱 ${all.length} 件中，按排序与常穿标记自动取前 ${pool.length} 件`
-      : `衣橱全部 ${pool.length} 件旧衣`
+    inputLabel =
+      all.length > pool.length
+        ? `衣橱 ${all.length} 件中，按排序与常穿标记自动取前 ${pool.length} 件`
+        : `衣橱全部 ${pool.length} 件旧衣`
   }
 
   const season = currentSeasonKey()
   const batchId = `batch_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-  const plans = RECIPES.map((recipe, index) =>
-    buildPlan(pool, { ...recipe, season }, index, season, inputLabel),
-  )
+  const plans = RECIPES.map((recipe, index) => buildPlan(pool, { ...recipe, season }, index, season, inputLabel))
   return outfitRepo.createOutfitBatch(userId, batchId, plans)
 }
 
@@ -202,10 +201,17 @@ export async function createManualOutfit(userId, payload = {}) {
 
   const now = new Date()
   const stamp = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  const title = String(payload.title || '').trim().slice(0, 64) || `自由搭配 · ${stamp}`
-  const scene = String(payload.scene || '').trim().slice(0, 32)
-  const reason = String(payload.reason || '').trim().slice(0, 500)
-    || `手动挑选的 ${garmentIds.length} 件单品组合`
+  const title =
+    String(payload.title || '')
+      .trim()
+      .slice(0, 64) || `自由搭配 · ${stamp}`
+  const scene = String(payload.scene || '')
+    .trim()
+    .slice(0, 32)
+  const reason =
+    String(payload.reason || '')
+      .trim()
+      .slice(0, 500) || `手动挑选的 ${garmentIds.length} 件单品组合`
 
   return outfitRepo.createManualOutfit(userId, { title, scene, reason, garmentIds })
 }
@@ -220,12 +226,7 @@ export async function setOutfitStar(userId, id, starred) {
 
 export async function replaceOutfitItem(userId, outfitId, oldGarmentId, newGarmentId) {
   if (oldGarmentId === newGarmentId) return outfitRepo.getOutfit(userId, outfitId)
-  const result = await outfitRepo.replaceOutfitItem(
-    userId,
-    outfitId,
-    oldGarmentId,
-    newGarmentId,
-  )
+  const result = await outfitRepo.replaceOutfitItem(userId, outfitId, oldGarmentId, newGarmentId)
   if (result === null) {
     throw serviceError('搭配不存在或不属于当前用户', 'OUTFIT_NOT_FOUND', 404)
   }

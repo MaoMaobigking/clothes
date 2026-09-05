@@ -157,10 +157,14 @@ async function bootstrap() {
       // （Back-off restarting failed container）。所以这里要把「兜底值」这件事说出来，
       // 否则日志里那个 localhost 看着像是配错了地址。
       console.error('   ⚠️ MYSQL_HOST 没有设置，上面的 localhost 是代码兜底值，不是你配的地址。')
-      console.error('   · 云托管：服务设置 → 环境变量，补 MYSQL_HOST（MySQL 实例的【内网】地址）和 MYSQL_PASSWORD，然后重新部署')
+      console.error(
+        '   · 云托管：服务设置 → 环境变量，补 MYSQL_HOST（MySQL 实例的【内网】地址）和 MYSQL_PASSWORD，然后重新部署',
+      )
       console.error('   · 本机：检查 server/.env\n')
     } else {
-      console.error('   排查：1) 数据库实例在不在运行  2) MYSQL_PORT / MYSQL_PASSWORD 对不对  3) 容器到数据库网络通不通\n')
+      console.error(
+        '   排查：1) 数据库实例在不在运行  2) MYSQL_PORT / MYSQL_PASSWORD 对不对  3) 容器到数据库网络通不通\n',
+      )
     }
     process.exit(1)
   }

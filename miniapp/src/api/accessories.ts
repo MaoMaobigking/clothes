@@ -1,12 +1,5 @@
 import { request } from './http'
-import {
-  addCartBatch,
-  addCartItem,
-  fetchCart,
-  removeCartItem,
-  type Cart,
-  type CartItem,
-} from './cart'
+import { addCartBatch, addCartItem, fetchCart, removeCartItem, type Cart, type CartItem } from './cart'
 
 export interface AccessoryContextItem {
   id: string

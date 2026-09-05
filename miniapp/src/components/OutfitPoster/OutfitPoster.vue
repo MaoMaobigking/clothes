@@ -305,12 +305,9 @@ async function savePoster() {
 
 /** 换搭配、换滤镜、换场景都要重画 */
 const signature = computed(() =>
-  [
-    props.title,
-    props.background,
-    props.overlay?.join('|') || '',
-    props.pieces.map((piece) => piece.id).join(','),
-  ].join('#'),
+  [props.title, props.background, props.overlay?.join('|') || '', props.pieces.map((piece) => piece.id).join(',')].join(
+    '#',
+  ),
 )
 
 watch(

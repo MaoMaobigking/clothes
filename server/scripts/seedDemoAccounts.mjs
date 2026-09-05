@@ -25,7 +25,9 @@ async function main() {
       `  ${status} ${meta?.label ?? entry.kind}  账号 ${entry.account}  密码 ${demoPasswordOf(meta)}  userId=${entry.userId}`,
     )
   }
-  console.log('\n密码可用环境变量覆盖：DEMO_FEMALE_PASSWORD / DEMO_MALE_PASSWORD / DEMO_BLANK_PASSWORD / ADMIN_PASSWORD\n')
+  console.log(
+    '\n密码可用环境变量覆盖：DEMO_FEMALE_PASSWORD / DEMO_MALE_PASSWORD / DEMO_BLANK_PASSWORD / ADMIN_PASSWORD\n',
+  )
 }
 
 main()

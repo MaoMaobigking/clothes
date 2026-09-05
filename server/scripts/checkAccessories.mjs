@@ -43,23 +43,27 @@ try {
   check('五类严格完整', seed.demoInteractions || true)
 
   const result = await recommend(a.userId, {
-    outfit: [{
-      id: garmentA.id,
-      name: garmentA.name,
-      category: garmentA.category,
-      colors: [garmentA.from, garmentA.to],
-      season: garmentA.season,
-      occasions: garmentA.tags || [],
-      styles: garmentA.tags || [],
-    }],
+    outfit: [
+      {
+        id: garmentA.id,
+        name: garmentA.name,
+        category: garmentA.category,
+        colors: [garmentA.from, garmentA.to],
+        season: garmentA.season,
+        occasions: garmentA.tags || [],
+        styles: garmentA.tags || [],
+      },
+    ],
   })
   check('返回五类配饰', result.categories.length === ACCESSORY_CATEGORIES.length)
-  check('每类 1 到 5 个推荐', result.categories.every(
-    (category) => category.items.length >= 1 && category.items.length <= 5,
-  ))
-  check('每个推荐有匹配理由', result.categories.every((category) =>
-    category.items.every((item) => item.matchReason && item.matchScore >= 0),
-  ))
+  check(
+    '每类 1 到 5 个推荐',
+    result.categories.every((category) => category.items.length >= 1 && category.items.length <= 5),
+  )
+  check(
+    '每个推荐有匹配理由',
+    result.categories.every((category) => category.items.every((item) => item.matchReason && item.matchScore >= 0)),
+  )
 
   console.log('\n【2】评分落库与冷启动聚合')
   const accessory = result.categories[0].items[0]
@@ -96,20 +100,20 @@ try {
   console.log('\n【4】跨用户隔离')
   const bBefore = await recommend(b.userId, { garment: { id: 'not-used' } })
   const bRated = await rateAccessory(b.userId, accessory.id, 1)
-  check('B 评分不影响 A 的历史评分', (await recommend(a.userId, { garment: { id: garmentA.id } }))
-    .categories[0].items.find((item) => item.id === accessory.id)?.userRating === 3)
+  check(
+    'B 评分不影响 A 的历史评分',
+    (await recommend(a.userId, { garment: { id: garmentA.id } })).categories[0].items.find(
+      (item) => item.id === accessory.id,
+    )?.userRating === 3,
+  )
   const bCartBefore = await listCart(b.userId)
   const aCartId = cartAfter.items[0].cartId
-  check('A 删除 B 的购物车条目失败', await removeItem(b.userId, aCartId) === false)
+  check('A 删除 B 的购物车条目失败', (await removeItem(b.userId, aCartId)) === false)
   const bCartAfter = await listCart(b.userId)
   check('B 购物车未被跨用户删除', bCartAfter.items.length === bCartBefore.items.length)
   check('B 推荐仍可用', bBefore.categories.length === ACCESSORY_CATEGORIES.length && bRated.score === 1)
 
-  console.log(
-    failed === 0
-      ? '\n🎉 功能三数据层全部通过\n'
-      : `\n❌ ${failed} 项未通过\n`,
-  )
+  console.log(failed === 0 ? '\n🎉 功能三数据层全部通过\n' : `\n❌ ${failed} 项未通过\n`)
   process.exitCode = failed === 0 ? 0 : 1
 } finally {
   await closeDb()

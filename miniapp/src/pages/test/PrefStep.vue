@@ -7,9 +7,7 @@ import { iconForEmoji } from '@/utils/icons'
 const store = useProfileStore()
 
 const answered = computed(() => Object.keys(store.profile.preferences).length)
-const subtitle = computed(
-  () => `共 ${PREFERENCE_QUESTIONS.length} 题，已答 ${answered.value} 题`,
-)
+const subtitle = computed(() => `共 ${PREFERENCE_QUESTIONS.length} 题，已答 ${answered.value} 题`)
 </script>
 
 <template>

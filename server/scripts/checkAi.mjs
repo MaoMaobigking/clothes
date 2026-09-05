@@ -4,13 +4,7 @@
  * 用法：cd server && npm run check:ai
  * 不依赖 MySQL 和 HTTP 服务，直接调用 AI 服务层。
  */
-import {
-  getAiRuntime,
-  aiChat,
-  aiChatStream,
-  aiChatWithTools,
-  generateReport,
-} from '../services/aiService.mjs'
+import { getAiRuntime, aiChat, aiChatStream, aiChatWithTools, generateReport } from '../services/aiService.mjs'
 
 const runtime = getAiRuntime()
 let failed = 0
@@ -35,11 +29,8 @@ hardTimeout.unref()
 
 try {
   console.log('\n【2】普通对话')
-  const reply = await aiChat([
-    { role: 'user', content: '用一句话推荐一套夏季通勤穿搭。' },
-  ])
-  check('DeepSeek 返回非空回复', typeof reply === 'string' && reply.trim().length > 0,
-    reply.slice(0, 40))
+  const reply = await aiChat([{ role: 'user', content: '用一句话推荐一套夏季通勤穿搭。' }])
+  check('DeepSeek 返回非空回复', typeof reply === 'string' && reply.trim().length > 0, reply.slice(0, 40))
 
   console.log('\n【3】结构化风格报告')
   const report = await generateReport({
@@ -49,22 +40,24 @@ try {
     body: { height: 165, weight: 52 },
     preferences: { favoriteColors: '蓝色', budget: '日常' },
   })
-  check('风格报告来自 AI', report.source === 'ai' && !report.aiError,
-    report.aiError ? `aiError=${report.aiError}` : `summary=${report.summary}`)
-  check('报告结构完整', Array.isArray(report.radar)
-    && Array.isArray(report.recommendations)
-    && Array.isArray(report.palette)
-    && Array.isArray(report.tips))
+  check(
+    '风格报告来自 AI',
+    report.source === 'ai' && !report.aiError,
+    report.aiError ? `aiError=${report.aiError}` : `summary=${report.summary}`,
+  )
+  check(
+    '报告结构完整',
+    Array.isArray(report.radar) &&
+      Array.isArray(report.recommendations) &&
+      Array.isArray(report.palette) &&
+      Array.isArray(report.tips),
+  )
 
   console.log('\n【4】SSE 流式输出')
   let chunks = 0
-  const streamReply = await aiChatStream(
-    [{ role: 'user', content: '请分三点介绍夏季配饰搭配。' }],
-    null,
-    () => {
-      chunks++
-    },
-  )
+  const streamReply = await aiChatStream([{ role: 'user', content: '请分三点介绍夏季配饰搭配。' }], null, () => {
+    chunks++
+  })
   check('流式接口收到多个分片', chunks > 1, `${chunks} 个分片`)
   check('流式完整内容非空', streamReply.trim().length > 0, streamReply.slice(0, 40))
 
@@ -74,8 +67,7 @@ try {
     null,
     { garments: [], profile: { styles: ['简约'] } },
   )
-  check('工具结果被模型正确消费', toolReply.includes('25°C'),
-    toolReply.slice(0, 50))
+  check('工具结果被模型正确消费', toolReply.includes('25°C'), toolReply.slice(0, 50))
 } catch (err) {
   check('AI 调用未抛出异常', false, err.message)
 }

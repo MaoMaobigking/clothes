@@ -10,11 +10,7 @@
  * 品类中文名放服务端：目录里存的是 top/bag 这种 key，
  * 前端不该各自维护一份翻译，否则加一个品类要改两处。
  */
-import {
-  findCatalogById,
-  listCatalogCategories,
-  listCatalogProducts,
-} from '../repositories/sceneRepo.mjs'
+import { findCatalogById, listCatalogCategories, listCatalogProducts } from '../repositories/sceneRepo.mjs'
 
 const CATEGORY_LABELS = {
   top: '上衣',
@@ -29,17 +25,7 @@ const CATEGORY_LABELS = {
 }
 
 /** 逛街顺序：先看衣服再看鞋包配饰，和线下动线一致 */
-const CATEGORY_ORDER = [
-  'top',
-  'dress',
-  'pants',
-  'skirt',
-  'shoes',
-  'bag',
-  'hat',
-  'jewelry',
-  'accessory',
-]
+const CATEGORY_ORDER = ['top', 'dress', 'pants', 'skirt', 'shoes', 'bag', 'hat', 'jewelry', 'accessory']
 
 export function categoryLabel(key) {
   return CATEGORY_LABELS[key] || key

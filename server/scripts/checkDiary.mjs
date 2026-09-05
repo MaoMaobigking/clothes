@@ -137,7 +137,12 @@ async function main() {
   )
   assert((await api(token, '/api/diary?month=2026-13')).status === 400, '月份 13 被拒')
   assert(
-    (await api(token, `/api/diary/${DAY}`, { method: 'PUT', body: { outfitId: null, note: '', weather: '', mood: '' } })).status === 400,
+    (
+      await api(token, `/api/diary/${DAY}`, {
+        method: 'PUT',
+        body: { outfitId: null, note: '', weather: '', mood: '' },
+      })
+    ).status === 400,
     '四项全空被拒（不许存空记录）',
   )
 

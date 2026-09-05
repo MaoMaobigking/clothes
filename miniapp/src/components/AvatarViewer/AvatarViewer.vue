@@ -57,9 +57,7 @@ const modelSrc = computed(() => {
   if (viewMode.value === 'back') return props.frames.back || props.src || props.frames.front || ''
   return props.src || props.frames.front || ''
 })
-const displayLabel = computed(() =>
-  viewMode.value === 'back' ? `${props.label} · 背面演示` : props.label,
-)
+const displayLabel = computed(() => (viewMode.value === 'back' ? `${props.label} · 背面演示` : props.label))
 
 /*
  * 试戴素材缺图时退回 emoji（规格 §4.3 §14）。
@@ -108,9 +106,7 @@ const bmi = computed(() => {
 })
 
 /** 身高 140~200cm 映射到 0.90~1.10 的人台高度 */
-const figureScaleY = computed(() =>
-  clamp(0.9 + ((heightCm.value - 140) * 0.2) / 60, 0.9, 1.1),
-)
+const figureScaleY = computed(() => clamp(0.9 + ((heightCm.value - 140) * 0.2) / 60, 0.9, 1.1))
 
 /** BMI 越大人台整体越宽 */
 const figureWidthScale = computed(() => clamp(1 + (bmi.value - 21) * 0.018, 0.86, 1.22))
@@ -120,20 +116,11 @@ const girth = computed(() => {
   const s = props.shape
   const preset = (s?.visualBody && SHAPE_PRESET[s.visualBody]) || SHAPE_PRESET.rectangle
   const male = s?.gender === 'male'
-  const nudge = (value: number | undefined, baseline: number) =>
-    value ? clamp(value / baseline, 0.9, 1.12) : 1
+  const nudge = (value: number | undefined, baseline: number) => (value ? clamp(value / baseline, 0.9, 1.12) : 1)
   return {
-    shoulder: clamp(
-      preset.shoulder * (male ? 1.06 : 1) * nudge(s?.shoulder, GIRTH_BASELINE.shoulder),
-      0.85,
-      1.2,
-    ),
+    shoulder: clamp(preset.shoulder * (male ? 1.06 : 1) * nudge(s?.shoulder, GIRTH_BASELINE.shoulder), 0.85, 1.2),
     waist: clamp(preset.waist * nudge(s?.waist, GIRTH_BASELINE.waist), 0.85, 1.2),
-    hip: clamp(
-      preset.hip * (male ? 0.95 : 1) * nudge(s?.hip, GIRTH_BASELINE.hip),
-      0.85,
-      1.2,
-    ),
+    hip: clamp(preset.hip * (male ? 0.95 : 1) * nudge(s?.hip, GIRTH_BASELINE.hip), 0.85, 1.2),
   }
 })
 
@@ -294,9 +281,7 @@ const overlayVisible = computed(() => {
 })
 
 /** 开着试戴、但当前槽位没有背面素材 */
-const backUnavailable = computed(
-  () => viewMode.value === 'back' && !!props.overlay?.enabled && !overlayVisible.value,
-)
+const backUnavailable = computed(() => viewMode.value === 'back' && !!props.overlay?.enabled && !overlayVisible.value)
 
 // Three.js / GLB 接入点：后续替换为真实模型渲染，对外接口不变。
 function setEngine(_engine: 'css' | 'three') {
@@ -320,28 +305,11 @@ defineExpose({ resetView, zoom, setEngine, setView })
       <view class="figure" :style="figureStyle">
         <!-- 传了身形参数就按肩 / 腰 / 臀分段渲染，否则一张整图 -->
         <template v-if="modelSrc && shaped">
-          <view
-            v-for="seg in bodySegments"
-            :key="seg.key"
-            class="seg"
-            :style="seg.style"
-          >
-            <image
-              class="seg-img"
-              :src="modelSrc"
-              :alt="label"
-              mode="aspectFit"
-              :style="seg.imgStyle"
-            />
+          <view v-for="seg in bodySegments" :key="seg.key" class="seg" :style="seg.style">
+            <image class="seg-img" :src="modelSrc" :alt="label" mode="aspectFit" :style="seg.imgStyle" />
           </view>
         </template>
-        <image
-          v-else-if="modelSrc"
-          class="model-img"
-          :src="modelSrc"
-          :alt="label"
-          mode="aspectFit"
-        />
+        <image v-else-if="modelSrc" class="model-img" :src="modelSrc" :alt="label" mode="aspectFit" />
         <UiIcon v-else class="emoji" :name="iconForEmoji(emoji) ?? 'me'" :size="72" tone="muted" :stroke-width="1.3" />
         <view
           v-if="overlayVisible"
@@ -358,7 +326,13 @@ defineExpose({ resetView, zoom, setEngine, setView })
             mode="aspectFit"
             @error="overlayFailed = overlayImage"
           />
-          <UiIcon v-else class="accessory-overlay-emoji" :name="iconForEmoji(overlay?.emoji) ?? 'gem'" :size="36" tone="muted" />
+          <UiIcon
+            v-else
+            class="accessory-overlay-emoji"
+            :name="iconForEmoji(overlay?.emoji) ?? 'gem'"
+            :size="36"
+            tone="muted"
+          />
         </view>
       </view>
 
@@ -373,20 +347,8 @@ defineExpose({ resetView, zoom, setEngine, setView })
       <view class="ctrl" aria-label="放大" @tap="zoom(0.15)">＋</view>
     </view>
     <view class="view-switch">
-      <view
-        class="view-option"
-        :class="{ on: viewMode === 'front' }"
-        @tap="setView('front')"
-      >
-        正面
-      </view>
-      <view
-        class="view-option"
-        :class="{ on: viewMode === 'back' }"
-        @tap="setView('back')"
-      >
-        背面
-      </view>
+      <view class="view-option" :class="{ on: viewMode === 'front' }" @tap="setView('front')">正面</view>
+      <view class="view-option" :class="{ on: viewMode === 'back' }" @tap="setView('back')">背面</view>
     </view>
   </view>
 </template>
@@ -504,12 +466,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   width: 380rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0.18),
-    rgba(0, 0, 0, 0.06) 70%,
-    transparent
-  );
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.06) 70%, transparent);
   z-index: 1;
 }
 

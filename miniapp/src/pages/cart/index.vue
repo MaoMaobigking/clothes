@@ -145,16 +145,9 @@ function goCheckout() {
 
     <template v-else>
       <scroll-view scroll-y class="body hide-scrollbar">
-        <view v-if="hasUnavailable" class="notice">
-          有商品已下架，价格不计入合计，可直接移除。
-        </view>
+        <view v-if="hasUnavailable" class="notice">有商品已下架，价格不计入合计，可直接移除。</view>
 
-        <view
-          v-for="item in cart.items"
-          :key="item.cartId"
-          class="row"
-          :class="{ off: !item.available }"
-        >
+        <view v-for="item in cart.items" :key="item.cartId" class="row" :class="{ off: !item.available }">
           <TileImage
             class="thumb"
             :src="displaySrc(item.imageUrl)"
@@ -172,9 +165,7 @@ function goCheckout() {
             <view class="tags">
               <text class="tag">{{ typeLabel(item) }}</text>
               <!-- §4.5：加入整套搭配时记录来源搭配 -->
-              <text v-if="item.sourceOutfitId" class="tag tag-outfit">
-                来自搭配 #{{ item.sourceOutfitId }}
-              </text>
+              <text v-if="item.sourceOutfitId" class="tag tag-outfit">来自搭配 #{{ item.sourceOutfitId }}</text>
               <text v-if="!item.available" class="tag tag-off">已下架</text>
             </view>
             <view class="price-line">
@@ -184,17 +175,15 @@ function goCheckout() {
 
             <view class="ops">
               <view class="stepper">
-                <view
-                  class="step"
-                  :class="{ disabled: busy > 0 }"
-                  @tap="changeQuantity(item, -1)"
-                >−</view>
+                <view class="step" :class="{ disabled: busy > 0 }" @tap="changeQuantity(item, -1)">−</view>
                 <text class="qty">{{ item.quantity }}</text>
                 <view
                   class="step"
                   :class="{ disabled: busy > 0 || item.quantity >= 99 }"
                   @tap="changeQuantity(item, 1)"
-                >+</view>
+                >
+                  +
+                </view>
               </view>
               <view class="op-btn" @tap="copyToken(item)">复制口令</view>
               <view class="op-btn op-del" @tap="removeItem(item)">删除</view>

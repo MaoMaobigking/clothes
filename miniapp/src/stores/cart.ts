@@ -32,9 +32,7 @@ export const useCartStore = defineStore('cart', () => {
 
   /** 徽标用：数量之和，不是行数 */
   const count = computed(() => items.value.reduce((sum, item) => sum + item.quantity, 0))
-  const totalPrice = computed(() =>
-    items.value.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0),
-  )
+  const totalPrice = computed(() => items.value.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0))
   const isEmpty = computed(() => items.value.length === 0)
 
   function apply(cart: Cart) {

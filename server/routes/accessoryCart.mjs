@@ -16,31 +16,42 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next)
 }
 
-router.get('/', asyncHandler(async (req, res) => {
-  res.json(await cartService.listCart(req.userId))
-}))
+router.get(
+  '/',
+  asyncHandler(async (req, res) => {
+    res.json(await cartService.listCart(req.userId))
+  }),
+)
 
-router.post('/', asyncHandler(async (req, res) => {
-  res.status(201).json(await cartService.addItem(req.userId, req.body || {}))
-}))
+router.post(
+  '/',
+  asyncHandler(async (req, res) => {
+    res.status(201).json(await cartService.addItem(req.userId, req.body || {}))
+  }),
+)
 
-router.post('/batch', asyncHandler(async (req, res) => {
-  res.status(201).json(await cartService.addBatch(req.userId, req.body?.items || []))
-}))
+router.post(
+  '/batch',
+  asyncHandler(async (req, res) => {
+    res.status(201).json(await cartService.addBatch(req.userId, req.body?.items || []))
+  }),
+)
 
-router.patch('/:id', asyncHandler(async (req, res) => {
-  const item = await cartService.setCartQuantity(
-    req.userId,
-    Number(req.params.id),
-    req.body?.quantity,
-  )
-  res.json({ item })
-}))
+router.patch(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    const item = await cartService.setCartQuantity(req.userId, Number(req.params.id), req.body?.quantity)
+    res.json({ item })
+  }),
+)
 
-router.delete('/:id', asyncHandler(async (req, res) => {
-  const ok = await cartService.removeItem(req.userId, Number(req.params.id))
-  if (!ok) return res.status(404).json({ error: 'NOT_FOUND', message: '购物车商品不存在' })
-  res.json({ ok: true })
-}))
+router.delete(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    const ok = await cartService.removeItem(req.userId, Number(req.params.id))
+    if (!ok) return res.status(404).json({ error: 'NOT_FOUND', message: '购物车商品不存在' })
+    res.json({ ok: true })
+  }),
+)
 
 export default router

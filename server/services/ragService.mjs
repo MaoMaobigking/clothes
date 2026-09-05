@@ -18,7 +18,10 @@ function tokenize(text) {
   const tokens = []
   const segments = text.split(/[，。！？、；：\s\n\r（）【】《》""'']+/).filter(Boolean)
   for (const seg of segments) {
-    if (seg.length <= 1) { tokens.push(seg); continue }
+    if (seg.length <= 1) {
+      tokens.push(seg)
+      continue
+    }
     for (let i = 0; i < seg.length - 1; i++) tokens.push(seg.slice(i, i + 2))
     if (seg.length <= 3) tokens.push(seg)
   }
@@ -36,7 +39,8 @@ function computeTF(tokens) {
 }
 
 function computeIDF(allTokensList) {
-  const df = {}, N = allTokensList.length
+  const df = {},
+    N = allTokensList.length
   for (const tokens of allTokensList) {
     const seen = new Set(tokens)
     for (const t of seen) df[t] = (df[t] || 0) + 1
@@ -53,8 +57,13 @@ function tfidfVector(tf, idf) {
 }
 
 function cosineSimilarity(a, b) {
-  let dot = 0, na = 0, nb = 0
-  for (const k in a) { dot += a[k] * (b[k] || 0); na += a[k] * a[k] }
+  let dot = 0,
+    na = 0,
+    nb = 0
+  for (const k in a) {
+    dot += a[k] * (b[k] || 0)
+    na += a[k] * a[k]
+  }
   for (const k in b) nb += b[k] * b[k]
   if (na === 0 || nb === 0) return 0
   return dot / (Math.sqrt(na) * Math.sqrt(nb))
@@ -65,12 +74,15 @@ function cosineSimilarity(a, b) {
 function chunkText(text, source) {
   const chunks = []
   const sentences = text.split(/(?<=[。！？\n])/)
-  let current = '', index = 0
+  let current = '',
+    index = 0
   for (const s of sentences) {
     if ((current + s).length > CHUNK_SIZE && current.length > 100) {
       chunks.push({ source, chunkIndex: index++, content: current.trim() })
       current = s
-    } else { current += s }
+    } else {
+      current += s
+    }
   }
   if (current.trim()) chunks.push({ source, chunkIndex: index++, content: current.trim() })
   return chunks
@@ -88,18 +100,22 @@ export function initRAG() {
   if (existsSync(INDEX_FILE)) {
     try {
       const cached = JSON.parse(readFileSync(INDEX_FILE, 'utf-8'))
-      const files = readdirSync(DOCS_DIR).filter(f => f.endsWith('.md'))
-      const cachedSources = [...new Set(cached.chunks.map(c => c.source))]
-      const missing = files.filter(f => !cachedSources.includes(f))
+      const files = readdirSync(DOCS_DIR).filter((f) => f.endsWith('.md'))
+      const cachedSources = [...new Set(cached.chunks.map((c) => c.source))]
+      const missing = files.filter((f) => !cachedSources.includes(f))
       let stale = false
       // 检查新增/删除文件
-      const extra = cachedSources.filter(s => !files.includes(s))
+      const extra = cachedSources.filter((s) => !files.includes(s))
       if (missing.length > 0 || extra.length > 0) stale = true
       if (!stale) {
-        if (!cached.mtimes) { stale = true }
-        else {
+        if (!cached.mtimes) {
+          stale = true
+        } else {
           for (const file of files) {
-            if (cached.mtimes[file] !== statSync(join(DOCS_DIR, file)).mtimeMs) { stale = true; break }
+            if (cached.mtimes[file] !== statSync(join(DOCS_DIR, file)).mtimeMs) {
+              stale = true
+              break
+            }
           }
         }
       }
@@ -109,12 +125,17 @@ export function initRAG() {
         console.log(`[RAG] 从缓存加载，共 ${chunks.length} 个向量块`)
         return
       }
-    } catch { /* 缓存损坏，重建 */ }
+    } catch {
+      /* 缓存损坏，重建 */
+    }
   }
 
   // 重建索引
-  const files = readdirSync(DOCS_DIR).filter(f => f.endsWith('.md'))
-  if (files.length === 0) { chunks = []; return }
+  const files = readdirSync(DOCS_DIR).filter((f) => f.endsWith('.md'))
+  if (files.length === 0) {
+    chunks = []
+    return
+  }
 
   console.log(`[RAG] 索引 ${files.length} 篇文档...`)
   const allChunks = []
@@ -127,17 +148,23 @@ export function initRAG() {
     }
   }
 
-  const idf = computeIDF(allChunks.map(c => c.tokens))
+  const idf = computeIDF(allChunks.map((c) => c.tokens))
   globalIdf = idf
-  chunks = allChunks.map(c => {
+  chunks = allChunks.map((c) => {
     const tf = computeTF(c.tokens)
     const vec = tfidfVector(tf, idf)
-    const sorted = Object.entries(vec).sort((a, b) => b[1] - a[1]).slice(0, 50)
+    const sorted = Object.entries(vec)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 50)
     return { source: c.source, content: c.content, vec: Object.fromEntries(sorted) }
   })
 
   // 缓存到文件
-  try { writeFileSync(INDEX_FILE, JSON.stringify({ chunks, idf: globalIdf, mtimes })) } catch {}
+  try {
+    writeFileSync(INDEX_FILE, JSON.stringify({ chunks, idf: globalIdf, mtimes }))
+  } catch {
+    // 索引落盘失败不影响本次检索：内存里已经建好，下次启动重建即可
+  }
   console.log(`[RAG] 索引完成，共 ${chunks.length} 个向量块`)
 }
 
@@ -166,7 +193,7 @@ export function searchRAG(query) {
   const queryVec = {}
   for (const t in queryTF) if (idf[t]) queryVec[t] = queryTF[t] * idf[t]
 
-  const scored = chunks.map(c => ({
+  const scored = chunks.map((c) => ({
     source: c.source,
     content: c.content,
     score: cosineSimilarity(queryVec, c.vec),

@@ -15,12 +15,7 @@
  */
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import {
-  createAddress,
-  fetchCheckoutPreview,
-  submitOrder,
-  type CheckoutPreview,
-} from '@/api/order'
+import { createAddress, fetchCheckoutPreview, submitOrder, type CheckoutPreview } from '@/api/order'
 import { isAuthError } from '@/api/http'
 import { validatePhone, validateRealName } from '@/utils/idCard'
 
@@ -57,9 +52,7 @@ const addressRules = {
     {
       trigger: ['blur'],
       validator: (_r: any, value: string, callback: (err?: Error) => void) =>
-        !value || validatePhone(value)
-          ? callback()
-          : callback(new Error('手机号格式不对，应为 11 位且以 1 开头')),
+        !value || validatePhone(value) ? callback() : callback(new Error('手机号格式不对，应为 11 位且以 1 开头')),
     },
   ],
   detail: [
@@ -67,9 +60,7 @@ const addressRules = {
     {
       trigger: ['blur'],
       validator: (_r: any, value: string, callback: (err?: Error) => void) =>
-        !value || value.trim().length >= 5
-          ? callback()
-          : callback(new Error('详细地址至少 5 个字，写到门牌号')),
+        !value || value.trim().length >= 5 ? callback() : callback(new Error('详细地址至少 5 个字，写到门牌号')),
     },
   ],
 }
@@ -173,19 +164,13 @@ async function submit() {
 
       <template v-else-if="preview">
         <!-- 这一条是这一页最该被看见的话，所以放在最上面而不是塞进页脚小字 -->
-        <view class="demo-banner">
-          演示结算：不接微信支付，提交后订单停在「待付款」，后续状态在订单详情里手动推进
-        </view>
+        <view class="demo-banner">演示结算：不接微信支付，提交后订单停在「待付款」，后续状态在订单详情里手动推进</view>
 
         <!-- ① 收货地址 -->
         <view class="card">
           <view class="card-head">
             <text class="card-title">收货地址</text>
-            <text
-              v-if="preview.addresses.length"
-              class="link"
-              @tap="addingAddress = !addingAddress"
-            >
+            <text v-if="preview.addresses.length" class="link" @tap="addingAddress = !addingAddress">
               {{ addingAddress ? '取消' : '新增' }}
             </text>
           </view>
@@ -205,13 +190,7 @@ async function submit() {
               </view>
               <text class="addr-detail">{{ addr.detail }}</text>
             </view>
-            <UiIcon
-              v-if="addr.id === addressId"
-              name="check"
-              :size="32"
-              tone="brand"
-              :stroke-width="2"
-            />
+            <UiIcon v-if="addr.id === addressId" name="check" :size="32" tone="brand" :stroke-width="2" />
           </view>
 
           <view v-if="addingAddress" class="addr-form">
@@ -287,37 +266,28 @@ async function submit() {
               <text class="coupon-label">{{ c.label }}</text>
               <text class="coupon-reason">{{ c.usable ? `可减 ¥${c.discount}` : c.reason }}</text>
             </view>
-            <UiIcon
-              v-if="c.key === couponKey"
-              name="check"
-              :size="30"
-              tone="brand"
-              :stroke-width="2"
-            />
+            <UiIcon v-if="c.key === couponKey" name="check" :size="30" tone="brand" :stroke-width="2" />
           </view>
         </view>
 
         <!-- ④ 备注 -->
         <view class="card">
           <view class="card-head"><text class="card-title">订单备注</text></view>
-          <textarea
-            v-model="remark"
-            class="remark"
-            maxlength="200"
-            placeholder="选填，例如：工作日送达"
-          />
+          <textarea v-model="remark" class="remark" maxlength="200" placeholder="选填，例如：工作日送达" />
         </view>
 
         <view class="amount-card">
           <view class="amount-row">
-            <text>商品金额</text><text>¥{{ preview.goodsAmount }}</text>
+            <text>商品金额</text>
+            <text>¥{{ preview.goodsAmount }}</text>
           </view>
           <view class="amount-row">
             <text>优惠</text>
             <text class="cut">-¥{{ preview.discountAmount }}</text>
           </view>
           <view class="amount-row total">
-            <text>实付</text><text class="pay">¥{{ preview.payAmount }}</text>
+            <text>实付</text>
+            <text class="pay">¥{{ preview.payAmount }}</text>
           </view>
         </view>
       </template>

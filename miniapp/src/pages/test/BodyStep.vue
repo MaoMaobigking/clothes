@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { iconForEmoji } from '@/utils/icons'
 import { reactive } from 'vue'
-import {
-  BODY_FIELDS,
-  VISUAL_BODY_OPTIONS,
-} from '@/data/questions'
+import { BODY_FIELDS, VISUAL_BODY_OPTIONS } from '@/data/questions'
 import { useProfileStore } from '@/stores/profile'
 import type { BodyMetricKey, Gender } from '@/types'
 
@@ -37,10 +34,7 @@ const bmiTip = (bmi: number) => {
 </script>
 
 <template>
-  <StepShell
-    title="描述你的身形"
-    subtitle="先选视觉体型，再确认性别、身高和体重"
-  >
+  <StepShell title="描述你的身形" subtitle="先选视觉体型，再确认性别、身高和体重">
     <view class="section">
       <view class="section-title">视觉体型</view>
       <scroll-view scroll-x class="body-options" :show-scrollbar="false">
@@ -52,10 +46,7 @@ const bmiTip = (bmi: number) => {
             :class="{ on: store.profile.visualBody === opt.id }"
             @tap="store.setVisualBody(opt.id)"
           >
-            <view
-              class="body-preview"
-              :style="{ background: opt.color }"
-            >
+            <view class="body-preview" :style="{ background: opt.color }">
               <image
                 v-if="opt.img && !imgFailed[opt.id]"
                 class="body-preview-img"
@@ -63,7 +54,14 @@ const bmiTip = (bmi: number) => {
                 mode="aspectFill"
                 @error="imgFailed[opt.id] = true"
               />
-              <UiIcon v-else class="body-emoji" :name="iconForEmoji(opt.emoji) ?? 'body'" :size="64" tone="muted" :stroke-width="1.4" />
+              <UiIcon
+                v-else
+                class="body-emoji"
+                :name="iconForEmoji(opt.emoji) ?? 'body'"
+                :size="64"
+                tone="muted"
+                :stroke-width="1.4"
+              />
             </view>
             <text class="body-label">{{ opt.label }}</text>
             <text class="body-desc">{{ opt.desc }}</text>
@@ -76,19 +74,11 @@ const bmiTip = (bmi: number) => {
     <view class="section">
       <view class="section-title">性别</view>
       <view class="gender-options">
-        <view
-          class="gender-option"
-          :class="{ on: store.profile.gender === 'female' }"
-          @tap="chooseGender('female')"
-        >
+        <view class="gender-option" :class="{ on: store.profile.gender === 'female' }" @tap="chooseGender('female')">
           <UiIcon class="gender-emoji" name="me" :size="56" tone="soft" />
           <text>女</text>
         </view>
-        <view
-          class="gender-option"
-          :class="{ on: store.profile.gender === 'male' }"
-          @tap="chooseGender('male')"
-        >
+        <view class="gender-option" :class="{ on: store.profile.gender === 'male' }" @tap="chooseGender('male')">
           <UiIcon class="gender-emoji" name="me" :size="56" tone="soft" />
           <text>男</text>
         </view>
@@ -101,21 +91,11 @@ const bmiTip = (bmi: number) => {
         <text class="required">必填</text>
       </view>
       <view class="fields">
-        <view
-          v-for="f in BODY_FIELDS"
-          :key="f.key"
-          class="field"
-          :class="{ optional: !requiredMet(f.key) }"
-        >
+        <view v-for="f in BODY_FIELDS" :key="f.key" class="field" :class="{ optional: !requiredMet(f.key) }">
           <view class="row">
             <text class="name">
               {{ f.label }}
-              <text
-                v-if="f.key === 'height' || f.key === 'weight'"
-                class="required-dot"
-              >
-                *
-              </text>
+              <text v-if="f.key === 'height' || f.key === 'weight'" class="required-dot">*</text>
               <text v-if="requiredMet(f.key)" class="done-dot">✓</text>
             </text>
             <text class="value">
@@ -198,7 +178,9 @@ const bmiTip = (bmi: number) => {
   align-items: center;
   text-align: center;
   box-sizing: border-box;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 .body-option:active {
   transform: scale(0.96);

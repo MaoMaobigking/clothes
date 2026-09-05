@@ -36,16 +36,7 @@ export interface StyleReportRecord {
 
 export function toProfilePayload(profile: UserProfile) {
   const body: Record<string, number> = {}
-  const keys: BodyMetricKey[] = [
-    'height',
-    'weight',
-    'bust',
-    'waist',
-    'hip',
-    'shoulder',
-    'thigh',
-    'calf',
-  ]
+  const keys: BodyMetricKey[] = ['height', 'weight', 'bust', 'waist', 'hip', 'shoulder', 'thigh', 'calf']
   keys.forEach((key) => {
     body[key] = Number(profile.body[key])
   })

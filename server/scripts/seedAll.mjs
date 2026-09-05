@@ -17,12 +17,7 @@
  */
 import { closeDb, initDb } from '../db/mysql.mjs'
 import { ensureAccessories } from '../services/accessoryService.mjs'
-import {
-  ensureSceneCatalog,
-  generateScenePlans,
-  listSceneOutfits,
-  saveOutfit,
-} from '../services/sceneService.mjs'
+import { ensureSceneCatalog, generateScenePlans, listSceneOutfits, saveOutfit } from '../services/sceneService.mjs'
 import {
   advanceRequest,
   createInquiry,
@@ -139,9 +134,7 @@ async function main() {
     if (!entry.ok || entry.kind === 'blank' || entry.kind === 'admin') continue
     const label = DEMO_ACCOUNTS.find((item) => item.kind === entry.kind)?.label ?? entry.kind
     const result = await seedSceneOutfits(entry.userId, label)
-    console.log(
-      `  ✅ ${label}  ${result.skipped ? `已有 ${result.count} 套，跳过` : `新增 ${result.count} 套`}`,
-    )
+    console.log(`  ✅ ${label}  ${result.skipped ? `已有 ${result.count} 套，跳过` : `新增 ${result.count} 套`}`)
   }
 
   const custom = await seedCustomDemo()
@@ -149,7 +142,9 @@ async function main() {
   console.log(`  ✅ 标准会员  dev-tag custom_demo_standard  userId=${custom.standard}`)
   console.log(`  ✅ VIP 会员  dev-tag custom_demo_vip       userId=${custom.vip}`)
 
-  console.log('\n密码可用环境变量覆盖：DEMO_FEMALE_PASSWORD / DEMO_MALE_PASSWORD / DEMO_BLANK_PASSWORD / ADMIN_PASSWORD')
+  console.log(
+    '\n密码可用环境变量覆盖：DEMO_FEMALE_PASSWORD / DEMO_MALE_PASSWORD / DEMO_BLANK_PASSWORD / ADMIN_PASSWORD',
+  )
   console.log('\n🎉 演示数据已就绪\n')
 }
 

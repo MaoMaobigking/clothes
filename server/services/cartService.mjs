@@ -35,9 +35,7 @@ function notFound(message, code) {
 
 function quantityOf(value) {
   const quantity = Number(value)
-  return Number.isInteger(quantity) && quantity > 0 && quantity <= cartRepo.MAX_QUANTITY
-    ? quantity
-    : 1
+  return Number.isInteger(quantity) && quantity > 0 && quantity <= cartRepo.MAX_QUANTITY ? quantity : 1
 }
 
 /** 按 item_type 去对应目录取明细；找不到返回 null */
@@ -127,10 +125,7 @@ export async function listCart(userId) {
 
   const items = rows.map((row) => toCartItem(row, maps[row.item_type]?.get(row.item_id)))
   const count = items.reduce((sum, item) => sum + item.quantity, 0)
-  const totalPrice = items.reduce(
-    (sum, item) => sum + (item.price || 0) * item.quantity,
-    0,
-  )
+  const totalPrice = items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0)
   return { items, count, totalPrice }
 }
 

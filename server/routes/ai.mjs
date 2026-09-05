@@ -16,9 +16,8 @@ import {
   aiChatStream,
   aiChatWithTools,
   TOOLS,
-  executeTool,
 } from '../services/aiService.mjs'
-import { searchRAG, buildRAGPrompt, initRAG } from '../services/ragService.mjs'
+import { searchRAG, buildRAGPrompt } from '../services/ragService.mjs'
 import { listGarments } from '../services/garmentService.mjs'
 import { saveStyleReport, listStyleReports, findStyleReport } from '../repositories/aiRepo.mjs'
 
@@ -37,36 +36,51 @@ const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, ne
 /* ============ 3.1 结构化输出 ============ */
 
 // POST /style-report
-router.post('/style-report', authRequired, asyncHandler(async (req, res) => {
-  const result = await generateReport(req.body?.profile ?? {})
-  const answers = req.body?.answers ?? req.body?.profile ?? {}
-  const reportId = await saveStyleReport(req.userId, answers, result)
-  res.json({ ...result, reportId })
-}))
+router.post(
+  '/style-report',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const result = await generateReport(req.body?.profile ?? {})
+    const answers = req.body?.answers ?? req.body?.profile ?? {}
+    const reportId = await saveStyleReport(req.userId, answers, result)
+    res.json({ ...result, reportId })
+  }),
+)
 
 // GET /style-reports — 历史报告列表
-router.get('/style-reports', authRequired, asyncHandler(async (req, res) => {
-  const items = await listStyleReports(req.userId)
-  res.json({ items })
-}))
+router.get(
+  '/style-reports',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const items = await listStyleReports(req.userId)
+    res.json({ items })
+  }),
+)
 
 // GET /style-reports/:id — 读取本人历史报告
-router.get('/style-reports/:id', authRequired, asyncHandler(async (req, res) => {
-  const id = Number(req.params.id)
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({ error: 'INVALID_REPORT_ID', message: '报告 ID 不合法' })
-  }
-  const report = await findStyleReport(req.userId, id)
-  if (!report) return res.status(404).json({ error: 'NOT_FOUND', message: '报告不存在' })
-  res.json({ report })
-}))
+router.get(
+  '/style-reports/:id',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'INVALID_REPORT_ID', message: '报告 ID 不合法' })
+    }
+    const report = await findStyleReport(req.userId, id)
+    if (!report) return res.status(404).json({ error: 'NOT_FOUND', message: '报告不存在' })
+    res.json({ report })
+  }),
+)
 
 // POST /scene-outfits
-router.post('/scene-outfits', asyncHandler(async (req, res) => {
-  if (!requireKey(req, res)) return
-  const result = await generateSceneOutfits(req.body || {})
-  res.json(result)
-}))
+router.post(
+  '/scene-outfits',
+  asyncHandler(async (req, res) => {
+    if (!requireKey(req, res)) return
+    const result = await generateSceneOutfits(req.body || {})
+    res.json(result)
+  }),
+)
 
 /* ============ 3.2 SSE 流式 ============ */
 
@@ -80,7 +94,7 @@ router.post('/chat/stream', async (req, res, next) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
     'X-Accel-Buffering': 'no',
   })
 
@@ -125,7 +139,7 @@ router.post('/chat/tools', authOptional, async (req, res, next) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
   })
 
   const abortController = new AbortController()
@@ -163,35 +177,41 @@ router.post('/chat/tools', authOptional, async (req, res, next) => {
 /* ============ 普通对话（保留向后兼容） ============ */
 
 // POST /chat
-router.post('/chat', asyncHandler(async (req, res) => {
-  if (!requireKey(req, res)) return
-  const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
-  const reply = await aiChat(messages)
-  res.json({ reply })
-}))
+router.post(
+  '/chat',
+  asyncHandler(async (req, res) => {
+    if (!requireKey(req, res)) return
+    const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
+    const reply = await aiChat(messages)
+    res.json({ reply })
+  }),
+)
 
 /* ============ RAG 增强对话 ============ */
 
 // POST /chat/rag — 检索增强生成
-router.post('/chat/rag', asyncHandler(async (req, res) => {
-  if (!requireKey(req, res)) return
-  const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
-  if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
+router.post(
+  '/chat/rag',
+  asyncHandler(async (req, res) => {
+    if (!requireKey(req, res)) return
+    const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
+    if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
 
-  const lastMsg = messages[messages.length - 1].content
-  const chunks = searchRAG(lastMsg)
+    const lastMsg = messages[messages.length - 1].content
+    const chunks = searchRAG(lastMsg)
 
-  let reply
-  if (chunks.length > 0) {
-    const ragPrompt = buildRAGPrompt(lastMsg, chunks)
-    // 保留历史消息，将 RAG 增强 prompt 作为最后一条 user 消息
-    const augmented = [...messages.slice(0, -1), { role: 'user', content: ragPrompt }]
-    reply = await aiChat(augmented)
-  } else {
-    reply = await aiChat(messages)
-  }
+    let reply
+    if (chunks.length > 0) {
+      const ragPrompt = buildRAGPrompt(lastMsg, chunks)
+      // 保留历史消息，将 RAG 增强 prompt 作为最后一条 user 消息
+      const augmented = [...messages.slice(0, -1), { role: 'user', content: ragPrompt }]
+      reply = await aiChat(augmented)
+    } else {
+      reply = await aiChat(messages)
+    }
 
-  res.json({ reply, sources: chunks.map(c => c.source) })
-}))
+    res.json({ reply, sources: chunks.map((c) => c.source) })
+  }),
+)
 
 export default router

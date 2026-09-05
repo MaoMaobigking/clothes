@@ -34,9 +34,10 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
     } catch (error) {
       usingApi.value = false
       items.value = []
-      loadError.value = error instanceof Error && error.message
-        ? `衣橱加载失败：${error.message}`
-        : '衣橱加载失败，请检查网络或稍后重试'
+      loadError.value =
+        error instanceof Error && error.message
+          ? `衣橱加载失败：${error.message}`
+          : '衣橱加载失败，请检查网络或稍后重试'
     } finally {
       loaded.value = true
     }
@@ -44,21 +45,25 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
 
   const garments = computed(() => items.value)
   const filtered = computed(() =>
-    activeCategory.value === 'all'
-      ? items.value
-      : items.value.filter((g) => g.category === activeCategory.value),
+    activeCategory.value === 'all' ? items.value : items.value.filter((g) => g.category === activeCategory.value),
   )
   const favoriteGarments = computed(() => items.value.filter((g) => g.fav))
   const favIds = computed(() => items.value.filter((g) => g.fav).map((g) => g.id))
 
-  function isFav(id: string) { return items.value.find((g) => g.id === id)?.fav ?? false }
+  function isFav(id: string) {
+    return items.value.find((g) => g.id === id)?.fav ?? false
+  }
 
   async function toggleFav(id: string) {
     const it = items.value.find((g) => g.id === id)
     if (!it) return
     it.fav = !it.fav
     if (usingApi.value) {
-      try { it.fav = await apiToggleFav(id) } catch { /* ignore */ }
+      try {
+        it.fav = await apiToggleFav(id)
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -103,7 +108,12 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
 
   async function addItem(partial: Partial<Garment>) {
     if (usingApi.value) {
-      try { items.value.push(await apiAddGarment(partial)); return } catch { /* fallback */ }
+      try {
+        items.value.push(await apiAddGarment(partial))
+        return
+      } catch {
+        /* fallback */
+      }
     }
     items.value.push({
       id: 'u' + Date.now(),
@@ -121,11 +131,19 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
   }
 
   async function removeItem(id: string) {
-    if (usingApi.value) { try { await apiDeleteGarment(id) } catch { /* ignore */ } }
+    if (usingApi.value) {
+      try {
+        await apiDeleteGarment(id)
+      } catch {
+        /* ignore */
+      }
+    }
     items.value = items.value.filter((g) => g.id !== id)
   }
 
-  function setCategory(key: string) { activeCategory.value = key }
+  function setCategory(key: string) {
+    activeCategory.value = key
+  }
 
   /**
    * 退出登录 / 切换账号时回到初始态。
@@ -143,9 +161,25 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
   load()
 
   return {
-    items, activeCategory, usingApi, loaded, loadError,
-    garments, filtered, favoriteGarments, favIds,
-    isFav, toggleFav, addItem, updateItem, uploadItems, reorder,
-    toggleFrequentlyWorn, removeItem, setCategory, load, reset,
+    items,
+    activeCategory,
+    usingApi,
+    loaded,
+    loadError,
+    garments,
+    filtered,
+    favoriteGarments,
+    favIds,
+    isFav,
+    toggleFav,
+    addItem,
+    updateItem,
+    uploadItems,
+    reorder,
+    toggleFrequentlyWorn,
+    removeItem,
+    setCategory,
+    load,
+    reset,
   }
 })

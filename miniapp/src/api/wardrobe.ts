@@ -53,10 +53,7 @@ export async function apiToggleFav(id: string): Promise<boolean> {
   return d.fav
 }
 
-export async function apiUpdateGarment(
-  id: string,
-  partial: Partial<Garment>,
-): Promise<WardrobeItem> {
+export async function apiUpdateGarment(id: string, partial: Partial<Garment>): Promise<WardrobeItem> {
   const d = await request<{ item: WardrobeItem }>({
     url: `/api/garments/${id}`,
     method: 'PATCH',

@@ -48,7 +48,10 @@ async function main() {
   console.log(r3.content[0].text)
 
   console.log('\n--- generate_style_report ---')
-  const r4 = await client.callTool({ name: 'generate_style_report', arguments: { styles: ['法式浪漫'], skin: 'cool-fair', face: 'oval', bmi: 21 } })
+  const r4 = await client.callTool({
+    name: 'generate_style_report',
+    arguments: { styles: ['法式浪漫'], skin: 'cool-fair', face: 'oval', bmi: 21 },
+  })
   console.log(r4.content[0].text)
 
   console.log('\n✅ MCP 调试完成，所有工具正常')

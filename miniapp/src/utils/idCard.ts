@@ -40,11 +40,7 @@ function parseBirthday(raw: string): string | null {
   const thisYear = new Date().getFullYear()
   if (year < 1900 || year > thisYear) return null
   const date = new Date(year, month - 1, day)
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
     return null
   }
   return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`
@@ -55,7 +51,9 @@ function parseBirthday(raw: string): string | null {
  * 只支持 18 位：15 位的老号 1999 年就停止发放了，演示表单没必要背这个兼容。
  */
 export function validateIdCard(input: string): IdCardInfo {
-  const id = String(input || '').trim().toUpperCase()
+  const id = String(input || '')
+    .trim()
+    .toUpperCase()
   if (!id) return { ok: false, message: '请输入身份证号' }
   if (id.length !== 18) return { ok: false, message: '身份证号应为 18 位' }
   if (!/^\d{17}[\dX]$/.test(id)) {

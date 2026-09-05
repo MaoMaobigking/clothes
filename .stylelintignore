@@ -1,0 +1,8 @@
+node_modules
+dist
+**/dist
+miniapp/src/static
+server/uploads
+.tmp
+.smoke
+.uishot

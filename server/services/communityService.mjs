@@ -75,12 +75,7 @@ export async function toggleInteraction(userId, contentId, action) {
   const allowed = new Set(['like', 'favorite', 'report'])
   if (!allowed.has(action)) invalid('互动类型不合法')
   const content = await requireVisibleContent(userId, contentId)
-  const active =
-    action === 'like'
-      ? !content.liked
-      : action === 'favorite'
-        ? !content.favorited
-        : !content.reported
+  const active = action === 'like' ? !content.liked : action === 'favorite' ? !content.favorited : !content.reported
   await repo.setInteraction(userId, contentId, action, active)
   return {
     active,
@@ -103,10 +98,7 @@ export async function saveBookmark(userId, contentId, note = '') {
 }
 
 export async function listBookmarks(userId) {
-  const [bookmarks, favorites] = await Promise.all([
-    repo.listBookmarks(userId),
-    repo.listFavoritedContents(userId),
-  ])
+  const [bookmarks, favorites] = await Promise.all([repo.listBookmarks(userId), repo.listFavoritedContents(userId)])
   const merged = new Map()
   bookmarks.forEach((item) => merged.set(item.id, item))
   favorites.forEach((item) => {
@@ -122,9 +114,7 @@ export async function listAchievements(userId) {
   return {
     points: achievements.reduce((sum, item) => sum + item.points, 0),
     badges: achievements.filter((item) => item.badge && item.badge !== '✅'),
-    completed: achievements
-      .filter((item) => item.badge === '✅')
-      .map((item) => item.key.replace(/^tutorial_/, '')),
+    completed: achievements.filter((item) => item.badge === '✅').map((item) => item.key.replace(/^tutorial_/, '')),
   }
 }
 
@@ -174,10 +164,7 @@ export async function completeTutorial(userId, contentId) {
 
   return {
     alreadyCompleted: false,
-    points: (await repo.listAchievements(userId)).reduce(
-      (sum, item) => sum + item.points,
-      0,
-    ),
+    points: (await repo.listAchievements(userId)).reduce((sum, item) => sum + item.points, 0),
     content: await repo.findContent(userId, contentId),
   }
 }

@@ -135,10 +135,10 @@ function authHeaders(extra = {}) {
  */
 export async function uploadFile(model, filename, buffer, mimeType = 'application/octet-stream') {
   assertEnabled()
-  const policyRes = await fetch(
-    `${BASE_URL}/api/v1/uploads?action=getPolicy&model=${encodeURIComponent(model)}`,
-    { headers: { Authorization: `Bearer ${API_KEY}` }, signal: AbortSignal.timeout(QUERY_TIMEOUT_MS) },
-  )
+  const policyRes = await fetch(`${BASE_URL}/api/v1/uploads?action=getPolicy&model=${encodeURIComponent(model)}`, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+    signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+  })
   const parsed = await readBody(policyRes)
   if (!policyRes.ok) throw describeFailure(policyRes, parsed)
   const policy = parsed.json?.data
@@ -165,7 +165,11 @@ export async function uploadFile(model, filename, buffer, mimeType = 'applicatio
   })
   if (!uploadRes.ok) {
     const text = await uploadRes.text()
-    throw bailianError(`上传到百炼临时空间失败（${uploadRes.status}）：${text.slice(0, 200)}`, 502, 'BAILIAN_UPLOAD_FAILED')
+    throw bailianError(
+      `上传到百炼临时空间失败（${uploadRes.status}）：${text.slice(0, 200)}`,
+      502,
+      'BAILIAN_UPLOAD_FAILED',
+    )
   }
   return `oss://${key}`
 }

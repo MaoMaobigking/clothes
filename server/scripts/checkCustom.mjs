@@ -66,30 +66,23 @@ check('B 看不到 A 的申请', bList.length === 0)
 console.log('\n【2】申请详情与设计师 IM')
 const detail = await customService.getRequest(a.userId, inquiry.id)
 check('申请详情包含六项量体或咨询需求', Boolean(detail.request))
-const measurementDetail = measurement.id
-  ? await customService.getRequest(a.userId, measurement.id)
-  : null
+const measurementDetail = measurement.id ? await customService.getRequest(a.userId, measurement.id) : null
+check('量体申请返回六项尺寸', Object.keys(measurementDetail?.measurement?.dimensions || {}).length === 6)
+const messages = await customService.sendMessage(a.userId, inquiry.id, '希望用更透气、好打理的面料，工期多久？')
 check(
-  '量体申请返回六项尺寸',
-  Object.keys(measurementDetail?.measurement?.dimensions || {}).length === 6,
+  '用户消息已保存',
+  messages.some((item) => item.sender === 'user'),
 )
-const messages = await customService.sendMessage(
-  a.userId,
-  inquiry.id,
-  '希望用更透气、好打理的面料，工期多久？',
+check(
+  '系统设计师自动回复',
+  messages.some((item) => item.sender === 'designer'),
 )
-check('用户消息已保存', messages.some((item) => item.sender === 'user'))
-check('系统设计师自动回复', messages.some((item) => item.sender === 'designer'))
 check(
   '自动回复结合申请需求',
   messages.some((item) => item.sender === 'designer' && item.content.includes('面料')),
 )
 
-const crossRead = await expectFailure(
-  () => customService.getRequest(b.userId, inquiry.id),
-  404,
-  'NOT_FOUND',
-)
+const crossRead = await expectFailure(() => customService.getRequest(b.userId, inquiry.id), 404, 'NOT_FOUND')
 check('B 读取 A 的申请被拒绝且按 404 处理', crossRead.ok, crossRead.code)
 
 console.log('\n【3】进度推进')
@@ -117,10 +110,6 @@ const vipRequest = await customService.createInquiry(b.userId, {
 })
 check('VIP 用户可以提交专属申请', vipRequest?.status === 'submitted')
 
-console.log(
-  failed === 0
-    ? '\n🎉 功能五数据层验收全部通过\n'
-    : `\n❌ ${failed} 项未通过\n`,
-)
+console.log(failed === 0 ? '\n🎉 功能五数据层验收全部通过\n' : `\n❌ ${failed} 项未通过\n`)
 process.exitCode = failed === 0 ? 0 : 1
 await closeDb()

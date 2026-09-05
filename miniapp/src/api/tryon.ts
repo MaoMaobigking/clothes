@@ -95,7 +95,11 @@ export async function apiListTryon(limit = 20): Promise<AiTask[]> {
  */
 export async function pollTryon(
   taskId: string,
-  { timeoutMs = 90000, intervalMs = 2500, onTick }: {
+  {
+    timeoutMs = 90000,
+    intervalMs = 2500,
+    onTick,
+  }: {
     timeoutMs?: number
     intervalMs?: number
     onTick?: (task: AiTask) => void
@@ -116,10 +120,7 @@ export async function pollTryon(
 }
 
 /** 提交 + 等结果，返回出图地址。失败时抛错，错误文案直接可展示。 */
-export async function runTryon(
-  payload: TryonPayload,
-  onTick?: (task: AiTask) => void,
-): Promise<string> {
+export async function runTryon(payload: TryonPayload, onTick?: (task: AiTask) => void): Promise<string> {
   const created = await apiSubmitTryon(payload)
   const done = await pollTryon(created.taskId, { onTick })
   if (done.status !== 'SUCCEEDED') {

@@ -82,7 +82,8 @@ function goShopping() {
   uni.switchTab({ url: '/pages/mall/mall' })
 }
 
-function confirmCancel() {  uni.showModal({
+function confirmCancel() {
+  uni.showModal({
     title: '取消订单',
     content: '取消后不可恢复，购物车不会自动还原。',
     success: (res) => {
@@ -125,9 +126,7 @@ function confirmCancel() {  uni.showModal({
             </view>
           </view>
 
-          <text v-if="order.status === 'cancelled'" class="cancelled-tip">
-            这单已取消，状态条不再推进
-          </text>
+          <text v-if="order.status === 'cancelled'" class="cancelled-tip">这单已取消，状态条不再推进</text>
         </view>
 
         <view class="card">
@@ -137,10 +136,12 @@ function confirmCancel() {  uni.showModal({
             <text class="v">{{ order.receiver }} {{ order.phone }}</text>
           </view>
           <view class="row">
-            <text class="k">地址</text><text class="v">{{ order.addressDetail }}</text>
+            <text class="k">地址</text>
+            <text class="v">{{ order.addressDetail }}</text>
           </view>
           <view v-if="order.remark" class="row">
-            <text class="k">备注</text><text class="v">{{ order.remark }}</text>
+            <text class="k">备注</text>
+            <text class="v">{{ order.remark }}</text>
           </view>
         </view>
 
@@ -158,37 +159,28 @@ function confirmCancel() {  uni.showModal({
 
         <view class="card">
           <view class="card-title">金额</view>
-          <view class="row"><text class="k">商品金额</text><text class="v">¥{{ order.goodsAmount }}</text></view>
+          <view class="row">
+            <text class="k">商品金额</text>
+            <text class="v">¥{{ order.goodsAmount }}</text>
+          </view>
           <view class="row">
             <text class="k">优惠{{ order.couponLabel ? `（${order.couponLabel}）` : '' }}</text>
             <text class="v cut">-¥{{ order.discountAmount }}</text>
           </view>
-          <view class="row total"><text class="k">实付</text><text class="pay">¥{{ order.payAmount }}</text></view>
+          <view class="row total">
+            <text class="k">实付</text>
+            <text class="pay">¥{{ order.payAmount }}</text>
+          </view>
         </view>
 
-        <text class="demo-note">
-          演示订单：没有接微信支付，下面的按钮只是把状态往前挪一格，不产生任何真实交易
-        </text>
+        <text class="demo-note">演示订单：没有接微信支付，下面的按钮只是把状态往前挪一格，不产生任何真实交易</text>
 
         <view class="actions">
-          <view
-            v-if="order.status === 'created'"
-            class="btn btn-ghost act"
-            @tap="confirmCancel"
-          >
-            取消订单
-          </view>
-          <view
-            v-if="nextLabel"
-            class="btn btn-primary act"
-            :class="{ disabled: busy }"
-            @tap="advance('next')"
-          >
+          <view v-if="order.status === 'created'" class="btn btn-ghost act" @tap="confirmCancel">取消订单</view>
+          <view v-if="nextLabel" class="btn btn-primary act" :class="{ disabled: busy }" @tap="advance('next')">
             {{ nextLabel }}
           </view>
-          <view v-if="!nextLabel" class="btn btn-ghost act" @tap="goShopping">
-            再逛逛
-          </view>
+          <view v-if="!nextLabel" class="btn btn-ghost act" @tap="goShopping">再逛逛</view>
         </view>
       </template>
     </scroll-view>

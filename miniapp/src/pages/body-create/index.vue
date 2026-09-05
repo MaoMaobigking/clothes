@@ -53,11 +53,7 @@ function start() {
 
       <view class="guide-card">
         <view class="guide-title">测试包含</view>
-        <view
-          v-for="(step, index) in STEPS"
-          :key="step.key"
-          class="guide-row"
-        >
+        <view v-for="(step, index) in STEPS" :key="step.key" class="guide-row">
           <view class="guide-index">{{ index + 1 }}</view>
           <view class="guide-meta">
             <text class="guide-label">{{ step.title }}</text>

@@ -10,13 +10,7 @@ const props = withDefaults(
 )
 
 /** tabBar 五页：只能 switchTab，navigateTo 到 tab 页在小程序上必定失败 */
-const TAB_ROUTES = [
-  '/pages/home/home',
-  '/pages/ai/ai',
-  '/pages/closet/closet',
-  '/pages/mall/mall',
-  '/pages/me/me',
-]
+const TAB_ROUTES = ['/pages/home/home', '/pages/ai/ai', '/pages/closet/closet', '/pages/mall/mall', '/pages/me/me']
 
 /*
  * 返回。

@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import {
-  REQUEST_STATUS_LABELS,
-  REQUEST_STATUS_ORDER,
-} from '@/data/custom'
+import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/data/custom'
 import {
   advanceCustomRequest,
   fetchCustomRequestDetail,
@@ -31,12 +28,8 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined
 const request = computed(() => detail.value?.request)
 const measurement = computed(() => detail.value?.measurement)
 const messages = computed(() => detail.value?.messages || [])
-const statusIndex = computed(() =>
-  Math.max(0, REQUEST_STATUS_ORDER.indexOf(request.value?.status || 'submitted')),
-)
-const canAdvance = computed(
-  () => statusIndex.value < REQUEST_STATUS_ORDER.length - 1,
-)
+const statusIndex = computed(() => Math.max(0, REQUEST_STATUS_ORDER.indexOf(request.value?.status || 'submitted')))
+const canAdvance = computed(() => statusIndex.value < REQUEST_STATUS_ORDER.length - 1)
 /**
  * 「演示推进」只给四个预置演示账号（规格 §16：不做真实履约）。
  *
@@ -158,12 +151,7 @@ function messageClass(message: CustomMessage) {
           设计师头像取后端 designer.avatarUrl；目录里还没配头像时退回姓氏首字，
           不再拿人台图 front.png 冒充一张设计师照片（§4.3）。
         -->
-        <image
-          v-if="designerAvatar"
-          :src="designerAvatar"
-          class="designer-avatar"
-          mode="aspectFill"
-        />
+        <image v-if="designerAvatar" :src="designerAvatar" class="designer-avatar" mode="aspectFill" />
         <view v-else class="designer-avatar designer-avatar-fallback">
           <text>{{ (request.designer?.name || '设').slice(0, 1) }}</text>
         </view>
@@ -178,12 +166,7 @@ function messageClass(message: CustomMessage) {
       <view class="card">
         <view class="card-head">
           <text class="card-title">定制进度</text>
-          <button
-            v-if="isDemoAccount && canAdvance"
-            class="advance"
-            :disabled="advancing"
-            @tap="advance"
-          >
+          <button v-if="isDemoAccount && canAdvance" class="advance" :disabled="advancing" @tap="advance">
             {{ advancing ? '更新中…' : '演示推进' }}
           </button>
           <text v-else-if="!canAdvance" class="finished">已完成演示流程</text>
@@ -217,19 +200,17 @@ function messageClass(message: CustomMessage) {
             <text class="measure-label">
               {{ { height: '身高', weight: '体重', bust: '胸围', waist: '腰围', hips: '臀围', shoulder: '肩宽' }[key] }}
             </text>
-            <text class="measure-value">{{ value }}<text class="unit">{{ key === 'weight' ? 'kg' : 'cm' }}</text></text>
+            <text class="measure-value">
+              {{ value }}
+              <text class="unit">{{ key === 'weight' ? 'kg' : 'cm' }}</text>
+            </text>
           </view>
         </view>
         <text v-if="measurement.notes" class="notes">{{ measurement.notes }}</text>
 
         <text class="card-subtitle">量体照片</text>
         <view class="photo-grid">
-          <view
-            v-for="photo in measurementPhotos"
-            :key="photo.label"
-            class="photo"
-            @tap="preview(photo.url)"
-          >
+          <view v-for="photo in measurementPhotos" :key="photo.label" class="photo" @tap="preview(photo.url)">
             <image :src="resolveMediaUrl(photo.url)" mode="aspectFill" />
             <text class="photo-label">{{ photo.label }}</text>
           </view>
@@ -253,18 +234,10 @@ function messageClass(message: CustomMessage) {
       <view class="chat-card">
         <view class="card-title">设计师一对一沟通</view>
         <scroll-view scroll-y class="chat" :scroll-top="scrollTop">
-          <view
-            v-if="!messages.length"
-            class="welcome"
-          >
+          <view v-if="!messages.length" class="welcome">
             设计师已收到你的申请。可以继续补充面料、颜色、工期或尺码要求。
           </view>
-          <view
-            v-for="message in messages"
-            :key="message.id"
-            class="message"
-            :class="messageClass(message)"
-          >
+          <view v-for="message in messages" :key="message.id" class="message" :class="messageClass(message)">
             <text v-if="message.sender === 'designer'" class="message-role">设计师</text>
             <view class="bubble">{{ message.content }}</view>
             <text class="message-time">{{ formatTime(message.createdAt) }}</text>
@@ -283,9 +256,7 @@ function messageClass(message: CustomMessage) {
             :disabled="sending"
             @confirm="sendMessage"
           />
-          <button class="send" :class="{ disabled: sending || !input.trim() }" @tap="sendMessage">
-            发送
-          </button>
+          <button class="send" :class="{ disabled: sending || !input.trim() }" @tap="sendMessage">发送</button>
         </view>
       </view>
     </scroll-view>
@@ -638,5 +609,4 @@ function messageClass(message: CustomMessage) {
 .send.disabled {
   opacity: 0.55;
 }
-
 </style>

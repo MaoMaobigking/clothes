@@ -52,10 +52,7 @@ function mapOutfit(row, items) {
 }
 
 async function findOutfitRow(userId, id) {
-  return getOne(
-    `SELECT ${OUTFIT_COLS} FROM outfits WHERE id = ? AND user_id = ?`,
-    [id, userId],
-  )
+  return getOne(`SELECT ${OUTFIT_COLS} FROM outfits WHERE id = ? AND user_id = ?`, [id, userId])
 }
 
 export async function createOutfitBatch(userId, batchId, plans) {
@@ -171,10 +168,7 @@ export async function listOutfits(userId, { kind = '', saved = false, starred = 
 }
 
 export async function saveOutfit(userId, id) {
-  const result = await execute(
-    'UPDATE outfits SET is_saved = 1 WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  const result = await execute('UPDATE outfits SET is_saved = 1 WHERE id = ? AND user_id = ?', [id, userId])
   if (result.affectedRows === 0) return null
   return getOutfit(userId, id)
 }
@@ -215,17 +209,15 @@ export async function replaceOutfitItem(userId, outfitId, oldGarmentId, newGarme
   )
   if (!newItem) return { missingNew: true }
   if (newItem.category !== oldItem.category) return { categoryMismatch: true }
-  await execute(
-    'UPDATE outfit_items SET garment_id = ? WHERE outfit_id = ? AND garment_id = ?',
-    [newGarmentId, outfitId, oldGarmentId],
-  )
+  await execute('UPDATE outfit_items SET garment_id = ? WHERE outfit_id = ? AND garment_id = ?', [
+    newGarmentId,
+    outfitId,
+    oldGarmentId,
+  ])
   return getOutfit(userId, outfitId)
 }
 
 export async function deleteOutfit(userId, id) {
-  const result = await execute(
-    'DELETE FROM outfits WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  const result = await execute('DELETE FROM outfits WHERE id = ? AND user_id = ?', [id, userId])
   return result.affectedRows > 0
 }

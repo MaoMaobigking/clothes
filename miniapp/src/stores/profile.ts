@@ -41,7 +41,12 @@ function defaultProgress() {
 }
 
 const FACE_SCORE: Record<string, number> = {
-  oval: 95, heart: 88, diamond: 84, square: 80, round: 78, long: 76,
+  oval: 95,
+  heart: 88,
+  diamond: 84,
+  square: 80,
+  round: 78,
+  long: 76,
 }
 
 export const useProfileStore = defineStore('profile', () => {
@@ -64,8 +69,12 @@ export const useProfileStore = defineStore('profile', () => {
     if (i >= 0) profile.styles.splice(i, 1)
     else if (profile.styles.length < 3) profile.styles.push(id)
   }
-  function setSkin(id: string) { profile.skinTone = id }
-  function setFace(id: string) { profile.faceShape = id }
+  function setSkin(id: string) {
+    profile.skinTone = id
+  }
+  function setFace(id: string) {
+    profile.faceShape = id
+  }
   function setBody(key: BodyMetricKey, value: number) {
     profile.body[key] = value
     if (key === 'height') profile.progress.heightTouched = true
@@ -75,12 +84,16 @@ export const useProfileStore = defineStore('profile', () => {
     profile.visualBody = id
     profile.progress.visualBodySelected = true
   }
-  function setPreference(questionId: string, optionId: string) { profile.preferences[questionId] = optionId }
+  function setPreference(questionId: string, optionId: string) {
+    profile.preferences[questionId] = optionId
+  }
   function setGender(gender: Gender) {
     profile.gender = gender
     profile.progress.genderSelected = true
   }
-  function setHairstyle(hairstyle: HairStyleId) { profile.hairstyle = hairstyle }
+  function setHairstyle(hairstyle: HairStyleId) {
+    profile.hairstyle = hairstyle
+  }
 
   function persist() {
     uni.setStorageSync(PROFILE_STORAGE_KEY, JSON.stringify(profile))
@@ -99,8 +112,10 @@ export const useProfileStore = defineStore('profile', () => {
     }
     if (typeof remote.skin === 'string') profile.skinTone = remote.skin
     if (typeof remote.face === 'string') profile.faceShape = remote.face
-    if (typeof remote.visualBody === 'string' &&
-        VISUAL_BODY_OPTIONS.some((option) => option.id === remote.visualBody)) {
+    if (
+      typeof remote.visualBody === 'string' &&
+      VISUAL_BODY_OPTIONS.some((option) => option.id === remote.visualBody)
+    ) {
       profile.visualBody = remote.visualBody
       profile.progress.visualBodySelected = true
     }
@@ -144,9 +159,7 @@ export const useProfileStore = defineStore('profile', () => {
       }
       if (typeof saved.hairstyle === 'string') profile.hairstyle = saved.hairstyle as HairStyleId
       if (Array.isArray(saved.styles)) {
-        profile.styles = saved.styles.filter((id: string) =>
-          STYLE_OPTIONS.some((o) => o.id === id),
-        )
+        profile.styles = saved.styles.filter((id: string) => STYLE_OPTIONS.some((o) => o.id === id))
       }
       if (typeof saved.skinTone === 'string' && SKIN_OPTIONS.some((o) => o.id === saved.skinTone)) {
         profile.skinTone = saved.skinTone
@@ -154,8 +167,7 @@ export const useProfileStore = defineStore('profile', () => {
       if (typeof saved.faceShape === 'string' && FACE_OPTIONS.some((o) => o.id === saved.faceShape)) {
         profile.faceShape = saved.faceShape
       }
-      if (typeof saved.visualBody === 'string' &&
-          VISUAL_BODY_OPTIONS.some((o) => o.id === saved.visualBody)) {
+      if (typeof saved.visualBody === 'string' && VISUAL_BODY_OPTIONS.some((o) => o.id === saved.visualBody)) {
         profile.visualBody = saved.visualBody as VisualBodyId
         profile.progress.visualBodySelected = true
       }
@@ -177,7 +189,8 @@ export const useProfileStore = defineStore('profile', () => {
       }
       if (saved.progress && typeof saved.progress === 'object') {
         profile.progress.genderSelected = profile.progress.genderSelected || Boolean(saved.progress.genderSelected)
-        profile.progress.visualBodySelected = profile.progress.visualBodySelected || Boolean(saved.progress.visualBodySelected)
+        profile.progress.visualBodySelected =
+          profile.progress.visualBodySelected || Boolean(saved.progress.visualBodySelected)
         profile.progress.heightTouched = profile.progress.heightTouched || Boolean(saved.progress.heightTouched)
         profile.progress.weightTouched = profile.progress.weightTouched || Boolean(saved.progress.weightTouched)
       }
@@ -186,9 +199,15 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
-  function goNext() { if (currentStep.value < totalSteps) currentStep.value += 1 }
-  function goPrev() { if (currentStep.value > 1) currentStep.value -= 1 }
-  function goto(step: number) { if (step >= 1 && step <= totalSteps) currentStep.value = step }
+  function goNext() {
+    if (currentStep.value < totalSteps) currentStep.value += 1
+  }
+  function goPrev() {
+    if (currentStep.value > 1) currentStep.value -= 1
+  }
+  function goto(step: number) {
+    if (step >= 1 && step <= totalSteps) currentStep.value = step
+  }
   function reset() {
     currentStep.value = 1
     profile.styles = []
@@ -203,28 +222,31 @@ export const useProfileStore = defineStore('profile', () => {
 
   const canProceed = computed(() => {
     switch (currentStep.value) {
-      case 1: return profile.styles.length === 3
-      case 2: return profile.skinTone !== ''
-      case 3: return profile.faceShape !== ''
-      case 4: return bodyReady.value
-      case 5: return answeredPreferences.value >= 3
-      default: return false
+      case 1:
+        return profile.styles.length === 3
+      case 2:
+        return profile.skinTone !== ''
+      case 3:
+        return profile.faceShape !== ''
+      case 4:
+        return bodyReady.value
+      case 5:
+        return answeredPreferences.value >= 3
+      default:
+        return false
     }
   })
 
   const answeredPreferences = computed(() => Object.keys(profile.preferences).length)
-  const bodyReady = computed(() =>
-    profile.progress.genderSelected &&
-    profile.progress.visualBodySelected &&
-    profile.progress.heightTouched &&
-    profile.progress.weightTouched,
+  const bodyReady = computed(
+    () =>
+      profile.progress.genderSelected &&
+      profile.progress.visualBodySelected &&
+      profile.progress.heightTouched &&
+      profile.progress.weightTouched,
   )
 
-  const isComplete = computed(() =>
-    profile.styles.length === 3 &&
-    bodyReady.value &&
-    answeredPreferences.value >= 3,
-  )
+  const isComplete = computed(() => profile.styles.length === 3 && bodyReady.value && answeredPreferences.value >= 3)
 
   const missingCount = computed(() => {
     let missing = 0
@@ -270,14 +292,12 @@ export const useProfileStore = defineStore('profile', () => {
     ]
   })
 
-  const styleLabels = computed(() =>
-    profile.styles.map((id) => STYLE_OPTIONS.find((o) => o.id === id)?.label).filter(Boolean) as string[],
+  const styleLabels = computed(
+    () => profile.styles.map((id) => STYLE_OPTIONS.find((o) => o.id === id)?.label).filter(Boolean) as string[],
   )
   const skinLabel = computed(() => SKIN_OPTIONS.find((o) => o.id === profile.skinTone)?.label ?? '')
   const faceLabel = computed(() => FACE_OPTIONS.find((o) => o.id === profile.faceShape)?.label ?? '')
-  const visualBodyLabel = computed(() =>
-    VISUAL_BODY_OPTIONS.find((o) => o.id === profile.visualBody)?.label ?? '',
-  )
+  const visualBodyLabel = computed(() => VISUAL_BODY_OPTIONS.find((o) => o.id === profile.visualBody)?.label ?? '')
 
   /** 喂给 AvatarViewer 的身形参数（规格 §7.9）；围度只在用户改过默认值时才传 */
   const avatarShape = computed<AvatarShape>(() => {
@@ -299,21 +319,45 @@ export const useProfileStore = defineStore('profile', () => {
   const summary = computed(() => {
     if (!isComplete.value) return ''
     const main = styleLabels.value[0] ?? '百搭'
-    return [skinLabel.value, faceLabel.value, `偏爱「${main}」的你`]
-      .filter(Boolean)
-      .join(' · ')
+    return [skinLabel.value, faceLabel.value, `偏爱「${main}」的你`].filter(Boolean).join(' · ')
   })
 
   return {
-    currentStep, profile, totalSteps,
-    toggleStyle, setSkin, setFace, setBody, setVisualBody, setPreference, setGender, setHairstyle,
-    persist, loadPersisted,
+    currentStep,
+    profile,
+    totalSteps,
+    toggleStyle,
+    setSkin,
+    setFace,
+    setBody,
+    setVisualBody,
+    setPreference,
+    setGender,
+    setHairstyle,
+    persist,
+    loadPersisted,
     applyRemoteProfile,
-    goNext, goPrev, goto, reset,
-    canProceed, isComplete, answeredPreferences, bodyReady, missingCount,
-    incompleteDimensions, bmi, radar, styleLabels, skinLabel, faceLabel, visualBodyLabel, summary,
+    goNext,
+    goPrev,
+    goto,
+    reset,
+    canProceed,
+    isComplete,
+    answeredPreferences,
+    bodyReady,
+    missingCount,
+    incompleteDimensions,
+    bmi,
+    radar,
+    styleLabels,
+    skinLabel,
+    faceLabel,
+    visualBodyLabel,
+    summary,
     avatarShape,
   }
 })
 
-function clamp(v: number, min: number, max: number) { return Math.min(max, Math.max(min, v)) }
+function clamp(v: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, v))
+}

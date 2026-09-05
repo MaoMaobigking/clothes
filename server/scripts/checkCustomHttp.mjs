@@ -11,17 +11,7 @@ import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const serverDir = join(here, '..')
-const imagePath = join(
-  here,
-  '..',
-  '..',
-  'miniapp',
-  'src',
-  'static',
-  'images',
-  'model',
-  'front.png',
-)
+const imagePath = join(here, '..', '..', 'miniapp', 'src', 'static', 'images', 'model', 'front.png')
 const base = 'http://127.0.0.1:8791/api'
 
 let failed = 0
@@ -34,9 +24,7 @@ async function request(path, { method = 'GET', token, body, headers = {} } = {})
   const res = await fetch(base + path, {
     method,
     headers: {
-      ...(body && !(body instanceof FormData)
-        ? { 'Content-Type': 'application/json' }
-        : {}),
+      ...(body && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
@@ -96,11 +84,7 @@ try {
 
   console.log('\n【1】图片上传与静态访问')
   const form = new FormData()
-  form.append(
-    'file',
-    new Blob([readFileSync(imagePath)], { type: 'image/png' }),
-    'front.png',
-  )
+  form.append('file', new Blob([readFileSync(imagePath)], { type: 'image/png' }), 'front.png')
   const uploaded = await request('/custom/upload', {
     method: 'POST',
     token: A.token,
@@ -125,7 +109,10 @@ try {
   const requestId = inquiry.data?.request?.id
 
   const list = await request('/custom/requests', { token: A.token })
-  check('申请列表包含新申请', list.data?.requests?.some((item) => item.id === requestId))
+  check(
+    '申请列表包含新申请',
+    list.data?.requests?.some((item) => item.id === requestId),
+  )
 
   const detail = await request(`/custom/requests/${requestId}`, { token: A.token })
   check('申请详情返回 200', detail.status === 200 && detail.data?.request?.status === 'submitted')
@@ -171,11 +158,7 @@ try {
   })
   check('VIP 提交返回 201', allowed.status === 201, String(allowed.status))
 
-  console.log(
-    failed === 0
-      ? '\n🎉 功能五 HTTP 层验收全部通过\n'
-      : `\n❌ ${failed} 项未通过\n`,
-  )
+  console.log(failed === 0 ? '\n🎉 功能五 HTTP 层验收全部通过\n' : `\n❌ ${failed} 项未通过\n`)
 } catch (err) {
   console.error('\n❌ HTTP 验收异常:', err.message)
   console.error(serverLog.slice(-5000))

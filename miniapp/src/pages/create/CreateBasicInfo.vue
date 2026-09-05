@@ -45,7 +45,10 @@ function save() {
       <view v-for="f in BODY_FIELDS" :key="f.key" class="row">
         <text class="label">{{ f.label }}</text>
         <view class="pm" aria-label="减少" @tap="dec(f)">－</view>
-        <text class="val">{{ store.profile.body[f.key] }}<text class="unit">{{ f.unit }}</text></text>
+        <text class="val">
+          {{ store.profile.body[f.key] }}
+          <text class="unit">{{ f.unit }}</text>
+        </text>
         <view class="pm" aria-label="增加" @tap="inc(f)">＋</view>
         <text class="check" aria-hidden="true">✓</text>
       </view>

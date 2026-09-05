@@ -26,15 +26,14 @@ function mapRequest(row) {
     requirements: parseJson(row.requirements, {}),
     referenceImages: parseJson(row.reference_images, []),
     measurementId: row.measurement_id ?? null,
-    designer:
-      row.designer_name
-        ? {
-            id: Number(row.designer_id),
-            name: row.designer_name,
-            specialty: row.designer_specialty || '',
-            avatarUrl: row.designer_avatar || '',
-          }
-        : null,
+    designer: row.designer_name
+      ? {
+          id: Number(row.designer_id),
+          name: row.designer_name,
+          specialty: row.designer_specialty || '',
+          avatarUrl: row.designer_avatar || '',
+        }
+      : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -112,11 +111,7 @@ export async function findMeasurement(userId, id) {
   return mapMeasurement(row)
 }
 
-export async function createInquiryWithRequest(
-  userId,
-  inquiry,
-  request,
-) {
+export async function createInquiryWithRequest(userId, inquiry, request) {
   return withTransaction(async (conn) => {
     const [inquiryResult] = await conn.execute(
       `INSERT INTO custom_inquiries
@@ -151,11 +146,7 @@ export async function createInquiryWithRequest(
   })
 }
 
-export async function createMeasurementWithRequest(
-  userId,
-  measurement,
-  request,
-) {
+export async function createMeasurementWithRequest(userId, measurement, request) {
   return withTransaction(async (conn) => {
     const [measurementResult] = await conn.execute(
       `INSERT INTO custom_measurements
@@ -210,13 +201,7 @@ export async function listMessages(userId, requestId) {
   return rows.map(mapMessage)
 }
 
-export async function insertMessage(
-  userId,
-  requestId,
-  sender,
-  content,
-  designerId = null,
-) {
+export async function insertMessage(userId, requestId, sender, content, designerId = null) {
   const result = await execute(
     `INSERT INTO custom_messages
       (request_id, user_id, sender, designer_id, content)
@@ -237,10 +222,7 @@ export async function updateRequestStatus(userId, id, status) {
 }
 
 export async function getUserMembership(userId) {
-  const row = await getOne(
-    'SELECT role, membership_level FROM users WHERE id = ?',
-    [userId],
-  )
+  const row = await getOne('SELECT role, membership_level FROM users WHERE id = ?', [userId])
   return row
     ? {
         role: row.role || 'user',
@@ -250,18 +232,12 @@ export async function getUserMembership(userId) {
 }
 
 export async function upgradeUserMembership(userId) {
-  await execute(
-    "UPDATE users SET membership_level = 'vip' WHERE id = ?",
-    [userId],
-  )
+  await execute("UPDATE users SET membership_level = 'vip' WHERE id = ?", [userId])
   return getUserMembership(userId)
 }
 
 export async function countRequests(userId) {
-  const row = await getOne(
-    'SELECT COUNT(*) AS n FROM custom_requests WHERE user_id = ?',
-    [userId],
-  )
+  const row = await getOne('SELECT COUNT(*) AS n FROM custom_requests WHERE user_id = ?', [userId])
   return Number(row?.n || 0)
 }
 
@@ -288,13 +264,7 @@ export async function ensureDesigners(designers) {
          specialty = VALUES(specialty),
          bio = VALUES(bio),
          active = 1`,
-      [
-        designer.key,
-        designer.name,
-        designer.avatarUrl || '',
-        designer.specialty,
-        designer.bio,
-      ],
+      [designer.key, designer.name, designer.avatarUrl || '', designer.specialty, designer.bio],
     )
     if (result.affectedRows === 1) inserted += 1
   }

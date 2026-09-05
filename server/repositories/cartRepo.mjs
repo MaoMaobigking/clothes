@@ -38,42 +38,24 @@ export async function listCartRows(userId) {
 }
 
 export async function findCartRow(userId, id) {
-  return getOne(
-    `SELECT ${SELECT_COLS} FROM cart_items WHERE id = ? AND user_id = ?`,
-    [id, userId],
-  )
+  return getOne(`SELECT ${SELECT_COLS} FROM cart_items WHERE id = ? AND user_id = ?`, [id, userId])
 }
 
 export async function addCartItem(userId, item) {
-  await execute(UPSERT_SQL, [
-    userId,
-    item.itemType,
-    item.itemId,
-    item.quantity,
-    item.sourceOutfitId || null,
-  ])
+  await execute(UPSERT_SQL, [userId, item.itemType, item.itemId, item.quantity, item.sourceOutfitId || null])
 }
 
 export async function batchAddCartItems(userId, items) {
   if (!items.length) return
   await withTransaction(async (conn) => {
     for (const item of items) {
-      await conn.execute(UPSERT_SQL, [
-        userId,
-        item.itemType,
-        item.itemId,
-        item.quantity,
-        item.sourceOutfitId || null,
-      ])
+      await conn.execute(UPSERT_SQL, [userId, item.itemType, item.itemId, item.quantity, item.sourceOutfitId || null])
     }
   })
 }
 
 export async function removeCartItem(userId, id) {
-  const result = await execute(
-    'DELETE FROM cart_items WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  const result = await execute('DELETE FROM cart_items WHERE id = ? AND user_id = ?', [id, userId])
   return result.affectedRows > 0
 }
 
@@ -88,10 +70,7 @@ export async function setCartQuantity(userId, id, quantity) {
   const value = Math.min(MAX_QUANTITY, Math.max(1, Number(quantity) || 1))
   const existing = await findCartRow(userId, id)
   if (!existing) return null
-  await execute(
-    'UPDATE cart_items SET quantity = ? WHERE id = ? AND user_id = ?',
-    [value, id, userId],
-  )
+  await execute('UPDATE cart_items SET quantity = ? WHERE id = ? AND user_id = ?', [value, id, userId])
   return findCartRow(userId, id)
 }
 
@@ -112,10 +91,7 @@ export async function countCartGarments(userId, garmentIds) {
 
 /** 整套搭配拆成单品：取出该搭配下属于当前用户的衣物 id（规格 §4.5 §8.9） */
 export async function listOutfitGarmentIds(userId, outfitId) {
-  const outfit = await getOne(
-    'SELECT id FROM outfits WHERE id = ? AND user_id = ?',
-    [outfitId, userId],
-  )
+  const outfit = await getOne('SELECT id FROM outfits WHERE id = ? AND user_id = ?', [outfitId, userId])
   if (!outfit) return null
   const rows = await getAll(
     `SELECT oi.garment_id

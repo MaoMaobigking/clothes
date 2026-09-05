@@ -88,10 +88,7 @@ export async function saveProfile(userId, input = {}) {
     shoulder: numberOrNull(input.shoulder, '肩宽', { min: 20, max: 100 }),
     thigh: numberOrNull(input.thigh, '大腿围', { min: 25, max: 120 }),
     calf: numberOrNull(input.calf, '小腿围', { min: 20, max: 100 }),
-    preferences:
-      input.preferences && typeof input.preferences === 'object'
-        ? input.preferences
-        : {},
+    preferences: input.preferences && typeof input.preferences === 'object' ? input.preferences : {},
   }
 
   return repo.upsertProfile(userId, profile)

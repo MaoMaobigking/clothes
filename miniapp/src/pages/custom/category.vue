@@ -271,18 +271,20 @@ async function upgradeVip() {
           />
         </view>
         <view class="hero-copy">
-          <UiIcon class="hero-emoji" :name="iconForEmoji(category.emoji) ?? 'scissors'" :size="64" tone="white" :stroke-width="1.4" />
+          <UiIcon
+            class="hero-emoji"
+            :name="iconForEmoji(category.emoji) ?? 'scissors'"
+            :size="64"
+            tone="white"
+            :stroke-width="1.4"
+          />
           <text class="hero-title">{{ category.label }}</text>
           <text class="hero-desc">{{ category.desc }}</text>
         </view>
       </view>
 
       <view class="process">
-        <view
-          v-for="(step, index) in CUSTOM_STEPS"
-          :key="step"
-          class="process-step"
-        >
+        <view v-for="(step, index) in CUSTOM_STEPS" :key="step" class="process-step">
           <text class="process-index">{{ index + 1 }}</text>
           <text class="process-label">{{ step }}</text>
         </view>
@@ -293,14 +295,7 @@ async function upgradeVip() {
         <view class="cases">
           <view v-for="item in category.cases" :key="item.title" class="case">
             <view class="case-image">
-              <TileImage
-                :src="item.image"
-                :emoji="item.emoji"
-                from="#ffe6f2"
-                to="#d7ecff"
-                fill
-                rounded="24rpx"
-              />
+              <TileImage :src="item.image" :emoji="item.emoji" from="#ffe6f2" to="#d7ecff" fill rounded="24rpx" />
             </view>
             <view class="case-copy">
               <view class="case-title-row">
@@ -419,57 +414,27 @@ async function upgradeVip() {
             <view class="measure-grid">
               <label class="measure-field">
                 <text>身高</text>
-                <input
-                  v-model="measurement.height"
-                  type="digit"
-                  placeholder="如 160"
-                  :placeholder-style="PH_STYLE"
-                />
+                <input v-model="measurement.height" type="digit" placeholder="如 160" :placeholder-style="PH_STYLE" />
               </label>
               <label class="measure-field">
                 <text>体重</text>
-                <input
-                  v-model="measurement.weight"
-                  type="digit"
-                  placeholder="如 55"
-                  :placeholder-style="PH_STYLE"
-                />
+                <input v-model="measurement.weight" type="digit" placeholder="如 55" :placeholder-style="PH_STYLE" />
               </label>
               <label class="measure-field">
                 <text>胸围</text>
-                <input
-                  v-model="measurement.bust"
-                  type="digit"
-                  placeholder="如 88"
-                  :placeholder-style="PH_STYLE"
-                />
+                <input v-model="measurement.bust" type="digit" placeholder="如 88" :placeholder-style="PH_STYLE" />
               </label>
               <label class="measure-field">
                 <text>腰围</text>
-                <input
-                  v-model="measurement.waist"
-                  type="digit"
-                  placeholder="如 68"
-                  :placeholder-style="PH_STYLE"
-                />
+                <input v-model="measurement.waist" type="digit" placeholder="如 68" :placeholder-style="PH_STYLE" />
               </label>
               <label class="measure-field">
                 <text>臀围</text>
-                <input
-                  v-model="measurement.hips"
-                  type="digit"
-                  placeholder="如 92"
-                  :placeholder-style="PH_STYLE"
-                />
+                <input v-model="measurement.hips" type="digit" placeholder="如 92" :placeholder-style="PH_STYLE" />
               </label>
               <label class="measure-field">
                 <text>肩宽</text>
-                <input
-                  v-model="measurement.shoulder"
-                  type="digit"
-                  placeholder="如 39"
-                  :placeholder-style="PH_STYLE"
-                />
+                <input v-model="measurement.shoulder" type="digit" placeholder="如 39" :placeholder-style="PH_STYLE" />
               </label>
             </view>
 
@@ -914,5 +879,4 @@ async function upgradeVip() {
 .vip-sheet .btn {
   height: 84rpx;
 }
-
 </style>
