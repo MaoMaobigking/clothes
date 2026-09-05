@@ -27,8 +27,8 @@ __pycache__
 # RAG 索引缓存（启动时自动重建，不进版本库）
 server/rag_index.json
 
-# 工具产物
-.reasonix
+# 运行时上传产物（用户服装图片，含隐私，任何人都不要提交）
+server/uploads/
 
 # 会话交接文档（含环境细节与未决讨论）
 # 默认忽略，避免 git add -A 把草稿一起扫进来；
@@ -60,3 +60,12 @@ pnpm-debug.log*
 
 # 本地验收脚本与截图（可再生）
 .tmp/
+
+# 图片瘦身前的原图备份（14MB，不进仓库；源文件本身有 git 历史可回滚）
+.image-backup/
+
+# 体验版打包的真实配置（含云开发环境 ID），按 .env.production.example 自行创建
+miniapp/.env.production
+
+# 部署打包产物（含真实 key 的环境变量清单，别提交）
+deploy/dist/
