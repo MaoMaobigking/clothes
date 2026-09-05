@@ -82,30 +82,36 @@ function goShopping() {
   min-height: 0;
   padding: 12rpx 30rpx 48rpx;
 }
+
 .state {
   padding: 120rpx 40rpx;
-  text-align: center;
-  color: var(--text-3);
   font-size: 26rpx;
+  color: var(--text-3);
+  text-align: center;
 }
+
 .state.error {
   color: #d04c5b;
 }
+
 .empty-title {
   display: block;
   font-size: 30rpx;
-  color: var(--text-1);
   font-weight: 700;
+  color: var(--text-1);
 }
+
 .empty-sub {
   display: block;
   margin-top: 10rpx;
   font-size: 23rpx;
 }
+
 .empty-btn {
   width: 300rpx;
   margin: 26rpx auto 0;
 }
+
 .tip {
   display: block;
   margin-top: 14rpx;
@@ -113,58 +119,68 @@ function goShopping() {
   line-height: 1.5;
   color: var(--text-3);
 }
+
 .card {
-  margin-top: 18rpx;
   padding: 22rpx;
-  border-radius: var(--radius);
+  margin-top: 18rpx;
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .head {
   display: flex;
+  gap: 16rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .order-no {
   font-size: 21rpx;
   color: var(--text-3);
 }
+
 .status {
   flex-shrink: 0;
   font-size: 24rpx;
   font-weight: 700;
   color: var(--pink-deep);
 }
+
 .status.off {
   color: var(--text-3);
 }
+
 .names {
   display: block;
   margin-top: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 25rpx;
   color: var(--text-1);
-  overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
+
 .foot {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-top: 14rpx;
   padding-top: 12rpx;
+  margin-top: 14rpx;
   border-top: 1px solid var(--line);
 }
+
 .count {
   font-size: 21rpx;
   color: var(--text-3);
 }
+
 .pay {
   font-size: 26rpx;
   font-weight: 700;
   color: var(--pink-deep);
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

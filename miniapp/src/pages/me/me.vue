@@ -221,64 +221,71 @@ onMounted(async () => {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: calc(env(safe-area-inset-top, 24rpx) + 24rpx) 32rpx 32rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 32rpx;
+  min-height: 0;
+  padding: calc(env(safe-area-inset-top, 24rpx) + 24rpx) 32rpx 32rpx;
 }
 
 /* 用户卡 */
 .user-card {
+  padding: 36rpx 32rpx;
   background: var(--brand-gradient);
   border-radius: var(--radius-lg);
-  padding: 36rpx 32rpx;
   box-shadow: var(--shadow-float);
 }
+
 .uc-row {
   display: flex;
-  align-items: center;
   gap: 28rpx;
+  align-items: center;
 }
+
 .uc-avatar {
-  width: 120rpx;
-  height: 120rpx;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  width: 120rpx;
+  height: 120rpx;
   font-size: 68rpx;
+  background: rgb(255 255 255 / 35%);
+  border-radius: 50%;
 }
+
 .uc-text {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8rpx;
+  min-width: 0;
 }
+
 .uc-name {
   font-size: 36rpx;
   font-weight: 500;
   color: var(--text-on-brand);
 }
+
 .uc-sign {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.85);
   line-height: 1.4;
+  color: rgb(255 255 255 / 85%);
 }
+
 .uc-edit {
   flex-shrink: 0;
   align-self: flex-start;
+  padding: 10rpx 24rpx;
   font-size: 24rpx;
   font-weight: 500;
   color: var(--text-on-brand);
-  padding: 10rpx 24rpx;
+  background: rgb(255 255 255 / 25%);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.25);
 }
+
 .uc-edit-hover {
   opacity: 0.7;
 }
@@ -289,21 +296,24 @@ onMounted(async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: 20rpx;
 }
+
 .stat {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 28rpx 16rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
+  padding: 28rpx 16rpx;
+  background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .stat-num {
   font-size: 44rpx;
   font-weight: 500;
   color: var(--pink-deep);
 }
+
 .stat-label {
   font-size: 24rpx;
   color: var(--text-2);
@@ -313,125 +323,144 @@ onMounted(async () => {
 .avatar-card {
   display: flex;
   gap: 28rpx;
+  padding: 28rpx;
+  margin-top: 20rpx;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 28rpx;
   box-shadow: var(--shadow-card);
-  margin-top: 20rpx;
 }
 
 /* 学习记录 */
 .learning-card {
   display: flex;
-  align-items: center;
   gap: 28rpx;
-  padding: 28rpx;
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  margin-top: 20rpx;
-}
-.learning-points {
-  flex: 0 0 124rpx;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4rpx;
+  padding: 28rpx;
+  margin-top: 20rpx;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
+
+.learning-points {
+  display: flex;
+  flex: 0 0 124rpx;
+  flex-direction: column;
+  gap: 4rpx;
+  align-items: center;
+}
+
 .learning-number {
   font-size: 48rpx;
-  line-height: 1;
   font-weight: 700;
+  line-height: 1;
   color: var(--pink-deep);
 }
+
 .learning-label {
   font-size: 22rpx;
   color: var(--text-2);
 }
+
 .learning-progress {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 14rpx;
+  min-width: 0;
 }
+
 .learning-line {
   width: 100%;
   height: 14rpx;
-  border-radius: var(--radius-pill);
-  background: #e8e2ef;
   overflow: hidden;
+  background: #e8e2ef;
+  border-radius: var(--radius-pill);
 }
+
 .learning-fill {
   height: 100%;
-  border-radius: var(--radius-pill);
   background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .learning-meta {
   font-size: 24rpx;
   color: var(--text-2);
 }
+
 .avatar-thumb {
-  width: 176rpx;
   flex-shrink: 0;
+  width: 176rpx;
 }
+
 .ac-text {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12rpx;
 }
+
 .ac-title {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .ac-sub {
   flex: 1;
   font-size: 24rpx;
-  color: var(--text-2);
   line-height: 1.5;
+  color: var(--text-2);
 }
+
 .ac-btn {
-  height: 80rpx;
   align-self: stretch;
+  height: 80rpx;
 }
 
 /* 菜单列表 */
 .menu-card {
+  padding: 8rpx 28rpx;
+  margin-top: 20rpx;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 8rpx 28rpx;
   box-shadow: var(--shadow-card);
-  margin-top: 20rpx;
 }
+
 .menu-item {
-  width: 100%;
   display: flex;
-  align-items: center;
   gap: 24rpx;
+  align-items: center;
+  width: 100%;
   padding: 28rpx 4rpx;
+
   /* 走 --hairline（0.5px）而不是 1px：uv-ui 的列表分隔线是发丝线，
      1px 在 2 倍屏上是两个物理像素，和 uv-cell 并排会明显粗一档 */
   border-bottom: var(--hairline);
 }
+
 .menu-item:last-child {
   border-bottom: none;
 }
+
 .menu-item-hover {
   opacity: 0.6;
 }
+
 .mi-label {
   flex: 1;
-  text-align: left;
   font-size: 28rpx;
   font-weight: 500;
   color: var(--text-1);
+  text-align: left;
 }
+
 .mi-hint {
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .mi-arrow {
   font-size: 40rpx;
   color: var(--text-3);
@@ -442,6 +471,7 @@ onMounted(async () => {
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

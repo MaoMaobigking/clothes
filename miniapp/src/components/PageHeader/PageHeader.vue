@@ -103,19 +103,22 @@ function back() {
 .ph-slot {
   flex-shrink: 0;
 }
+
 .mid {
   flex: 1;
-  text-align: center;
   overflow: hidden;
+  text-align: center;
 }
+
 .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 32rpx;
   font-weight: 500;
   color: var(--text-1);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
+
 .sub {
   margin-top: 2rpx;
   font-size: 22rpx;

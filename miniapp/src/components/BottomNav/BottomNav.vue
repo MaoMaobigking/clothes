@@ -101,20 +101,21 @@ const INACTIVE_COLOR = '#909193'
  * 选中态从「深色底」改成主色底 —— uv-ui 的选中一律是主色，不是深灰。
  */
 .ai-badge {
-  width: 54rpx;
-  height: 40rpx;
-  border-radius: var(--radius-sm);
-  border: 2rpx solid #909193;
-  color: #909193;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 54rpx;
+  height: 40rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: #909193;
+  border: 2rpx solid #909193;
+  border-radius: var(--radius-sm);
 }
+
 .ai-badge.on {
+  color: #fff;
   background: var(--pink-deep);
   border-color: var(--pink-deep);
-  color: #fff;
 }
 </style>

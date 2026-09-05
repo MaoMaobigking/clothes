@@ -171,104 +171,122 @@ async function submit() {
   min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
+
 .photo-box {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .photo {
   width: 100%;
   height: 100%;
 }
+
 .photo-placeholder {
-  height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 12rpx;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
+  height: 100%;
   color: var(--text-2);
 }
+
 .photo-emoji {
   font-size: 76rpx;
 }
+
 .photo-text {
   font-size: 28rpx;
   font-weight: 700;
 }
+
 .photo-sub {
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .error {
   display: block;
   margin-top: 12rpx;
-  color: var(--danger);
   font-size: 22rpx;
+  color: var(--danger);
 }
+
 .hidden-file {
   position: fixed;
   width: 1px;
   height: 1px;
-  opacity: 0;
   pointer-events: none;
+  opacity: 0;
 }
+
 .field {
   margin-top: 28rpx;
 }
+
 .label {
   margin-bottom: 12rpx;
   font-size: 25rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .textarea,
 .input {
   width: 100%;
   padding: 22rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text-1);
   font-size: 26rpx;
   line-height: 1.5;
+  color: var(--text-1);
+  background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .textarea {
   height: 210rpx;
 }
+
 .textarea.short {
   height: 150rpx;
 }
+
 .input {
   height: 88rpx;
 }
+
 .counter {
   margin-top: 8rpx;
-  text-align: right;
   font-size: 20rpx;
   color: var(--text-3);
+  text-align: right;
 }
+
 .hint {
   margin-top: 8rpx;
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .submit {
-  height: 92rpx;
-  margin-top: 34rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
+  height: 92rpx;
+  margin-top: 34rpx;
   font-size: 28rpx;
   font-weight: 500;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-float);
 }
+
 .submit.disabled {
   opacity: 0.65;
 }

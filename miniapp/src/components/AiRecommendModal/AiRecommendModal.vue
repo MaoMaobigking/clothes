@@ -58,22 +58,22 @@ function onChange(e: { show: boolean }) {
 
 <style scoped>
 .ai-modal {
-  width: 600rpx;
-  padding: 48rpx 40rpx 32rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 600rpx;
+  padding: 48rpx 40rpx 32rpx;
   text-align: center;
 }
 
 .spark {
-  width: 112rpx;
-  height: 112rpx;
-  border-radius: 50%;
-  background: var(--pink-soft);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 112rpx;
+  height: 112rpx;
+  background: var(--pink-soft);
+  border-radius: 50%;
 }
 
 .title {
@@ -82,6 +82,7 @@ function onChange(e: { show: boolean }) {
   font-weight: 500;
   color: var(--text-1);
 }
+
 .desc {
   margin-top: 12rpx;
   font-size: 26rpx;
@@ -98,10 +99,11 @@ function onChange(e: { show: boolean }) {
   width: 100%;
   margin-top: 40rpx;
 }
+
 .btn-text {
+  padding: 16rpx 32rpx;
   margin-top: 16rpx;
   font-size: 28rpx;
   color: var(--text-3);
-  padding: 16rpx 32rpx;
 }
 </style>

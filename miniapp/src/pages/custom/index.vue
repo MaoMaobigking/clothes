@@ -190,150 +190,169 @@ onShow(loadData)
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: 12rpx 32rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 34rpx;
+  min-height: 0;
+  padding: 12rpx 32rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
 }
 
 .intro {
   display: flex;
   align-items: stretch;
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(150deg, rgba(255, 231, 243, 0.96), rgba(238, 228, 255, 0.96));
+  background: linear-gradient(150deg, rgb(255 231 243 / 96%), rgb(238 228 255 / 96%));
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
 }
+
 .intro-copy {
-  flex: 1;
-  padding: 34rpx 18rpx 34rpx 30rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  padding: 34rpx 18rpx 34rpx 30rpx;
 }
+
 .eyebrow {
-  color: var(--pink-deep);
   font-size: 20rpx;
   font-weight: 500;
+  color: var(--pink-deep);
 }
+
 .title {
   margin-top: 16rpx;
   font-size: 40rpx;
-  line-height: 1.18;
   font-weight: 700;
+  line-height: 1.18;
   color: var(--text-1);
 }
+
 .desc {
   margin-top: 18rpx;
   font-size: 24rpx;
   line-height: 1.55;
   color: var(--text-2);
 }
+
 .intro-image {
-  width: 36%;
-  height: 270rpx;
   flex-shrink: 0;
   align-self: center;
-  border-radius: var(--radius-lg);
+  width: 36%;
+  height: 270rpx;
   overflow: hidden;
   background: linear-gradient(150deg, #ffe1ef, #ded2ff);
+  border-radius: var(--radius-lg);
 }
+
 .intro-image image {
   width: 100%;
   height: 100%;
 }
 
 .section-title {
+  margin-bottom: 22rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
-  margin-bottom: 22rpx;
 }
+
 .category-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 22rpx;
 }
+
 .category {
+  padding: 14rpx;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 14rpx;
   box-shadow: var(--shadow-card);
   transition: transform 0.15s ease;
 }
+
 .category-image-wrap {
   position: relative;
   width: 100%;
   height: 210rpx;
-  border-radius: var(--radius);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe6f2, #e6dcff);
+  border-radius: var(--radius);
 }
+
 .category-image-wrap image {
   width: 100%;
   height: 100%;
 }
+
 .category-emoji {
   position: absolute;
   right: 14rpx;
   bottom: 10rpx;
   font-size: 42rpx;
 }
+
 .category-hover,
 .request-hover {
   opacity: 0.78;
 }
+
 .category-meta {
-  padding: 16rpx 8rpx 8rpx;
   display: flex;
   flex-direction: column;
   gap: 8rpx;
+  padding: 16rpx 8rpx 8rpx;
 }
+
 .category-label {
   font-size: 28rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .category-desc {
   font-size: 22rpx;
-  color: var(--text-3);
   line-height: 1.35;
+  color: var(--text-3);
 }
 
 .process-card,
 .vip-card {
+  padding: 30rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 30rpx;
   box-shadow: var(--shadow-card);
 }
+
 .steps {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
 }
+
 .step {
   display: flex;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
   padding: 12rpx 18rpx;
-  border-radius: var(--radius-pill);
   background: var(--surface-soft);
   border: 2rpx solid var(--line);
+  border-radius: var(--radius-pill);
 }
+
 .step-index {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--brand-gradient);
-  color: #fff;
+  width: 44rpx;
+  height: 44rpx;
   font-size: 22rpx;
   font-weight: 500;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: 50%;
 }
+
 .step-label {
   font-size: 23rpx;
   font-weight: 500;
@@ -342,40 +361,45 @@ onShow(loadData)
 
 .vip-top {
   display: flex;
+  gap: 20rpx;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20rpx;
 }
+
 .vip-title {
   display: block;
   font-size: 30rpx;
   font-weight: 500;
 }
+
 .vip-desc {
   display: block;
   margin-top: 10rpx;
   font-size: 23rpx;
   color: var(--text-2);
 }
+
 .vip-badge {
   flex-shrink: 0;
   padding: 8rpx 18rpx;
-  border-radius: var(--radius-pill);
-  color: var(--purple-deep);
-  background: var(--pink-soft);
   font-size: 22rpx;
   font-weight: 500;
+  color: var(--purple-deep);
+  background: var(--pink-soft);
+  border-radius: var(--radius-pill);
 }
+
 .vip-btn {
   height: 82rpx;
   margin-top: 22rpx;
 }
+
 .vip-ready {
   display: block;
   margin-top: 20rpx;
-  color: var(--mint-deep);
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--mint-deep);
 }
 
 .requests-head {
@@ -383,88 +407,103 @@ onShow(loadData)
   align-items: center;
   justify-content: space-between;
 }
+
 .requests-more {
   font-size: 24rpx;
   color: var(--text-3);
 }
+
 .request-list {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
 }
+
 .request-item {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
   padding: 26rpx;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .request-main {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 10rpx;
+  min-width: 0;
 }
+
 .request-title {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;
   font-size: 27rpx;
   font-weight: 700;
   color: var(--text-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
 .request-meta {
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .request-side {
   display: flex;
-  align-items: center;
-  gap: 12rpx;
   flex-shrink: 0;
+  gap: 12rpx;
+  align-items: center;
 }
+
 .status {
   font-size: 23rpx;
   font-weight: 700;
   color: var(--pink-deep);
 }
+
 .arrow {
-  color: var(--text-3);
   font-size: 38rpx;
+  color: var(--text-3);
 }
+
 .empty,
 .error {
   display: block;
-  color: var(--text-3);
   font-size: 25rpx;
+  color: var(--text-3);
   text-align: center;
 }
+
 .error {
   color: var(--warning);
 }
+
 .empty-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  align-items: center;
+  padding: 42rpx 30rpx;
   background: var(--surface-soft);
   border: 2rpx dashed var(--line);
   border-radius: var(--radius);
-  padding: 42rpx 30rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14rpx;
 }
+
 .empty-title {
   font-size: 29rpx;
   font-weight: 500;
 }
+
 .empty-desc {
   font-size: 23rpx;
   color: var(--text-3);
 }
+
 .empty-btn {
   width: 100%;
   height: 80rpx;

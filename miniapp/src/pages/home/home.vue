@@ -154,12 +154,12 @@ function goMall() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: calc(env(safe-area-inset-top, 12px) + 24rpx) 32rpx 32rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 36rpx;
+  min-height: 0;
+  padding: calc(env(safe-area-inset-top, 12px) + 24rpx) 32rpx 32rpx;
 }
 
 .hero {
@@ -167,26 +167,31 @@ function goMall() {
   align-items: flex-start;
   justify-content: space-between;
 }
+
 .brand-wrap {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
 }
+
 .logo {
-  width: 80rpx;
   flex-shrink: 0;
+  width: 80rpx;
 }
+
 .hi {
   margin: 0;
   font-size: 26rpx;
   color: var(--text-2);
 }
+
 .brand {
   margin: 12rpx 0 0;
   font-size: 44rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 /*
  * 首页顶部的微气象胶囊。
  *
@@ -200,17 +205,18 @@ function goMall() {
  */
 .weather {
   display: flex;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
   padding: 12rpx 24rpx;
-  border-radius: var(--radius-pill);
   background-color: var(--glass-bg);
   background-image: var(--glass-tint);
   border: 0.5px solid var(--glass-line);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-glass), var(--glow-inset);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
 }
+
 .w-temp {
   font-size: 30rpx;
   font-weight: 700;
@@ -220,34 +226,39 @@ function goMall() {
 .avatar-card {
   display: flex;
   gap: 28rpx;
+  padding: 28rpx;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 28rpx;
   box-shadow: var(--shadow-card);
 }
+
 .avatar-thumb {
-  width: 192rpx;
   flex-shrink: 0;
+  width: 192rpx;
 }
+
 .ac-text {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12rpx;
 }
+
 .ac-title {
   font-size: 32rpx;
   font-weight: 500;
 }
+
 .ac-sub {
   flex: 1;
   font-size: 26rpx;
-  color: var(--text-2);
   line-height: 1.5;
+  color: var(--text-2);
 }
+
 .ac-btn {
-  height: 84rpx;
   align-self: stretch;
+  height: 84rpx;
 }
 
 .features {
@@ -256,62 +267,71 @@ function goMall() {
   gap: 24rpx;
   margin-top: 24rpx;
 }
+
 .feature {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 28rpx 16rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
+  padding: 28rpx 16rpx;
+  background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   transition: transform 0.15s ease;
 }
+
 .feature:active {
   transform: scale(0.95);
 }
+
 .f-ico {
-  width: 56rpx;
-  height: 56rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+
   /*
    * 不给图标垫色块。设计稿的语言是「照片是主角，图标只做辅助」，
    * 图标一旦套上有色方块就变成模块的主视觉，整页就是一堆彩色贴纸。
    */
 }
+
 .f-label {
   font-size: 26rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .f-desc {
   font-size: 20rpx;
+  line-height: 1.3;
   color: var(--text-3);
   text-align: center;
-  line-height: 1.3;
 }
 
 .recos {
   display: flex;
   gap: 24rpx;
-  overflow-x: auto;
-  margin-top: 24rpx;
   padding-bottom: 8rpx;
+  margin-top: 24rpx;
+  overflow-x: auto;
 }
+
 .reco {
   flex: 0 0 400rpx;
+  padding: 24rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 24rpx;
   box-shadow: var(--shadow-card);
 }
+
 .reco-pieces {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12rpx;
 }
+
 .reco-title {
   margin: 20rpx 4rpx 4rpx;
   font-size: 26rpx;

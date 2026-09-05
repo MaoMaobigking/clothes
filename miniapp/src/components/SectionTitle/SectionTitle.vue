@@ -34,16 +34,19 @@ const emit = defineEmits<{
   align-items: center;
   justify-content: space-between;
 }
+
 .title {
   font-size: 30rpx;
   color: var(--text-1);
 }
+
 .more {
-  font-size: 24rpx;
-  color: var(--text-3);
   display: flex;
   align-items: center;
+  font-size: 24rpx;
+  color: var(--text-3);
 }
+
 .arrow {
   margin-left: 4rpx;
   font-size: 32rpx;

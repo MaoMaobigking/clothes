@@ -200,26 +200,26 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 <style scoped>
 .body {
   position: relative;
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
   padding: 16rpx 24rpx 24rpx;
-  display: flex;
-  flex-direction: column;
 }
 
 .done {
+  padding: 8rpx 12rpx;
   font-size: 30rpx;
   font-weight: 700;
   color: var(--purple-deep);
-  padding: 8rpx 12rpx;
 }
 
 .stage-wrap {
   position: relative;
-  flex: 1;
-  min-height: 0;
   display: grid;
+  flex: 1;
   place-items: center;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -235,22 +235,25 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   display: flex;
   flex-direction: column;
   align-items: center;
+
   /* 设计稿里模特偏右，给左侧的基础信息面板让出位置 */
   transform: translateX(30rpx);
 }
+
 .figure {
   position: relative;
   width: 380rpx;
   max-width: 52vw;
 }
+
 .platform {
   width: 336rpx;
   max-width: 48vw;
   height: 52rpx;
   margin-top: -20rpx;
+  background: radial-gradient(closest-side, rgb(255 158 200 / 55%), rgb(214 160 255 / 28%) 70%, transparent);
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 158, 200, 0.55), rgba(214, 160, 255, 0.28) 70%, transparent);
-  box-shadow: 0 20rpx 40rpx rgba(255, 158, 200, 0.3);
+  box-shadow: 0 20rpx 40rpx rgb(255 158 200 / 30%);
 }
 
 .gender-chip,
@@ -258,20 +261,23 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   position: absolute;
   z-index: 3;
   padding: 6rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: var(--shadow-card);
-  border: 2rpx solid var(--line);
   font-size: 20rpx;
   font-weight: 700;
   color: var(--text-2);
+  background: rgb(255 255 255 / 88%);
+  border: 2rpx solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
+
 .gender-chip {
   top: 6%;
   left: 0;
 }
+
 .hair-chip {
   top: 6%;
+
   /* 别再往外挂，否则会钻到右侧工具栏底下 */
   right: 0;
 }
@@ -283,18 +289,22 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
     transform 0.25s ease,
     box-shadow 0.25s ease;
 }
+
 .panel.highlight {
-  transform: translateY(-6rpx) scale(1.02);
   box-shadow:
-    0 0 0 6rpx rgba(255, 143, 192, 0.35),
+    0 0 0 6rpx rgb(255 143 192 / 35%),
     var(--shadow-float);
+  transform: translateY(-6rpx) scale(1.02);
 }
+
 .panel-left {
   top: 80rpx;
   left: 8rpx;
+
   /* 给左下角的五步测试留出位置，别再压上去 */
   max-height: calc(100% - 420rpx);
 }
+
 .panel-right {
   top: 80rpx;
   right: 8rpx;
@@ -302,27 +312,30 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 
 .tests {
   position: absolute;
-  left: 8rpx;
   bottom: 20rpx;
+  left: 8rpx;
   z-index: 3;
   display: flex;
   flex-direction: column;
   gap: 12rpx;
 }
+
 .test {
   display: flex;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
   padding: 8rpx 16rpx;
-  border-radius: var(--radius-pill);
   background: var(--surface-glass);
-  backdrop-filter: blur(8px);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
   transition: transform 0.15s ease;
 }
+
 .test:active {
   transform: scale(0.94);
 }
+
 .test-label {
   font-size: 21rpx;
   font-weight: 500;
@@ -335,14 +348,15 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   bottom: 20rpx;
   z-index: 3;
   padding: 18rpx 32rpx;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: var(--text-on-brand);
   font-size: 26rpx;
   font-weight: 700;
+  color: var(--text-on-brand);
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-float);
   transition: transform 0.15s ease;
 }
+
 .free:active {
   transform: scale(0.94);
 }
@@ -352,63 +366,72 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   grid-template-columns: 1fr 1fr;
   gap: 24rpx;
 }
+
 .gender-option {
-  height: 176rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 2rpx solid var(--line);
-  box-shadow: var(--shadow-card);
-  font-size: 40rpx;
-  font-weight: 500;
-  color: var(--text-2);
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 176rpx;
+  font-size: 40rpx;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 2rpx solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
   transition:
     transform 0.15s ease,
     border-color 0.15s ease;
 }
+
 .gender-option.on {
   color: #fff;
   background: var(--brand-gradient);
   border-color: transparent;
 }
+
 .hair-options {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20rpx;
 }
+
 .hair-option {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 16rpx;
+  align-items: center;
   padding: 32rpx 12rpx;
-  border-radius: var(--radius);
+  color: var(--text-2);
   background: var(--surface);
   border: 2rpx solid var(--line);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  color: var(--text-2);
   transition:
     transform 0.15s ease,
     border-color 0.15s ease;
 }
+
 .hair-option.on {
-  border-color: var(--pink);
   color: var(--purple-deep);
+  border-color: var(--pink);
   transform: translateY(-4rpx);
 }
+
 .hair-emoji {
   font-size: 56rpx;
 }
+
 .hair-label {
   font-size: 24rpx;
   font-weight: 700;
 }
+
 .sheet-close {
   width: 100%;
   margin-top: 32rpx;
 }
+
 .fav-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -416,30 +439,34 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   max-height: 46vh;
   overflow-y: auto;
 }
+
 .fav-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 16rpx;
+  align-items: center;
   padding: 28rpx 16rpx;
-  border-radius: var(--radius);
   background: var(--surface);
   border: 2rpx solid var(--line);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .fav-emoji {
   font-size: 52rpx;
 }
+
 .fav-name {
   font-size: 22rpx;
   font-weight: 500;
   color: var(--text-2);
   text-align: center;
 }
+
 .fav-empty {
   padding: 72rpx 0;
-  text-align: center;
-  color: var(--text-3);
   font-size: 26rpx;
+  color: var(--text-3);
+  text-align: center;
 }
 </style>

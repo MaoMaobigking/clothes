@@ -131,91 +131,102 @@ watch(
 <style scoped>
 .preview {
   position: relative;
-  border-radius: var(--radius);
   overflow: hidden;
+
   /* 原来是 linear-gradient(155deg, #fff4f8, #f3ebff) 的粉紫渐变底，
      随第二轮换皮改成 uv-ui 的中性浅灰 —— 它是搭配图的背景，不该抢主体的色 */
   background: var(--surface-placeholder);
+  border-radius: var(--radius);
 }
+
 .layer {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
+
 .bg-emoji {
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface-placeholder);
 }
+
 .filter {
   z-index: 1;
   pointer-events: none;
 }
+
 .model,
 .model-fallback {
   position: absolute;
-  left: 50%;
   top: 6%;
+  left: 50%;
+  z-index: 2;
   width: 60%;
   height: 84%;
   transform: translateX(-50%);
-  z-index: 2;
 }
+
 .model-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 120rpx;
 }
+
 .overlay {
   position: absolute;
   z-index: 3;
   width: 108rpx;
   height: 108rpx;
-  border-radius: var(--radius);
-  border: 4rpx solid #fff;
-  background: #fff;
-  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  background: #fff;
+  border: 4rpx solid #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8rpx 18rpx rgb(0 0 0 / 12%);
 }
+
 .overlay-img {
   width: 100%;
   height: 100%;
 }
+
 .overlay-img.placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface-placeholder);
 }
+
 .overlay-tag {
   position: absolute;
-  left: 0;
   right: 0;
   bottom: 0;
-  text-align: center;
+  left: 0;
+  padding: 2rpx 0;
   font-size: 18rpx;
   font-weight: 700;
   color: #fff;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 2rpx 0;
+  text-align: center;
+  background: rgb(0 0 0 / 60%);
 }
+
 .caption {
   position: absolute;
-  left: 16rpx;
-  bottom: 14rpx;
   right: 16rpx;
+  bottom: 14rpx;
+  left: 16rpx;
   z-index: 4;
   padding: 8rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 20rpx;
   font-weight: 700;
-  overflow: hidden;
+  color: #fff;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  background: rgb(0 0 0 / 65%);
+  border-radius: var(--radius-pill);
 }
 </style>

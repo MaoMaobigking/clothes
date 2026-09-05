@@ -783,13 +783,14 @@ function savePoster() {
 
 /* PageHeader 右侧的「＋」/「×」。方形点击区，和左侧返回键对称 */
 .hdr-btn {
-  width: 60rpx;
-  height: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
   border-radius: var(--radius-sm);
 }
+
 .hdr-btn.on {
   background: var(--pink-soft);
 }
@@ -802,25 +803,29 @@ function savePoster() {
 /* ---------------- 天气卡 ---------------- */
 
 .weather-card {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: 12rpx;
 }
+
 .wc-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .wc-loc {
   display: flex;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
 }
+
 .wc-city {
   font-size: 28rpx;
   color: var(--text-1);
 }
+
 /*
  * 穿搭日记的字号 / 字色 / 内边距 / 圆角全部由 .pill-macaron + .pill-macaron-mint
  * 提供，这里**只留全局类没给的差异**：图标和文字之间的 8rpx。
@@ -833,6 +838,7 @@ function savePoster() {
 .wc-diary {
   gap: 8rpx;
 }
+
 .wc-date {
   font-size: 24rpx;
   color: var(--text-3);
@@ -848,36 +854,41 @@ function savePoster() {
  */
 .wc-forecast {
   display: flex;
-  align-items: stretch;
   gap: 12rpx;
+  align-items: stretch;
   margin-top: 4rpx;
 }
+
 .fc {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  gap: 6rpx;
   align-items: center;
   justify-content: center;
-  gap: 6rpx;
+  min-width: 0;
   padding: 16rpx 4rpx;
-  border-radius: var(--radius-sm);
   background: var(--glass-pane);
+  border-radius: var(--radius-sm);
 }
+
 /* 今天那格靠「更白」强调，不靠 --pink-soft 换色相 —— 玻璃左上角本来就是粉光晕 */
 .fc-today {
   flex: 1.4;
   background: var(--glass-pane-strong);
 }
+
 .fc-temp-now {
   font-size: 34rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .fc-cond {
   font-size: 20rpx;
   color: var(--text-2);
 }
+
 /*
  * 这两个原来是 --text-3（#909193）。半透明面上 20rpx 的 #909193 太飘，
  * 而且安卓端 blur 不生效时底下透出的是页面灰，对比度更差 ——
@@ -887,6 +898,7 @@ function savePoster() {
   font-size: 20rpx;
   color: var(--text-2);
 }
+
 .fc-range {
   font-size: 22rpx;
   color: var(--text-2);
@@ -896,35 +908,40 @@ function savePoster() {
 
 .rec-head {
   display: flex;
+  gap: 16rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .rec-left {
   display: flex;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
   min-width: 0;
 }
+
 .rec-refresh {
-  width: 44rpx;
-  height: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  width: 44rpx;
+  height: 44rpx;
   border: var(--hairline);
+  border-radius: 50%;
 }
+
 .rec-right {
-  flex-shrink: 0;
   display: flex;
-  align-items: center;
+  flex-shrink: 0;
   gap: 8rpx;
+  align-items: center;
 }
+
 .rec-link {
   font-size: 22rpx;
   color: var(--pink-deep);
 }
+
 .rec-sep {
   font-size: 22rpx;
   color: var(--text-4);
@@ -935,10 +952,11 @@ function savePoster() {
   grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
 }
+
 .rec-cell {
-  border-radius: var(--radius);
   overflow: hidden;
   border: var(--hairline);
+  border-radius: var(--radius);
 }
 
 /* ---------------- 穿搭搭配方式选择 ---------------- */
@@ -946,6 +964,7 @@ function savePoster() {
 .mode-title {
   margin-top: 8rpx;
 }
+
 /*
  * 三个按钮等宽（flex: 1 + 相同 min-width: 0），这样文字长短不同也不会一宽一窄。
  * 样图里中间那个是选中态。
@@ -954,31 +973,34 @@ function savePoster() {
   display: flex;
   gap: 12rpx;
 }
+
 .mode-pill {
-  flex: 1;
-  min-width: 0;
-  height: var(--btn-h-md);
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  border: var(--hairline);
-  background: var(--surface);
-  color: var(--text-2);
+  min-width: 0;
+  height: var(--btn-h-md);
   font-size: 26rpx;
+  color: var(--text-2);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-pill);
 }
+
 .mode-pill.on {
+  color: #fff;
   background: var(--pink-deep);
   border-color: var(--pink-deep);
-  color: #fff;
 }
+
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: 24rpx 32rpx 44rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 28rpx;
+  min-height: 0;
+  padding: 24rpx 32rpx 44rpx;
 }
 
 /* .header-action 已随「我的搭配」按钮换成右上「＋」而退役，见 .hdr-btn */
@@ -986,120 +1008,137 @@ function savePoster() {
 .control-card,
 .result-area,
 .difference-note {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 28rpx;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+  padding: 28rpx;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
+
 .section-head {
   display: flex;
+  gap: 20rpx;
   align-items: baseline;
   justify-content: space-between;
-  gap: 20rpx;
 }
+
 .section-title {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .section-sub {
   font-size: 24rpx;
   color: var(--text-2);
 }
+
 .scene-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18rpx;
 }
+
 .scene-option {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
   padding: 20rpx 8rpx;
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-  color: var(--text-2);
   font-size: 26rpx;
   font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-soft);
+  border-radius: var(--radius);
   transition: all 0.15s ease;
 }
+
 .scene-option.on {
   color: var(--text-on-brand);
   background: var(--brand-gradient);
   box-shadow: var(--shadow-card);
 }
+
 .scene-emoji {
   font-size: 48rpx;
 }
+
 .scene-label {
   line-height: 1.2;
 }
 
 .control-row {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
 }
+
 .control-label {
-  width: 84rpx;
   flex-shrink: 0;
+  width: 84rpx;
   font-size: 26rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .season-chips,
 .mode-switch {
-  flex: 1;
   display: flex;
+  flex: 1;
   gap: 16rpx;
 }
+
 /* 小按钮档，见文件头「按钮尺寸只有两档」 */
 .mini-chip,
 .mode-button {
   flex: 1;
   min-width: 0;
   height: var(--btn-h-sm);
-  border-radius: var(--radius-pill);
-  border: var(--hairline);
-  background: var(--surface);
-  color: var(--text-2);
   font-size: 24rpx;
+  color: var(--text-2);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-pill);
 }
+
 .mini-chip.on,
 .mode-button.on {
   color: var(--text-on-brand);
   background: var(--brand-gradient);
 }
+
 /* 主 CTA 走全局 .btn 的 100rpx，不在这里另定高度 —— 第三个高度就是杂乱的开始 */
 .generate-btn {
   margin-top: 8rpx;
 }
+
 .generate-btn.busy {
   opacity: 0.7;
 }
+
 .error-message {
-  color: var(--warning);
   font-size: 24rpx;
+  color: var(--warning);
   text-align: center;
 }
 
 .active-banner {
-  background: var(--brand-gradient);
-  border-radius: var(--radius);
-  padding: 24rpx;
-  color: var(--text-on-brand);
   display: flex;
   flex-direction: column;
   gap: 8rpx;
+  padding: 24rpx;
+  color: var(--text-on-brand);
+  background: var(--brand-gradient);
+  border-radius: var(--radius);
 }
+
 .active-title {
   font-size: 30rpx;
   font-weight: 500;
 }
+
 .active-sub {
   font-size: 24rpx;
   opacity: 0.9;
@@ -1110,19 +1149,22 @@ function savePoster() {
   flex-wrap: wrap;
   gap: 16rpx;
 }
+
 .filter-chip {
   height: var(--btn-h-sm);
   padding: 0 24rpx;
-  border-radius: var(--radius-pill);
-  border: var(--hairline);
-  background: var(--surface);
-  color: var(--text-2);
   font-size: 24rpx;
+  color: var(--text-2);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-pill);
 }
+
 .filter-chip.on {
   color: var(--text-on-brand);
   background: var(--brand-gradient);
 }
+
 .filter-chip.compare.on {
   background: var(--pink-deep);
 }
@@ -1132,19 +1174,21 @@ function savePoster() {
   align-items: center;
   justify-content: space-between;
 }
+
 .plan-action {
   height: var(--btn-h-sm);
   padding: 0 24rpx;
-  border-radius: var(--radius-pill);
-  border: var(--hairline);
-  background: var(--surface);
-  color: var(--pink-deep);
   font-size: 24rpx;
+  color: var(--pink-deep);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-pill);
 }
+
 .plan-count {
   font-size: 24rpx;
-  color: var(--text-2);
   font-weight: 500;
+  color: var(--text-2);
 }
 
 .plan-grid {
@@ -1152,18 +1196,20 @@ function savePoster() {
   grid-template-columns: 1fr;
   gap: 24rpx;
 }
+
 .plan-grid.compare {
   grid-template-columns: 1fr 1fr;
   gap: 16rpx;
 }
+
 .plan-card {
-  min-width: 0;
-  background: var(--surface-soft);
-  border-radius: var(--radius);
-  padding: 20rpx;
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  min-width: 0;
+  padding: 20rpx;
+  background: var(--surface-soft);
+  border-radius: var(--radius);
 }
 
 .plan-head {
@@ -1171,28 +1217,32 @@ function savePoster() {
   flex-direction: column;
   gap: 14rpx;
 }
+
 .plan-title-wrap {
   display: flex;
+  gap: 16rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .plan-title {
   flex: 1;
   font-size: 26rpx;
   font-weight: 500;
-  color: var(--text-1);
   line-height: 1.35;
+  color: var(--text-1);
 }
+
 .plan-tag {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
   font-size: 20rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .plan-reason {
   font-size: 22rpx;
   line-height: 1.45;
@@ -1204,27 +1254,31 @@ function savePoster() {
   grid-template-columns: repeat(4, 1fr);
   gap: 14rpx;
 }
+
 .item {
-  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6rpx;
+  min-width: 0;
 }
+
 .item-name {
-  font-size: 20rpx;
-  color: var(--text-1);
-  line-height: 1.25;
   min-height: 50rpx;
+  font-size: 20rpx;
+  line-height: 1.25;
+  color: var(--text-1);
 }
+
 .item-tag {
   align-self: flex-start;
   padding: 4rpx 10rpx;
-  border-radius: var(--radius-sm);
-  background: var(--pink-soft);
-  color: var(--purple-deep);
   font-size: 18rpx;
   font-weight: 700;
+  color: var(--purple-deep);
+  background: var(--pink-soft);
+  border-radius: var(--radius-sm);
 }
+
 .item-price {
   font-size: 22rpx;
   font-weight: 500;
@@ -1235,45 +1289,51 @@ function savePoster() {
   display: flex;
   flex-direction: column;
   gap: 14rpx;
+  padding: 18rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 18rpx;
 }
+
 .new-title {
   font-size: 24rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .new-row {
   display: flex;
+  gap: 16rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .new-name {
   flex: 1;
   font-size: 22rpx;
   color: var(--text-2);
 }
+
 .copy-button {
   flex-shrink: 0;
   height: var(--btn-h-sm);
   padding: 0 24rpx;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
   font-size: 20rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
 
 .difference-note {
   gap: 14rpx;
 }
+
 .difference-title {
   font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .difference-text {
   font-size: 22rpx;
   line-height: 1.45;
@@ -1285,17 +1345,19 @@ function savePoster() {
   grid-template-columns: repeat(4, 1fr);
   gap: 16rpx;
 }
+
 /* 中按钮档。等宽靠父级 grid，这里只管高度和字号统一 */
 .action-button {
   min-width: 0;
   height: var(--btn-h-md);
   padding: 0 16rpx;
-  border-radius: var(--radius);
-  border: var(--hairline);
-  background: var(--surface);
-  color: var(--text-1);
   font-size: 24rpx;
+  color: var(--text-1);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
 }
+
 .action-button.primary {
   color: #fff;
   background: var(--brand-gradient);
@@ -1305,93 +1367,109 @@ function savePoster() {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(40, 24, 48, 0.38);
   display: flex;
   align-items: flex-end;
+  background: rgb(40 24 48 / 38%);
 }
+
 .modal-sheet,
 .poster-sheet {
-  width: 100%;
-  max-height: 88%;
-  overflow-y: auto;
-  background: var(--surface);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+  width: 100%;
+  max-height: 88%;
+  padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
+
 .modal-title {
   font-size: 36rpx;
   font-weight: 500;
   color: var(--text-1);
   text-align: center;
 }
+
 /* 单品详情弹层 */
 .detail-body {
   display: flex;
   gap: 24rpx;
 }
+
 .detail-image {
-  width: 220rpx;
   flex-shrink: 0;
+  width: 220rpx;
 }
+
 .detail-meta {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 10rpx;
+  min-width: 0;
 }
+
 .detail-tag {
   align-self: flex-start;
+  padding: 4rpx 16rpx;
   font-size: 22rpx;
   color: var(--text-2);
   background: var(--surface-placeholder);
   border-radius: var(--radius-pill);
-  padding: 4rpx 16rpx;
 }
+
 .detail-tag.fresh {
   color: #fff;
   background: var(--pink-deep);
 }
+
 .detail-line {
   font-size: 25rpx;
   color: var(--text-2);
 }
+
 .detail-price {
+  margin-top: 4rpx;
   font-size: 34rpx;
   color: var(--pink-deep);
-  margin-top: 4rpx;
 }
+
 .detail-actions {
   display: flex;
   gap: 16rpx;
 }
+
 .detail-actions .action-button {
   flex: 1;
 }
+
 .purchase-row {
   display: flex;
+  gap: 20rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
 }
+
 .purchase-info {
   display: flex;
   flex-direction: column;
   gap: 6rpx;
 }
+
 .purchase-name {
   font-size: 26rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .purchase-price {
   font-size: 24rpx;
-  color: var(--pink-deep);
   font-weight: 700;
+  color: var(--pink-deep);
 }
+
 /* 弹窗主按钮走全局 .btn（100rpx），不另定高度 */
 .modal-close {
   margin-top: 8rpx;
@@ -1402,11 +1480,13 @@ function savePoster() {
   grid-template-columns: 1fr 1fr;
   gap: 20rpx;
 }
+
 .poster-message {
   font-size: 24rpx;
   color: var(--text-2);
   text-align: center;
 }
+
 .poster-message.weak {
   font-size: 21rpx;
   line-height: 1.5;

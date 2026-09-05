@@ -150,57 +150,64 @@ async function submit() {
 .preview {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
   padding: 40rpx 32rpx;
-  border-radius: var(--radius-lg);
   background: var(--brand-gradient);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-float);
 }
+
 .pv-avatar {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 140rpx;
+  height: 140rpx;
+  background: rgb(255 255 255 / 35%);
+  border-radius: 50%;
 }
+
 .pv-name {
   font-size: 34rpx;
   font-weight: 500;
   color: var(--text-on-brand);
 }
+
 .pv-account {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgb(255 255 255 / 85%);
 }
 
 .field {
   margin-top: 32rpx;
 }
+
 .label {
   margin-bottom: 12rpx;
   font-size: 25rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .input {
   width: 100%;
   height: 88rpx;
   padding: 22rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text-1);
   font-size: 26rpx;
+  color: var(--text-1);
+  background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .counter {
   margin-top: 8rpx;
-  text-align: right;
   font-size: 20rpx;
   color: var(--text-3);
+  text-align: right;
 }
+
 .hint {
   margin-top: 12rpx;
   font-size: 20rpx;
@@ -213,38 +220,43 @@ async function submit() {
   grid-template-columns: repeat(4, 1fr);
   gap: 20rpx;
 }
+
 .cell {
-  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
+  aspect-ratio: 1 / 1;
   background: var(--surface);
-  box-shadow: var(--shadow-card);
+
   /* 未选中也留一圈同宽透明边，选中时才不会因为多出 3rpx 边框把整格顶大一圈 */
   border: 3rpx solid transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
+
 .cell.on {
-  border-color: var(--pink-deep);
   background: #fff2f7;
+  border-color: var(--pink-deep);
 }
+
 .cell-hover {
   opacity: 0.7;
 }
 
 .submit {
-  height: 92rpx;
-  margin-top: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
+  height: 92rpx;
+  margin-top: 44rpx;
   font-size: 28rpx;
   font-weight: 500;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-float);
 }
+
 .submit.disabled {
   opacity: 0.65;
 }

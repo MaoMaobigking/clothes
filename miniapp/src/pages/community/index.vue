@@ -389,97 +389,109 @@ function showCooperationTip() {
 
 <style scoped>
 .publish {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 72rpx;
   height: 64rpx;
   padding: 0 22rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
   font-size: 24rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .tabs {
-  flex-shrink: 0;
   display: grid;
+  flex-shrink: 0;
   grid-template-columns: repeat(4, 1fr);
   gap: 8rpx;
-  margin: 0 32rpx 20rpx;
   padding: 8rpx;
+  margin: 0 32rpx 20rpx;
+  background: rgb(255 255 255 / 72%);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.72);
   box-shadow: var(--shadow-card);
 }
+
 .tab {
-  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  color: var(--text-2);
+  height: 72rpx;
   font-size: 26rpx;
   font-weight: 700;
+  color: var(--text-2);
   white-space: nowrap;
+  border-radius: var(--radius-pill);
 }
+
 .tab.on {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
 }
+
 .body {
   flex: 1;
   min-height: 0;
   padding: 8rpx 32rpx 44rpx;
 }
+
 .state {
   padding: 64rpx 24rpx;
-  text-align: center;
-  color: var(--text-2);
   font-size: 26rpx;
+  color: var(--text-2);
+  text-align: center;
 }
+
 .state.error {
   color: var(--danger);
 }
+
 .retry {
   margin-top: 20rpx;
-  color: var(--purple-deep);
   font-weight: 700;
+  color: var(--purple-deep);
 }
+
 .section-head,
 .share-toolbar {
   display: flex;
+  gap: 20rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
   margin: 18rpx 0 22rpx;
 }
+
 .section-title {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .section-sub {
   margin-top: 8rpx;
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .share-button,
 .join-button {
-  flex-shrink: 0;
-  height: 64rpx;
-  padding: 0 26rpx;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
+  height: 64rpx;
+  padding: 0 26rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .magazine-grid,
 .tutorial-grid,
 .challenge-list {
@@ -487,38 +499,44 @@ function showCooperationTip() {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24rpx;
 }
+
 /*
  * 用户分享是瀑布流，不能和上面几个共用 grid：
  * grid 会把同一行两张卡拉成等高，矮的下面留白。两条独立的列各自堆叠才是瀑布流。
  */
 .feed-masonry {
   display: flex;
-  align-items: flex-start;
   gap: 24rpx;
+  align-items: flex-start;
 }
+
 .feed-column {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 24rpx;
+  min-width: 0;
 }
+
 .magazine-card,
 .tutorial-card,
 .share-card,
 .challenge-card {
   min-width: 0;
+  padding: 16rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 16rpx;
   box-shadow: var(--shadow-card);
 }
+
 .magazine-card.feature {
   grid-column: 1 / -1;
 }
+
 .magazine-meta {
   padding: 16rpx 4rpx 4rpx;
 }
+
 .magazine-month,
 .tutorial-category,
 .challenge-category {
@@ -527,14 +545,16 @@ function showCooperationTip() {
   font-weight: 700;
   color: var(--purple-deep);
 }
+
 .magazine-title,
 .card-title {
   margin-top: 10rpx;
   font-size: 28rpx;
-  line-height: 1.4;
   font-weight: 500;
+  line-height: 1.4;
   color: var(--text-1);
 }
+
 .magazine-subtitle,
 .challenge-subtitle {
   margin-top: 6rpx;
@@ -542,71 +562,80 @@ function showCooperationTip() {
   line-height: 1.45;
   color: var(--text-2);
 }
+
 .category-row {
   display: flex;
   gap: 12rpx;
-  overflow-x: auto;
-  margin: 18rpx 0 22rpx;
   padding-bottom: 4rpx;
+  margin: 18rpx 0 22rpx;
+  overflow-x: auto;
 }
+
 .blogger-strip {
   display: flex;
+  gap: 18rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 18rpx;
-  margin: 18rpx 0 4rpx;
   padding: 22rpx;
+  margin: 18rpx 0 4rpx;
+  background: rgb(169 220 214 / 28%);
   border-radius: var(--radius);
-  background: rgba(169, 220, 214, 0.28);
 }
+
 .blogger-title {
   font-size: 26rpx;
   font-weight: 500;
   color: #3d716b;
 }
+
 .blogger-sub {
   margin-top: 6rpx;
   font-size: 21rpx;
   color: #618d86;
 }
+
 .cooperation {
+  display: flex;
   flex-shrink: 0;
+  align-items: center;
   height: 60rpx;
   padding: 0 22rpx;
-  display: flex;
-  align-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--mint);
-  color: #fff;
   font-size: 22rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--mint);
+  border-radius: var(--radius-pill);
 }
+
 .category-chip {
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
   height: 60rpx;
   padding: 0 24rpx;
-  display: flex;
-  align-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--surface-soft);
-  color: var(--text-2);
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-soft);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .category-chip.on {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
 }
+
 .tutorial-meta {
   display: flex;
+  gap: 12rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 12rpx;
   margin-top: 12rpx;
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .verified-mark {
   display: inline-block;
   margin-top: 10rpx;
@@ -615,100 +644,116 @@ function showCooperationTip() {
   font-weight: 700;
   color: var(--mint-deep);
 }
+
 .completed-mark {
-  color: var(--mint-deep);
   font-weight: 700;
+  color: var(--mint-deep);
 }
+
 .active-topic {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18rpx;
   padding: 18rpx 22rpx;
-  border-radius: var(--radius);
-  background: rgba(169, 220, 214, 0.25);
-  color: #477a72;
+  margin-bottom: 18rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: #477a72;
+  background: rgb(169 220 214 / 25%);
+  border-radius: var(--radius);
 }
+
 .clear-topic {
   color: var(--purple-deep);
 }
+
 .share-author {
   display: flex;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
   margin-top: 14rpx;
 }
+
 .author-avatar {
-  width: 44rpx;
-  height: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: var(--surface-soft);
+  width: 44rpx;
+  height: 44rpx;
   font-size: 26rpx;
+  background: var(--surface-soft);
+  border-radius: 50%;
 }
+
 .author-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 22rpx;
   color: var(--text-2);
-  overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
+
 .share-caption {
-  margin-top: 12rpx;
-  font-size: 26rpx;
-  line-height: 1.45;
-  font-weight: 700;
-  color: var(--text-1);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin-top: 12rpx;
   overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text-1);
+  -webkit-box-orient: vertical;
 }
+
 .share-topics {
   display: flex;
   flex-wrap: wrap;
   gap: 8rpx;
   margin-top: 10rpx;
 }
+
 .topic {
   font-size: 20rpx;
   color: var(--purple-deep);
 }
+
 .share-actions {
   display: flex;
+  gap: 6rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 6rpx;
   margin-top: 14rpx;
 }
+
 .action {
   font-size: 22rpx;
   color: var(--text-2);
   white-space: nowrap;
 }
+
 .action.on {
   color: var(--pink-deep);
 }
+
 .action.subtle {
   color: var(--text-3);
 }
+
 .challenge-body {
   margin-top: 10rpx;
   font-size: 22rpx;
   line-height: 1.5;
   color: var(--text-2);
 }
+
 .challenge-footer {
   display: flex;
+  gap: 12rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 12rpx;
   margin-top: 16rpx;
 }
+
 .participants {
   font-size: 22rpx;
   color: var(--text-3);

@@ -167,202 +167,234 @@ function restoreProgress() {
   min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
+
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  text-align: center;
-  color: var(--text-2);
   font-size: 26rpx;
+  color: var(--text-2);
+  text-align: center;
 }
+
 .state.error {
   color: var(--danger);
 }
+
 .cover-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  border-radius: var(--radius);
   overflow: hidden;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-float);
 }
+
 .cover {
   width: 100%;
   height: 100%;
 }
+
 .cover-mask {
   position: absolute;
-  left: 0;
   right: 0;
   bottom: 0;
+  left: 0;
   padding: 90rpx 30rpx 30rpx;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0));
   color: #fff;
+  background: linear-gradient(to top, rgb(0 0 0 / 68%), rgb(0 0 0 / 0%));
 }
+
 .month {
   font-size: 22rpx;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgb(255 255 255 / 82%);
 }
+
 .cover-title {
   margin-top: 12rpx;
   font-size: 50rpx;
-  line-height: 1.2;
   font-weight: 700;
+  line-height: 1.2;
 }
+
 .cover-subtitle {
   margin-top: 10rpx;
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(255 255 255 / 90%);
 }
+
 .zoom-hint {
   position: absolute;
   top: 20rpx;
   right: 20rpx;
   padding: 8rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
   font-size: 20rpx;
+  color: #fff;
+  background: rgb(0 0 0 / 45%);
+  border-radius: var(--radius-pill);
 }
+
 .article {
   padding: 34rpx 4rpx;
 }
+
 .author {
   display: block;
   font-size: 24rpx;
   color: var(--text-2);
 }
+
 .intro {
   margin-top: 24rpx;
   font-size: 30rpx;
-  line-height: 1.7;
   font-weight: 700;
+  line-height: 1.7;
   color: var(--text-1);
 }
+
 .section {
   margin-top: 32rpx;
 }
+
 .heading {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--purple-deep);
 }
+
 .paragraph {
   margin-top: 12rpx;
   font-size: 27rpx;
   line-height: 1.75;
   color: var(--text-2);
 }
+
 .quote {
-  margin-top: 36rpx;
   padding: 28rpx;
-  border-left: 8rpx solid var(--pink);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--text-1);
+  margin-top: 36rpx;
   font-size: 28rpx;
-  line-height: 1.65;
   font-weight: 700;
+  line-height: 1.65;
+  color: var(--text-1);
+  background: rgb(255 255 255 / 72%);
+  border-left: 8rpx solid var(--pink);
 }
+
 .reading-progress {
   margin: 18rpx 0 30rpx;
 }
+
 .progress-label {
   margin-bottom: 10rpx;
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .progress-track {
   height: 10rpx;
-  border-radius: var(--radius-pill);
-  background: #e8e2ef;
   overflow: hidden;
+  background: #e8e2ef;
+  border-radius: var(--radius-pill);
 }
+
 .progress-fill {
   height: 100%;
-  border-radius: var(--radius-pill);
   background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
 }
+
 .action {
-  height: 82rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text-1);
+  height: 82rpx;
   font-size: 26rpx;
   font-weight: 700;
+  color: var(--text-1);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .action.done {
-  background: var(--mint);
   color: #fff;
+  background: var(--mint);
 }
+
 .zoom-mask {
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(15, 10, 22, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgb(15 10 22 / 92%);
 }
+
 .zoom-image {
   width: 100vw;
   height: 100vh;
 }
+
 .note-mask {
   position: fixed;
   inset: 0;
   z-index: 50;
   display: flex;
   align-items: flex-end;
-  background: rgba(31, 25, 45, 0.42);
+  background: rgb(31 25 45 / 42%);
 }
+
 .note-sheet {
   width: 100%;
   padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: var(--radius-lg) 28rpx 0 0;
   background: var(--surface);
+  border-radius: var(--radius-lg) 28rpx 0 0;
 }
+
 .note-input {
   width: 100%;
   height: 260rpx;
-  margin-top: 24rpx;
   padding: 22rpx;
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-  color: var(--text-1);
+  margin-top: 24rpx;
   font-size: 26rpx;
   line-height: 1.5;
+  color: var(--text-1);
+  background: var(--surface-soft);
+  border-radius: var(--radius);
 }
+
 .sheet-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
   margin-top: 24rpx;
 }
+
 .ghost-button,
 .primary-button {
-  height: 82rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
+  height: 82rpx;
   font-size: 26rpx;
   font-weight: 700;
+  border-radius: var(--radius-pill);
 }
+
 .ghost-button {
-  background: var(--surface-soft);
   color: var(--text-2);
+  background: var(--surface-soft);
 }
+
 .primary-button {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
 }
 </style>

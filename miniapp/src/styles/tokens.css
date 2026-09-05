@@ -46,6 +46,7 @@
 
 page {
   /* ---------------- 品牌色 ---------------- */
+
   /*
    * 主色。价格、主按钮、选中态、强调文字一律用这个。
    * 和 src/uni.scss 的 $uv-primary 必须同值。
@@ -81,6 +82,7 @@ page {
   --purple-soft: #ffeaf3; /* 别名，同上 */
 
   /* ---------------- 渐变（已退役）---------------- */
+
   /*
    * --brand-gradient 有 63 处调用点，全部是 background。
    * uv-ui 全库没有一处渐变，所以这里改成**纯色**。
@@ -92,6 +94,7 @@ page {
   --brand-gradient: #ff5c9d;
 
   /* ---------------- 文字 ---------------- */
+
   /*
    * uv-ui 的冷灰四档，原样照抄 libs/css/color.scss，不做「中性化」改动 ——
    * 这四档带一点蓝底，是 uv-ui 观感的一半来源，换成纯 #333/#666/#999 就不是它了。
@@ -100,7 +103,7 @@ page {
   --text-2: #606266; /* 次：说明、右侧值 */
   --text-3: #909193; /* 弱：占位、辅助 */
   --text-4: #c0c4cc; /* 最弱：禁用、箭头 */
-  --text-on-brand: #ffffff;
+  --text-on-brand: #fff;
 
   /* 语义色，取 uv-ui 原值 */
   --danger: #f56c6c; /* = $uv-error */
@@ -112,8 +115,10 @@ page {
   --price: #ff5c9d;
 
   /* ---------------- 面 ---------------- */
+
   /* 页面底。原来是粉紫渐变（--bg-gradient，已删除），现在是 uv-ui 的冷浅灰 */
   --bg-page: #f3f4f6;
+
   /*
    * 冰蓝 → 柔白的极简渐变底。**本批故意不启用** —— 定义在这里是为了将来换一行就能上。
    *
@@ -122,8 +127,9 @@ page {
    * 露一道，投入产出比很低（这是第二轮退掉渐变底的原因，不是审美问题）。
    * 真要上，得先把列表页从通栏 cell 改成留白卡片，那是另一个批次的量。
    */
-  --bg-page-gradient: linear-gradient(180deg, #eaf4fb 0%, #f7fbfd 42%, #ffffff 100%);
-  --surface: #ffffff;
+  --bg-page-gradient: linear-gradient(180deg, #eaf4fb 0%, #f7fbfd 42%, #fff 100%);
+  --surface: #fff;
+
   /*
    * 原来这两个是半透明（0.72 / 0.88），为了透出渐变底做毛玻璃。
    * uv-ui 里没有毛玻璃，也没有半透明面 —— 面必须是实心白，细线负责分隔。
@@ -134,14 +140,16 @@ page {
    * create 页），改成半透明会顺带改掉那些已经对齐过样图的地方。
    * 要玻璃就显式用 .card-glass / --glass-bg，别指望 --surface-glass。
    */
-  --surface-soft: #ffffff;
-  --surface-glass: #ffffff;
+  --surface-soft: #fff;
+  --surface-glass: #fff;
+
   /*
    * 缺图占位底。
    * ⚠️ 这个变量之前是死的：全站 0 处 var() 引用，实际占位色 #f2f0f6 硬编码在
    * OptionCard / OutfitPreview(×2) / TileImage 四个组件里。本批已把那 4 处改成引用本变量。
    */
   --surface-placeholder: #f3f4f6;
+
   /*
    * 浅色底面：chip 底、只读输入框底、次级区块底。
    *
@@ -155,6 +163,7 @@ page {
   --surface-tint: #f3f4f6;
 
   /* ---------------- 线 ---------------- */
+
   /*
    * uv-ui 靠线分隔，不靠阴影 —— 所以这一节在本轮里的权重比阴影高得多。
    *
@@ -167,6 +176,7 @@ page {
   --hairline: 0.5px solid #dadbde;
 
   /* ---------------- 圆角 ---------------- */
+
   /*
    * 24/36/48 → 6/8/16。uv-ui 近乎方角：它的 uv-button square 圆角只有 3px（=6rpx）。
    *
@@ -179,6 +189,7 @@ page {
   --radius-pill: 9999rpx;
 
   /* ---------------- 阴影 ---------------- */
+
   /*
    * 三个阴影变量共 130 处调用点（card 104 / float 22 / soft 4），不能删，
    * 但值要收到近乎不可见 —— uv-ui 的分离感来自 --hairline，不来自阴影。
@@ -189,9 +200,10 @@ page {
    * --shadow-float 保留一点实感：它给的是弹出层 / 悬浮按钮，
    * 那些确实需要脱离纸面的层级暗示，uv-ui 的 popup 也是有投影的。
    */
-  --shadow-soft: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
-  --shadow-float: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  --shadow-soft: 0 1rpx 4rpx rgb(0 0 0 / 4%);
+  --shadow-card: 0 1rpx 4rpx rgb(0 0 0 / 4%);
+  --shadow-float: 0 4rpx 16rpx rgb(0 0 0 / 10%);
+
   /*
    * 没有「主按钮带色投影」这一档 —— 查过 uv-ui 全库，uv-button 一处投影都没有。
    * 需要给某个 CTA 加强调时用主色实底，不要靠投影。
@@ -215,16 +227,19 @@ page {
    *
    * 又因为页面底这批仍是纯色 #f3f4f6，模糊本来也没什么可模糊的 —— 光晕就是全部效果。
    */
-  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg: rgb(255 255 255 / 72%);
+
   /*
    * 两团光晕：粉在左上、薄荷在右下，都在 55% 半径内淡到全透明。
    * 透明度压到 0.26 / 0.22 —— 再高就从「微光」变成「彩色卡片」，
    * 而这卡片上要放 52rpx 的温度数字和 24rpx 的说明文字，底色必须让位给文字。
    */
-  --glass-tint: radial-gradient(120% 90% at 8% 0%, rgba(255, 156, 196, 0.26) 0%, rgba(255, 156, 196, 0) 58%), radial-gradient(110% 85% at 100% 100%, rgba(126, 228, 196, 0.22) 0%, rgba(126, 228, 196, 0) 55%);
+  --glass-tint: radial-gradient(120% 90% at 8% 0%, rgb(255 156 196 / 26%) 0%, rgb(255 156 196 / 0%) 58%), radial-gradient(110% 85% at 100% 100%, rgb(126 228 196 / 22%) 0%, rgb(126 228 196 / 0%) 55%);
+
   /* 高光描边：玻璃的「厚度」全靠这条亮边，比 --line 的冷灰更亮更透 */
-  --glass-line: rgba(255, 255, 255, 0.9);
+  --glass-line: rgb(255 255 255 / 90%);
   --glass-blur: blur(20rpx);
+
   /*
    * 嵌在玻璃卡**里面**的次级面。
    *
@@ -236,15 +251,16 @@ page {
    *   --glass-pane-strong 要强调的那一格（今天）
    * 强调用「更白」而不是「更粉」：玻璃本身左上角已经是粉光晕了，再叠粉块就糊成一片。
    */
-  --glass-pane: rgba(255, 255, 255, 0.42);
-  --glass-pane-strong: rgba(255, 255, 255, 0.82);
+  --glass-pane: rgb(255 255 255 / 42%);
+  --glass-pane-strong: rgb(255 255 255 / 82%);
+
   /*
    * 极柔投影 + 顶部一道内高光。
    * 扩散给到 32rpx（比 --shadow-card 的 4rpx 大得多）是刻意的：
    * 玻璃要「浮」，不锈钢式的 1rpx 硬边影会把它压回纸面。
    */
-  --shadow-glass: 0 8rpx 32rpx rgba(88, 120, 160, 0.1);
-  --glow-inset: inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  --shadow-glass: 0 8rpx 32rpx rgb(88 120 160 / 10%);
+  --glow-inset: inset 0 1rpx 0 rgb(255 255 255 / 90%);
 
   /*
    * 马卡龙三色。底色 + 字色成对出现，**不要只取底色再自己配字色** ——
@@ -260,10 +276,12 @@ page {
   --macaron-mint-ink: #0f7a58;
   --macaron-violet: #ebe6ff;
   --macaron-violet-ink: #5442b5;
+
   /* 果冻感 = 内发光（上亮下暗）+ 一层浅投影。只给 .pill-macaron-*，不外溢 */
-  --shadow-jelly: inset 0 1rpx 0 rgba(255, 255, 255, 0.95), inset 0 -1rpx 2rpx rgba(0, 0, 0, 0.03), 0 2rpx 8rpx rgba(88, 120, 160, 0.1);
+  --shadow-jelly: inset 0 1rpx 0 rgb(255 255 255 / 95%), inset 0 -1rpx 2rpx rgb(0 0 0 / 3%), 0 2rpx 8rpx rgb(88 120 160 / 10%);
 
   /* ---------------- 控件高度 ---------------- */
+
   /*
    * ⚠️ 这三个变量**以前根本没定义过**，但 pages/scene/index.vue 里有 10 处
    * `height: var(--btn-h-sm|md)` 在引用。CSS 变量未定义 → 整条声明作废，
@@ -283,6 +301,7 @@ page {
   --gap-sm: 16rpx;
   --gap: 24rpx;
   --gap-lg: 32rpx;
+
   /*
    * 页面左右安全边距。32rpx → 30rpx，对齐 uv-cell 的水平 padding（15px = 30rpx），
    * 这样「卡片型页面的内容」和「列表型页面的 cell 文字」落在同一条竖线上。

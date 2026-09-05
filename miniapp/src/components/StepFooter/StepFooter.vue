@@ -56,6 +56,7 @@ const emit = defineEmits<{
 .footer {
   flex-shrink: 0;
   padding: 24rpx var(--page-x) calc(24rpx + env(safe-area-inset-bottom, 0px));
+
   /*
    * 原来是一层白色渐变蒙版，用来把内容和吸底栏区分开。
    * uv-ui 用的是发丝线，不是渐变蒙版 —— 换成实心白底 + 顶部一条线。
@@ -69,19 +70,22 @@ const emit = defineEmits<{
   justify-content: center;
   margin-bottom: 24rpx;
 }
+
 .dots .dot {
   width: 12rpx;
   height: 12rpx;
-  border-radius: var(--radius-pill);
-  background: var(--line);
   margin: 0 6rpx;
+  background: var(--line);
+  border-radius: var(--radius-pill);
   transition: all 0.25s ease;
 }
+
 /* 当前步拉长成胶囊，是这个组件里唯一的主色元素 */
 .dots .dot.on {
   width: 40rpx;
   background: var(--pink-deep);
 }
+
 /* 已走过的步骤：比未到达的深一档，但不用主色 —— 免得一排全是粉点分不出当前在哪 */
 .dots .dot.passed {
   background: var(--text-4);
@@ -91,18 +95,21 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
 }
+
 .prev {
   flex-shrink: 0;
   margin-right: 20rpx;
 }
+
 .next {
   flex: 1;
 }
+
 .skip {
   flex-shrink: 0;
+  padding: 16rpx 20rpx;
   margin-left: 20rpx;
   font-size: 26rpx;
   color: var(--text-3);
-  padding: 16rpx 20rpx;
 }
 </style>

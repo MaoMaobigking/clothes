@@ -231,29 +231,34 @@ defineExpose({ requestLocation })
 
 .wc-top {
   display: flex;
+  gap: 16rpx;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16rpx;
 }
+
 .wc-place {
   display: flex;
   flex-direction: column;
   gap: 4rpx;
   min-width: 0;
 }
+
 .wc-city {
   font-size: 28rpx;
   font-weight: 700;
 }
+
 .wc-date {
   font-size: 24rpx;
   color: var(--text-2);
 }
+
 .wc-actions {
   display: flex;
-  gap: 16rpx;
   flex-shrink: 0;
+  gap: 16rpx;
 }
+
 /*
  * 两个按钮的尺寸 / 圆角 / 底色 / 字色 / 果冻投影全部来自
  * .pill-macaron + .pill-macaron-violet|pink，这里一条都不要重复写 ——
@@ -270,24 +275,28 @@ defineExpose({ requestLocation })
 
 .wc-now {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
 }
+
 .wc-icon {
   font-size: 80rpx;
-  filter: drop-shadow(0 6rpx 12rpx rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 6rpx 12rpx rgb(0 0 0 / 12%));
 }
+
 .wc-temp {
   font-size: 104rpx;
   font-weight: 500;
   line-height: 1;
 }
+
 .wc-cond {
   align-self: flex-end;
   margin-bottom: 12rpx;
   font-size: 30rpx;
   font-weight: 500;
 }
+
 .wc-message {
   font-size: 24rpx;
   font-weight: 500;
@@ -303,40 +312,46 @@ defineExpose({ requestLocation })
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  padding: 24rpx;
   background: var(--surface-tint);
   border-radius: var(--radius);
-  padding: 24rpx;
 }
+
 .manual-row {
   display: flex;
   align-items: center;
   min-height: 68rpx;
 }
+
 .manual-label {
-  width: 92rpx;
   flex-shrink: 0;
+  width: 92rpx;
   font-size: 26rpx;
   font-weight: 700;
 }
+
 .manual-picker {
   flex: 1;
 }
+
 .picker-value {
   font-size: 26rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 /* 原值 rgba(255,255,255,0.86)，同上，改实底白 + 发丝边才看得出这是个输入框 */
 .manual-input {
   flex: 1;
-  height: 68rpx;
   min-width: 0;
+  height: 68rpx;
+  padding: 0 20rpx;
+  font-size: 26rpx;
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius);
-  padding: 0 20rpx;
-  font-size: 26rpx;
 }
+
 .manual-unit {
   margin-left: 12rpx;
   font-size: 26rpx;

@@ -317,142 +317,162 @@ function goAccessory(item: WardrobeItem) {
 
 <style scoped>
 .topbar {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   padding: calc(env(safe-area-inset-top, 0px) + 24rpx) 32rpx 14rpx;
 }
+
 .title {
   font-size: 44rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .subtitle {
   margin-top: 4rpx;
   font-size: 23rpx;
   color: var(--text-3);
 }
+
 .top-actions {
   display: flex;
-  align-items: center;
   gap: 16rpx;
+  align-items: center;
 }
+
 .icon-btn {
-  height: 64rpx;
-  padding: 0 24rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  color: var(--text-2);
-  font-size: 25rpx;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 64rpx;
+  padding: 0 24rpx;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
+
 .icon-btn.active {
   color: var(--pink-deep);
 }
+
 .icon-btn.add {
   width: 64rpx;
   padding: 0;
-  background: var(--brand-gradient);
-  color: #fff;
   font-size: 40rpx;
+  color: #fff;
+  background: var(--brand-gradient);
 }
+
 .seg {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   gap: 10rpx;
-  margin: 4rpx 32rpx 18rpx;
   padding: 8rpx;
+  margin: 4rpx 32rpx 18rpx;
+  background: rgb(255 255 255 / 65%);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.65);
   box-shadow: var(--shadow-card);
 }
+
 .seg-item {
   flex: 1;
-  text-align: center;
   padding: 15rpx 10rpx;
-  border-radius: var(--radius-pill);
-  color: var(--text-2);
   font-size: 27rpx;
   font-weight: 700;
+  color: var(--text-2);
+  text-align: center;
+  border-radius: var(--radius-pill);
 }
+
 .seg-item.on {
-  background: var(--brand-gradient);
   color: #fff;
+  background: var(--brand-gradient);
   box-shadow: var(--shadow-float);
 }
+
 .today-panel {
+  display: flex;
   flex: 1;
-  min-height: 0;
-  display: flex;
   flex-direction: column;
+  min-height: 0;
 }
+
 .action-card {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: 14rpx;
-  margin: 0 32rpx 18rpx;
   padding: 26rpx;
-  border-radius: var(--radius);
-  background: var(--brand-gradient);
-  box-shadow: var(--shadow-float);
+  margin: 0 32rpx 18rpx;
   color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-float);
 }
+
 /*
  * 「手动调整搭配」原本是 position:absolute + bottom 定位，卡片高度由上面的
  * 标题/副标题撑开，两者必然叠在一起。改成正常的纵向流式布局。
  */
 .action-main {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
 }
+
 .action-text {
   flex: 1;
   min-width: 0;
 }
+
 .action-title {
   font-size: 31rpx;
   font-weight: 500;
 }
+
 .action-sub {
   margin-top: 8rpx;
   font-size: 21rpx;
-  opacity: 0.9;
   line-height: 1.4;
+  opacity: 0.9;
 }
+
 .action-btn {
   flex-shrink: 0;
   height: 76rpx;
   padding: 0 22rpx;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--purple-deep);
   font-size: 24rpx;
-  box-shadow: 0 10rpx 20rpx rgba(80, 45, 120, 0.24);
+  color: var(--purple-deep);
+  background: rgb(255 255 255 / 95%);
+  box-shadow: 0 10rpx 20rpx rgb(80 45 120 / 24%);
 }
+
 .manual-link {
   font-size: 21rpx;
   font-weight: 700;
   opacity: 0.9;
 }
+
 .sort-row {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
   padding: 0 32rpx 12rpx;
 }
+
 .sort-link {
-  color: var(--purple-deep);
   font-size: 23rpx;
   font-weight: 700;
+  color: var(--purple-deep);
 }
 
 /* 左栏 + 右网格 */
+
 /*
  * 分类栏是**浮层抽屉**（概念稿图①）：绝对定位、更高层级、阴影投在右侧内容上，
  * 而不是和内容平级的 Flex 列。
@@ -464,13 +484,15 @@ function goAccessory(item: WardrobeItem) {
 .closet-body {
   --rail-w: 118rpx;
   --rail-x: 12rpx;
+
   position: relative;
-  flex: 1;
-  min-height: 0;
   display: flex;
+  flex: 1;
   gap: 12rpx;
+  min-height: 0;
   padding: 0 24rpx 0 var(--rail-x);
 }
+
 /*
  * 抽屉本体。
  *
@@ -486,6 +508,9 @@ function goAccessory(item: WardrobeItem) {
  */
 .cat-rail {
   position: absolute;
+  top: 0;
+  bottom: 0;
+
   /*
    * left 要显式写 var(--rail-x)，不能靠父级的 padding。
    * 绝对定位元素的包含块是定位父级的 **padding box**，所以 left:0 会落在
@@ -493,15 +518,14 @@ function goAccessory(item: WardrobeItem) {
    * 和上面 Banner / SegTabs 的留白对不齐。
    */
   left: var(--rail-x);
-  top: 0;
-  bottom: 0;
   z-index: var(--z-float);
   width: var(--rail-w);
   padding: 8rpx;
-  border-radius: var(--radius-lg);
   background: var(--surface);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-float);
 }
+
 /*
  * 分类栏的折叠把手。始终可见的一条竖窄条 ——
  * 用 v-if 卸载分类栏（而不是把宽度动画到 0）：小程序的 scroll-view 在
@@ -511,36 +535,41 @@ function goAccessory(item: WardrobeItem) {
  * 浮层化之后反而会压住内容。抽屉展开时靠 margin-left 把它推到抽屉右边。
  */
 .rail-toggle {
-  flex-shrink: 0;
-  width: 32rpx;
-  margin-left: var(--rail-w);
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
+  gap: 8rpx;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
-  border-radius: var(--radius-sm);
+  width: 32rpx;
+  margin-left: var(--rail-w);
   background: var(--surface);
   border: var(--hairline);
+  border-radius: var(--radius-sm);
 }
+
 /* 收起时把手加宽一点，好点，也放得下分类名；抽屉没了就不用再让位 */
 .rail-toggle.closed {
   width: 44rpx;
   margin-left: 0;
 }
+
 .rail-toggle-label {
-  /* 竖排文字：分类名最多 3 个字，竖着写正好塞进 44rpx 宽 */
-  writing-mode: vertical-rl;
   font-size: 20rpx;
   color: var(--text-3);
   letter-spacing: 2rpx;
+
+  /* 竖排文字：分类名最多 3 个字，竖着写正好塞进 44rpx 宽 */
+  writing-mode: vertical-rl;
 }
+
 .cat {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 6rpx;
+  align-items: center;
   padding: 16rpx 0;
+
   /*
    * 概念稿图①的选中态是「带圆角的浅色高亮块」（Highlight Capsule）。
    * 6rpx(--radius-sm) 太方，看着像被选中的表格单元格，不像一个高亮胶囊。
@@ -551,18 +580,22 @@ function goAccessory(item: WardrobeItem) {
   border-radius: var(--radius-lg);
   transition: background 0.15s ease;
 }
+
 .cat.on {
   background: var(--pink-soft);
 }
+
 .cat-label {
   font-size: 20rpx;
   font-weight: 500;
   color: var(--text-3);
 }
+
 .cat.on .cat-label {
-  color: var(--pink-deep);
   font-weight: 700;
+  color: var(--pink-deep);
 }
+
 /*
  * 这里原来有两条 .grid-scroll，padding 一条 `0 0 28rpx`、一条 `0 32rpx 28rpx`，
  * 后者覆盖前者 —— 等于第一条从来没生效。合成一条，取实际生效的值。
@@ -571,22 +604,25 @@ function goAccessory(item: WardrobeItem) {
 .grid-scroll {
   flex: 1;
   min-width: 0;
-  min-height: 0;
   height: 100%;
+  min-height: 0;
   padding: 0 0 28rpx 16rpx;
 }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
 }
+
 .cell {
   position: relative;
   padding: 12rpx;
-  border-radius: var(--radius);
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .frequent-badge,
 .suggested-badge {
   position: absolute;
@@ -594,161 +630,188 @@ function goAccessory(item: WardrobeItem) {
   left: 22rpx;
   z-index: 3;
   padding: 6rpx 14rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.88);
   font-size: 19rpx;
   font-weight: 500;
+  background: rgb(255 255 255 / 88%);
+  border-radius: var(--radius-pill);
 }
+
 .frequent-badge {
   color: var(--success);
 }
+
 .suggested-badge {
   top: 64rpx;
   color: #5f78a8;
 }
+
 .accessory-entry {
   position: absolute;
-  right: 22rpx;
   top: 22rpx;
+  right: 22rpx;
   z-index: 4;
   padding: 7rpx 14rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--purple-deep);
   font-size: 19rpx;
   font-weight: 500;
+  color: var(--purple-deep);
+  background: rgb(255 255 255 / 90%);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .cell-name {
   margin: 14rpx 4rpx 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 25rpx;
   font-weight: 700;
   color: var(--text-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .cell-meta {
   margin: 4rpx 4rpx 10rpx;
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .cell-controls {
   display: flex;
   gap: 8rpx;
   margin-top: 4rpx;
 }
+
 .cell-control {
   flex: 1;
   padding: 10rpx 4rpx;
-  border-radius: var(--radius);
-  background: var(--surface-tint);
-  color: var(--text-2);
   font-size: 20rpx;
   font-weight: 700;
+  color: var(--text-2);
   text-align: center;
+  background: var(--surface-tint);
+  border-radius: var(--radius);
 }
+
 .cell-control.danger {
   color: #d04c5b;
 }
+
 .empty {
-  padding-top: 140rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
+  padding-top: 140rpx;
   color: var(--text-3);
 }
+
 .empty-emoji {
   font-size: 88rpx;
 }
+
 .empty-title {
   font-size: 28rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .empty-sub {
   font-size: 23rpx;
 }
+
 .empty-btn {
-  margin-top: 16rpx;
   height: 82rpx;
   padding: 0 40rpx;
+  margin-top: 16rpx;
   font-size: 27rpx;
 }
+
 .sort-sheet {
   width: 100%;
   max-height: 82vh;
   padding: 30rpx 30rpx calc(30rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: var(--radius-lg) 44rpx 0 0;
   background: #fff;
-  box-shadow: 0 -8rpx 24rpx rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg) 44rpx 0 0;
+  box-shadow: 0 -8rpx 24rpx rgb(0 0 0 / 10%);
 }
+
 .sheet-sub {
   margin-top: 8rpx;
-  color: var(--text-3);
   font-size: 22rpx;
+  color: var(--text-3);
 }
+
 .sort-list {
   max-height: 60vh;
   margin-top: 24rpx;
 }
+
 .sort-row {
   display: flex;
-  align-items: center;
   gap: 14rpx;
+  align-items: center;
+
   /* 高度 + margin-bottom 必须等于 closet.vue 里的 ROW_PITCH_RPX(126)，见那里的注释 */
   height: 114rpx;
-  margin-bottom: 12rpx;
   padding: 10rpx 14rpx;
-  border-radius: var(--radius);
+  margin-bottom: 12rpx;
   background: var(--surface-tint);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   transition:
     transform 0.12s ease,
     opacity 0.12s ease;
 }
+
 .sort-row.dragging {
   z-index: 5;
-  opacity: 0.86;
   background: #fff;
+  opacity: 0.86;
 }
+
 .drag-handle {
   width: 40rpx;
-  color: var(--text-3);
   font-size: 42rpx;
+  color: var(--text-3);
   text-align: center;
 }
+
 .sort-thumb {
-  width: 76rpx;
   flex-shrink: 0;
+  width: 76rpx;
 }
+
 .sort-info {
   flex: 1;
   min-width: 0;
 }
+
 .sort-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 25rpx;
   font-weight: 700;
   color: var(--text-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .sort-meta {
   margin-top: 5rpx;
-  color: var(--text-3);
   font-size: 20rpx;
+  color: var(--text-3);
 }
+
 .sort-index {
   flex-shrink: 0;
-  color: var(--purple-deep);
   font-size: 24rpx;
   font-weight: 500;
+  color: var(--purple-deep);
 }
+
 .sort-save {
   margin-top: 24rpx;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

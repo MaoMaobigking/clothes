@@ -38,16 +38,18 @@ withDefaults(
 
 <style scoped>
 .step-shell {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
   padding: 8rpx var(--page-x) 0;
-  display: flex;
-  flex-direction: column;
 }
+
 .head {
-  margin-bottom: 32rpx;
   flex-shrink: 0;
+  margin-bottom: 32rpx;
 }
+
 /*
  * 步骤页大标题。44rpx/800 → 40rpx/500。
  * uv-ui 没有 800 这一档字重（它整套只用默认 400 和 bold），
@@ -56,27 +58,31 @@ withDefaults(
 .title {
   font-size: 40rpx;
   font-weight: 500;
-  color: var(--text-1);
   line-height: 1.3;
+  color: var(--text-1);
 }
+
 .subtitle {
   margin-top: 12rpx;
   font-size: 26rpx;
   color: var(--text-3);
 }
+
 .content {
   flex: 1;
-  min-height: 0;
   width: 100%;
+  min-height: 0;
 }
+
 .content-inner {
   padding-bottom: 40rpx;
 }
+
 .center-box {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding-bottom: 40rpx;
-  box-sizing: border-box;
 }
 </style>

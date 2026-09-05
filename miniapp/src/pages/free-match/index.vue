@@ -557,12 +557,12 @@ function goAccessory() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: 24rpx 32rpx 32rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 28rpx;
+  min-height: 0;
+  padding: 24rpx 32rpx 32rpx;
 }
 
 /* ---------- 顶栏右侧图标 ---------- */
@@ -570,47 +570,52 @@ function goAccessory() {
   display: flex;
   gap: 16rpx;
 }
+
 .head-ico {
-  width: 68rpx;
-  height: 68rpx;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 68rpx;
+  height: 68rpx;
   padding: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgb(255 255 255 / 80%);
+  border-radius: 50%;
   box-shadow: var(--shadow-card);
 }
 
 /* ---------- 上半区舞台 ---------- */
 .stage-area {
   position: relative;
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   gap: 16rpx;
+
+  /* 顶部多留 56rpx 给「我的虚拟形象」那个角标 */
+  padding: 56rpx 20rpx 24rpx;
+
+  /* 背景图要被圆角裁住 */
+  overflow: hidden;
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius-lg);
-  /* 背景图要被圆角裁住 */
-  overflow: hidden;
-  /* 顶部多留 56rpx 给「我的虚拟形象」那个角标 */
-  padding: 56rpx 20rpx 24rpx;
 }
 
 /* 场景背景 + 遮罩，都垫在最底下 */
 .stage-bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
 }
+
 .stage-mask {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgb(255 255 255 / 72%);
 }
+
 /*
  * 上面加了定位背景层之后，静态流里的三栏会被它盖住 ——
  * 定位元素永远画在非定位元素上面。所以三栏都要显式抬到遮罩之上。
@@ -633,10 +638,10 @@ function goAccessory() {
   left: 20rpx;
   z-index: 3;
   padding: 6rpx 20rpx;
-  border-radius: var(--radius-pill);
-  background: var(--pink-soft);
-  color: var(--pink-deep);
   font-size: 20rpx;
+  color: var(--pink-deep);
+  background: var(--pink-soft);
+  border-radius: var(--radius-pill);
 }
 
 /*
@@ -650,55 +655,60 @@ function goAccessory() {
   right: 20rpx;
   z-index: 3;
   padding: 6rpx 20rpx;
-  border-radius: var(--radius-pill);
-  background: var(--pink-deep);
-  color: #fff;
   font-size: 20rpx;
+  color: #fff;
+  background: var(--pink-deep);
+  border-radius: var(--radius-pill);
 }
 
 /* 试衣结果下方的「复制文案 + 怎么发朋友圈」，绝对定位贴在人台底部，不挤压舞台布局 */
 .tryon-share {
   position: absolute;
-  left: 50%;
   bottom: 16rpx;
+  left: 50%;
   z-index: 3;
-  transform: translateX(-50%);
-  width: 78%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
+  width: 78%;
+  transform: translateX(-50%);
 }
+
 .tryon-share-btn {
-  height: 56rpx;
-  padding: 0 28rpx;
   display: flex;
   align-items: center;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--pink-deep);
+  height: 56rpx;
+  padding: 0 28rpx;
   font-size: 22rpx;
   font-weight: 700;
   line-height: 1;
+  color: var(--pink-deep);
+  background: rgb(255 255 255 / 92%);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .tryon-share-btn::after {
   border: none;
 }
+
 .tryon-share-hint {
   padding: 4rpx 16rpx;
-  border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.45);
-  color: rgba(255, 255, 255, 0.92);
   font-size: 19rpx;
+  color: rgb(255 255 255 / 92%);
   text-align: center;
+  background: rgb(0 0 0 / 45%);
+  border-radius: var(--radius-pill);
 }
+
 /* 左侧竖排缩略 */
 .thumbs {
   flex-shrink: 0;
   width: 104rpx;
   max-height: 680rpx;
 }
+
 /*
  * 缩略图外面套一层相对定位的壳，× 角标要挂在它上面。
  * 竖向间距用 margin-bottom 而不是父级 gap —— scroll-view 的 flex/gap
@@ -709,62 +719,69 @@ function goAccessory() {
   width: 104rpx;
   margin-bottom: 16rpx;
 }
+
 .thumb {
   width: 104rpx;
   padding: 0;
-  border-radius: var(--radius);
   overflow: hidden;
   border: var(--hairline);
+  border-radius: var(--radius);
   transition: opacity 0.15s ease;
 }
+
 .thumb:active {
   opacity: 0.7;
 }
+
 /* 「脱下」角标，只在这件已穿上时出现 */
 .thumb-x {
   position: absolute;
   top: -6rpx;
   right: -6rpx;
   z-index: 2;
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 50%;
-  background: var(--pink-deep);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  background: var(--pink-deep);
+  border-radius: 50%;
 }
 
 /* 中央模特 */
 .model {
   flex: 1;
-  min-width: 0;
   align-self: center;
+  min-width: 0;
 }
 
 /* 右侧工具 */
 .tools {
-  flex-shrink: 0;
-  width: 112rpx;
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: 16rpx;
+  width: 112rpx;
+
   /* 留出右下角「个性化创建」胶囊的位置，否则最后一个工具会被它盖住 */
   max-height: 560rpx;
 }
+
 /* 同 create 页：设计稿里是裸图标 + 文字，不套白卡 */
 .tool {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 6rpx;
+  align-items: center;
   width: 108rpx;
   padding: 8rpx 4rpx;
   transition: transform 0.15s ease;
 }
+
 .tool:active {
   transform: scale(0.92);
 }
+
 .tool-label {
   font-size: 20rpx;
   font-weight: 500;
@@ -777,14 +794,14 @@ function goAccessory() {
   bottom: 24rpx;
   z-index: 3;
   display: flex;
-  align-items: center;
   gap: 8rpx;
+  align-items: center;
   padding: 14rpx 24rpx;
-  border-radius: var(--radius-pill);
   font-size: 24rpx;
   font-weight: 700;
   color: var(--text-on-brand);
   background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-float);
 }
 
@@ -792,46 +809,52 @@ function goAccessory() {
 .selected {
   flex-shrink: 0;
 }
+
 .sel-row {
   display: flex;
   gap: 16rpx;
-  overflow-x: auto;
   padding-bottom: 4rpx;
+  overflow-x: auto;
 }
+
 .sel-chip {
-  flex-shrink: 0;
   display: flex;
-  align-items: center;
+  flex-shrink: 0;
   gap: 10rpx;
+  align-items: center;
   padding: 12rpx 20rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
   font-size: 24rpx;
   color: var(--text-1);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
+
 .sel-emoji {
   font-size: 30rpx;
 }
+
 .sel-name {
   font-weight: 500;
 }
+
 .sel-x {
   font-size: 28rpx;
-  color: var(--pink-deep);
   font-weight: 500;
+  color: var(--pink-deep);
 }
+
 .sel-empty {
   margin: 0;
-  text-align: center;
   font-size: 24rpx;
   color: var(--text-3);
+  text-align: center;
 }
 
 /* ---------- 下半区面板 ---------- */
 .panel {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: 24rpx;
 }
@@ -841,11 +864,12 @@ function goAccessory() {
   display: flex;
   flex-direction: column;
   gap: 14rpx;
+  padding: 20rpx;
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 20rpx;
 }
+
 /*
  * 横滑衣物条。和 .chips 同一个道理：不能给 scroll-view 加 display:flex，
  * 靠 nowrap + 子元素 inline-block 横排（.row-scroll 已在全局提供这套）。
@@ -853,26 +877,29 @@ function goAccessory() {
 .pnl-row {
   white-space: nowrap;
 }
+
 .pnl-cell {
   display: inline-block;
   width: 150rpx;
   margin-right: 16rpx;
   vertical-align: top;
 }
+
 .pnl-name {
   display: block;
   margin-top: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 20rpx;
   color: var(--text-2);
-  overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
+
 .pnl-empty {
   padding: 40rpx 0;
-  text-align: center;
   font-size: 24rpx;
   color: var(--text-3);
+  text-align: center;
 }
 
 /*
@@ -883,16 +910,18 @@ function goAccessory() {
 .chips {
   white-space: nowrap;
 }
+
 .chip {
   display: inline-flex;
-  margin-right: 12rpx;
   padding: 10rpx 26rpx;
-  border-radius: var(--radius-pill);
+  margin-right: 12rpx;
   font-size: 24rpx;
   color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
+  border-radius: var(--radius-pill);
 }
+
 .chip.on {
   color: var(--text-on-brand);
   background: var(--pink-deep);
@@ -908,6 +937,7 @@ function goAccessory() {
     opacity 0.25s ease,
     transform 0.25s ease;
 }
+
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;

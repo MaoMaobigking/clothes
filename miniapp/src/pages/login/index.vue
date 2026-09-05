@@ -206,87 +206,95 @@ onMounted(() => {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: calc(env(safe-area-inset-top, 24rpx) + 48rpx) 40rpx 48rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 32rpx;
+  min-height: 0;
+  padding: calc(env(safe-area-inset-top, 24rpx) + 48rpx) 40rpx 48rpx;
 }
 
 /* 品牌区 */
 .brand {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
   padding: 32rpx 0 8rpx;
 }
+
 .brand-logo {
   margin-bottom: 8rpx;
 }
+
 .brand-title {
   font-size: 44rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .brand-sub {
   font-size: 24rpx;
+  line-height: 1.5;
   color: var(--text-2);
   text-align: center;
-  line-height: 1.5;
 }
 
 /* 卡片 */
 .card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 36rpx 32rpx;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  padding: 36rpx 32rpx;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
+
 .card-title {
   font-size: 32rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .card-sub {
+  margin-top: -12rpx;
   font-size: 24rpx;
   color: var(--text-2);
-  margin-top: -12rpx;
 }
 
 /* 输入框 */
 .field {
   height: 92rpx;
   padding: 0 28rpx;
-  border-radius: var(--radius-sm);
-  background: var(--surface-tint);
-  border: 1px solid var(--line);
   font-size: 28rpx;
   color: var(--text-1);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
 }
+
 .field-ph {
   color: var(--text-3);
 }
 
 .error {
   font-size: 24rpx;
-  color: #e5484d;
   line-height: 1.5;
+  color: #e5484d;
 }
+
 .notice,
 .hint {
   font-size: 24rpx;
-  color: var(--text-2);
   line-height: 1.5;
+  color: var(--text-2);
 }
 
 .btn-hover {
   opacity: 0.8;
 }
+
 .wx-btn {
   margin-top: 4rpx;
 }
@@ -294,47 +302,55 @@ onMounted(() => {
 /* 演示账号 */
 .demo-item {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
   padding: 24rpx 4rpx;
   border-bottom: 1px solid var(--line);
 }
+
 .demo-item:last-of-type {
   border-bottom: none;
 }
+
 .demo-item-hover {
   opacity: 0.6;
 }
+
 .demo-text {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 6rpx;
+  min-width: 0;
 }
+
 .demo-label {
   font-size: 28rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .demo-tag {
+  padding: 4rpx 14rpx;
   margin-left: 12rpx;
   font-size: 20rpx;
   font-weight: 500;
   color: var(--purple-deep);
   background: #efe8ff;
   border-radius: var(--radius-pill);
-  padding: 4rpx 14rpx;
 }
+
 .demo-desc {
   font-size: 22rpx;
-  color: var(--text-2);
   line-height: 1.5;
+  color: var(--text-2);
 }
+
 .demo-account {
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .demo-arrow {
   font-size: 40rpx;
   color: var(--text-3);

@@ -468,28 +468,32 @@ function saveSharePoster() {
 <style scoped>
 .head-stat {
   display: flex;
-  align-items: baseline;
   gap: 4rpx;
+  align-items: baseline;
 }
+
 .head-stat-num {
-  color: var(--pink-deep);
   font-size: 30rpx;
   font-weight: 500;
+  color: var(--pink-deep);
 }
+
 .head-stat-label {
-  color: var(--text-3);
   font-size: 20rpx;
+  color: var(--text-3);
 }
+
 .loading {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  gap: 20rpx;
   align-items: center;
   justify-content: center;
-  color: var(--text-2);
   font-size: 28rpx;
-  gap: 20rpx;
+  color: var(--text-2);
 }
+
 .loading-dot {
   width: 54rpx;
   height: 54rpx;
@@ -498,65 +502,74 @@ function saveSharePoster() {
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 .stage {
-  flex: 1;
-  min-height: 0;
   display: flex;
+  flex: 1;
   gap: 16rpx;
+  min-height: 0;
   padding: 8rpx 24rpx 28rpx;
 }
+
 .left-column {
   flex: 0 0 150rpx;
   min-width: 0;
   height: 100%;
   padding: 8rpx 2rpx;
 }
+
 .right-column {
   flex: 1;
   min-width: 0;
   height: 100%;
 }
+
 .wardrobe-item {
   position: relative;
-  margin-bottom: 18rpx;
-  padding: 7rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  border: 2rpx solid transparent;
   box-sizing: border-box;
+  padding: 7rpx;
+  margin-bottom: 18rpx;
+  background: var(--surface);
+  border: 2rpx solid transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
+
 /* 勾中「参与搭配」的衣物：主色描边，和右侧方案里的选中态一个语言 */
 .wardrobe-item.picked {
   border-color: var(--pink-deep);
 }
+
 .left-hint {
+  padding-bottom: 8rpx;
   font-size: 20rpx;
   color: var(--text-3);
   text-align: center;
-  padding-bottom: 8rpx;
 }
+
 .wardrobe-check {
   position: absolute;
   right: -2rpx;
   bottom: 34rpx;
   z-index: 3;
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 2rpx solid var(--line);
-  color: #fff;
-  font-size: 22rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  font-size: 22rpx;
+  color: #fff;
+  background: var(--surface);
+  border: 2rpx solid var(--line);
+  border-radius: 50%;
 }
+
 .wardrobe-item.picked .wardrobe-check {
   background: var(--pink-deep);
   border-color: var(--pink-deep);
@@ -567,127 +580,144 @@ function saveSharePoster() {
   flex-shrink: 0;
   padding: 0 24rpx calc(16rpx + env(safe-area-inset-bottom));
 }
+
 .regen-row {
   display: flex;
+  gap: 16rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
   padding: 12rpx 0;
 }
+
 .regen-hint {
   font-size: 24rpx;
   color: var(--text-2);
 }
+
 .regen-btn {
+  display: flex;
+  align-items: center;
   height: var(--btn-h-sm, 64rpx);
   padding: 0 28rpx;
   font-size: 26rpx;
-  display: flex;
-  align-items: center;
 }
+
 .result-tabs {
   display: flex;
   gap: 12rpx;
+  padding: 8rpx;
   background: var(--surface);
   border-radius: var(--radius-pill);
-  padding: 8rpx;
   box-shadow: var(--shadow-card);
 }
+
 .result-tab {
   flex: 1;
-  text-align: center;
   padding: 16rpx 0;
-  border-radius: var(--radius-pill);
   font-size: 26rpx;
   color: var(--text-2);
+  text-align: center;
+  border-radius: var(--radius-pill);
 }
+
 .result-tab.on {
-  background: var(--pink-deep);
   color: #fff;
+  background: var(--pink-deep);
 }
+
 .wardrobe-index {
   position: absolute;
-  left: -4rpx;
   top: -4rpx;
+  left: -4rpx;
   z-index: 3;
-  min-width: 32rpx;
-  height: 32rpx;
-  padding: 0 6rpx;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
-  font-size: 18rpx;
-  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  font-weight: 500;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
+
 .wardrobe-name {
   margin: 8rpx 4rpx 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 19rpx;
   color: var(--text-2);
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .plans {
   display: flex;
   flex-direction: column;
   gap: 26rpx;
   padding-bottom: 20rpx;
 }
+
 .plan {
   padding: 16rpx;
-  border-radius: var(--radius);
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .plan-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   margin-top: 18rpx;
 }
+
 .plan-title {
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .plan-scene {
   margin-top: 4rpx;
   font-size: 21rpx;
   color: var(--text-3);
 }
+
 .algorithm-link {
   flex-shrink: 0;
   padding: 10rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: #f1edff;
-  color: var(--purple-deep);
   font-size: 21rpx;
   font-weight: 700;
+  color: var(--purple-deep);
+  background: #f1edff;
+  border-radius: var(--radius-pill);
 }
+
 .plan-reason {
   margin-top: 14rpx;
-  color: var(--text-2);
   font-size: 23rpx;
   line-height: 1.55;
+  color: var(--text-2);
 }
+
 .items-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14rpx;
   margin-top: 18rpx;
 }
+
 .outfit-item {
   position: relative;
   padding: 8rpx;
-  border-radius: var(--radius);
   background: var(--surface-tint);
+  border-radius: var(--radius);
 }
+
 .outfit-item-name {
-  margin: 8rpx 2rpx 0;
   /*
    * 右边留出「换一件」的位置。
    * 它是 absolute 浮在右下角的，名字却按整格宽度截断，
@@ -695,59 +725,68 @@ function saveSharePoster() {
    * 74rpx = 三个 18rpx 字 + right:14rpx 的偏移。
    */
   padding-right: 74rpx;
-  font-size: 19rpx;
-  color: var(--text-2);
+  margin: 8rpx 2rpx 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 19rpx;
+  color: var(--text-2);
   white-space: nowrap;
 }
+
 .replace-hint {
   position: absolute;
   right: 14rpx;
   bottom: 10rpx;
-  color: var(--pink-deep);
   font-size: 18rpx;
   font-weight: 700;
+  color: var(--pink-deep);
 }
+
 .plan-actions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10rpx;
   margin-top: 18rpx;
 }
+
 .plan-action {
   display: flex;
+  gap: 5rpx;
   align-items: center;
   justify-content: center;
-  gap: 5rpx;
   min-height: 64rpx;
   padding: 8rpx 4rpx;
-  border-radius: var(--radius);
-  background: var(--surface-tint);
-  color: var(--text-2);
   font-size: 20rpx;
   font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-tint);
+  border-radius: var(--radius);
 }
+
 .action-icon {
   font-size: 24rpx;
 }
+
 .empty {
-  padding-top: 180rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 18rpx;
-  color: var(--text-3);
+  align-items: center;
+  padding-top: 180rpx;
   font-size: 26rpx;
+  color: var(--text-3);
 }
+
 .empty-emoji {
   font-size: 82rpx;
 }
+
 .sheet-sub {
   margin-top: 8rpx;
-  color: var(--text-3);
   font-size: 23rpx;
+  color: var(--text-3);
 }
+
 .replace-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -755,89 +794,105 @@ function saveSharePoster() {
   max-height: 54vh;
   margin-top: 24rpx;
 }
+
 .replace-item {
   padding: 10rpx;
+  background: var(--surface-tint);
   border: 4rpx solid transparent;
   border-radius: var(--radius);
-  background: var(--surface-tint);
 }
+
 .replace-item.selected {
-  border-color: var(--pink);
   background: #fff;
+  border-color: var(--pink);
 }
+
 .replace-img {
   width: 100%;
 }
+
 .replace-name {
   display: block;
   margin-top: 8rpx;
-  color: var(--text-2);
-  font-size: 20rpx;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 20rpx;
+  color: var(--text-2);
   white-space: nowrap;
 }
+
 .replace-submit {
   margin-top: 24rpx;
 }
+
 .algorithm-lead {
+  padding: 18rpx 20rpx;
+  margin-bottom: 4rpx;
   font-size: 26rpx;
   line-height: 1.6;
   color: var(--text-1);
   background: var(--pink-soft);
   border-radius: var(--radius-sm);
-  padding: 18rpx 20rpx;
-  margin-bottom: 4rpx;
 }
+
 .algorithm-row {
   display: flex;
-  justify-content: space-between;
   gap: 20rpx;
+  justify-content: space-between;
   padding: 20rpx 0;
   border-bottom: 1px solid var(--line);
 }
+
 .algorithm-label {
-  color: var(--text-3);
   font-size: 24rpx;
+  color: var(--text-3);
 }
+
 .algorithm-value {
-  color: var(--text-1);
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--text-1);
   text-align: right;
 }
+
 .algorithm-note {
-  margin-top: 22rpx;
   padding: 18rpx;
-  border-radius: var(--radius);
-  background: var(--surface-tint);
-  color: var(--text-2);
+  margin-top: 22rpx;
   font-size: 23rpx;
   line-height: 1.5;
+  color: var(--text-2);
+  background: var(--surface-tint);
+  border-radius: var(--radius);
 }
+
 .algorithm-close {
   margin-top: 22rpx;
 }
+
 .share-sheet {
   display: flex;
   flex-direction: column;
 }
+
 .share-actions {
   display: flex;
   gap: 16rpx;
   margin-top: 26rpx;
 }
+
 .share-btn {
   flex: 1;
 }
+
 .share-hint {
   display: block;
   margin-top: 16rpx;
-  text-align: center;
   font-size: 21rpx;
   line-height: 1.5;
   color: var(--text-3);
+  text-align: center;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

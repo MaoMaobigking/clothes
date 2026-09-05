@@ -38,44 +38,51 @@ const subtitle = computed(() => `共 ${PREFERENCE_QUESTIONS.length} 题，已答
   flex-direction: column;
   gap: 28rpx;
 }
+
 .q-card {
+  padding: 32rpx;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 32rpx;
   box-shadow: var(--shadow-card);
 }
+
 .q-title {
   margin: 0 0 24rpx;
   font-size: 30rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 20rpx;
 }
+
 .chip {
   display: inline-flex;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
   padding: 18rpx 32rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface-tint);
-  color: var(--text-2);
   font-size: 28rpx;
   font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-tint);
   border: 4rpx solid transparent;
+  border-radius: var(--radius-pill);
   transition: all 0.15s ease;
 }
+
 .chip:active {
   transform: scale(0.96);
 }
+
 .chip.on {
+  color: var(--pink-deep);
   background: var(--pink-soft);
   border-color: var(--pink);
-  color: var(--pink-deep);
 }
+
 .chip-emoji {
   font-size: 30rpx;
 }

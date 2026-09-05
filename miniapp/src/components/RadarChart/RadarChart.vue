@@ -112,15 +112,17 @@ watch(() => props.dimensions, apply, { deep: true })
 .radar-wrap {
   width: 100%;
 }
+
 .radar {
   width: 100%;
   height: 520rpx;
 }
+
 .radar-failed {
   display: block;
   padding: 24rpx 0;
-  text-align: center;
   font-size: 24rpx;
   color: var(--text-3);
+  text-align: center;
 }
 </style>

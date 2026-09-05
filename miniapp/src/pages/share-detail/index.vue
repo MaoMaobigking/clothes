@@ -165,173 +165,199 @@ async function sendComment() {
   min-height: 0;
   padding: 12rpx 32rpx 48rpx;
 }
+
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  text-align: center;
-  color: var(--text-2);
   font-size: 26rpx;
+  color: var(--text-2);
+  text-align: center;
 }
+
 .state.error {
   color: var(--danger);
 }
+
 .hero-image {
   width: 100%;
   aspect-ratio: 4 / 5;
-  border-radius: var(--radius);
   background: var(--surface-soft);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-float);
 }
+
 .poster {
   display: flex;
-  align-items: center;
   gap: 16rpx;
+  align-items: center;
   margin-top: 24rpx;
 }
+
 .avatar {
-  width: 72rpx;
-  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: var(--surface);
+  width: 72rpx;
+  height: 72rpx;
   font-size: 36rpx;
+  background: var(--surface);
+  border-radius: 50%;
   box-shadow: var(--shadow-card);
 }
+
 .poster-text {
   min-width: 0;
 }
+
 .name {
   font-size: 27rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .time {
   margin-top: 4rpx;
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .caption {
   margin-top: 24rpx;
   font-size: 32rpx;
-  line-height: 1.5;
   font-weight: 500;
+  line-height: 1.5;
   color: var(--text-1);
 }
+
 .description {
   margin-top: 12rpx;
   font-size: 25rpx;
   line-height: 1.6;
   color: var(--text-2);
 }
+
 .topics {
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
   margin-top: 18rpx;
 }
+
 .topic {
   padding: 8rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: var(--pink-soft);
-  color: var(--purple-deep);
   font-size: 22rpx;
   font-weight: 700;
+  color: var(--purple-deep);
+  background: var(--pink-soft);
+  border-radius: var(--radius-pill);
 }
+
 .actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12rpx;
   margin-top: 28rpx;
 }
+
 .action {
-  height: 80rpx;
   display: flex;
+  gap: 10rpx;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text-2);
+  height: 80rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .action.on {
   color: var(--pink-deep);
 }
+
 .action-icon {
   font-size: 28rpx;
 }
+
 .comment-title {
   margin-top: 36rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .empty-comment {
   margin-top: 20rpx;
   font-size: 24rpx;
   color: var(--text-3);
 }
+
 .comment {
   display: flex;
   gap: 16rpx;
   margin-top: 22rpx;
 }
+
 .comment-avatar {
-  flex: 0 0 58rpx;
-  width: 58rpx;
-  height: 58rpx;
   display: flex;
+  flex: 0 0 58rpx;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: var(--surface);
+  width: 58rpx;
+  height: 58rpx;
   font-size: 28rpx;
+  background: var(--surface);
+  border-radius: 50%;
 }
+
 .comment-body {
   flex: 1;
   min-width: 0;
 }
+
 .comment-name {
   font-size: 22rpx;
   color: var(--text-3);
 }
+
 .comment-text {
   margin-top: 8rpx;
   font-size: 25rpx;
   line-height: 1.55;
   color: var(--text-1);
 }
+
 .comment-input {
   display: flex;
   gap: 14rpx;
   margin-top: 32rpx;
 }
+
 .input {
   flex: 1;
   min-width: 0;
   height: 82rpx;
   padding: 0 22rpx;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text-1);
   font-size: 24rpx;
+  color: var(--text-1);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
 }
+
 .send {
-  flex-shrink: 0;
-  height: 82rpx;
-  padding: 0 30rpx;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gradient);
-  color: #fff;
+  height: 82rpx;
+  padding: 0 30rpx;
   font-size: 24rpx;
   font-weight: 700;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
 }
 </style>

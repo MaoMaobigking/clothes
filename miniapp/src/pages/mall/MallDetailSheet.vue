@@ -69,105 +69,113 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-@keyframes sheetIn {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
 .grip {
   width: 80rpx;
   height: 8rpx;
-  border-radius: var(--radius-pill);
-  background: var(--line);
   margin: 4rpx auto 8rpx;
+  background: var(--line);
+  border-radius: var(--radius-pill);
 }
+
 .preview {
-  width: 46%;
   align-self: center;
+  width: 46%;
 }
+
 .info {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
 }
+
 .head {
   display: flex;
+  gap: 20rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
 }
+
 .name {
   margin: 0;
   font-size: 36rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .fav {
-  flex-shrink: 0;
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 50%;
-  background: var(--surface-soft);
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  width: 76rpx;
+  height: 76rpx;
   font-size: 36rpx;
+  background: var(--surface-soft);
+  border-radius: 50%;
   box-shadow: var(--shadow-card);
 }
+
 .fav.on {
   background: #fff;
 }
+
 .tags {
   display: flex;
   gap: 12rpx;
 }
+
 .tag {
   align-self: flex-start;
+  padding: 6rpx 20rpx;
   font-size: 24rpx;
   font-weight: 700;
   color: var(--text-on-brand);
   background: var(--brand-gradient);
-  padding: 6rpx 20rpx;
   border-radius: var(--radius-pill);
 }
+
 .tag.ghost {
   color: var(--text-2);
   background: var(--surface-soft);
 }
+
 .taokouling {
   font-size: 24rpx;
   font-weight: 700;
   color: var(--pink-deep);
   word-break: break-all;
 }
+
 .taokouling.missing {
-  color: var(--text-3);
   font-weight: 500;
+  color: var(--text-3);
 }
+
 .desc {
   margin: 0;
   font-size: 26rpx;
-  color: var(--text-2);
   line-height: 1.6;
+  color: var(--text-2);
 }
+
 .price {
   margin: 4rpx 0 0;
   font-size: 48rpx;
   font-weight: 500;
   color: var(--pink-deep);
 }
+
 .price-symbol {
+  margin-right: 4rpx;
   font-size: 30rpx;
   font-style: normal;
-  margin-right: 4rpx;
 }
+
 .actions {
   display: flex;
   gap: 24rpx;
 }
+
 .actions .btn {
   flex: 1;
   height: 92rpx;

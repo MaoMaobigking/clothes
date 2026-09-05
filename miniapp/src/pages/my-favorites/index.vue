@@ -64,68 +64,78 @@ function openItem(item: CommunityContent) {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: 12rpx 32rpx 44rpx;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 18rpx;
+  min-height: 0;
+  padding: 12rpx 32rpx 44rpx;
 }
+
 .state {
   flex: 1;
   padding: 80rpx 24rpx;
-  text-align: center;
-  color: var(--text-2);
   font-size: 26rpx;
+  color: var(--text-2);
+  text-align: center;
 }
+
 .state.error {
   color: var(--danger);
 }
+
 .item {
   display: flex;
-  align-items: center;
   gap: 20rpx;
+  align-items: center;
   padding: 18rpx;
-  border-radius: var(--radius);
   background: var(--surface);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .thumb {
   flex: 0 0 156rpx;
   width: 156rpx;
 }
+
 .item-text {
   flex: 1;
   min-width: 0;
 }
+
 .type {
   font-size: 20rpx;
   font-weight: 700;
   color: var(--purple-deep);
 }
+
 .title {
   margin-top: 8rpx;
   font-size: 27rpx;
-  line-height: 1.4;
   font-weight: 500;
+  line-height: 1.4;
   color: var(--text-1);
 }
+
 .subtitle {
+  display: -webkit-box;
   margin-top: 6rpx;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
   font-size: 22rpx;
   line-height: 1.4;
   color: var(--text-2);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
+
 .note {
   display: block;
   margin-top: 8rpx;
   font-size: 20rpx;
   color: var(--mint-deep);
 }
+
 .arrow {
   flex-shrink: 0;
   font-size: 40rpx;

@@ -520,49 +520,56 @@ async function upgradeVip() {
 
 <style scoped>
 .body {
-  flex: 1;
-  min-height: 0;
-  padding: 12rpx 32rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 32rpx;
+  min-height: 0;
+  padding: 12rpx 32rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
 }
+
 .hero {
   display: flex;
-  align-items: center;
   gap: 24rpx;
+  align-items: center;
   padding: 22rpx;
+  background: linear-gradient(150deg, rgb(255 231 243 / 96%), rgb(234 231 255 / 96%));
   border-radius: var(--radius-lg);
-  background: linear-gradient(150deg, rgba(255, 231, 243, 0.96), rgba(234, 231, 255, 0.96));
   box-shadow: var(--shadow-card);
 }
+
 .hero-image {
+  flex-shrink: 0;
   width: 220rpx;
   height: 250rpx;
-  flex-shrink: 0;
-  border-radius: var(--radius-lg);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe6f2, #e7dcff);
+  border-radius: var(--radius-lg);
 }
+
 .hero-image image {
   width: 100%;
   height: 100%;
 }
+
 .hero-copy {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12rpx;
+  min-width: 0;
 }
+
 .hero-emoji {
   font-size: 46rpx;
 }
+
 .hero-title {
   font-size: 36rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .hero-desc {
   font-size: 24rpx;
   line-height: 1.5;
@@ -573,31 +580,34 @@ async function upgradeVip() {
   display: flex;
   gap: 12rpx;
 }
+
 .process-step {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: center;
   gap: 10rpx;
+  align-items: center;
+  min-width: 0;
 }
+
 .process-index {
-  width: 50rpx;
-  height: 50rpx;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--brand-gradient);
-  color: #fff;
+  width: 50rpx;
+  height: 50rpx;
   font-size: 23rpx;
   font-weight: 500;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: 50%;
 }
+
 .process-label {
   font-size: 20rpx;
+  line-height: 1.25;
   color: var(--text-2);
   text-align: center;
-  line-height: 1.25;
 }
 
 .section-title {
@@ -606,11 +616,13 @@ async function upgradeVip() {
   font-weight: 500;
   color: var(--text-1);
 }
+
 .cases {
   display: flex;
   flex-direction: column;
   gap: 18rpx;
 }
+
 .case {
   display: flex;
   gap: 20rpx;
@@ -619,46 +631,53 @@ async function upgradeVip() {
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .case-image {
+  flex-shrink: 0;
   width: 190rpx;
   height: 155rpx;
-  flex-shrink: 0;
-  border-radius: var(--radius);
   overflow: hidden;
   background: linear-gradient(150deg, #ffe6f2, #d7ecff);
+  border-radius: var(--radius);
 }
+
 .case-image image {
   width: 100%;
   height: 100%;
 }
+
 .case-copy {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  justify-content: center;
   gap: 10rpx;
+  justify-content: center;
+  min-width: 0;
 }
+
 .case-title-row {
   display: flex;
-  align-items: center;
   gap: 12rpx;
+  align-items: center;
 }
+
 .case-title {
   font-size: 27rpx;
   font-weight: 500;
   color: var(--text-1);
 }
+
 .vip-tag,
 .vip-badge {
   flex-shrink: 0;
   padding: 5rpx 13rpx;
-  border-radius: var(--radius-pill);
-  background: var(--pink-soft);
-  color: var(--purple-deep);
   font-size: 19rpx;
   font-weight: 500;
+  color: var(--purple-deep);
+  background: var(--pink-soft);
+  border-radius: var(--radius-pill);
 }
+
 .case-desc {
   font-size: 23rpx;
   line-height: 1.45;
@@ -669,48 +688,56 @@ async function upgradeVip() {
   display: flex;
   gap: 18rpx;
 }
+
 .action {
   flex: 1;
   height: 84rpx;
   font-size: 26rpx;
 }
+
 .premium {
   padding: 30rpx;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
+
 .premium-head {
   display: flex;
+  gap: 20rpx;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20rpx;
 }
+
 .premium-title {
   display: block;
   font-size: 29rpx;
   font-weight: 500;
 }
+
 .premium-desc {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
   color: var(--text-2);
 }
+
 .premium-cases {
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
   margin-top: 20rpx;
 }
+
 .premium-case {
   padding: 11rpx 17rpx;
-  border-radius: var(--radius-pill);
+  font-size: 22rpx;
+  color: var(--text-1);
   background: var(--surface-soft);
   border: 2rpx solid var(--line);
-  color: var(--text-1);
-  font-size: 22rpx;
+  border-radius: var(--radius-pill);
 }
+
 .premium-btn {
   height: 80rpx;
   margin-top: 22rpx;
@@ -726,63 +753,74 @@ async function upgradeVip() {
  * 再遇到装不下先确认 .sheet-body 在滚，不要回头去加高度。
  */
 .sheet-head {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
+  gap: 20rpx;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
 }
+
 .sheet-close {
-  color: var(--text-3);
   font-size: 25rpx;
+  color: var(--text-3);
 }
+
 /* 只负责吃掉剩余高度并滚动。⚠️ 不要在这里加 display:flex —— 微信下 scroll-y 会失效 */
 .sheet-body {
   flex: 1;
   min-height: 0;
   padding: 4rpx 2rpx;
 }
+
 /* 表单的纵向排列和间距挂在 scroll-view 内部这层 */
 .sheet-form {
   display: flex;
   flex-direction: column;
   gap: 22rpx;
 }
+
 .textarea,
 .input {
+  box-sizing: border-box;
   width: 100%;
-  border: 2rpx solid var(--line);
-  border-radius: var(--radius);
-  background: #fff;
   padding: 22rpx;
   font-size: 27rpx;
   color: var(--text-1);
-  box-sizing: border-box;
+  background: #fff;
+  border: 2rpx solid var(--line);
+  border-radius: var(--radius);
 }
+
 .textarea {
   min-height: 180rpx;
 }
+
 .textarea.notes {
   min-height: 130rpx;
 }
+
 .field-row,
 .measure-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16rpx;
 }
+
 .input.half {
   min-width: 0;
 }
+
 .field-label {
   font-size: 24rpx;
   font-weight: 700;
   color: var(--text-1);
 }
+
 .field-label.required::after {
-  content: ' *';
   color: var(--pink-deep);
+  content: ' *';
 }
+
 .measure-field {
   display: flex;
   flex-direction: column;
@@ -790,17 +828,20 @@ async function upgradeVip() {
   font-size: 23rpx;
   color: var(--text-2);
 }
+
 .measure-field input {
-  border: 2rpx solid var(--line);
-  border-radius: var(--radius);
   padding: 16rpx 18rpx;
   font-size: 26rpx;
+  border: 2rpx solid var(--line);
+  border-radius: var(--radius);
 }
+
 .image-picker {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
 }
+
 .picked,
 .picker,
 .required-image,
@@ -808,74 +849,84 @@ async function upgradeVip() {
   position: relative;
   width: 170rpx;
   height: 170rpx;
-  border-radius: var(--radius);
   overflow: hidden;
+  border-radius: var(--radius);
 }
+
 .picked,
 .picker {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .picker,
 .picker-box {
+  color: var(--purple-deep);
   background: var(--surface-soft);
   border: 2rpx dashed #d8cfea;
-  color: var(--purple-deep);
 }
+
 .picked-image,
 .required-image image,
 .optional-image image {
   width: 100%;
   height: 100%;
 }
+
 .remove {
   position: absolute;
   top: 5rpx;
   right: 5rpx;
-  width: 42rpx;
-  height: 42rpx;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(47, 47, 58, 0.78);
-  color: #fff;
+  width: 42rpx;
+  height: 42rpx;
   font-size: 27rpx;
+  color: #fff;
+  background: rgb(47 47 58 / 78%);
+  border-radius: 50%;
 }
+
 .picker-plus {
   font-size: 46rpx;
   line-height: 1;
 }
+
 .picker-label {
   position: absolute;
   bottom: 20rpx;
   font-size: 20rpx;
   color: var(--text-3);
 }
+
 .sheet-submit {
   flex-shrink: 0;
   height: 86rpx;
 }
 
 .vip-sheet {
-  width: 100%;
-  padding: 38rpx 32rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
-  border-radius: var(--radius-lg) 44rpx 0 0;
-  background: #fff;
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  width: 100%;
+  padding: 38rpx 32rpx calc(32rpx + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-radius: var(--radius-lg) 44rpx 0 0;
 }
+
 .vip-sheet-title {
   font-size: 34rpx;
   font-weight: 500;
 }
+
 .vip-sheet-desc {
   font-size: 25rpx;
   line-height: 1.55;
   color: var(--text-2);
 }
+
 .vip-sheet .btn {
   height: 84rpx;
 }

@@ -120,13 +120,13 @@ const boxStyle = computed(() => ({
 
 <style scoped>
 .ui-icon {
-  flex-shrink: 0;
   /*
    * inline-block 而不是 block：
    * 很多空态容器只写了 text-align: center，块级元素在里面不会居中（emoji 是文字所以原本居中）。
    * inline-block 在这类容器里能被 text-align 居中，在 flex 容器里又会被 blockify，两边都对。
    */
   display: inline-block;
+  flex-shrink: 0;
   vertical-align: middle;
   background-repeat: no-repeat;
   background-position: center;
