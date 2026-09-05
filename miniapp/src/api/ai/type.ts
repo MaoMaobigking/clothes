@@ -1,5 +1,6 @@
-/* 调后端 AI 接口（统一经过 http.ts 建立开发用户身份） */
-import { request } from '@/utils/request'
+/*
+ * 后端 AI 接口的数据结构：风格报告、情景搭配、顾问对话。
+ */
 
 export interface AiRadarDim {
   name: string
@@ -34,20 +35,13 @@ export interface ProfilePayload {
   preferences: Record<string, string>
 }
 
-export async function fetchStyleReport(profile: ProfilePayload, answers?: unknown): Promise<StyleReport> {
-  return request<StyleReport>({
-    url: '/api/style-report',
-    method: 'POST',
-    data: { profile, answers },
-  })
-}
-
 /* ---------------- 情景搭配推荐 ---------------- */
 
 export interface OutfitPieceAi {
   name: string
   emoji: string
 }
+
 export interface SceneOutfit {
   title: string
   scene: string
@@ -55,31 +49,9 @@ export interface SceneOutfit {
   pieces: OutfitPieceAi[]
 }
 
-export async function fetchSceneOutfits(input: {
-  scene: string
-  weather: { city?: string; temp?: number; condition?: string }
-  profile: { styles: string[] }
-}): Promise<SceneOutfit[]> {
-  const data = await request<{ outfits?: SceneOutfit[] }>({
-    url: '/api/scene-outfits',
-    method: 'POST',
-    data: input,
-  })
-  return data.outfits ?? []
-}
-
 /* ---------------- AI 穿搭顾问对话 ---------------- */
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-}
-
-export async function sendChat(messages: ChatMessage[]): Promise<string> {
-  const data = await request<{ reply?: string }>({
-    url: '/api/chat',
-    method: 'POST',
-    data: { messages },
-  })
-  return data.reply ?? ''
 }

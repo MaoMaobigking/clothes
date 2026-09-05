@@ -11,35 +11,30 @@
  * 带上去只会被 401 拦截器踢回登录页。
  */
 import { getDevTag, publicRequest, request } from '@/utils/request'
+import type { DemoAccount, LoginResult, MyProfile } from './type'
 
-export interface LoginResult {
-  token: string
-  userId: number
-  openid?: string
-  account?: string
-  role?: string
-  nickname?: string
-  /** 头像 emoji（见下面 MyProfile 的说明），登录时一并下发 */
-  avatarUrl?: string
-  demoKind?: string | null
-  isNewUser?: boolean
+enum API {
+  /** 账号密码登录 */
+  LOGIN_PASSWORD_URL = '/api/auth/login-password',
+  /** 微信 code 换 token */
+  LOGIN_WECHAT_URL = '/api/auth/login',
+  /** 管理员独立密码 */
+  ADMIN_LOGIN_URL = '/api/auth/admin-login',
+  /** 开发身份，仅非生产环境 */
+  DEV_TOKEN_URL = '/api/auth/dev-token',
+  /** 演示账号清单 */
+  DEMO_ACCOUNTS_URL = '/api/auth/demo-accounts',
+  /** 当前身份，GET 校验 / PUT 改资料 */
+  ME_URL = '/api/auth/me',
 }
 
-export interface DemoAccount {
-  account: string
-  nickname: string
-  role: string
-  kind: string
-  label: string
-  description: string
-  /** 生产环境后端不下发密码，这里就是 undefined */
-  password?: string
-}
+/** 类型再导出的理由见 api/diary/index.ts 的说明 */
+export type { DemoAccount, LoginResult, MyProfile } from './type'
 
 /** 账号密码登录（§5.1、§5.2） */
 export function loginByPassword(account: string, password: string) {
   return publicRequest<LoginResult>({
-    url: '/api/auth/login-password',
+    url: API.LOGIN_PASSWORD_URL,
     method: 'POST',
     data: { account, password },
   })
@@ -48,7 +43,7 @@ export function loginByPassword(account: string, password: string) {
 /** 微信 code 换 token（§5.1）。code 由 uni.login 拿，只有小程序端能拿到真的。 */
 export function loginByWechatCode(code: string) {
   return publicRequest<LoginResult>({
-    url: '/api/auth/login',
+    url: API.LOGIN_WECHAT_URL,
     method: 'POST',
     data: { code },
   })
@@ -57,7 +52,7 @@ export function loginByWechatCode(code: string) {
 /** 管理员独立密码（§5.3）。成功后返回的是管理员身份的 token。 */
 export function loginAsAdmin(password: string) {
   return publicRequest<LoginResult>({
-    url: '/api/auth/admin-login',
+    url: API.ADMIN_LOGIN_URL,
     method: 'POST',
     data: { password },
   })
@@ -66,7 +61,7 @@ export function loginAsAdmin(password: string) {
 /** 开发身份：换 tag 就是换一个人，用来手测数据隔离。 */
 export function loginAsDev(tag?: string) {
   return publicRequest<LoginResult>({
-    url: '/api/auth/dev-token',
+    url: API.DEV_TOKEN_URL,
     method: 'POST',
     data: { tag: tag || getDevTag() },
   })
@@ -75,24 +70,9 @@ export function loginAsDev(tag?: string) {
 /** 演示账号清单（§5.4）。非生产环境会带上密码，方便现场一键填入。 */
 export async function fetchDemoAccounts(): Promise<DemoAccount[]> {
   const data = await publicRequest<{ accounts?: DemoAccount[] }>({
-    url: '/api/auth/demo-accounts',
+    url: API.DEMO_ACCOUNTS_URL,
   })
   return data.accounts || []
-}
-
-/**
- * 当前用户资料（规格 §11.2）。
- * avatarUrl 存的是一个 emoji，不是图片地址 —— 社群那边把它当文本直接渲染，
- * 「我的」页则用 iconForEmoji() 换成线性图标。命名沿用数据库列名，没改。
- */
-export interface MyProfile {
-  userId: number
-  account: string
-  nickname: string
-  avatarUrl: string
-  role: string
-  membershipLevel: string
-  demoKind: string | null
 }
 
 /** 校验当前 token 是否仍然有效，顺带拿回资料 */
@@ -102,14 +82,14 @@ export function fetchMe() {
     user: { userId: number; openid: string; role: string }
     profile?: MyProfile
   }>({
-    url: '/api/auth/me',
+    url: API.ME_URL,
   })
 }
 
 /** 保存昵称 / 头像。只传要改的字段，后端也只认这两个。 */
 export async function apiUpdateMe(patch: { nickname?: string; avatarUrl?: string }): Promise<MyProfile> {
   const data = await request<{ profile: MyProfile }>({
-    url: '/api/auth/me',
+    url: API.ME_URL,
     method: 'PUT',
     data: patch,
   })

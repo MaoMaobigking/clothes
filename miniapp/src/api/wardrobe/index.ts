@@ -1,8 +1,34 @@
+/*
+ * 衣橱与搭配接口（功能一 / 功能二）。
+ */
 import type { Garment } from '@/data/mock'
 import { API_BASE_URL, request, uploadFile } from '@/utils/request'
 import { USE_CLOUD, cloudUploadImage } from '@/utils/cloud'
+import type { Outfit, OutfitBatch, WardrobeItem } from './type'
 
-export type WardrobeItem = Garment & { fav: boolean }
+enum API {
+  /** 衣物列表 / 新增 */
+  GARMENTS_URL = '/api/garments',
+  /** 单件衣物，后面接 id（PATCH 改 / DELETE 删） */
+  GARMENT_URL = '/api/garments/',
+  /** 拖拽排序 */
+  GARMENTS_REORDER_URL = '/api/garments/reorder',
+  /** multipart 上传 */
+  WARDROBE_UPLOAD_URL = '/api/wardrobe/upload',
+  /** 云开发链路：传云存储后交给后端下载落盘 */
+  WARDROBE_UPLOAD_REMOTE_URL = '/api/wardrobe/upload-remote',
+  /** 生成搭配 */
+  WARDROBE_GENERATE_URL = '/api/wardrobe/generate',
+  /** 按批次回看，后面接 batchId */
+  WARDROBE_BATCH_URL = '/api/wardrobe/batch/',
+  /** 搭配列表 / 手动创建 */
+  OUTFITS_URL = '/api/wardrobe/outfits',
+  /** 单条搭配，后面接 id 再拼 /star、/save、/replace */
+  OUTFIT_URL = '/api/wardrobe/outfits/',
+}
+
+/** 类型再导出的理由见 api/diary/index.ts 的说明 */
+export type { Outfit, OutfitBatch, OutfitItem, WardrobeItem } from './type'
 
 export function resolveImageUrl(src?: string) {
   if (!src || /^(https?:|data:|blob:)/i.test(src)) return src
@@ -24,13 +50,13 @@ function normalizeGarment(item: WardrobeItem): WardrobeItem {
 }
 
 export async function apiListGarments(): Promise<WardrobeItem[]> {
-  const d = await request<{ items: WardrobeItem[] }>({ url: '/api/garments' })
+  const d = await request<{ items: WardrobeItem[] }>({ url: API.GARMENTS_URL })
   return d.items.map(normalizeGarment)
 }
 
 export async function apiAddGarment(partial: Partial<Garment>): Promise<WardrobeItem> {
   const d = await request<{ item: WardrobeItem }>({
-    url: '/api/garments',
+    url: API.GARMENTS_URL,
     method: 'POST',
     data: partial,
   })
@@ -39,7 +65,7 @@ export async function apiAddGarment(partial: Partial<Garment>): Promise<Wardrobe
 
 export async function apiDeleteGarment(id: string): Promise<boolean> {
   const d = await request<{ ok: boolean }>({
-    url: `/api/garments/${id}`,
+    url: API.GARMENT_URL + id,
     method: 'DELETE',
   })
   return d.ok
@@ -47,7 +73,7 @@ export async function apiDeleteGarment(id: string): Promise<boolean> {
 
 export async function apiToggleFav(id: string): Promise<boolean> {
   const d = await request<{ fav: boolean }>({
-    url: `/api/garments/${id}/fav`,
+    url: `${API.GARMENT_URL}${id}/fav`,
     method: 'POST',
   })
   return d.fav
@@ -55,7 +81,7 @@ export async function apiToggleFav(id: string): Promise<boolean> {
 
 export async function apiUpdateGarment(id: string, partial: Partial<Garment>): Promise<WardrobeItem> {
   const d = await request<{ item: WardrobeItem }>({
-    url: `/api/garments/${id}`,
+    url: API.GARMENT_URL + id,
     method: 'PATCH',
     data: partial,
   })
@@ -64,7 +90,7 @@ export async function apiUpdateGarment(id: string, partial: Partial<Garment>): P
 
 export async function apiReorderGarments(ids: string[]): Promise<WardrobeItem[]> {
   const d = await request<{ items: WardrobeItem[] }>({
-    url: '/api/garments/reorder',
+    url: API.GARMENTS_REORDER_URL,
     method: 'PUT',
     data: { ids },
   })
@@ -73,7 +99,7 @@ export async function apiReorderGarments(ids: string[]): Promise<WardrobeItem[]>
 
 export async function apiToggleFrequentlyWorn(id: string): Promise<WardrobeItem> {
   const d = await request<{ item: WardrobeItem }>({
-    url: `/api/garments/${id}/frequently-worn`,
+    url: `${API.GARMENT_URL}${id}/frequently-worn`,
     method: 'POST',
   })
   return normalizeGarment(d.item)
@@ -97,7 +123,7 @@ export async function apiUploadGarments(filePaths: string[]): Promise<WardrobeIt
       fileIDs.push(up.fileID)
     }
     const d = await request<{ items?: WardrobeItem[] }>({
-      url: '/api/wardrobe/upload-remote',
+      url: API.WARDROBE_UPLOAD_REMOTE_URL,
       method: 'POST',
       data: { urls, fileIDs },
     })
@@ -106,7 +132,7 @@ export async function apiUploadGarments(filePaths: string[]): Promise<WardrobeIt
 
   for (const filePath of filePaths) {
     const d = await uploadFile<{ item?: WardrobeItem; items?: WardrobeItem[] }>({
-      url: '/api/wardrobe/upload',
+      url: API.WARDROBE_UPLOAD_URL,
       filePath,
       name: 'files',
     })
@@ -114,33 +140,6 @@ export async function apiUploadGarments(filePaths: string[]): Promise<WardrobeIt
     if (Array.isArray(d.items)) items.push(...d.items.map(normalizeGarment))
   }
   return items
-}
-
-export interface OutfitItem {
-  id: number
-  sortOrder: number
-  garment: WardrobeItem
-}
-
-export interface Outfit {
-  id: number
-  title: string
-  scene: string
-  reason: string
-  batchId: string
-  kind: string
-  isSaved: boolean
-  isStarred: boolean
-  season: string
-  occasion: string
-  algorithm: Record<string, any>
-  items: OutfitItem[]
-  createdAt: string
-}
-
-export interface OutfitBatch {
-  id: string
-  outfits: Outfit[]
 }
 
 function normalizeOutfit(outfit: Outfit): Outfit {
@@ -157,7 +156,7 @@ function normalizeOutfit(outfit: Outfit): Outfit {
 
 export async function apiGenerateOutfits(selectedIds: string[] = []): Promise<OutfitBatch> {
   const d = await request<{ batch: OutfitBatch }>({
-    url: '/api/wardrobe/generate',
+    url: API.WARDROBE_GENERATE_URL,
     method: 'POST',
     data: { selectedIds },
   })
@@ -169,7 +168,7 @@ export async function apiGenerateOutfits(selectedIds: string[] = []): Promise<Ou
 
 export async function apiGetOutfitBatch(batchId: string): Promise<OutfitBatch> {
   const d = await request<{ batch: OutfitBatch }>({
-    url: `/api/wardrobe/batch/${batchId}`,
+    url: API.WARDROBE_BATCH_URL + batchId,
   })
   return {
     ...d.batch,
@@ -185,7 +184,7 @@ export async function apiListOutfits(
   if (opts.starred) q.push('starred=1')
   if (opts.kind) q.push(`kind=${opts.kind}`)
   const d = await request<{ items: Outfit[] }>({
-    url: `/api/wardrobe/outfits?${q.join('&')}`,
+    url: `${API.OUTFITS_URL}?${q.join('&')}`,
   })
   return d.items.map(normalizeOutfit)
 }
@@ -203,7 +202,7 @@ export async function apiCreateOutfit(payload: {
   reason?: string
 }): Promise<Outfit> {
   const d = await request<{ item: Outfit }>({
-    url: '/api/wardrobe/outfits',
+    url: API.OUTFITS_URL,
     method: 'POST',
     data: { ...payload, garmentIds: payload.garmentIds.map(String) },
   })
@@ -213,7 +212,7 @@ export async function apiCreateOutfit(payload: {
 /** 「收藏」= 星标。后端会顺带把 is_saved 置 1，所以未保存直接点收藏也是通的 */
 export async function apiStarOutfit(id: number, starred = true): Promise<Outfit> {
   const d = await request<{ item: Outfit }>({
-    url: `/api/wardrobe/outfits/${id}/star`,
+    url: `${API.OUTFIT_URL}${id}/star`,
     method: 'POST',
     data: { starred },
   })
@@ -222,7 +221,7 @@ export async function apiStarOutfit(id: number, starred = true): Promise<Outfit>
 
 export async function apiSaveOutfit(id: number): Promise<Outfit> {
   const d = await request<{ item: Outfit }>({
-    url: `/api/wardrobe/outfits/${id}/save`,
+    url: `${API.OUTFIT_URL}${id}/save`,
     method: 'POST',
   })
   return normalizeOutfit(d.item)
@@ -234,7 +233,7 @@ export async function apiReplaceOutfitItem(
   newGarmentId: string,
 ): Promise<Outfit> {
   const d = await request<{ item: Outfit }>({
-    url: `/api/wardrobe/outfits/${outfitId}/replace`,
+    url: `${API.OUTFIT_URL}${outfitId}/replace`,
     method: 'POST',
     data: { oldGarmentId, newGarmentId },
   })
@@ -242,7 +241,7 @@ export async function apiReplaceOutfitItem(
 }
 
 /**
- * 整套搭配加入购物车 —— 已移到 api/cart.ts 的 addOutfitToCart()。
+ * 整套搭配加入购物车 —— 已移到 api/cart 的 addOutfitToCart()。
  * 购物车统一后（规格 §4.5 §13）请用 stores/cart.ts 的 addOutfit()，
  * 它会把返回的整车同步进 store，徽标和购物车页才对得上。
  */
