@@ -1,0 +1,17 @@
+node_modules
+dist
+**/dist
+package-lock.json
+
+# 二进制与静态素材
+miniapp/src/static
+server/uploads
+.image-backup
+
+# 工具产物目录
+.smoke
+.uishot
+.tmp
+.handoff
+.worktrees
+deploy/dist

@@ -126,9 +126,7 @@ function showToast(message: string) {
   }, 1800)
 }
 
-const scene = computed(
-  () => SCENE_OPTIONS.find((item) => item.key === selectedScene.value) ?? SCENE_OPTIONS[0],
-)
+const scene = computed(() => SCENE_OPTIONS.find((item) => item.key === selectedScene.value) ?? SCENE_OPTIONS[0])
 
 const currentPlans = computed<ScenePlan[]>(() => {
   if (!result.value) return []
@@ -150,13 +148,9 @@ const activePlan = computed<ScenePlan | null>(() => {
  */
 const gridItems = computed(() => (activePlan.value?.items ?? []).slice(0, 6))
 
-const newItems = computed(() =>
-  (activePlan.value?.items ?? []).filter((item) => item.isNew),
-)
+const newItems = computed(() => (activePlan.value?.items ?? []).filter((item) => item.isNew))
 
-const oldItems = computed(() =>
-  (activePlan.value?.items ?? []).filter((item) => !item.isNew),
-)
+const oldItems = computed(() => (activePlan.value?.items ?? []).filter((item) => !item.isNew))
 
 const filterStyle = computed(() => sceneFilterStyle(filterKey.value))
 const filterOverlay = computed(() => SCENE_FILTER_OVERLAYS[filterKey.value])
@@ -176,16 +170,11 @@ const posterGradient = computed(() => SCENE_FILTER_GRADIENTS[filterKey.value])
  */
 const SHOW_MODEL = false
 const modelImage = computed(() =>
-  SHOW_MODEL
-    ? profile.profile.gender === 'male'
-      ? MODEL_IMAGES.frontMale
-      : MODEL_IMAGES.front
-    : '',
+  SHOW_MODEL ? (profile.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front) : '',
 )
 
 const stageCaption = computed(
-  () =>
-    `${scene.value.label} · ${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
+  () => `${scene.value.label} · ${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃`,
 )
 
 async function generate() {
@@ -366,7 +355,7 @@ function goBooking() {
 async function hydrateSavedOutfit(outfit: SavedSceneOutfit) {
   selectedScene.value = outfit.sceneKey
   season.value = (SCENE_SEASONS as readonly string[]).includes(outfit.season)
-    ? (outfit.season as typeof SCENE_SEASONS[number])
+    ? (outfit.season as (typeof SCENE_SEASONS)[number])
     : currentSeason()
   mode.value = outfit.mode
   filterKey.value = outfit.filterKey
@@ -416,8 +405,7 @@ const posterVisible = ref(false)
 const posterRef = ref<InstanceType<typeof OutfitPoster> | null>(null)
 
 const posterSubtitle = computed(
-  () =>
-    `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃ · ${season.value}`,
+  () => `${weather.value.city} ${weather.value.condition} ${weather.value.temp}℃ · ${season.value}`,
 )
 
 const posterPieces = computed(() => piecesFromSceneItems(activePlan.value?.items ?? []))
@@ -545,20 +533,8 @@ function savePoster() {
         <view class="control-row">
           <text class="control-label">模式</text>
           <view class="mode-switch">
-            <button
-              class="mode-button"
-              :class="{ on: mode === 'pure' }"
-              @tap="mode = 'pure'"
-            >
-              仅旧衣
-            </button>
-            <button
-              class="mode-button"
-              :class="{ on: mode === 'mixed' }"
-              @tap="mode = 'mixed'"
-            >
-              新旧混搭
-            </button>
+            <button class="mode-button" :class="{ on: mode === 'pure' }" @tap="mode = 'pure'">仅旧衣</button>
+            <button class="mode-button" :class="{ on: mode === 'mixed' }" @tap="mode = 'mixed'">新旧混搭</button>
           </view>
         </view>
 
@@ -598,12 +574,8 @@ function savePoster() {
         <!-- 穿搭搭配方式选择（样图底部三按钮，等宽） -->
         <text class="section-title mode-title">穿搭搭配方式选择</text>
         <view class="mode-row">
-          <view class="mode-pill" :class="{ on: mode === 'mixed' }" @tap="mode = 'mixed'">
-            新旧混搭
-          </view>
-          <view class="mode-pill" :class="{ on: mode === 'pure' }" @tap="mode = 'pure'">
-            旧衣新生
-          </view>
+          <view class="mode-pill" :class="{ on: mode === 'mixed' }" @tap="mode = 'mixed'">新旧混搭</view>
+          <view class="mode-pill" :class="{ on: mode === 'pure' }" @tap="mode = 'pure'">旧衣新生</view>
           <view class="mode-pill" @tap="goCustom">个性化定制</view>
         </view>
 
@@ -613,12 +585,8 @@ function savePoster() {
         -->
         <template v-if="topTab === 'tryon' || showAdvanced">
           <view class="active-banner">
-            <text class="active-title">
-              已为你激活 {{ result.activatedGarmentCount }} 件旧衣
-            </text>
-            <text class="active-sub">
-              生成 3 套纯旧衣与 3 套新旧混搭方案
-            </text>
+            <text class="active-title">已为你激活 {{ result.activatedGarmentCount }} 件旧衣</text>
+            <text class="active-sub">生成 3 套纯旧衣与 3 套新旧混搭方案</text>
           </view>
 
           <view class="filter-row">
@@ -631,11 +599,7 @@ function savePoster() {
             >
               {{ item.label }}
             </button>
-            <button
-              class="filter-chip compare"
-              :class="{ on: compareMode }"
-              @tap="compareMode = !compareMode"
-            >
+            <button class="filter-chip compare" :class="{ on: compareMode }" @tap="compareMode = !compareMode">
               对比旧衣
             </button>
           </view>
@@ -646,69 +610,54 @@ function savePoster() {
           </view>
 
           <view class="plan-grid" :class="{ compare: compareMode }">
-          <view v-for="plan in currentPlans" :key="plan.id" class="plan-card">
-            <!--
+            <view v-for="plan in currentPlans" :key="plan.id" class="plan-card">
+              <!--
               效果图用真实衣物照片叠在统一人台上（§10.7 §10.8）。
               对比模式下两张卡的 model / background 是同一个值，只有 pieces 不同。
             -->
-            <OutfitPreview
-              :pieces="piecesFromSceneItems(plan.items)"
-              :background="scene.img"
-              :background-emoji="scene.emoji"
-              :filter-style="filterStyle"
-              :model="modelImage"
-              :caption="stageCaption"
-              :height="compareMode ? '360rpx' : '520rpx'"
-            />
+              <OutfitPreview
+                :pieces="piecesFromSceneItems(plan.items)"
+                :background="scene.img"
+                :background-emoji="scene.emoji"
+                :filter-style="filterStyle"
+                :model="modelImage"
+                :caption="stageCaption"
+                :height="compareMode ? '360rpx' : '520rpx'"
+              />
 
-            <view class="plan-head">
-              <view class="plan-title-wrap">
-                <text class="plan-title">{{ plan.title }}</text>
-                <text class="plan-tag">{{ plan.mode === 'pure' ? '纯旧衣' : '新旧混搭' }}</text>
+              <view class="plan-head">
+                <view class="plan-title-wrap">
+                  <text class="plan-title">{{ plan.title }}</text>
+                  <text class="plan-tag">{{ plan.mode === 'pure' ? '纯旧衣' : '新旧混搭' }}</text>
+                </view>
+                <text class="plan-reason">{{ plan.reason }}</text>
               </view>
-              <text class="plan-reason">{{ plan.reason }}</text>
-            </view>
 
-            <view class="item-grid">
-              <view
-                v-for="item in plan.items"
-                :key="item.id"
-                class="item"
-                @tap="itemDetail = item"
-              >
-                <TileImage
-                  :src="item.imageUrl"
-                  :from="item.from"
-                  :to="item.to"
-                  :emoji="item.emoji"
-                  ratio="1 / 1"
-                  rounded="24rpx"
-                />
-                <text class="item-name">{{ item.name }}</text>
-                <text class="item-tag">{{ item.isNew ? '新增单品' : '衣橱旧衣' }}</text>
-                <text v-if="item.isNew" class="item-price">¥{{ item.price.toFixed(2) }}</text>
+              <view class="item-grid">
+                <view v-for="item in plan.items" :key="item.id" class="item" @tap="itemDetail = item">
+                  <TileImage
+                    :src="item.imageUrl"
+                    :from="item.from"
+                    :to="item.to"
+                    :emoji="item.emoji"
+                    ratio="1 / 1"
+                    rounded="24rpx"
+                  />
+                  <text class="item-name">{{ item.name }}</text>
+                  <text class="item-tag">{{ item.isNew ? '新增单品' : '衣橱旧衣' }}</text>
+                  <text v-if="item.isNew" class="item-price">¥{{ item.price.toFixed(2) }}</text>
+                </view>
               </view>
-            </view>
 
-            <view v-if="plan.mode === 'mixed'" class="new-panel">
-              <text class="new-title">新品购买</text>
-              <view
-                v-for="item in plan.items.filter((piece) => piece.isNew)"
-                :key="item.id"
-                class="new-row"
-              >
-                <text class="new-name">{{ item.name }}</text>
-                <button
-                  v-if="item.taokouling"
-                  class="copy-button"
-                  @tap="copyTaokouling(item)"
-                >
-                  复制淘口令
-                </button>
+              <view v-if="plan.mode === 'mixed'" class="new-panel">
+                <text class="new-title">新品购买</text>
+                <view v-for="item in plan.items.filter((piece) => piece.isNew)" :key="item.id" class="new-row">
+                  <text class="new-name">{{ item.name }}</text>
+                  <button v-if="item.taokouling" class="copy-button" @tap="copyTaokouling(item)">复制淘口令</button>
+                </view>
               </view>
             </view>
           </view>
-        </view>
 
           <view class="difference-note">
             <text class="difference-title">旧衣与新衣差异</text>
@@ -752,9 +701,7 @@ function savePoster() {
             </text>
             <text class="detail-line">品类：{{ itemDetail.category }}</text>
             <text class="detail-line">适用季节：{{ itemDetail.season }}</text>
-            <text v-if="itemDetail.tags?.length" class="detail-line">
-              标签：{{ itemDetail.tags.join(' / ') }}
-            </text>
+            <text v-if="itemDetail.tags?.length" class="detail-line">标签：{{ itemDetail.tags.join(' / ') }}</text>
             <text v-if="itemDetail.isNew" class="detail-price">¥{{ itemDetail.price.toFixed(2) }}</text>
             <text v-else class="detail-line">旧衣不计入购买清单</text>
           </view>
@@ -773,18 +720,12 @@ function savePoster() {
     <view v-if="purchaseSummary" class="modal-mask" @tap="purchaseSummary = null">
       <view class="modal-sheet" @tap.stop>
         <text class="modal-title">已加入购物车</text>
-        <view
-          v-for="item in purchaseSummary.added"
-          :key="item.itemId"
-          class="purchase-row"
-        >
+        <view v-for="item in purchaseSummary.added" :key="item.itemId" class="purchase-row">
           <view class="purchase-info">
             <text class="purchase-name">{{ item.name }}</text>
             <text class="purchase-price">¥{{ item.price.toFixed(2) }}</text>
           </view>
-          <button class="copy-button" @tap="copyText(item.taokouling, '淘口令已复制')">
-            复制淘口令
-          </button>
+          <button class="copy-button" @tap="copyText(item.taokouling, '淘口令已复制')">复制淘口令</button>
         </view>
         <button class="btn btn-primary modal-close" @tap="purchaseSummary = null">完成</button>
       </view>
@@ -1471,5 +1412,4 @@ function savePoster() {
   line-height: 1.5;
   color: var(--text-3);
 }
-
 </style>

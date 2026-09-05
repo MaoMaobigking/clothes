@@ -34,9 +34,7 @@ watch(
  * 配上 3D emoji 就是整页最卡通的地方，缺图时一律走中性底 + 线性图标。
  */
 const isSwatch = computed(() => !props.option.emoji && !!props.option.color)
-const swatchStyle = computed(() =>
-  isSwatch.value ? { background: props.option.color } : {},
-)
+const swatchStyle = computed(() => (isSwatch.value ? { background: props.option.color } : {}))
 const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 </script>
 
@@ -47,17 +45,9 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
     全局的 .card 在这个组件里永远不生效）—— 功能上没坏，但很误导，
     css-audit 也会把它算成一处「.card 的重复定义」。
   -->
-  <view
-    class="opt-card"
-    :class="{ selected }"
-    @tap="emit('select', option.id)"
-  >
+  <view class="opt-card" :class="{ selected }" @tap="emit('select', option.id)">
     <!-- 优先真实小图预览，缺素材时回落到占位 -->
-    <view
-      class="preview"
-      :class="{ 'preview-plain': !isSwatch }"
-      :style="{ ...swatchStyle, height: previewHeight }"
-    >
+    <view class="preview" :class="{ 'preview-plain': !isSwatch }" :style="{ ...swatchStyle, height: previewHeight }">
       <uv-image
         v-if="option.img && !imgFailed"
         :src="option.img"
@@ -100,7 +90,10 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
    * 现在未选中本来就有边（uv-ui 的卡片都带边），选中只换颜色，同样不跳。
    */
   border: 2rpx solid var(--line);
-  transition: border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    opacity 0.15s ease;
   box-sizing: border-box;
 }
 /* 按压反馈用透明度，对齐 uv-ui 的 .uv-hover-class { opacity: 0.7 } */

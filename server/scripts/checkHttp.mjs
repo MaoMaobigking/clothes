@@ -26,7 +26,11 @@ async function req(path, { method = 'GET', token, body } = {}) {
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
   let data = null
-  try { data = await res.json() } catch { /* 空响应体 */ }
+  try {
+    data = await res.json()
+  } catch {
+    /* 空响应体 */
+  }
   return { status: res.status, data }
 }
 
@@ -49,22 +53,26 @@ check('伪造 token → 401', (await req('/garments', { token: 'forged.token.her
 console.log('\n【2】真隔离')
 const { data: la } = await req('/garments', { token: A.token })
 const { data: lb } = await req('/garments', { token: B.token })
-check('A/B 各自拿到衣橱', la.items.length > 0 && lb.items.length > 0,
-  `A=${la.items.length} B=${lb.items.length}`)
+check('A/B 各自拿到衣橱', la.items.length > 0 && lb.items.length > 0, `A=${la.items.length} B=${lb.items.length}`)
 const idsA = new Set(la.items.map((g) => g.id))
 check('两人衣物 id 零重叠', lb.items.filter((g) => idsA.has(g.id)).length === 0)
 
 const victim = lb.items[0].id
-check('A 删 B 的衣物 → 404（不是 403，防 id 枚举）',
-  (await req(`/garments/${victim}`, { method: 'DELETE', token: A.token })).status === 404)
-check('A 收藏 B 的衣物 → 404',
-  (await req(`/garments/${victim}/fav`, { method: 'POST', token: A.token })).status === 404)
+check(
+  'A 删 B 的衣物 → 404（不是 403，防 id 枚举）',
+  (await req(`/garments/${victim}`, { method: 'DELETE', token: A.token })).status === 404,
+)
+check(
+  'A 收藏 B 的衣物 → 404',
+  (await req(`/garments/${victim}/fav`, { method: 'POST', token: A.token })).status === 404,
+)
 const { data: lb2 } = await req('/garments', { token: B.token })
 check('B 衣橱条数未被改动', lb2.items.length === lb.items.length)
 
 console.log('\n【3】自己的操作正常 + 请求体里伪造 userId 无效')
 const { status: sc, data: created } = await req('/garments', {
-  method: 'POST', token: A.token,
+  method: 'POST',
+  token: A.token,
   // 故意在 body 里塞 B 的 userId，看服务端会不会认
   body: { name: '验收测试外套', userId: B.userId, user_id: B.userId },
 })
@@ -72,9 +80,14 @@ check('A 新增 → 201', sc === 201, `实际 ${sc}`)
 const { data: lb3 } = await req('/garments', { token: B.token })
 check('body 里伪造的 userId 没生效（没进 B 的衣橱）', lb3.items.length === lb.items.length)
 const { data: la2 } = await req('/garments', { token: A.token })
-check('进的是 A 的衣橱', la2.items.some((g) => g.id === created.item.id))
-check('A 删自己的 → 200',
-  (await req(`/garments/${created.item.id}`, { method: 'DELETE', token: A.token })).status === 200)
+check(
+  '进的是 A 的衣橱',
+  la2.items.some((g) => g.id === created.item.id),
+)
+check(
+  'A 删自己的 → 200',
+  (await req(`/garments/${created.item.id}`, { method: 'DELETE', token: A.token })).status === 200,
+)
 
 console.log(failed === 0 ? '\n🎉 HTTP 层全部通过\n' : `\n❌ ${failed} 项未通过\n`)
 process.exitCode = failed === 0 ? 0 : 1

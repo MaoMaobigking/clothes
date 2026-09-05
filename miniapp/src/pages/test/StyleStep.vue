@@ -5,9 +5,7 @@ import { useProfileStore } from '@/stores/profile'
 
 const store = useProfileStore()
 
-const subtitle = computed(
-  () => `至少选择 3 项，可多选（已选 ${store.profile.styles.length} 项）`,
-)
+const subtitle = computed(() => `至少选择 3 项，可多选（已选 ${store.profile.styles.length} 项）`)
 
 function orderOf(id: string) {
   const i = store.profile.styles.indexOf(id)

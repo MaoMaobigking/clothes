@@ -4,10 +4,7 @@ import { fetchMallProducts, type MallCategory, type MallProduct } from '@/api/ma
 import { isAuthError } from '@/api/http'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
-import {
-  mallProductToAccessoryContext,
-  setAccessoryPageContext,
-} from '@/utils/accessoryContext'
+import { mallProductToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 
 /*
  * 商城商品来自服务端 scene_catalog（规格 §4.4 §10.6），和功能四场景模拟
@@ -37,14 +34,10 @@ const isH5 = computed(() => {
   // #endif
 })
 
-const catLabel = computed(
-  () => categories.value.find((c) => c.key === activeCat.value)?.label ?? '商城',
-)
+const catLabel = computed(() => categories.value.find((c) => c.key === activeCat.value)?.label ?? '商城')
 
 const filtered = computed(() =>
-  activeCat.value
-    ? products.value.filter((p) => p.category === activeCat.value)
-    : products.value,
+  activeCat.value ? products.value.filter((p) => p.category === activeCat.value) : products.value,
 )
 
 const toast = ref('')
@@ -237,10 +230,12 @@ function goFreeMatch() {
     <!-- 吸底操作条（在 BottomNav 之上） -->
     <view class="actionbar">
       <view class="btn btn-ghost pill" @tap="buyAll">
-        <UiIcon name="cart" :size="32" tone="dark" /><text>一键加购</text>
+        <UiIcon name="cart" :size="32" tone="dark" />
+        <text>一键加购</text>
       </view>
       <view class="btn btn-primary pill" @tap="goFreeMatch">
-        <UiIcon name="sparkle" :size="32" tone="white" /><text>一键搭配</text>
+        <UiIcon name="sparkle" :size="32" tone="white" />
+        <text>一键搭配</text>
       </view>
     </view>
 

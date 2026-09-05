@@ -28,28 +28,13 @@ const emit = defineEmits<{
   <view class="footer">
     <!-- 圆点进度 -->
     <view class="dots">
-      <view
-        v-for="n in total"
-        :key="n"
-        class="dot"
-        :class="{ on: n === current, passed: n < current }"
-      />
+      <view v-for="n in total" :key="n" class="dot" :class="{ on: n === current, passed: n < current }" />
     </view>
 
     <view class="actions">
-      <view
-        v-if="showPrev && current > 1"
-        class="btn btn-ghost prev"
-        @tap="emit('prev')"
-      >
-        上一步
-      </view>
+      <view v-if="showPrev && current > 1" class="btn btn-ghost prev" @tap="emit('prev')">上一步</view>
 
-      <view
-        class="btn btn-primary next"
-        :class="{ 'btn-disabled': !canNext }"
-        @tap="canNext && emit('next')"
-      >
+      <view class="btn btn-primary next" :class="{ 'btn-disabled': !canNext }" @tap="canNext && emit('next')">
         {{ nextLabel }}
       </view>
 

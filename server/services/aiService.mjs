@@ -301,9 +301,7 @@ async function structuredOpenAI(system, prompt, jsonSchema) {
       { role: 'system', content: system },
       { role: 'user', content: userPrompt },
     ],
-    response_format: useJsonSchema
-      ? { type: 'json_schema', json_schema: jsonSchema }
-      : { type: 'json_object' },
+    response_format: useJsonSchema ? { type: 'json_schema', json_schema: jsonSchema } : { type: 'json_object' },
   }
   const r = await fetch(CHAT_COMPLETIONS_URL, {
     method: 'POST',
@@ -523,29 +521,34 @@ function buildRuleStyleReport(profile = {}) {
   ]
 
   const palettes = {
-    '休闲街头': ['#2f2f3a', '#b8c8d8', '#e8e2d0', '#d97757'],
-    '简约通勤': ['#3f4655', '#a9b6c9', '#e7e4da', '#8d7f6f'],
-    '法式浪漫': ['#f4c6d2', '#e0d0ee', '#f7efe2', '#9d7188'],
-    '韩系甜美': ['#ffd9e6', '#ffb3d1', '#f4e3ff', '#c9a7d8'],
-    '复古优雅': ['#d9b58f', '#6f4e3d', '#efe6d5', '#9b5b3f'],
-    '运动机能': ['#1f2933', '#6fc9b0', '#e8edf0', '#ff9e5e'],
+    休闲街头: ['#2f2f3a', '#b8c8d8', '#e8e2d0', '#d97757'],
+    简约通勤: ['#3f4655', '#a9b6c9', '#e7e4da', '#8d7f6f'],
+    法式浪漫: ['#f4c6d2', '#e0d0ee', '#f7efe2', '#9d7188'],
+    韩系甜美: ['#ffd9e6', '#ffb3d1', '#f4e3ff', '#c9a7d8'],
+    复古优雅: ['#d9b58f', '#6f4e3d', '#efe6d5', '#9b5b3f'],
+    运动机能: ['#1f2933', '#6fc9b0', '#e8edf0', '#ff9e5e'],
   }
   const palette = palettes[mainStyle] || palettes['简约通勤']
 
   const piecesByStyle = {
-    '休闲街头': ['白T恤', '牛仔外套', '直筒裤', '厚底板鞋'],
-    '简约通勤': ['衬衫', '西装裤', '针织开衫', '托特包'],
-    '法式浪漫': ['泡泡袖衬衫', '碎花半裙', '玛丽珍鞋', '珍珠耳饰'],
-    '韩系甜美': ['娃娃领上衣', '百褶裙', '针织开衫', '小方包'],
-    '复古优雅': ['格纹西装', '直筒牛仔裤', '乐福鞋', '丝巾'],
-    '运动机能': ['冲锋衣', '束脚裤', '机能鞋', '帆布包'],
+    休闲街头: ['白T恤', '牛仔外套', '直筒裤', '厚底板鞋'],
+    简约通勤: ['衬衫', '西装裤', '针织开衫', '托特包'],
+    法式浪漫: ['泡泡袖衬衫', '碎花半裙', '玛丽珍鞋', '珍珠耳饰'],
+    韩系甜美: ['娃娃领上衣', '百褶裙', '针织开衫', '小方包'],
+    复古优雅: ['格纹西装', '直筒牛仔裤', '乐福鞋', '丝巾'],
+    运动机能: ['冲锋衣', '束脚裤', '机能鞋', '帆布包'],
   }
   const pieces = piecesByStyle[mainStyle] || piecesByStyle['简约通勤']
   const scenes = ['日常通勤', '周末约会', '轻运动']
   const recommendations = scenes.map((scene, i) => ({
     title: `「${mainStyle}」${scene}方案`,
     scene,
-    pieces: [pieces[0], pieces[(i + 1) % pieces.length], pieces[(i + 2) % pieces.length], pieces[(i + 3) % pieces.length]],
+    pieces: [
+      pieces[0],
+      pieces[(i + 1) % pieces.length],
+      pieces[(i + 2) % pieces.length],
+      pieces[(i + 3) % pieces.length],
+    ],
     reason: `基于你选择的 ${styleLabels.slice(0, 3).join('、')} 风格和当前身体参数生成，适合作为${scene}参考。`,
   }))
 
@@ -624,9 +627,7 @@ export async function aiChat(messages, system) {
 /* ============ 底层 provider 适配 ============ */
 
 export async function aiComplete({ system, messages }) {
-  return API_STYLE === 'anthropic'
-    ? callAnthropic(system, messages)
-    : callOpenAI(system, messages)
+  return API_STYLE === 'anthropic' ? callAnthropic(system, messages) : callOpenAI(system, messages)
 }
 
 export async function callOpenAI(system, messages) {
@@ -662,7 +663,11 @@ export async function callAnthropic(system, messages) {
 /** 手写 JSON 提取 + Schema 校验 */
 export function parseJson(text, jsonSchema) {
   if (!text) throw new Error('模型返回为空')
-  let s = String(text).trim().replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim()
+  let s = String(text)
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/i, '')
+    .trim()
   const a = s.indexOf('{')
   const b = s.lastIndexOf('}')
   if (a === -1 || b === -1) throw new Error('模型没返回 JSON：' + s.slice(0, 200))
@@ -700,8 +705,10 @@ export { STYLE_REPORT_SCHEMA, SCENE_OUTFIT_SCHEMA }
  * @returns {Promise<string>} 完整回复文本
  */
 export async function aiChatStream(messages, system, onChunk, signal) {
-  const sys = system || '你是「灵犀」——一个亲切专业的中文穿搭顾问。回答简洁口语化，多给具体、可执行的单品和搭配建议，必要时分点。不要超过 200 字。'
-  
+  const sys =
+    system ||
+    '你是「灵犀」——一个亲切专业的中文穿搭顾问。回答简洁口语化，多给具体、可执行的单品和搭配建议，必要时分点。不要超过 200 字。'
+
   if (API_STYLE === 'anthropic') {
     return streamAnthropic(sys, messages, onChunk, signal)
   }
@@ -722,11 +729,11 @@ async function streamOpenAI(system, messages, onChunk, signal) {
     signal,
   })
   if (!r.ok) throw new Error(`OpenAI 流式接口 ${r.status}: ${await r.text()}`)
-  
+
   const reader = r.body.getReader()
   const decoder = new TextDecoder()
   let fullText = ''
-  
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -742,7 +749,9 @@ async function streamOpenAI(system, messages, onChunk, signal) {
           fullText += delta
           onChunk(delta)
         }
-      } catch { /* 忽略解析错误的行 */ }
+      } catch {
+        /* 忽略解析错误的行 */
+      }
     }
   }
   return fullText
@@ -767,11 +776,11 @@ async function streamAnthropic(system, messages, onChunk, signal) {
     signal,
   })
   if (!r.ok) throw new Error(`Anthropic 流式接口 ${r.status}: ${await r.text()}`)
-  
+
   const reader = r.body.getReader()
   const decoder = new TextDecoder()
   let fullText = ''
-  
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -785,7 +794,9 @@ async function streamAnthropic(system, messages, onChunk, signal) {
           fullText += json.delta.text
           onChunk(json.delta.text)
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }
   return fullText
@@ -806,7 +817,10 @@ export const TOOLS = [
         type: 'object',
         properties: {
           query: { type: 'string', description: '搜索关键词（可选，如"白色衬衫"）' },
-          category: { type: 'string', enum: ['top','pants','skirt','dress','shoes','bag','hat','jewelry','accessory'] },
+          category: {
+            type: 'string',
+            enum: ['top', 'pants', 'skirt', 'dress', 'shoes', 'bag', 'hat', 'jewelry', 'accessory'],
+          },
           color: { type: 'string', description: '颜色偏好（可选）' },
         },
       },
@@ -851,25 +865,31 @@ export async function executeTool(name, args, context = {}) {
     case 'search_garments': {
       const { query = '', category, color } = args
       let items = context.garments || []
-      if (category) items = items.filter(g => g.category === category)
+      if (category) items = items.filter((g) => g.category === category)
       if (query) {
         const q = query.toLowerCase()
-        items = items.filter(g => g.name.toLowerCase().includes(q) || (g.tags || []).some(t => t.toLowerCase().includes(q)))
+        items = items.filter(
+          (g) => g.name.toLowerCase().includes(q) || (g.tags || []).some((t) => t.toLowerCase().includes(q)),
+        )
       }
-      if (color) items = items.filter(g => (g.color || '').includes(color))
+      if (color) items = items.filter((g) => (g.color || '').includes(color))
       if (items.length === 0) return '衣橱中没有找到匹配的衣物。'
-      return '衣橱中找到以下衣物：\n' + items.slice(0, 8).map(g =>
-        `- ${g.emoji || '👕'} ${g.name}（${g.category}，${g.brand || ''}，¥${g.price}）`
-      ).join('\n')
+      return (
+        '衣橱中找到以下衣物：\n' +
+        items
+          .slice(0, 8)
+          .map((g) => `- ${g.emoji || '👕'} ${g.name}（${g.category}，${g.brand || ''}，¥${g.price}）`)
+          .join('\n')
+      )
     }
     case 'get_weather': {
       const { city } = args
       // Mock 天气数据（生产环境接入真实天气 API）
       const mockWeather = {
-        '北京': { temp: 25, condition: '晴', icon: '☀️' },
-        '上海': { temp: 28, condition: '多云', icon: '⛅' },
-        '重庆': { temp: 23, condition: '暴雨', icon: '🌧️' },
-        '广州': { temp: 30, condition: '雷阵雨', icon: '⛈️' },
+        北京: { temp: 25, condition: '晴', icon: '☀️' },
+        上海: { temp: 28, condition: '多云', icon: '⛅' },
+        重庆: { temp: 23, condition: '暴雨', icon: '🌧️' },
+        广州: { temp: 30, condition: '雷阵雨', icon: '⛈️' },
       }
       const w = mockWeather[city] || { temp: 22, condition: '多云', icon: '☁️' }
       return `${city}天气：${w.icon} ${w.condition}，气温 ${w.temp}°C`
@@ -886,12 +906,12 @@ export async function executeTool(name, args, context = {}) {
 
 /**
  * 手写 tool-calling 循环
- * 
+ *
  * 流程：
  * 1. 用户消息 + tools 定义 → 调模型
  * 2. 模型返回 tool_calls? → 执行工具 → 结果喂回模型
  * 3. 模型返回 text? → 流式输出给用户 → 结束
- * 
+ *
  * @param {string[]} messages - [{role, content}]
  * @param {function} onChunk - 流式回调
  * @param {object} context - 工具执行上下文 { garments, profile }
@@ -899,17 +919,15 @@ export async function executeTool(name, args, context = {}) {
  * @returns {Promise<string>} 完整回复文本
  */
 export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
-  const system = '你是「灵犀」——一个亲切专业的中文穿搭顾问。你可以使用工具来查询用户的衣橱、天气和画像信息，从而给出更精准的建议。'
-  
+  const system =
+    '你是「灵犀」——一个亲切专业的中文穿搭顾问。你可以使用工具来查询用户的衣橱、天气和画像信息，从而给出更精准的建议。'
+
   // 最多循环 5 轮（防止无限循环）
   for (let round = 0; round < 5; round++) {
     const body = {
       model: MODEL,
       temperature: 0.8,
-      messages: [
-        { role: 'system', content: system },
-        ...messages.map(normalizeOpenAiMessage),
-      ],
+      messages: [{ role: 'system', content: system }, ...messages.map(normalizeOpenAiMessage)],
       tools: TOOLS,
       tool_choice: 'auto',
     }
@@ -934,7 +952,11 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
       for (const tc of msg.tool_calls) {
         const toolName = tc.function.name
         let args = {}
-        try { args = JSON.parse(tc.function.arguments) } catch { /* ignore */ }
+        try {
+          args = JSON.parse(tc.function.arguments)
+        } catch {
+          /* ignore */
+        }
         const result = await executeTool(toolName, args, context)
         messages.push({
           role: 'tool',
@@ -951,14 +973,12 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
     if (onChunk) onChunk(content)
     return content
   }
-  
+
   throw new Error('工具调用超出最大轮次')
 }
 
 function normalizeOpenAiMessage(message) {
-  const role = ['system', 'user', 'assistant', 'tool'].includes(message?.role)
-    ? message.role
-    : 'user'
+  const role = ['system', 'user', 'assistant', 'tool'].includes(message?.role) ? message.role : 'user'
   const normalized = {
     role,
     content: String(message?.content ?? ''),

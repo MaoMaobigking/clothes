@@ -72,10 +72,7 @@ export async function listRecent(userId, limit = 30) {
 }
 
 export async function findByDate(userId, date) {
-  const row = await getOne(
-    `${DIARY_SELECT} WHERE d.user_id = ? AND d.wear_date = ?`,
-    [userId, date],
-  )
+  const row = await getOne(`${DIARY_SELECT} WHERE d.user_id = ? AND d.wear_date = ?`, [userId, date])
   return mapRow(row)
 }
 
@@ -99,9 +96,6 @@ export async function upsert(userId, date, { outfitId, note, weather, mood }) {
 }
 
 export async function removeByDate(userId, date) {
-  const result = await execute(
-    'DELETE FROM outfit_diary WHERE user_id = ? AND wear_date = ?',
-    [userId, date],
-  )
+  const result = await execute('DELETE FROM outfit_diary WHERE user_id = ? AND wear_date = ?', [userId, date])
   return result.affectedRows > 0
 }

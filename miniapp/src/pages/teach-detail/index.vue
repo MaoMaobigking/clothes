@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import {
-  completeCommunityTutorial,
-  fetchCommunityContent,
-  type CommunityContent,
-} from '@/api/community'
+import { completeCommunityTutorial, fetchCommunityContent, type CommunityContent } from '@/api/community'
 import { isAuthError } from '@/api/http'
 
 const contentId = ref('')
@@ -91,9 +87,7 @@ async function finishTutorial() {
           object-fit="contain"
           show-center-play-btn
         />
-        <view v-if="!content.body.videoUrl" class="video-note">
-          真实视频素材待人工放入
-        </view>
+        <view v-if="!content.body.videoUrl" class="video-note">真实视频素材待人工放入</view>
       </view>
 
       <view class="header">
@@ -126,11 +120,7 @@ async function finishTutorial() {
           </view>
           <view class="finish-sub">完成后获得 10 积分</view>
         </view>
-        <view
-          class="finish-button"
-          :class="{ done: content.completed }"
-          @tap="finishTutorial"
-        >
+        <view class="finish-button" :class="{ done: content.completed }" @tap="finishTutorial">
           {{ content.completed ? '已完成' : '完成学习' }}
         </view>
       </view>

@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import {
-  fetchAdminDashboard,
-  type AdminDashboard,
-} from '@/api/community'
+import { fetchAdminDashboard, type AdminDashboard } from '@/api/community'
 import { isAuthError } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
 
@@ -35,11 +32,10 @@ const MIX_META: Record<string, { name: string; color: string }> = {
 }
 
 /** 柱状图右上角那个总数。放 computed 而不是模板里写 reduce，模板表达式只放取值 */
-const activeTotal = computed(() =>
-  (dashboard.value?.metrics?.activeDaily || []).reduce((sum, d) => sum + d.count, 0),
-)
+const activeTotal = computed(() => (dashboard.value?.metrics?.activeDaily || []).reduce((sum, d) => sum + d.count, 0))
 
-const activeOption = computed(() => {  const daily = dashboard.value?.metrics?.activeDaily || []
+const activeOption = computed(() => {
+  const daily = dashboard.value?.metrics?.activeDaily || []
   if (!daily.length) return null
   return {
     animation: false,
@@ -179,13 +175,7 @@ function logout() {
           <UiIcon class="login-emoji" name="lock" :size="88" tone="purple" :stroke-width="1.4" />
           <view class="login-title">轻量管理员入口</view>
           <view class="login-sub">统计数据来自当前数据库真实记录</view>
-          <input
-            v-model="password"
-            class="password-input"
-            password
-            maxlength="64"
-            placeholder="请输入管理员密码"
-          />
+          <input v-model="password" class="password-input" password maxlength="64" placeholder="请输入管理员密码" />
           <text v-if="errorText" class="error">{{ errorText }}</text>
           <view class="login-button" @tap="login">
             {{ logging ? '验证中...' : '进入看板' }}
@@ -236,9 +226,7 @@ function logout() {
         <view class="chart-card">
           <view class="chart-head">
             <text class="section-title">近 {{ dashboard.metrics.activeDays }} 日活跃用户</text>
-            <text class="chart-badge">
-              {{ activeTotal }} 人次
-            </text>
+            <text class="chart-badge">{{ activeTotal }} 人次</text>
           </view>
           <MetricChart :option="activeOption" :height="380" />
           <text class="chart-note">
@@ -253,9 +241,7 @@ function logout() {
             <text class="chart-badge">{{ dashboard.stats.likeCount + dashboard.stats.favoriteCount }} 次正向</text>
           </view>
           <MetricChart :option="mixOption" :height="380" />
-          <text class="chart-note">
-            口径：community_interactions 按 type 分组计数。数量为 0 的类型不画进环里。
-          </text>
+          <text class="chart-note">口径：community_interactions 按 type 分组计数。数量为 0 的类型不画进环里。</text>
         </view>
 
         <view class="chart-card">
@@ -266,26 +252,30 @@ function logout() {
             </text>
           </view>
           <MetricChart :option="vipOption" :height="330" />
-          <text class="chart-note">
-            口径：users 表里 membership_level ≠ standard 的用户占全部用户的比例。
-          </text>
+          <text class="chart-note">口径：users 表里 membership_level ≠ standard 的用户占全部用户的比例。</text>
         </view>
 
         <view class="breakdown">
-          <view class="section-title">内容构成</view>          <view class="row">
-            <text>杂志</text><text>{{ dashboard.stats.magazineCount }}</text>
+          <view class="section-title">内容构成</view>
+          <view class="row">
+            <text>杂志</text>
+            <text>{{ dashboard.stats.magazineCount }}</text>
           </view>
           <view class="row">
-            <text>教程</text><text>{{ dashboard.stats.tutorialCount }}</text>
+            <text>教程</text>
+            <text>{{ dashboard.stats.tutorialCount }}</text>
           </view>
           <view class="row">
-            <text>用户分享</text><text>{{ dashboard.stats.shareCount }}</text>
+            <text>用户分享</text>
+            <text>{{ dashboard.stats.shareCount }}</text>
           </view>
           <view class="row">
-            <text>话题挑战</text><text>{{ dashboard.stats.challengeCount }}</text>
+            <text>话题挑战</text>
+            <text>{{ dashboard.stats.challengeCount }}</text>
           </view>
           <view class="row">
-            <text>举报</text><text>{{ dashboard.stats.reportCount }}</text>
+            <text>举报</text>
+            <text>{{ dashboard.stats.reportCount }}</text>
           </view>
         </view>
 

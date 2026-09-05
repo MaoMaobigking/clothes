@@ -73,7 +73,10 @@ const updated = await req(`/garments/${target.id}`, {
   },
 })
 check('标签修改成功', updated.status === 200, updated.status)
-check('修改后的颜色/季节/场合返回前端', updated.data?.item?.primaryColor === '#4f5668' && updated.data?.item?.seasons?.length === 2)
+check(
+  '修改后的颜色/季节/场合返回前端',
+  updated.data?.item?.primaryColor === '#4f5668' && updated.data?.item?.seasons?.length === 2,
+)
 const frequent = await req(`/garments/${target.id}/frequently-worn`, { method: 'POST', token: a.token })
 check('常穿状态切换成功', frequent.status === 200 && frequent.data?.item?.frequentlyWorn === true)
 const reversedIds = [...listA.map((item) => item.id)].reverse()
@@ -88,7 +91,9 @@ const firstOutfit = generated.data?.batch?.outfits?.[0]
 check('搭配包含真实衣橱单品', firstOutfit?.items?.length > 0)
 check('算法说明包含真实参与数量', firstOutfit?.algorithm?.garmentCount === listA.length)
 const firstItem = firstOutfit?.items?.[0]
-const replacementCandidates = listA.filter((item) => item.category === firstItem?.garment?.category && item.id !== firstItem.garment.id)
+const replacementCandidates = listA.filter(
+  (item) => item.category === firstItem?.garment?.category && item.id !== firstItem.garment.id,
+)
 const replacement = replacementCandidates[0]
 if (firstItem && replacement) {
   const replaced = await req(`/wardrobe/outfits/${firstOutfit.id}/replace`, {
@@ -96,7 +101,10 @@ if (firstItem && replacement) {
     token: a.token,
     body: { oldGarmentId: firstItem.garment.id, newGarmentId: replacement.id },
   })
-  check('替换单品后方案立即更新', replaced.status === 200 && replaced.data?.item?.items?.[0]?.garment?.id === replacement.id)
+  check(
+    '替换单品后方案立即更新',
+    replaced.status === 200 && replaced.data?.item?.items?.[0]?.garment?.id === replacement.id,
+  )
 } else {
   check('替换单品候选存在（当前衣橱足够）', false)
 }

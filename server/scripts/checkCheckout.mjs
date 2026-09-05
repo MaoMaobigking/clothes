@@ -45,23 +45,11 @@ try {
 
   console.log('\n【1】优惠券试算（纯函数，不碰库）')
   // 满 199 减 30：198 元不满门槛
-  check(
-    '满减券不满门槛时不减',
-    orderService.calcDiscount(19800, 'full199_30').discount === 0,
-  )
-  check(
-    '满减券刚好到门槛就能用',
-    orderService.calcDiscount(19900, 'full199_30').discount === 3000,
-  )
+  check('满减券不满门槛时不减', orderService.calcDiscount(19800, 'full199_30').discount === 0)
+  check('满减券刚好到门槛就能用', orderService.calcDiscount(19900, 'full199_30').discount === 3000)
   // 8.8 折封顶 50：1000 元订单本该减 120，封顶后只减 50
-  check(
-    '折扣券按封顶值截断',
-    orderService.calcDiscount(100000, 'discount88').discount === 5000,
-  )
-  check(
-    '折扣券未到封顶时按比例算',
-    orderService.calcDiscount(10000, 'discount88').discount === 1200,
-  )
+  check('折扣券按封顶值截断', orderService.calcDiscount(100000, 'discount88').discount === 5000)
+  check('折扣券未到封顶时按比例算', orderService.calcDiscount(10000, 'discount88').discount === 1200)
   // 无门槛 10 元券碰上 3 块钱的订单，实付不能是负数
   const tiny = orderService.calcDiscount(300, 'nofloor10')
   check('减免不超过订单金额', tiny.discount === 300 && tiny.payAmount === 0)
@@ -90,25 +78,26 @@ try {
   const addrList = await orderService.listAddresses(a.userId)
   check(
     '设为默认后旧的默认被清掉，默认地址只有一条',
-    addrList.filter((item) => item.isDefault).length === 1 &&
-      addrList[0].id === addr2.id,
+    addrList.filter((item) => item.isDefault).length === 1 && addrList[0].id === addr2.id,
   )
   await expectStatus(
     '手机号格式不对被拒',
-    () => orderService.createAddress(a.userId, {
-      receiver: '王五',
-      phone: '12345',
-      detail: '上海市浦东新区某某路 9 号',
-    }),
+    () =>
+      orderService.createAddress(a.userId, {
+        receiver: '王五',
+        phone: '12345',
+        detail: '上海市浦东新区某某路 9 号',
+      }),
     400,
   )
   await expectStatus(
     '改别人的地址 404',
-    () => orderService.updateAddress(b.userId, addr1.id, {
-      receiver: '赵六',
-      phone: '13700003333',
-      detail: '广州市天河区某某路 3 号',
-    }),
+    () =>
+      orderService.updateAddress(b.userId, addr1.id, {
+        receiver: '赵六',
+        phone: '13700003333',
+        detail: '广州市天河区某某路 3 号',
+      }),
     404,
   )
 
@@ -119,12 +108,12 @@ try {
   await cartService.addItem(a.userId, { itemType: 'catalog', itemId: catalog.id })
   const preview = await orderService.getCheckoutPreview(a.userId)
   const expected =
-    preview.items.reduce(
-      (sum, item) => sum + Math.round(Number(item.price || 0) * 100) * item.quantity,
-      0,
-    ) / 100
-  check('预览合计 = 单价×数量之和', Math.abs(preview.goodsAmount - expected) < 0.001,
-    `${preview.goodsAmount} vs ${expected}`)
+    preview.items.reduce((sum, item) => sum + Math.round(Number(item.price || 0) * 100) * item.quantity, 0) / 100
+  check(
+    '预览合计 = 单价×数量之和',
+    Math.abs(preview.goodsAmount - expected) < 0.001,
+    `${preview.goodsAmount} vs ${expected}`,
+  )
   check('券列表带上了三张演示券', preview.coupons.length === 3)
 
   console.log('\n【4】下单落库 + 清空购物车')
@@ -145,41 +134,21 @@ try {
   check('订单行数量对得上', itemRows.length === preview.items.length)
   const cartAfter = await cartService.listCart(a.userId)
   check('下单后购物车被清空', cartAfter.items.length === 0)
-  await expectStatus(
-    '空车再下单被拒',
-    () => orderService.createOrder(a.userId, { addressId: addr2.id }),
-    400,
-  )
+  await expectStatus('空车再下单被拒', () => orderService.createOrder(a.userId, { addressId: addr2.id }), 400)
 
   console.log('\n【5】状态推进')
   const paid = await orderService.advanceOrder(a.userId, order.id, 'next')
   check('created → paid', paid.status === 'paid' && paid.stepIndex === 1)
-  await expectStatus(
-    '已付款不能再取消',
-    () => orderService.advanceOrder(a.userId, order.id, 'cancel'),
-    400,
-  )
+  await expectStatus('已付款不能再取消', () => orderService.advanceOrder(a.userId, order.id, 'cancel'), 400)
   await orderService.advanceOrder(a.userId, order.id, 'next')
   const done = await orderService.advanceOrder(a.userId, order.id, 'next')
   check('推到 done', done.status === 'done' && done.stepIndex === 3)
-  await expectStatus(
-    '已完成不能再往前推',
-    () => orderService.advanceOrder(a.userId, order.id, 'next'),
-    400,
-  )
-  await expectStatus(
-    '未知 action 被拒',
-    () => orderService.advanceOrder(a.userId, order.id, 'refund'),
-    400,
-  )
+  await expectStatus('已完成不能再往前推', () => orderService.advanceOrder(a.userId, order.id, 'next'), 400)
+  await expectStatus('未知 action 被拒', () => orderService.advanceOrder(a.userId, order.id, 'refund'), 400)
 
   console.log('\n【6】跨用户隔离')
   await expectStatus('读别人的订单 404', () => orderService.getOrder(b.userId, order.id), 404)
-  await expectStatus(
-    '推别人的订单 404',
-    () => orderService.advanceOrder(b.userId, order.id, 'next'),
-    404,
-  )
+  await expectStatus('推别人的订单 404', () => orderService.advanceOrder(b.userId, order.id, 'next'), 404)
   const bOrders = await orderService.listOrders(b.userId)
   check('别人的订单列表里看不到这单', !bOrders.some((item) => item.id === order.id))
 

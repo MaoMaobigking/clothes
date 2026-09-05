@@ -31,26 +31,13 @@ export interface BodyField {
   default: number
 }
 
-export type BodyMetricKey =
-  | 'height'
-  | 'weight'
-  | 'bust'
-  | 'waist'
-  | 'hip'
-  | 'shoulder'
-  | 'thigh'
-  | 'calf'
+export type BodyMetricKey = 'height' | 'weight' | 'bust' | 'waist' | 'hip' | 'shoulder' | 'thigh' | 'calf'
 
 /** 虚拟形象性别 */
 export type Gender = 'female' | 'male'
 
 /** 视觉体型选项 */
-export type VisualBodyId =
-  | 'hourglass'
-  | 'pear'
-  | 'rectangle'
-  | 'apple'
-  | 'inverted-triangle'
+export type VisualBodyId = 'hourglass' | 'pear' | 'rectangle' | 'apple' | 'inverted-triangle'
 
 /** 发型 key，先留接口，后续可扩展成图片资源 id */
 export type HairStyleId = 'straight' | 'curly' | 'bun' | 'short'

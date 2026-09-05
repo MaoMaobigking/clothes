@@ -1,10 +1,6 @@
 import { request } from './http'
 
-export type CommunityContentType =
-  | 'magazine'
-  | 'tutorial'
-  | 'share'
-  | 'challenge'
+export type CommunityContentType = 'magazine' | 'tutorial' | 'share' | 'challenge'
 
 export interface CommunitySection {
   heading: string
@@ -152,10 +148,7 @@ export async function toggleCommunityInteraction(
   })
 }
 
-export async function addCommunityComment(
-  id: string,
-  content: string,
-): Promise<CommunityComment> {
+export async function addCommunityComment(id: string, content: string): Promise<CommunityComment> {
   const data = await request<{ comment: CommunityComment }>({
     url: `/api/community/contents/${encodeURIComponent(id)}/comments`,
     method: 'POST',
@@ -164,10 +157,7 @@ export async function addCommunityComment(
   return data.comment
 }
 
-export async function bookmarkCommunityContent(
-  id: string,
-  note = '',
-): Promise<{ active: boolean; note: string }> {
+export async function bookmarkCommunityContent(id: string, note = ''): Promise<{ active: boolean; note: string }> {
   return request({
     url: `/api/community/contents/${encodeURIComponent(id)}/bookmark`,
     method: 'POST',

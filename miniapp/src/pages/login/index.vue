@@ -143,13 +143,7 @@ onMounted(() => {
       <!-- 账号密码 -->
       <view class="card">
         <text class="card-title">账号密码登录</text>
-        <input
-          v-model="account"
-          class="field"
-          maxlength="64"
-          placeholder="账号"
-          placeholder-class="field-ph"
-        />
+        <input v-model="account" class="field" maxlength="64" placeholder="账号" placeholder-class="field-ph" />
         <input
           v-model="password"
           class="field"

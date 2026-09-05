@@ -110,7 +110,9 @@ function onSwiperChange(e: { detail: { current: number } }) {
   background: var(--surface);
   border: var(--hairline);
   font-size: 40rpx;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 /* 当前步：主色实底。uv-ui 的激活态一律是主色纯底，不是渐变、不放大 */
 .step.active .dot {

@@ -82,8 +82,14 @@ const modelFailed = ref(false)
 
 /** 场景底图缺素材时的占位图标（backgroundEmoji 里还存着 emoji，查表转成线条图标） */
 const bgIcon = computed(() => iconForEmoji(props.backgroundEmoji) ?? 'image')
-watch(() => props.background, () => (bgFailed.value = false))
-watch(() => props.model, () => (modelFailed.value = false))
+watch(
+  () => props.background,
+  () => (bgFailed.value = false),
+)
+watch(
+  () => props.model,
+  () => (modelFailed.value = false),
+)
 </script>
 
 <template>
@@ -107,27 +113,11 @@ watch(() => props.model, () => (modelFailed.value = false))
       结果是既不显示人台也不显示占位，中间空一块什么都没有。
       调用方需要「先不要人台」时就传 model=""（见 pages/scene 的 SHOW_MODEL）。
     -->
-    <image
-      v-if="model && !modelFailed"
-      class="model"
-      :src="model"
-      mode="aspectFit"
-      @error="modelFailed = true"
-    />
+    <image v-if="model && !modelFailed" class="model" :src="model" mode="aspectFit" @error="modelFailed = true" />
     <UiIcon v-else name="me" :size="120" tone="muted" :stroke-width="1.2" class="model-fallback" />
 
-    <view
-      v-for="overlay in overlays"
-      :key="overlay.id"
-      class="overlay"
-      :style="overlay.style"
-    >
-      <image
-        v-if="overlay.img"
-        :src="overlay.img"
-        mode="aspectFill"
-        class="overlay-img"
-      />
+    <view v-for="overlay in overlays" :key="overlay.id" class="overlay" :style="overlay.style">
+      <image v-if="overlay.img" :src="overlay.img" mode="aspectFill" class="overlay-img" />
       <view v-else class="overlay-img placeholder">
         <UiIcon :name="iconForEmoji(overlay.emoji) ?? 'image'" :size="40" tone="muted" :stroke-width="1.4" />
       </view>

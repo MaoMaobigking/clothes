@@ -59,11 +59,7 @@ async function send(text?: string) {
   <view class="page">
     <PageHeader title="AI 穿搭顾问" to="/pages/home/home" sub="灵犀 · 你的私人穿搭助手" />
 
-    <scroll-view
-      scroll-y
-      :scroll-top="scrollTop"
-      class="chat hide-scrollbar"
-    >
+    <scroll-view scroll-y :scroll-top="scrollTop" class="chat hide-scrollbar">
       <view v-for="m in messages" :key="m.id" class="row" :class="m.role">
         <UiIcon v-if="m.role === 'assistant'" class="avatar" name="robot" :size="40" tone="purple" />
         <view class="bubble">{{ m.content }}</view>
@@ -71,7 +67,9 @@ async function send(text?: string) {
       <view v-if="loading" class="row assistant">
         <UiIcon class="avatar" name="robot" :size="40" tone="purple" />
         <view class="bubble typing">
-          <text></text><text></text><text></text>
+          <text></text>
+          <text></text>
+          <text></text>
         </view>
       </view>
     </scroll-view>
@@ -83,20 +81,8 @@ async function send(text?: string) {
 
     <!-- 输入栏 -->
     <view class="composer">
-      <input
-        v-model="input"
-        class="input"
-        placeholder="问问今天穿什么…"
-        :disabled="loading"
-        @confirm="send()"
-      />
-      <view
-        class="send btn btn-primary"
-        :class="{ 'btn-disabled': loading || !input.trim() }"
-        @tap="send()"
-      >
-        发送
-      </view>
+      <input v-model="input" class="input" placeholder="问问今天穿什么…" :disabled="loading" @confirm="send()" />
+      <view class="send btn btn-primary" :class="{ 'btn-disabled': loading || !input.trim() }" @tap="send()">发送</view>
     </view>
   </view>
 </template>

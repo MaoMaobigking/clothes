@@ -10,9 +10,7 @@ const filter = ref('all')
 const generating = ref(false)
 
 const filtered = computed(() =>
-  filter.value === 'all'
-    ? wardrobe.items
-    : wardrobe.items.filter((item) => item.category === filter.value),
+  filter.value === 'all' ? wardrobe.items : wardrobe.items.filter((item) => item.category === filter.value),
 )
 
 onMounted(() => wardrobe.load())
@@ -64,9 +62,7 @@ async function generate() {
     </view>
 
     <scroll-view scroll-x class="filters hide-scrollbar">
-      <view class="filter" :class="{ on: filter === 'all' }" @tap="filter = 'all'">
-        全部
-      </view>
+      <view class="filter" :class="{ on: filter === 'all' }" @tap="filter = 'all'">全部</view>
       <view
         v-for="category in WARDROBE_CATEGORIES"
         :key="category.key"
@@ -111,21 +107,12 @@ async function generate() {
     <view class="footer">
       <view class="selected-list">
         <scroll-view scroll-x class="selected-scroll">
-          <view
-            v-for="id in selectedIds"
-            :key="id"
-            class="selected-chip"
-            @tap="toggle(id)"
-          >
+          <view v-for="id in selectedIds" :key="id" class="selected-chip" @tap="toggle(id)">
             {{ wardrobe.items.find((item) => item.id === id)?.name || id }} ×
           </view>
         </scroll-view>
       </view>
-      <view
-        class="btn btn-primary generate"
-        :class="{ 'btn-disabled': selectedIds.length < 2 }"
-        @tap="generate"
-      >
+      <view class="btn btn-primary generate" :class="{ 'btn-disabled': selectedIds.length < 2 }" @tap="generate">
         {{ generating ? '生成中…' : '生成 3 套搭配' }}
       </view>
     </view>

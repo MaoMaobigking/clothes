@@ -117,12 +117,7 @@ async function submit() {
 
     <view class="body scroll-y hide-scrollbar">
       <view class="photo-box" @tap="choosePhoto">
-        <image
-          v-if="imageDataUrl"
-          class="photo"
-          :src="imageDataUrl"
-          mode="aspectFill"
-        />
+        <image v-if="imageDataUrl" class="photo" :src="imageDataUrl" mode="aspectFill" />
         <view v-else class="photo-placeholder">
           <UiIcon class="photo-emoji" name="camera" :size="64" tone="muted" :stroke-width="1.3" />
           <text class="photo-text">拍照或从相册选择</text>
@@ -143,12 +138,7 @@ async function submit() {
 
       <view class="field">
         <view class="label">分享文案</view>
-        <textarea
-          v-model="caption"
-          class="textarea"
-          maxlength="160"
-          placeholder="这套穿搭的思路、颜色或比例亮点..."
-        />
+        <textarea v-model="caption" class="textarea" maxlength="160" placeholder="这套穿搭的思路、颜色或比例亮点..." />
         <view class="counter">{{ caption.length }}/160</view>
       </view>
 
@@ -164,12 +154,7 @@ async function submit() {
 
       <view class="field">
         <view class="label">话题标签</view>
-        <input
-          v-model="topicsText"
-          class="input"
-          maxlength="120"
-          placeholder="#通勤穿搭 #旧衣改造，用逗号或空格分隔"
-        />
+        <input v-model="topicsText" class="input" maxlength="120" placeholder="#通勤穿搭 #旧衣改造，用逗号或空格分隔" />
         <view class="hint">最多添加 5 个话题</view>
       </view>
 

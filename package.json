@@ -11,13 +11,52 @@
     "admin:dev": "npm --prefix admin run dev",
     "dev:all": "concurrently -n h5,api -c cyan,magenta \"npm --prefix miniapp run dev:h5\" \"npm run dev -w ai-fashion-server\"",
     "mp:build:cloud": "npm run mp:build && node scripts/pack-mp.mjs",
-    "pack:cloudrun": "node deploy/pack-cloudrun.mjs"
+    "pack:cloudrun": "node deploy/pack-cloudrun.mjs",
+    "lint": "eslint .",
+    "fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,mjs,cjs,ts,vue,json,md}\"",
+    "lint:eslint": "eslint \"{miniapp,admin,server,scripts,deploy}/**/*.{ts,js,mjs,vue}\" --cache --fix",
+    "lint:style": "stylelint \"miniapp/src/**/*.{css,scss,vue}\" --cache --fix",
+    "check:types": "npm --prefix miniapp run check:types",
+    "commitlint": "commitlint --config commitlint.config.cjs -e -V",
+    "prepare": "husky"
   },
   "workspaces": [
     "server"
   ],
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "miniapp/src/**/*.{css,scss,vue}": [
+      "stylelint --fix"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@eslint/js": "^10.0.1",
     "concurrently": "^9.1.2",
-    "playwright": "^1.61.1"
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-vue": "^10.10.0",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.7.0",
+    "lint-staged": "^16.4.0",
+    "playwright": "^1.61.1",
+    "postcss-html": "^2.0.0",
+    "postcss-scss": "^4.0.9",
+    "prettier": "^3.9.6",
+    "stylelint": "^17.15.0",
+    "stylelint-config-recess-order": "^7.8.0",
+    "stylelint-config-recommended-vue": "^2.0.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "typescript-eslint": "^8.69.0"
   }
 }

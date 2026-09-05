@@ -346,9 +346,7 @@ async function upsertContent(content, userIds) {
   const values = [
     content.id,
     content.type,
-    content.authorUserId
-      ? userIds.get(content.authorUserId) || null
-      : null,
+    content.authorUserId ? userIds.get(content.authorUserId) || null : null,
     content.authorName,
     content.authorAvatar,
     content.title,
@@ -429,9 +427,6 @@ export async function seedCommunityIfNeeded() {
     await upsertComment(comment, userIds)
   }
 
-  const count = await getOne(
-    'SELECT COUNT(*) AS n FROM community_contents WHERE status = ?',
-    ['published'],
-  )
+  const count = await getOne('SELECT COUNT(*) AS n FROM community_contents WHERE status = ?', ['published'])
   return Number(count?.n || 0)
 }

@@ -80,9 +80,7 @@ const LABELS = {
  * MINIAPP_STATIC_DIR 覆盖，或者干脆把素材拷进 server/uploads。
  */
 const UPLOAD_ROOT = resolve(here, '..', 'uploads')
-const STATIC_ROOT = resolve(
-  process.env.MINIAPP_STATIC_DIR || join(here, '..', '..', 'miniapp', 'src', 'static'),
-)
+const STATIC_ROOT = resolve(process.env.MINIAPP_STATIC_DIR || join(here, '..', '..', 'miniapp', 'src', 'static'))
 
 /** 单张图上限。百炼自己也有限制，本地先拦一道，省得白传一趟 */
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -135,7 +133,11 @@ async function uploadLocalImage(model, ref, label) {
   const ext = extname(full).toLowerCase()
   const mime = MIME_BY_EXT[ext]
   if (!mime) {
-    throw serviceError(`${label}格式不支持（${ext || '无扩展名'}），请用 png / jpg / webp / bmp`, 400, 'AI_TASK_IMAGE_TYPE')
+    throw serviceError(
+      `${label}格式不支持（${ext || '无扩展名'}），请用 png / jpg / webp / bmp`,
+      400,
+      'AI_TASK_IMAGE_TYPE',
+    )
   }
 
   let buffer
@@ -226,10 +228,7 @@ export async function syncTask(userId, taskId) {
   }
 
   const imageUrl = remote.images[0] || ''
-  const errorMessage =
-    remote.status === 'SUCCEEDED' && !imageUrl
-      ? '任务成功但没有返回图片地址'
-      : remote.errorMessage
+  const errorMessage = remote.status === 'SUCCEEDED' && !imageUrl ? '任务成功但没有返回图片地址' : remote.errorMessage
   return aiTaskRepo.updateStatus(userId, record.taskId, {
     status: remote.status,
     imageUrl,

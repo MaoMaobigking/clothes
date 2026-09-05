@@ -17,9 +17,7 @@ export const ACCESSORY_CATEGORIES = [
   { key: 'shoes', label: '鞋子' },
 ]
 
-const CATEGORY_LABELS = Object.fromEntries(
-  ACCESSORY_CATEGORIES.map((category) => [category.key, category.label]),
-)
+const CATEGORY_LABELS = Object.fromEntries(ACCESSORY_CATEGORIES.map((category) => [category.key, category.label]))
 
 const GARMENT_CATEGORY_LABELS = {
   top: '上衣',
@@ -40,11 +38,51 @@ const BUDGET_RANGES = {
 }
 
 const DEMO_RATINGS = [
-  ['accessory_demo_lingxi_1', '珍珠耳钉', [['ac-jewelry-1', 5], ['ac-shoes-1', 5], ['ac-scarf-1', 4]]],
-  ['accessory_demo_lingxi_2', '法式试装', [['ac-jewelry-2', 4], ['ac-hat-2', 5], ['ac-shoes-2', 5]]],
-  ['accessory_demo_lingxi_3', '通勤穿搭', [['ac-belt-1', 5], ['ac-shoes-4', 5], ['ac-scarf-3', 4]]],
-  ['accessory_demo_lingxi_4', '街头造型', [['ac-hat-3', 5], ['ac-shoes-1', 4], ['ac-jewelry-3', 4]]],
-  ['accessory_demo_lingxi_5', '约会灵感', [['ac-jewelry-4', 5], ['ac-shoes-2', 5], ['ac-scarf-2', 4]]],
+  [
+    'accessory_demo_lingxi_1',
+    '珍珠耳钉',
+    [
+      ['ac-jewelry-1', 5],
+      ['ac-shoes-1', 5],
+      ['ac-scarf-1', 4],
+    ],
+  ],
+  [
+    'accessory_demo_lingxi_2',
+    '法式试装',
+    [
+      ['ac-jewelry-2', 4],
+      ['ac-hat-2', 5],
+      ['ac-shoes-2', 5],
+    ],
+  ],
+  [
+    'accessory_demo_lingxi_3',
+    '通勤穿搭',
+    [
+      ['ac-belt-1', 5],
+      ['ac-shoes-4', 5],
+      ['ac-scarf-3', 4],
+    ],
+  ],
+  [
+    'accessory_demo_lingxi_4',
+    '街头造型',
+    [
+      ['ac-hat-3', 5],
+      ['ac-shoes-1', 4],
+      ['ac-jewelry-3', 4],
+    ],
+  ],
+  [
+    'accessory_demo_lingxi_5',
+    '约会灵感',
+    [
+      ['ac-jewelry-4', 5],
+      ['ac-shoes-2', 5],
+      ['ac-scarf-2', 4],
+    ],
+  ],
 ]
 
 function asStringList(value) {
@@ -92,8 +130,7 @@ function colorHarmony(garmentColors, accessoryColor) {
   const accessoryHsl = hexToHsl(accessoryColor)
   if (!accessoryHsl) return { score: 10, reason: '配色保持中性，不会喧宾夺主' }
 
-  const accessoryIsNeutral =
-    accessoryHsl.s < 0.12 || accessoryHsl.l < 0.18 || accessoryHsl.l > 0.92
+  const accessoryIsNeutral = accessoryHsl.s < 0.12 || accessoryHsl.l < 0.18 || accessoryHsl.l > 0.92
   if (accessoryIsNeutral) {
     return { score: 18, reason: '低饱和中性色，与大多数服装颜色都容易协调' }
   }
@@ -140,10 +177,7 @@ function normalizeOutfit(input) {
   const outfit = Array.isArray(rawOutfit) ? rawOutfit : []
   const anchor = rawGarment?.id ? rawGarment : outfit[0] || {}
 
-  const allColors = unique([
-    ...asStringList(anchor.colors),
-    ...outfit.flatMap((item) => asStringList(item.colors)),
-  ])
+  const allColors = unique([...asStringList(anchor.colors), ...outfit.flatMap((item) => asStringList(item.colors))])
   const seasons = unique([
     ...asStringList(anchor.season ? [anchor.season] : []),
     ...outfit.map((item) => item.season).filter(Boolean),
@@ -152,14 +186,8 @@ function normalizeOutfit(input) {
     ...asStringList(anchor.occasions),
     ...outfit.flatMap((item) => asStringList(item.occasions)),
   ])
-  const styles = unique([
-    ...asStringList(anchor.styles),
-    ...outfit.flatMap((item) => asStringList(item.styles)),
-  ])
-  const garmentIds = unique([
-    ...(anchor.id ? [anchor.id] : []),
-    ...outfit.map((item) => item.id),
-  ])
+  const styles = unique([...asStringList(anchor.styles), ...outfit.flatMap((item) => asStringList(item.styles))])
+  const garmentIds = unique([...(anchor.id ? [anchor.id] : []), ...outfit.map((item) => item.id)])
 
   return {
     anchor: {
@@ -179,11 +207,12 @@ function normalizeOutfit(input) {
 function sortRecommendations(items) {
   return items
     .filter((item) => item.matchScore >= 24)
-    .sort((a, b) =>
-      b.matchScore - a.matchScore ||
-      (b.userRating || 0) - (a.userRating || 0) ||
-      b.aggregateRating - a.aggregateRating ||
-      b.favoriteCount - a.favoriteCount,
+    .sort(
+      (a, b) =>
+        b.matchScore - a.matchScore ||
+        (b.userRating || 0) - (a.userRating || 0) ||
+        b.aggregateRating - a.aggregateRating ||
+        b.favoriteCount - a.favoriteCount,
     )
     .slice(0, 5)
 }
@@ -235,9 +264,7 @@ export async function getCatalog() {
     accessoryRepo.getAggregatedAccessories(),
   ])
   const aggregateMap = new Map(aggregated.map((item) => [item.id, item]))
-  return accessories.map((accessory) =>
-    enrichAccessory(accessory, null, aggregateMap.get(accessory.id)),
-  )
+  return accessories.map((accessory) => enrichAccessory(accessory, null, aggregateMap.get(accessory.id)))
 }
 
 export async function recommend(userId, input = {}) {
@@ -259,14 +286,12 @@ export async function recommend(userId, input = {}) {
         const aggregate = aggregateMap.get(accessory.id)
         const userRating = userRatings.get(accessory.id) || null
         const harmony = colorHarmony(context.colors, accessory.primaryColor)
-        const seasonHit = context.seasons.some((season) =>
-          accessory.seasons.includes(season) || accessory.seasons.includes('四季'),
+        const seasonHit = context.seasons.some(
+          (season) => accessory.seasons.includes(season) || accessory.seasons.includes('四季'),
         )
-        const occasionHits = context.occasions.filter((occasion) =>
-          accessory.occasions.includes(occasion),
-        )
-        const styleHits = overlapScore(context.styles, accessory.styles) +
-          overlapScore(profile?.styles || [], accessory.styles)
+        const occasionHits = context.occasions.filter((occasion) => accessory.occasions.includes(occasion))
+        const styleHits =
+          overlapScore(context.styles, accessory.styles) + overlapScore(profile?.styles || [], accessory.styles)
         const body = bodyAdjustment(accessory, profile)
         const budget = budgetAdjustment(profile, accessory.price)
         const personalScore = userRating === null ? 0 : (userRating - 3) * 4
@@ -275,17 +300,21 @@ export async function recommend(userId, input = {}) {
           Math.min(aggregate.ratingCount, 30) * 0.2 +
           Math.min(accessory.favoriteCount, 80) * 0.04
 
-        const matchScore = clamp(Math.round(
-          24 +
-          harmony.score +
-          (seasonHit ? 16 : -4) +
-          Math.min(occasionHits.length * 7, 14) +
-          Math.min(styleHits * 4, 10) +
-          body.score +
-          budget +
-          personalScore +
-          socialScore,
-        ), 0, 100)
+        const matchScore = clamp(
+          Math.round(
+            24 +
+              harmony.score +
+              (seasonHit ? 16 : -4) +
+              Math.min(occasionHits.length * 7, 14) +
+              Math.min(styleHits * 4, 10) +
+              body.score +
+              budget +
+              personalScore +
+              socialScore,
+          ),
+          0,
+          100,
+        )
 
         const reasons = []
         if (harmony.score >= 18) reasons.push(harmony.reason)
@@ -356,10 +385,9 @@ export async function getHotCombos() {
       category.key,
       rows
         .filter((item) => item.category === category.key)
-        .sort((a, b) =>
-          b.aggregateRating - a.aggregateRating ||
-          b.ratingCount - a.ratingCount ||
-          b.favoriteCount - a.favoriteCount,
+        .sort(
+          (a, b) =>
+            b.aggregateRating - a.aggregateRating || b.ratingCount - a.ratingCount || b.favoriteCount - a.favoriteCount,
         ),
     )
   }
@@ -367,16 +395,10 @@ export async function getHotCombos() {
   const titles = ['轻盈约会组合', '利落通勤组合', '街头个性组合']
   const combos = []
   for (let rank = 0; rank < 3; rank += 1) {
-    const items = ACCESSORY_CATEGORIES
-      .map((category) => byCategory.get(category.key)?.[rank])
-      .filter(Boolean)
+    const items = ACCESSORY_CATEGORIES.map((category) => byCategory.get(category.key)?.[rank]).filter(Boolean)
     if (!items.length) continue
-    const score =
-      items.reduce((sum, item) => sum + item.aggregateRating, 0) / items.length
-    const favoriteCount = items.reduce(
-      (sum, item) => sum + item.favoriteCount + item.ratingCount,
-      0,
-    )
+    const score = items.reduce((sum, item) => sum + item.aggregateRating, 0) / items.length
+    const favoriteCount = items.reduce((sum, item) => sum + item.favoriteCount + item.ratingCount, 0)
     combos.push({
       id: `hot-combo-${rank + 1}`,
       title: titles[rank],

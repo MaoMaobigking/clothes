@@ -197,10 +197,7 @@ async function seedMale(userId) {
  */
 async function resetUserData(userId) {
   await execute('DELETE FROM cart_items WHERE user_id = ?', [userId])
-  await execute(
-    'DELETE oi FROM outfit_items oi JOIN outfits o ON o.id = oi.outfit_id WHERE o.user_id = ?',
-    [userId],
-  )
+  await execute('DELETE oi FROM outfit_items oi JOIN outfits o ON o.id = oi.outfit_id WHERE o.user_id = ?', [userId])
   await execute('DELETE FROM outfits WHERE user_id = ?', [userId])
   await execute('DELETE FROM garments WHERE user_id = ?', [userId])
   await execute('DELETE FROM style_reports WHERE user_id = ?', [userId])

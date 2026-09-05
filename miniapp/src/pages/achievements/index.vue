@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import {
-  fetchAchievements,
-  type AchievementSummary,
-} from '@/api/community'
+import { fetchAchievements, type AchievementSummary } from '@/api/community'
 import { isAuthError } from '@/api/http'
 
 const summary = ref<AchievementSummary>({

@@ -76,10 +76,7 @@ export async function listGarments(userId) {
 
 /** 单件衣物；不属于该用户时返回 null（上层据此返 404，不返 403） */
 export async function findGarment(userId, id) {
-  const row = await getOne(
-    `SELECT ${SELECT_COLS} FROM garments WHERE id = ? AND user_id = ?`,
-    [id, userId],
-  )
+  const row = await getOne(`SELECT ${SELECT_COLS} FROM garments WHERE id = ? AND user_id = ?`, [id, userId])
   return rowToGarment(row)
 }
 
@@ -130,11 +127,29 @@ export async function addGarment(userId, partial = {}) {
         occasions, frequently_worn, sort_order, recognition_status,
         recognition_source, uploaded_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [g.id, userId, g.name, g.category, g.brand, g.emoji,
-     g.from, g.to, g.price, g.season, g.img, g.fav,
-     g.primaryColor, JSON.stringify(g.secondaryColors), JSON.stringify(g.seasons),
-     JSON.stringify(g.occasions), g.frequentlyWorn, g.sortOrder,
-     g.recognitionStatus, g.recognitionSource, g.uploadedAt],
+    [
+      g.id,
+      userId,
+      g.name,
+      g.category,
+      g.brand,
+      g.emoji,
+      g.from,
+      g.to,
+      g.price,
+      g.season,
+      g.img,
+      g.fav,
+      g.primaryColor,
+      JSON.stringify(g.secondaryColors),
+      JSON.stringify(g.seasons),
+      JSON.stringify(g.occasions),
+      g.frequentlyWorn,
+      g.sortOrder,
+      g.recognitionStatus,
+      g.recognitionSource,
+      g.uploadedAt,
+    ],
   )
   return {
     ...g,
@@ -150,14 +165,8 @@ export async function deleteGarment(userId, id) {
   await execute('DELETE FROM outfit_items WHERE garment_id = ?', [id])
   // cart_items.item_id 是多态列（garment/accessory/catalog 共用），没有外键级联，
   // 必须显式清，否则衣物删了购物车里还留一行查不到明细的孤儿。
-  await execute(
-    "DELETE FROM cart_items WHERE item_type = 'garment' AND item_id = ? AND user_id = ?",
-    [id, userId],
-  )
-  const result = await execute(
-    'DELETE FROM garments WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  await execute("DELETE FROM cart_items WHERE item_type = 'garment' AND item_id = ? AND user_id = ?", [id, userId])
+  const result = await execute('DELETE FROM garments WHERE id = ? AND user_id = ?', [id, userId])
   return result.affectedRows > 0
 }
 
@@ -167,15 +176,9 @@ export async function deleteGarment(userId, id) {
  * @returns {boolean|null} 新的收藏状态；null 表示没这件（或不是你的）
  */
 export async function toggleFav(userId, id) {
-  const result = await execute(
-    'UPDATE garments SET fav = 1 - fav WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  const result = await execute('UPDATE garments SET fav = 1 - fav WHERE id = ? AND user_id = ?', [id, userId])
   if (result.affectedRows === 0) return null
-  const row = await getOne(
-    'SELECT fav FROM garments WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  const row = await getOne('SELECT fav FROM garments WHERE id = ? AND user_id = ?', [id, userId])
   return Boolean(row?.fav)
 }
 
@@ -189,25 +192,17 @@ export async function updateGarment(userId, id, partial = {}) {
     category: typeof partial.category === 'string' ? partial.category : existing.category,
     emoji: typeof partial.emoji === 'string' ? partial.emoji : existing.emoji,
     season: typeof partial.season === 'string' ? partial.season : existing.season,
-    primaryColor:
-      typeof partial.primaryColor === 'string' ? partial.primaryColor : existing.primaryColor,
+    primaryColor: typeof partial.primaryColor === 'string' ? partial.primaryColor : existing.primaryColor,
     secondaryColors: parseJsonList(partial.secondaryColors, existing.secondaryColors),
     seasons,
     occasions: parseJsonList(partial.occasions, existing.occasions),
     frequentlyWorn:
-      partial.frequentlyWorn === undefined
-        ? Boolean(existing.frequentlyWorn)
-        : Boolean(partial.frequentlyWorn),
-    sortOrder:
-      partial.sortOrder === undefined ? existing.sortOrder : Number(partial.sortOrder) || 0,
+      partial.frequentlyWorn === undefined ? Boolean(existing.frequentlyWorn) : Boolean(partial.frequentlyWorn),
+    sortOrder: partial.sortOrder === undefined ? existing.sortOrder : Number(partial.sortOrder) || 0,
     recognitionStatus:
-      typeof partial.recognitionStatus === 'string'
-        ? partial.recognitionStatus
-        : existing.recognitionStatus,
+      typeof partial.recognitionStatus === 'string' ? partial.recognitionStatus : existing.recognitionStatus,
     recognitionSource:
-      typeof partial.recognitionSource === 'string'
-        ? partial.recognitionSource
-        : existing.recognitionSource,
+      typeof partial.recognitionSource === 'string' ? partial.recognitionSource : existing.recognitionSource,
   }
   await execute(
     `UPDATE garments
@@ -249,10 +244,11 @@ export async function updateGarmentImage(userId, id, img) {
 export async function reorderGarments(userId, ids) {
   await withTransaction(async (conn) => {
     for (let index = 0; index < ids.length; index += 1) {
-      const [result] = await conn.execute(
-        'UPDATE garments SET sort_order = ? WHERE id = ? AND user_id = ?',
-        [index + 1, ids[index], userId],
-      )
+      const [result] = await conn.execute('UPDATE garments SET sort_order = ? WHERE id = ? AND user_id = ?', [
+        index + 1,
+        ids[index],
+        userId,
+      ])
       if (result.affectedRows === 0) {
         const err = new Error('GARMENT_NOT_FOUND')
         err.status = 404
@@ -274,10 +270,7 @@ export async function toggleFrequentlyWorn(userId, id) {
 }
 
 export async function countGarments(userId) {
-  const row = await getOne(
-    'SELECT COUNT(*) AS n FROM garments WHERE user_id = ?',
-    [userId],
-  )
+  const row = await getOne('SELECT COUNT(*) AS n FROM garments WHERE user_id = ?', [userId])
   return Number(row?.n || 0)
 }
 
@@ -289,13 +282,27 @@ export async function countGarments(userId) {
 export async function seedGarmentsForUser(userId) {
   const seed = JSON.parse(readFileSync(join(here, '..', 'seed.json'), 'utf-8'))
   const rows = seed.map((g, index) => [
-    `u${userId}_${g.id}`, userId, g.name, g.category, g.brand || '', g.emoji || '👕',
-    g.from || '#ffd1e8', g.to || '#c9b8ff', Number(g.price) || 0,
-    g.season || '四季', g.img || null, g.fav ? 1 : 0,
-    g.primaryColor || '', JSON.stringify(g.secondaryColors || []),
+    `u${userId}_${g.id}`,
+    userId,
+    g.name,
+    g.category,
+    g.brand || '',
+    g.emoji || '👕',
+    g.from || '#ffd1e8',
+    g.to || '#c9b8ff',
+    Number(g.price) || 0,
+    g.season || '四季',
+    g.img || null,
+    g.fav ? 1 : 0,
+    g.primaryColor || '',
+    JSON.stringify(g.secondaryColors || []),
     JSON.stringify(g.seasons || (g.season ? [g.season] : [])),
-    JSON.stringify(g.occasions || []), g.frequentlyWorn ? 1 : 0,
-    index + 1, 'confirmed', 'manual', null,
+    JSON.stringify(g.occasions || []),
+    g.frequentlyWorn ? 1 : 0,
+    index + 1,
+    'confirmed',
+    'manual',
+    null,
   ])
   if (!rows.length) return 0
   await withTransaction(async (conn) => {

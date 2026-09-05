@@ -76,9 +76,8 @@ function requestLocation() {
         })
         publish(located)
         editing.value = false
-        locationMessage.value = located.source === 'located'
-          ? '已使用实时定位与天气'
-          : '天气接口未配置，使用定位城市演示天气'
+        locationMessage.value =
+          located.source === 'located' ? '已使用实时定位与天气' : '天气接口未配置，使用定位城市演示天气'
       } catch {
         publish({ ...weather.value, source: 'manual' })
         editing.value = true
@@ -156,15 +155,14 @@ defineExpose({ requestLocation })
   <view class="weather-card card-glass">
     <view class="wc-top">
       <view class="wc-place">
-        <view class="wc-city"><UiIcon name="location" :size="28" tone="soft" /><text>{{ weather.city }}</text></view>
+        <view class="wc-city">
+          <UiIcon name="location" :size="28" tone="soft" />
+          <text>{{ weather.city }}</text>
+        </view>
         <text class="wc-date">{{ dateLabel }} · {{ sourceLabel }}</text>
       </view>
       <view class="wc-actions">
-        <button
-          class="wc-locate pill-macaron pill-macaron-violet"
-          :class="{ busy: locating }"
-          @tap="requestLocation"
-        >
+        <button class="wc-locate pill-macaron pill-macaron-violet" :class="{ busy: locating }" @tap="requestLocation">
           {{ locating ? '定位中' : '重新定位' }}
         </button>
         <button class="wc-manual pill-macaron pill-macaron-pink" @tap="openManual">手动选择</button>
@@ -206,13 +204,7 @@ defineExpose({ requestLocation })
       </view>
       <view class="manual-row">
         <text class="manual-label">温度</text>
-        <input
-          class="manual-input"
-          type="number"
-          :value="manualTemp"
-          placeholder="输入温度"
-          @input="onTempInput"
-        />
+        <input class="manual-input" type="number" :value="manualTemp" placeholder="输入温度" @input="onTempInput" />
         <text class="manual-unit">℃</text>
       </view>
     </view>

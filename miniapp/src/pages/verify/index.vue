@@ -19,13 +19,7 @@
  */
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import {
-  maskIdCard,
-  maskPhone,
-  validateIdCard,
-  validatePhone,
-  validateRealName,
-} from '@/utils/idCard'
+import { maskIdCard, maskPhone, validateIdCard, validatePhone, validateRealName } from '@/utils/idCard'
 
 const VERIFY_KEY = 'ai-fashion-verify'
 
@@ -171,12 +165,30 @@ function revoke() {
             <text class="card-title">{{ statusText }}</text>
             <text class="vip-tag">VIP 演示</text>
           </view>
-          <view class="row"><text class="k">姓名</text><text class="v">{{ record.name }}</text></view>
-          <view class="row"><text class="k">手机号</text><text class="v">{{ record.phone }}</text></view>
-          <view class="row"><text class="k">身份证号</text><text class="v">{{ record.idCard }}</text></view>
-          <view class="row"><text class="k">出生日期</text><text class="v">{{ record.birthday }}</text></view>
-          <view class="row"><text class="k">性别</text><text class="v">{{ record.gender }}</text></view>
-          <view class="row"><text class="k">认证时间</text><text class="v">{{ record.verifiedAt }}</text></view>
+          <view class="row">
+            <text class="k">姓名</text>
+            <text class="v">{{ record.name }}</text>
+          </view>
+          <view class="row">
+            <text class="k">手机号</text>
+            <text class="v">{{ record.phone }}</text>
+          </view>
+          <view class="row">
+            <text class="k">身份证号</text>
+            <text class="v">{{ record.idCard }}</text>
+          </view>
+          <view class="row">
+            <text class="k">出生日期</text>
+            <text class="v">{{ record.birthday }}</text>
+          </view>
+          <view class="row">
+            <text class="k">性别</text>
+            <text class="v">{{ record.gender }}</text>
+          </view>
+          <view class="row">
+            <text class="k">认证时间</text>
+            <text class="v">{{ record.verifiedAt }}</text>
+          </view>
           <text class="card-foot">号码已脱敏保存，App 内不留明文</text>
         </view>
         <view class="btn btn-ghost wide" @tap="revoke">撤销并重新填写</view>
@@ -189,21 +201,10 @@ function revoke() {
               <uv-input v-model="form.name" border="none" placeholder="与证件一致" maxlength="16" />
             </uv-form-item>
             <uv-form-item label="手机号" prop="phone" border-bottom>
-              <uv-input
-                v-model="form.phone"
-                border="none"
-                type="number"
-                placeholder="11 位手机号"
-                maxlength="11"
-              />
+              <uv-input v-model="form.phone" border="none" type="number" placeholder="11 位手机号" maxlength="11" />
             </uv-form-item>
             <uv-form-item label="身份证号" prop="idCard">
-              <uv-input
-                v-model="form.idCard"
-                border="none"
-                placeholder="18 位，最后一位可为 X"
-                maxlength="18"
-              />
+              <uv-input v-model="form.idCard" border="none" placeholder="18 位，最后一位可为 X" maxlength="18" />
             </uv-form-item>
           </uv-form>
         </view>

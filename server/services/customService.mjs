@@ -13,13 +13,7 @@ export const SERVICE_TYPE_LABELS = {
   taste: '独特品味定制',
 }
 
-export const REQUEST_STATUS_FLOW = [
-  'submitted',
-  'design',
-  'sample',
-  'production',
-  'shipped',
-]
+export const REQUEST_STATUS_FLOW = ['submitted', 'design', 'sample', 'production', 'shipped']
 
 const SERVICE_TYPES = new Set(Object.keys(SERVICE_TYPE_LABELS))
 
@@ -232,9 +226,7 @@ export async function getRequest(userId, rawId) {
   const id = asRequestId(rawId)
   const request = await repo.findRequest(userId, id)
   if (!request) throw createError('定制申请不存在', 404, 'NOT_FOUND')
-  const measurement = request.measurementId
-    ? await repo.findMeasurement(userId, request.measurementId)
-    : null
+  const measurement = request.measurementId ? await repo.findMeasurement(userId, request.measurementId) : null
   const messages = await repo.listMessages(userId, id)
   return { request, measurement, messages }
 }
@@ -269,13 +261,7 @@ export async function sendMessage(userId, rawId, content = '') {
   await repo.insertMessage(userId, id, 'user', text)
 
   const reply = buildDesignerReply(request, text, existingMessages.length)
-  await repo.insertMessage(
-    userId,
-    id,
-    'designer',
-    reply,
-    request.designer?.id ?? null,
-  )
+  await repo.insertMessage(userId, id, 'designer', reply, request.designer?.id ?? null)
   return repo.listMessages(userId, id)
 }
 
@@ -292,9 +278,18 @@ function buildDesignerReply(request, userContent, existingCount) {
   }
 
   const rules = [
-    [/面料|材质|布料/, '关于面料，我会先给你准备 3 档选择：常规质感、升级质感、限量质感。你告诉我预算和穿着场景，我再缩小范围。'],
-    [/工期|多久|时间|交付/, '常规定制周期约为 14 天：设计稿 2 天、确认后打样 4 天、生产 6 天、发货 2 天。需要加急时我会单独标出风险。'],
-    [/尺寸|量体|尺码|胸围|腰围|臀围|肩宽/, '我会以你提交的六项尺寸为第一版依据，后续还会结合正、侧面照片复核松量和版型。'],
+    [
+      /面料|材质|布料/,
+      '关于面料，我会先给你准备 3 档选择：常规质感、升级质感、限量质感。你告诉我预算和穿着场景，我再缩小范围。',
+    ],
+    [
+      /工期|多久|时间|交付/,
+      '常规定制周期约为 14 天：设计稿 2 天、确认后打样 4 天、生产 6 天、发货 2 天。需要加急时我会单独标出风险。',
+    ],
+    [
+      /尺寸|量体|尺码|胸围|腰围|臀围|肩宽/,
+      '我会以你提交的六项尺寸为第一版依据，后续还会结合正、侧面照片复核松量和版型。',
+    ],
     [/预算|价格|多少钱/, '我会先按你的预算拆分设计、面料和工艺成本。VIP 定制可选择升级面料，但不会隐藏收费项。'],
     [/颜色|色彩|风格|版型/, '我会把颜色控制在你的主风格范围内，并给出版型建议：优先显比例、再处理特殊体型或场合细节。'],
   ]

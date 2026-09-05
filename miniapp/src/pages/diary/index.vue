@@ -137,10 +137,7 @@ const noteLen = computed(() => [...editNote.value].length)
 const canSave = computed(
   () =>
     !saving.value &&
-    (!!editNote.value.trim() ||
-      !!editWeather.value ||
-      !!editMood.value ||
-      editOutfitId.value !== null),
+    (!!editNote.value.trim() || !!editWeather.value || !!editMood.value || editOutfitId.value !== null),
 )
 const editTitle = computed(() => (editDate.value ? labelOf(editDate.value) : ''))
 
@@ -303,13 +300,7 @@ onLoad(async (query) => {
       </view>
 
       <view v-else class="list">
-        <view
-          v-for="e in entries"
-          :key="e.date"
-          class="row"
-          hover-class="op7"
-          @tap="openEditor(e.date)"
-        >
+        <view v-for="e in entries" :key="e.date" class="row" hover-class="op7" @tap="openEditor(e.date)">
           <view class="row-date">
             <text class="rd-d">{{ e.date.slice(8) }}</text>
             <text class="rd-w">{{ labelOf(e.date).slice(-2) }}</text>

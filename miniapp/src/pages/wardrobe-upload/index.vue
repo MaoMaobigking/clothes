@@ -3,12 +3,7 @@ import { iconForEmoji } from '@/utils/icons'
 import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { WardrobeItem } from '@/api/wardrobe'
-import {
-  WARDROBE_CATEGORIES,
-  WARDROBE_COLORS,
-  WARDROBE_OCCASIONS,
-  WARDROBE_SEASONS,
-} from '@/data/wardrobeOptions'
+import { WARDROBE_CATEGORIES, WARDROBE_COLORS, WARDROBE_OCCASIONS, WARDROBE_SEASONS } from '@/data/wardrobeOptions'
 
 interface ReviewDraft {
   name: string
@@ -155,12 +150,7 @@ function resetReview() {
             />
             <view class="review-main">
               <view class="recognition-badge">演示识别</view>
-              <input
-                v-model="drafts[item.id].name"
-                class="name-input"
-                placeholder="衣物名称"
-                maxlength="24"
-              />
+              <input v-model="drafts[item.id].name" class="name-input" placeholder="衣物名称" maxlength="24" />
               <view class="field-label">衣物类型</view>
               <scroll-view scroll-x class="chips">
                 <view
@@ -215,7 +205,8 @@ function resetReview() {
                 :class="{ on: drafts[item.id].seasons.includes(season.key) }"
                 @tap="toggleOption(drafts[item.id], 'seasons', season.key)"
               >
-                <UiIcon :name="iconForEmoji(season.emoji) ?? 'season-spring'" :size="26" tone="soft" /><text>{{ season.label }}</text>
+                <UiIcon :name="iconForEmoji(season.emoji) ?? 'season-spring'" :size="26" tone="soft" />
+                <text>{{ season.label }}</text>
               </view>
             </view>
           </view>
@@ -230,7 +221,8 @@ function resetReview() {
                 :class="{ on: drafts[item.id].occasions.includes(occasion.key) }"
                 @tap="toggleOption(drafts[item.id], 'occasions', occasion.key)"
               >
-                <UiIcon :name="iconForEmoji(occasion.emoji) ?? 'sc-daily'" :size="26" tone="soft" /><text>{{ occasion.label }}</text>
+                <UiIcon :name="iconForEmoji(occasion.emoji) ?? 'sc-daily'" :size="26" tone="soft" />
+                <text>{{ occasion.label }}</text>
               </view>
             </view>
           </view>
@@ -282,11 +274,7 @@ function resetReview() {
 
     <view v-if="!reviewItems.length" class="footer">
       <view class="remain">还可上传 {{ remaining }} 件</view>
-      <view
-        class="btn btn-primary footer-btn"
-        :class="{ 'btn-disabled': !canUpload }"
-        @tap="recognize"
-      >
+      <view class="btn btn-primary footer-btn" :class="{ 'btn-disabled': !canUpload }" @tap="recognize">
         {{ uploading ? 'AI 识别中…' : `识别 ${selectedPaths.length || 0} 张旧衣` }}
       </view>
     </view>
@@ -438,7 +426,9 @@ function resetReview() {
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .loading-title {
   margin-top: 22rpx;

@@ -6,11 +6,7 @@ const store = useProfileStore()
 </script>
 
 <template>
-  <StepShell
-    title="你的肤色更接近？"
-    subtitle="对着自然光看手腕内侧，选最接近的一档"
-    center
-  >
+  <StepShell title="你的肤色更接近？" subtitle="对着自然光看手腕内侧，选最接近的一档" center>
     <!-- 横滑选项卡，写法与 StyleStep 一致（客户需求原文「选项卡片（横向滑动）」） -->
     <scroll-view scroll-x class="options" :show-scrollbar="false">
       <view class="options-row">

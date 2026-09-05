@@ -36,8 +36,7 @@ const after = await getOne('SELECT COUNT(*) AS n FROM users')
 
 check('userId 不同', a.userId !== b.userId, `A=${a.userId} B=${b.userId}`)
 check('userId 不是写死的 1', a.userId !== 1 || b.userId !== 1)
-check('users 表真的多了 2 行', Number(after.n) - Number(before.n) === 2,
-  `${before.n} → ${after.n}`)
+check('users 表真的多了 2 行', Number(after.n) - Number(before.n) === 2, `${before.n} → ${after.n}`)
 check('两人都签出了 token', Boolean(a.token && b.token && a.token !== b.token))
 
 console.log('\n【1b】同一个 code 重复登录不该建新用户（openid 幂等）')
@@ -55,8 +54,7 @@ check('B 衣橱非空', listB.length > 0, `${listB.length} 件`)
 check('接口条数 == 库里行数', listA.length === rowsA.length)
 const idsA = new Set(listA.map((g) => g.id))
 const overlap = listB.filter((g) => idsA.has(g.id))
-check('两人衣物 id 完全不重叠（不是共用同一批行）', overlap.length === 0,
-  `重叠 ${overlap.length} 件`)
+check('两人衣物 id 完全不重叠（不是共用同一批行）', overlap.length === 0, `重叠 ${overlap.length} 件`)
 
 console.log('\n【3】真隔离：跨用户读写全部打空')
 const targetB = listB[0]
@@ -82,10 +80,6 @@ check('A 删自己的衣物 → true', delOwn === true)
 const gone = await getOne('SELECT id FROM garments WHERE id = ?', [own.id])
 check('库里确实没了', gone === null)
 
-console.log(
-  failed === 0
-    ? '\n🎉 全部通过：真用户 / 真落库 / 真隔离 三项成立\n'
-    : `\n❌ ${failed} 项未通过\n`,
-)
+console.log(failed === 0 ? '\n🎉 全部通过：真用户 / 真落库 / 真隔离 三项成立\n' : `\n❌ ${failed} 项未通过\n`)
 process.exitCode = failed === 0 ? 0 : 1
 await closeDb()

@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
-import {
-  apiGenerateOutfits,
-  type WardrobeItem,
-} from '@/api/wardrobe'
+import { apiGenerateOutfits, type WardrobeItem } from '@/api/wardrobe'
 import { categoryLabel, seasonLabel } from '@/data/wardrobeOptions'
 import { CLOSET_CATEGORIES } from '@/data/mock'
 import { iconForEmoji } from '@/utils/icons'
-import {
-  garmentToAccessoryContext,
-  setAccessoryPageContext,
-} from '@/utils/accessoryContext'
+import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 
 const wardrobe = useWardrobeStore()
 const activeCategory = ref('all')
@@ -124,10 +118,7 @@ function endDrag() {
   const sourceIndex = dragIndex.value
   const target = Math.max(
     0,
-    Math.min(
-      sortItems.value.length - 1,
-      Math.round((sourceIndex * rowHeight + offset) / rowHeight),
-    ),
+    Math.min(sortItems.value.length - 1, Math.round((sourceIndex * rowHeight + offset) / rowHeight)),
   )
   if (target !== sourceIndex) {
     const next = [...sortItems.value]
@@ -185,13 +176,9 @@ function goAccessory(item: WardrobeItem) {
     </view>
 
     <view class="seg">
-      <view class="seg-item on">
-        今日搭配
-      </view>
+      <view class="seg-item on">今日搭配</view>
       <!-- 「我的搭配」只有一页（§8.11 §10.10），这里跳过去而不是再维护一份列表 -->
-      <view class="seg-item" @tap="goMyOutfits">
-        我的搭配 ›
-      </view>
+      <view class="seg-item" @tap="goMyOutfits">我的搭配 ›</view>
     </view>
 
     <view class="today-panel">
@@ -249,44 +236,42 @@ function goAccessory(item: WardrobeItem) {
         </view>
 
         <scroll-view scroll-y class="grid-scroll hide-scrollbar">
-        <view v-if="filtered.length" class="grid">
-          <view v-for="item in filtered" :key="item.id" class="cell">
-            <TileImage
-              :src="item.img"
-              :from="item.primaryColor || item.from"
-              :to="item.secondaryColors?.[0] || item.to"
-              :emoji="item.emoji"
-              ratio="3 / 4"
-              rounded="24rpx"
-            />
-            <view v-if="item.frequentlyWorn" class="frequent-badge">常穿</view>
-            <view v-if="item.recognitionStatus === 'suggested'" class="suggested-badge">待确认</view>
-            <view class="accessory-entry" @tap="goAccessory(item)">配饰</view>
-            <view class="cell-name">{{ item.name }}</view>
-            <view class="cell-meta">
-              {{ categoryLabel(item.category) }} · {{ seasonLabel(item.seasons?.[0]) }}
-            </view>
-            <view v-if="manage" class="cell-controls">
-              <view class="cell-control" @tap="toggleFrequent(item.id)">
-                {{ item.frequentlyWorn ? '取消常穿' : '设为常穿' }}
+          <view v-if="filtered.length" class="grid">
+            <view v-for="item in filtered" :key="item.id" class="cell">
+              <TileImage
+                :src="item.img"
+                :from="item.primaryColor || item.from"
+                :to="item.secondaryColors?.[0] || item.to"
+                :emoji="item.emoji"
+                ratio="3 / 4"
+                rounded="24rpx"
+              />
+              <view v-if="item.frequentlyWorn" class="frequent-badge">常穿</view>
+              <view v-if="item.recognitionStatus === 'suggested'" class="suggested-badge">待确认</view>
+              <view class="accessory-entry" @tap="goAccessory(item)">配饰</view>
+              <view class="cell-name">{{ item.name }}</view>
+              <view class="cell-meta">{{ categoryLabel(item.category) }} · {{ seasonLabel(item.seasons?.[0]) }}</view>
+              <view v-if="manage" class="cell-controls">
+                <view class="cell-control" @tap="toggleFrequent(item.id)">
+                  {{ item.frequentlyWorn ? '取消常穿' : '设为常穿' }}
+                </view>
+                <view class="cell-control danger" @tap="removeItem(item.id)">删除</view>
               </view>
-              <view class="cell-control danger" @tap="removeItem(item.id)">删除</view>
             </view>
           </view>
-        </view>
-        <view v-else-if="wardrobe.loadError" class="empty">
-          <UiIcon class="empty-emoji" name="warn" :size="88" tone="muted" :stroke-width="1.3" />
-          <view class="empty-title">衣橱加载失败</view>
-          <view class="empty-sub">{{ wardrobe.loadError }}</view>
-          <view class="btn btn-primary empty-btn" @tap="wardrobe.load()">重新加载</view>
-        </view>
-        <view v-else class="empty">
-          <UiIcon class="empty-emoji" name="box" :size="88" tone="muted" :stroke-width="1.3" />
-          <view class="empty-title">衣橱还是空的</view>
-          <view class="empty-sub">先上传几张真实旧衣照片</view>
-          <view class="btn btn-primary empty-btn" @tap="goUpload">上传旧衣</view>
-        </view>
-      </scroll-view>
+          <view v-else-if="wardrobe.loadError" class="empty">
+            <UiIcon class="empty-emoji" name="warn" :size="88" tone="muted" :stroke-width="1.3" />
+            <view class="empty-title">衣橱加载失败</view>
+            <view class="empty-sub">{{ wardrobe.loadError }}</view>
+            <view class="btn btn-primary empty-btn" @tap="wardrobe.load()">重新加载</view>
+          </view>
+          <view v-else class="empty">
+            <UiIcon class="empty-emoji" name="box" :size="88" tone="muted" :stroke-width="1.3" />
+            <view class="empty-title">衣橱还是空的</view>
+            <view class="empty-sub">先上传几张真实旧衣照片</view>
+            <view class="btn btn-primary empty-btn" @tap="goUpload">上传旧衣</view>
+          </view>
+        </scroll-view>
       </view>
     </view>
 
@@ -719,7 +704,9 @@ function goAccessory(item: WardrobeItem) {
   border-radius: var(--radius);
   background: var(--surface-tint);
   box-shadow: var(--shadow-card);
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    opacity 0.12s ease;
 }
 .sort-row.dragging {
   z-index: 5;

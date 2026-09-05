@@ -95,12 +95,7 @@ function goMall() {
       <view>
         <SectionTitle title="AI 工作流" />
         <view class="features">
-          <view
-            v-for="f in AI_FEATURES"
-            :key="f.key"
-            class="feature"
-            @tap="goFeature(f.route)"
-          >
+          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="goFeature(f.route)">
             <view class="f-ico">
               <UiIcon :name="f.icon" :size="44" tone="soft" />
             </view>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 withDefaults(
   defineProps<{
     title: string
@@ -36,18 +35,14 @@ const emit = defineEmits<{
     <view class="thumb">
       <TileImage :from="from" :to="to" :emoji="emoji" :ratio="ratio" :src="src" />
       <text v-if="tag" class="tag">{{ tag }}</text>
-      <view
-        class="fav"
-        :class="{ on: fav }"
-        aria-label="收藏"
-        @tap.stop="emit('fav')"
-      >
+      <view class="fav" :class="{ on: fav }" aria-label="收藏" @tap.stop="emit('fav')">
         <UiIcon name="heart" :size="32" :tone="fav ? 'brand' : 'muted'" :stroke-width="fav ? 2.6 : 1.7" />
       </view>
     </view>
     <view class="name">{{ title }}</view>
     <view v-if="price !== undefined" class="price">
-      <text class="price-symbol">¥</text>{{ price.toFixed(2) }}
+      <text class="price-symbol">¥</text>
+      {{ price.toFixed(2) }}
     </view>
   </view>
 </template>

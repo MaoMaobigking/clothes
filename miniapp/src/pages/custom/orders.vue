@@ -76,7 +76,9 @@ onShow(loadRequests)
             <text class="status">{{ REQUEST_STATUS_LABELS[item.status] || item.status }}</text>
           </view>
 
-          <text class="requirement">{{ item.requirements?.requirements || item.requirements?.notes || '未填写补充说明' }}</text>
+          <text class="requirement">
+            {{ item.requirements?.requirements || item.requirements?.notes || '未填写补充说明' }}
+          </text>
 
           <!-- 五档进度时间轴（§11.6） -->
           <view class="timeline">

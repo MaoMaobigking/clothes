@@ -112,10 +112,7 @@ async function load() {
   loading.value = true
   errorMessage.value = ''
   // 两个来源分别兜底：功能四接口挂了不该让功能二的收藏也看不见
-  const [wardrobeResult, sceneResult] = await Promise.allSettled([
-    apiListOutfits(true),
-    listSceneOutfits(),
-  ])
+  const [wardrobeResult, sceneResult] = await Promise.allSettled([apiListOutfits(true), listSceneOutfits()])
   if (wardrobeResult.status === 'fulfilled') {
     wardrobeOutfits.value = wardrobeResult.value
   } else if (!isAuthError(wardrobeResult.reason)) {
@@ -124,9 +121,7 @@ async function load() {
   if (sceneResult.status === 'fulfilled') {
     sceneOutfits.value = sceneResult.value
   } else if (!isAuthError(sceneResult.reason)) {
-    errorMessage.value = errorMessage.value
-      ? `${errorMessage.value}；场景模板读取失败`
-      : '场景模板读取失败'
+    errorMessage.value = errorMessage.value ? `${errorMessage.value}；场景模板读取失败` : '场景模板读取失败'
   }
   loading.value = false
 }
@@ -165,25 +160,11 @@ function goCloset() {
     <PageHeader title="我的搭配" to="/pages/me/me" sub="旧衣搭配与场景模板都在这里" />
 
     <view class="filter-row">
-      <button
-        class="filter-chip"
-        :class="{ on: filter === 'all' }"
-        @tap="filter = 'all'"
-      >
-        全部 {{ counts.all }}
-      </button>
-      <button
-        class="filter-chip"
-        :class="{ on: filter === 'wardrobe' }"
-        @tap="filter = 'wardrobe'"
-      >
+      <button class="filter-chip" :class="{ on: filter === 'all' }" @tap="filter = 'all'">全部 {{ counts.all }}</button>
+      <button class="filter-chip" :class="{ on: filter === 'wardrobe' }" @tap="filter = 'wardrobe'">
         旧衣搭配 {{ counts.wardrobe }}
       </button>
-      <button
-        class="filter-chip"
-        :class="{ on: filter === 'scene' }"
-        @tap="filter = 'scene'"
-      >
+      <button class="filter-chip" :class="{ on: filter === 'scene' }" @tap="filter = 'scene'">
         场景模板 {{ counts.scene }}
       </button>
     </view>
@@ -199,12 +180,7 @@ function goCloset() {
             <text class="group-count">{{ group.items.length }} 套</text>
           </view>
 
-          <view
-            v-for="entry in group.items"
-            :key="entry.key"
-            class="outfit-card"
-            @tap="openEntry(entry)"
-          >
+          <view v-for="entry in group.items" :key="entry.key" class="outfit-card" @tap="openEntry(entry)">
             <view class="outfit-head">
               <view class="outfit-title-wrap">
                 <text class="outfit-title">{{ entry.title }}</text>
@@ -240,9 +216,7 @@ function goCloset() {
       <view v-else-if="!loading" class="empty">
         <UiIcon class="empty-emoji" name="cat-skirt" :size="88" tone="muted" :stroke-width="1.3" />
         <text>还没有保存的搭配</text>
-        <text class="empty-sub">
-          在搭配结果页点「收藏」，或在场景模拟里点「保存模板」，都会出现在这里。
-        </text>
+        <text class="empty-sub">在搭配结果页点「收藏」，或在场景模拟里点「保存模板」，都会出现在这里。</text>
         <view class="empty-actions">
           <button class="outfit-action" @tap="goCloset">去生成搭配</button>
           <button class="outfit-action" @tap="goScene">去场景模拟</button>

@@ -74,12 +74,7 @@ function viewReport() {
 
 <template>
   <view class="page">
-    <AppHeader
-      title="开始你的专属穿搭之旅"
-      :current="store.currentStep"
-      :total="store.totalSteps"
-      @back="handleBack"
-    />
+    <AppHeader title="开始你的专属穿搭之旅" :current="store.currentStep" :total="store.totalSteps" @back="handleBack" />
 
     <StepIndicator :steps="STEPS" :current="store.currentStep" @select="jumpTo" />
 
@@ -104,11 +99,7 @@ function viewReport() {
       @skip="handleSkip"
     />
 
-    <AiRecommendModal
-      :visible="showAi"
-      @view="viewReport"
-      @close="showAi = false"
-    />
+    <AiRecommendModal :visible="showAi" @view="viewReport" @close="showAi = false" />
 
     <view v-if="hint" class="hint-toast">{{ hint }}</view>
   </view>
@@ -117,7 +108,9 @@ function viewReport() {
 <style scoped>
 .slide-enter-active,
 .slide-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 .slide-enter-from {
   opacity: 0;

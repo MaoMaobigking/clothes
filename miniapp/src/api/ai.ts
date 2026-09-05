@@ -34,10 +34,7 @@ export interface ProfilePayload {
   preferences: Record<string, string>
 }
 
-export async function fetchStyleReport(
-  profile: ProfilePayload,
-  answers?: unknown,
-): Promise<StyleReport> {
+export async function fetchStyleReport(profile: ProfilePayload, answers?: unknown): Promise<StyleReport> {
   return request<StyleReport>({
     url: '/api/style-report',
     method: 'POST',

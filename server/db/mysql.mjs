@@ -241,9 +241,7 @@ async function migrateCommunityRoles(conn) {
     [DB_NAME],
   )
   if (!rows.some((row) => row.name === 'role')) {
-    await conn.query(
-      "ALTER TABLE users ADD COLUMN role VARCHAR(32) NOT NULL DEFAULT 'user'",
-    )
+    await conn.query("ALTER TABLE users ADD COLUMN role VARCHAR(32) NOT NULL DEFAULT 'user'")
   }
 }
 

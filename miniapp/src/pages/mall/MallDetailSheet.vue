@@ -44,7 +44,10 @@ const emit = defineEmits<{
         <text class="desc">
           {{ product.keywords.length ? product.keywords.join(' · ') : '精选材质，百搭日常与约会造型' }}
         </text>
-        <text class="price"><text class="price-symbol">¥</text>{{ product.price.toFixed(2) }}</text>
+        <text class="price">
+          <text class="price-symbol">¥</text>
+          {{ product.price.toFixed(2) }}
+        </text>
         <!-- §4.4：商品必须带淘宝链接与淘口令，这里明示给用户 -->
         <text v-if="product.taokouling" class="taokouling">淘口令 {{ product.taokouling }}</text>
         <text v-else class="taokouling missing">该商品暂未配置淘口令</text>
@@ -67,8 +70,12 @@ const emit = defineEmits<{
 
 <style scoped>
 @keyframes sheetIn {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 .grip {
   width: 80rpx;

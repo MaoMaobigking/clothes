@@ -17,7 +17,19 @@
  *   node scripts/shrink-images.mjs --max 1080   # 调最长边（默认 1080）
  */
 import { chromium } from 'playwright'
-import { readdirSync, statSync, mkdirSync, writeFileSync, copyFileSync, readFileSync, openSync, readSync, closeSync, rmSync, existsSync } from 'node:fs'
+import {
+  readdirSync,
+  statSync,
+  mkdirSync,
+  writeFileSync,
+  copyFileSync,
+  readFileSync,
+  openSync,
+  readSync,
+  closeSync,
+  rmSync,
+  existsSync,
+} from 'node:fs'
 import { join, relative, dirname, sep } from 'node:path'
 
 const SRC = 'miniapp/src/static/images'
@@ -34,7 +46,8 @@ const MAX_EDGE = argOf('max', 1080)
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
-    statSync(p).isDirectory() ? walk(p, out) : out.push(p)
+    if (statSync(p).isDirectory()) walk(p, out)
+    else out.push(p)
   }
   return out
 }
@@ -135,5 +148,7 @@ await browser.close()
 
 console.log(`\n转换 ${converted} 张，原样保留 ${copied} 张${failures.length ? `，失败 ${failures.length} 张` : ''}`)
 if (failures.length) console.log('  失败：', failures.join(', '))
-console.log(`体积  ${mb(srcTotal)}  →  ${mb(outTotal)}   省下 ${mb(srcTotal - outTotal)}（-${(100 - (outTotal / srcTotal) * 100).toFixed(0)}%）`)
+console.log(
+  `体积  ${mb(srcTotal)}  →  ${mb(outTotal)}   省下 ${mb(srcTotal - outTotal)}（-${(100 - (outTotal / srcTotal) * 100).toFixed(0)}%）`,
+)
 console.log(`产物在 ${OUT}/ ，源目录未改动。`)

@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import {
-  fetchCommunityBookmarks,
-  type CommunityContent,
-} from '@/api/community'
+import { fetchCommunityBookmarks, type CommunityContent } from '@/api/community'
 import { isAuthError } from '@/api/http'
 
 const items = ref<CommunityContent[]>([])

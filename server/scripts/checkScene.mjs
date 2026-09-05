@@ -46,8 +46,14 @@ const result = await generateScenePlans({
 })
 check('纯旧衣方案为 3 套', result.plans.pure.length === 3)
 check('新旧混搭方案为 3 套', result.plans.mixed.length === 3)
-check('纯旧衣方案不出现新品', result.plans.pure.every((plan) => plan.newItemCount === 0))
-check('混搭方案至少出现 1 件新品', result.plans.mixed.every((plan) => plan.newItemCount >= 1))
+check(
+  '纯旧衣方案不出现新品',
+  result.plans.pure.every((plan) => plan.newItemCount === 0),
+)
+check(
+  '混搭方案至少出现 1 件新品',
+  result.plans.mixed.every((plan) => plan.newItemCount >= 1),
+)
 check(
   '混搭新品都来自目录且带淘口令',
   result.plans.mixed
@@ -69,9 +75,15 @@ const saved = await saveOutfit(a.userId, {
   composition: plan.items,
 })
 check('保存返回真实模板 id', saved.id > 0, `id=${saved.id}`)
-check('本人模板列表可见', (await listSceneOutfits(a.userId)).some((item) => item.id === saved.id))
+check(
+  '本人模板列表可见',
+  (await listSceneOutfits(a.userId)).some((item) => item.id === saved.id),
+)
 check('B 读取 A 的模板返回 null', (await findSceneOutfit(b.userId, saved.id)) === null)
-check('B 的模板列表为空或没有 A 的模板', (await listSceneOutfits(b.userId)).every((item) => item.id !== saved.id))
+check(
+  'B 的模板列表为空或没有 A 的模板',
+  (await listSceneOutfits(b.userId)).every((item) => item.id !== saved.id),
+)
 
 console.log('\n【4】购物车落库')
 const newIds = plan.items.filter((item) => item.isNew).map((item) => item.id)
@@ -83,12 +95,18 @@ check('cart_items 行数真实增加', Number(afterCart.n) === Number(beforeCart
 // 购物车统一后 listCart 返回 { items, count, totalPrice }，新品是 item_type='catalog'
 const aCart = await listCart(a.userId)
 const bCart = await listCart(b.userId)
-check('购物车接口能看到刚购买的新品', aCart.items.some((item) => item.itemId === newIds[0]))
+check(
+  '购物车接口能看到刚购买的新品',
+  aCart.items.some((item) => item.itemId === newIds[0]),
+)
 check(
   '新品以 catalog 类型入车且明细可解析',
   aCart.items.every((item) => item.itemType !== 'catalog' || item.available),
 )
-check('B 购物车没有 A 购买的新品', bCart.items.every((item) => item.itemId !== newIds[0]))
+check(
+  'B 购物车没有 A 购买的新品',
+  bCart.items.every((item) => item.itemId !== newIds[0]),
+)
 
 console.log('\n【5】商城目录（§4.4 §10.6）')
 const mall = await listProducts({})
@@ -97,14 +115,19 @@ check('分类面板非空', mall.categories.length > 0, mall.categories.map((c) 
 check(
   '每件商品都带淘口令',
   mall.items.every((item) => Boolean(item.taokouling)),
-  mall.items.filter((item) => !item.taokouling).map((item) => item.id).join(',') || '无缺失',
+  mall.items
+    .filter((item) => !item.taokouling)
+    .map((item) => item.id)
+    .join(',') || '无缺失',
 )
-check('每件商品都带淘宝链接', mall.items.every((item) => Boolean(item.taobaoUrl)))
+check(
+  '每件商品都带淘宝链接',
+  mall.items.every((item) => Boolean(item.taobaoUrl)),
+)
 const byCategory = await listProducts({ category: mall.categories[0].key })
 check(
   '按品类筛选只返回该品类',
-  byCategory.items.length > 0 &&
-    byCategory.items.every((item) => item.category === mall.categories[0].key),
+  byCategory.items.length > 0 && byCategory.items.every((item) => item.category === mall.categories[0].key),
 )
 check('筛选后分类面板仍是全量', byCategory.categories.length === mall.categories.length)
 
@@ -115,14 +138,11 @@ const cartAfterMall = await listCart(a.userId)
 const mallRow = cartAfterMall.items.find((item) => item.itemId === mallProduct.id)
 check('商城商品能在 /api/cart 查出', Boolean(mallRow), mallProduct.id)
 check('入车行的类型是 catalog', mallRow?.itemType === 'catalog')
-check('入车行明细可解析（价格与淘口令来自服务端）',
-  Boolean(mallRow?.available) && mallRow?.price === mallProduct.price && Boolean(mallRow?.taokouling))
-
-console.log(
-  failed === 0
-    ? '\n🎉 功能四数据层与业务层全部通过\n'
-    : `\n❌ ${failed} 项未通过\n`,
+check(
+  '入车行明细可解析（价格与淘口令来自服务端）',
+  Boolean(mallRow?.available) && mallRow?.price === mallProduct.price && Boolean(mallRow?.taokouling),
 )
+
+console.log(failed === 0 ? '\n🎉 功能四数据层与业务层全部通过\n' : `\n❌ ${failed} 项未通过\n`)
 process.exitCode = failed === 0 ? 0 : 1
 await closeDb()
-

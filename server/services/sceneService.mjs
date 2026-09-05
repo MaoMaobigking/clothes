@@ -112,10 +112,10 @@ function buildFallbackWeather(latitude, longitude, season = seasonForMonth()) {
   const index = Math.abs(Math.round(latitude + longitude + month * 7)) % WEATHER_CONDITIONS.length
   const weather = WEATHER_CONDITIONS[index]
   const tempBase = {
-    '春季': 18,
-    '夏季': 30,
-    '秋季': 20,
-    '冬季': 6,
+    春季: 18,
+    夏季: 30,
+    秋季: 20,
+    冬季: 6,
   }
   const temp = (tempBase[season] ?? 18) + (index % 3)
   return {
@@ -220,7 +220,8 @@ function normalizeItem(g, source) {
   return item
 }
 
-function eligibleGarments(garments, category, season, weather) {
+// 第 4 个参数 weather 暂未参与筛选，保留占位以免打乱调用方的位置实参
+function eligibleGarments(garments, category, season, _weather) {
   return garments.filter((garment) => {
     if (garment.category !== category) return false
     if (!seasonMatches(season, garment.season)) return false
@@ -239,23 +240,14 @@ function buildReason(scene, season, weather, profile, mode, usedGarments) {
     ? `结合你的「${profile.styles.slice(0, 2).join('、')}」偏好`
     : '基于当前身形画像'
   const weatherText = weather?.city ? `和 ${weather.city} ${weather.condition} ${weather.temp}℃` : ''
-  const sourceText = mode === 'pure'
-    ? `全部使用衣橱中的 ${usedGarments} 件旧衣`
-    : `保留衣橱旧衣，并用 ${usedGarments} 件目录新品补齐缺槽`
+  const sourceText =
+    mode === 'pure'
+      ? `全部使用衣橱中的 ${usedGarments} 件旧衣`
+      : `保留衣橱旧衣，并用 ${usedGarments} 件目录新品补齐缺槽`
   return `${style}${weatherText}，${sourceText}。关键词：${scene.keywords.join('、')}。`
 }
 
-function makePlan({
-  id,
-  title,
-  scene,
-  season,
-  weather,
-  profile,
-  mode,
-  items,
-  usedGarmentCount,
-}) {
+function makePlan({ id, title, scene, season, weather, profile, mode, items, usedGarmentCount }) {
   const reason = buildReason(scene, season, weather, profile, mode, usedGarmentCount)
   return {
     id,
@@ -289,17 +281,19 @@ function buildPurePlans({ garments, scene, season, weather, profile }) {
       }
     })
 
-    plans.push(makePlan({
-      id: `pure-${planIndex + 1}`,
-      title: `${scene.label} · 旧衣方案 ${planIndex + 1}`,
-      scene,
-      season,
-      weather,
-      profile,
-      mode: 'pure',
-      items,
-      usedGarmentCount: items.length,
-    }))
+    plans.push(
+      makePlan({
+        id: `pure-${planIndex + 1}`,
+        title: `${scene.label} · 旧衣方案 ${planIndex + 1}`,
+        scene,
+        season,
+        weather,
+        profile,
+        mode: 'pure',
+        items,
+        usedGarmentCount: items.length,
+      }),
+    )
   }
 
   return { plans, activeIds }
@@ -320,9 +314,7 @@ function buildMixedPlans({ garments, catalog, scene, season, weather, profile })
 
       // 每套方案至少留一个确定性缺槽，保证新旧混搭确实出现新品。
       const forceNewSlot = slotIndex === planIndex % scene.slots.length
-      const catalogPool = catalog.filter(
-        (item) => item.category === category && seasonMatches(season, item.season),
-      )
+      const catalogPool = catalog.filter((item) => item.category === category && seasonMatches(season, item.season))
       const catalogItem = pickWithRotation(catalogPool, planIndex + slotIndex, usedIds)
 
       if (!forceNewSlot && oldItem) {
@@ -368,9 +360,10 @@ function buildMixedPlans({ garments, catalog, scene, season, weather, profile })
 export async function generateScenePlans({ userId, sceneKey, season, weather }) {
   const scene = findScene(sceneKey)
   const selectedSeason = season || seasonForMonth()
-  const resolvedWeather = weather && Object.keys(weather).length
-    ? { ...weather, season: selectedSeason }
-    : { city: '杭州', temp: 20, condition: '多云', icon: '⛅', source: 'fallback' }
+  const resolvedWeather =
+    weather && Object.keys(weather).length
+      ? { ...weather, season: selectedSeason }
+      : { city: '杭州', temp: 20, condition: '多云', icon: '⛅', source: 'fallback' }
   const [profile, garments, catalog] = await Promise.all([
     getLatestProfile(userId),
     listGarments(userId),
@@ -470,11 +463,4 @@ export async function buyOutfit(userId, itemIds, sourceOutfitId) {
   return addCatalogItems(userId, cleanIds, sourceOutfitId)
 }
 
-export {
-  ensureSceneCatalog,
-  findCatalogByIds,
-  findSceneOutfit,
-  listCart,
-  listSceneOutfits,
-}
-
+export { ensureSceneCatalog, findCatalogByIds, findSceneOutfit, listCart, listSceneOutfits }

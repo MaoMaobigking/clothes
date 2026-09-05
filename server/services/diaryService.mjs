@@ -104,12 +104,18 @@ export async function saveDiary(userId, date, payload = {}) {
   }
 
   const note = payload.note !== undefined ? normalizeNote(payload.note) : (existing?.note ?? '')
-  const weather = payload.weather !== undefined
-    ? String(payload.weather ?? '').trim().slice(0, 32)
-    : (existing?.weather ?? '')
-  const mood = payload.mood !== undefined
-    ? String(payload.mood ?? '').trim().slice(0, 32)
-    : (existing?.mood ?? '')
+  const weather =
+    payload.weather !== undefined
+      ? String(payload.weather ?? '')
+          .trim()
+          .slice(0, 32)
+      : (existing?.weather ?? '')
+  const mood =
+    payload.mood !== undefined
+      ? String(payload.mood ?? '')
+          .trim()
+          .slice(0, 32)
+      : (existing?.mood ?? '')
 
   // 三样都空、也没选搭配 —— 存下去就是一条空记录，日历上点亮一个什么都没有的日子
   if (!outfitId && !note && !weather && !mood) {

@@ -83,9 +83,7 @@ async function poll(token, taskId) {
       assert(false, '轮询拿到任务', JSON.stringify(res.data)?.slice(0, 200))
       return null
     }
-    process.stdout.write(
-      `\r   ${task.status} … ${Math.round((POLL_TIMEOUT_MS - (deadline - Date.now())) / 1000)}s   `,
-    )
+    process.stdout.write(`\r   ${task.status} … ${Math.round((POLL_TIMEOUT_MS - (deadline - Date.now())) / 1000)}s   `)
     if (['SUCCEEDED', 'FAILED', 'CANCELED', 'UNKNOWN'].includes(task.status) || Date.now() >= deadline) {
       console.log('')
       return task
@@ -112,10 +110,7 @@ async function main() {
 
   /* ---- 鉴权 ---- */
   assert((await api(null, '/api/tryon')).status === 401, '未带 token 访问返回 401')
-  assert(
-    (await api(null, '/api/tryon', { method: 'POST', body: {} })).status === 401,
-    '未带 token 提交返回 401',
-  )
+  assert((await api(null, '/api/tryon', { method: 'POST', body: {} })).status === 401, '未带 token 提交返回 401')
 
   if (!enabled) {
     skip('入参校验 / 真实出图', '未配置 DASHSCOPE_API_KEY，剩余项跳过')
@@ -235,10 +230,7 @@ async function main() {
     '刚才的任务出现在历史里',
   )
   const otherList = await api(other, '/api/tryon?limit=5')
-  assert(
-    !(otherList.data?.tasks || []).some((t) => t.taskId === task.taskId),
-    '别的用户的历史里没有这条',
-  )
+  assert(!(otherList.data?.tasks || []).some((t) => t.taskId === task.taskId), '别的用户的历史里没有这条')
 
   /* ---- 本地素材：这条链路才是小程序里真正会走的 ---- */
   // 验的是「本地文件 → 百炼临时空间 → oss:// 能被 aitryon 接受」，不是出图好不好看

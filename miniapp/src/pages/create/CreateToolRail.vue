@@ -6,13 +6,7 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
 
 <template>
   <view class="rail">
-    <view
-      v-for="t in AI_TOOLS"
-      :key="t.key"
-      class="tool"
-      :class="{ disabled: t.disabled }"
-      @tap="emit('tool', t)"
-    >
+    <view v-for="t in AI_TOOLS" :key="t.key" class="tool" :class="{ disabled: t.disabled }" @tap="emit('tool', t)">
       <UiIcon :name="t.icon" :size="38" :tone="t.disabled ? 'muted' : 'dark'" />
       <text class="t-label">{{ t.label }}</text>
       <!-- 只灰不说话会被当成「点了没反应」；和「我的」页未开放菜单用同一句「开发中」 -->

@@ -37,13 +37,7 @@ function onChange(e: { show: boolean }) {
 </script>
 
 <template>
-  <uv-popup
-    ref="popup"
-    mode="center"
-    :round="8"
-    :safe-area-inset-bottom="false"
-    @change="onChange"
-  >
+  <uv-popup ref="popup" mode="center" :round="8" :safe-area-inset-bottom="false" @change="onChange">
     <view class="ai-modal">
       <!--
         原来这个图标球是 `margin-top: -112rpx` 挂在弹窗上沿外面的。
@@ -55,12 +49,8 @@ function onChange(e: { show: boolean }) {
         <UiIcon name="sparkle" :size="56" tone="brand" />
       </view>
       <view class="title">智能推荐已生成</view>
-      <view class="desc">
-        AI 已根据你的风格、肤色、脸型、体型和偏好，生成了专属风格报告
-      </view>
-      <view class="btn btn-primary view" @tap="emit('view')">
-        查看我的专属风格报告
-      </view>
+      <view class="desc">AI 已根据你的风格、肤色、脸型、体型和偏好，生成了专属风格报告</view>
+      <view class="btn btn-primary view" @tap="emit('view')">查看我的专属风格报告</view>
       <view class="btn-text" @tap="emit('close')">再改改</view>
     </view>
   </uv-popup>

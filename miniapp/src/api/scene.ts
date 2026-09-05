@@ -1,9 +1,5 @@
 import { request } from './http'
-import type {
-  SceneFilterKey,
-  SceneKey,
-  SceneMode,
-} from '@/data/scene'
+import type { SceneFilterKey, SceneKey, SceneMode } from '@/data/scene'
 
 export interface SceneWeatherInfo {
   city: string
@@ -158,4 +154,3 @@ export async function buySceneOutfit(
     data: { itemIds, sourceOutfitId },
   })
 }
-

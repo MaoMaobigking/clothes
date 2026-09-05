@@ -68,10 +68,7 @@ export async function findProfileById(userId, id) {
 }
 
 export async function upsertProfile(userId, profile) {
-  const existing = await getOne(
-    'SELECT id FROM body_profiles WHERE user_id = ? ORDER BY id DESC LIMIT 1',
-    [userId],
-  )
+  const existing = await getOne('SELECT id FROM body_profiles WHERE user_id = ? ORDER BY id DESC LIMIT 1', [userId])
   const values = [
     profile.gender,
     JSON.stringify(profile.styles),

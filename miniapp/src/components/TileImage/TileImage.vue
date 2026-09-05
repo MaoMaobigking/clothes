@@ -79,9 +79,7 @@ const showPlaceholder = computed(() => !props.src || failed.value)
  * （全站 20 个调用点都还在传 emoji，查表让它们零改动就换成线性图标），
  * 都没有就退到通用的图片图标。
  */
-const placeholderIcon = computed<IconName>(
-  () => props.icon ?? iconForEmoji(props.emoji) ?? 'image',
-)
+const placeholderIcon = computed<IconName>(() => props.icon ?? iconForEmoji(props.emoji) ?? 'image')
 
 /*
  * 宽高比用 padding-top 撑开，不用 CSS aspect-ratio。
@@ -93,7 +91,9 @@ const placeholderIcon = computed<IconName>(
  * 不撑高度，结果是「一传 src 图片就渲染成 0 高」。磁盘上长期只有 2 张图所以没暴露。
  */
 const padTop = computed(() => {
-  const m = String(props.ratio).trim().match(/^([\d.]+)\s*(?:\/\s*([\d.]+))?$/)
+  const m = String(props.ratio)
+    .trim()
+    .match(/^([\d.]+)\s*(?:\/\s*([\d.]+))?$/)
   if (!m) return '100%'
   const w = Number(m[1])
   const h = m[2] === undefined ? 1 : Number(m[2])
@@ -108,16 +108,8 @@ const tileStyle = computed(() => ({
 </script>
 
 <template>
-  <view
-    class="tile"
-    :class="{ 'tile-fill': fill, 'tile-plain': showPlaceholder && !tint }"
-    :style="tileStyle"
-  >
-    <view
-      class="tile-inner"
-      :class="{ 'tile-fill': fill }"
-      :style="fill ? {} : { paddingTop: padTop }"
-    >
+  <view class="tile" :class="{ 'tile-fill': fill, 'tile-plain': showPlaceholder && !tint }" :style="tileStyle">
+    <view class="tile-inner" :class="{ 'tile-fill': fill }" :style="fill ? {} : { paddingTop: padTop }">
       <!-- 内容层铺满这个按比例撑开的盒子 -->
       <view class="tile-content">
         <!--

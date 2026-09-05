@@ -25,13 +25,14 @@ const page = await browser.newPage()
 for (const [src, out, box] of jobs) {
   const b64 = readFileSync(resolve(src)).toString('base64')
   const dataUri = `data:image/png;base64,${b64}`
-  await page.setContent(
-    `<body style="margin:0;padding:0"><img id="i" src="${dataUri}" style="display:block"></body>`,
+  await page.setContent(`<body style="margin:0;padding:0"><img id="i" src="${dataUri}" style="display:block"></body>`)
+  await page.waitForFunction(
+    () => {
+      const im = document.getElementById('i')
+      return im && im.complete && im.naturalWidth > 0
+    },
+    { timeout: 10000 },
   )
-  await page.waitForFunction(() => {
-    const im = document.getElementById('i')
-    return im && im.complete && im.naturalWidth > 0
-  }, { timeout: 10000 })
   const dim = await page.evaluate(() => {
     const im = document.getElementById('i')
     return { w: im.naturalWidth, h: im.naturalHeight }

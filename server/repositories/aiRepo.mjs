@@ -13,10 +13,11 @@ import { getAll, getOne, execute } from '../db/mysql.mjs'
 
 /** 保存一份风格报告，返回新 id。answers/result 存 JSON 列 */
 export async function saveStyleReport(userId, answers, result) {
-  const r = await execute(
-    'INSERT INTO style_reports (user_id, answers, result) VALUES (?, ?, ?)',
-    [userId, JSON.stringify(answers ?? null), JSON.stringify(result ?? null)],
-  )
+  const r = await execute('INSERT INTO style_reports (user_id, answers, result) VALUES (?, ?, ?)', [
+    userId,
+    JSON.stringify(answers ?? null),
+    JSON.stringify(result ?? null),
+  ])
   return r.insertId
 }
 
@@ -34,19 +35,16 @@ export async function listStyleReports(userId, limit = 20) {
 
 /** 单份报告；不属于该用户返回 null */
 export async function findStyleReport(userId, id) {
-  return getOne(
-    'SELECT id, answers, result, created_at FROM style_reports WHERE id = ? AND user_id = ?',
-    [id, userId],
-  )
+  return getOne('SELECT id, answers, result, created_at FROM style_reports WHERE id = ? AND user_id = ?', [id, userId])
 }
 
 /* ============ 会话 ============ */
 
 export async function createChatSession(userId, title = '新对话') {
-  const r = await execute(
-    'INSERT INTO chat_sessions (user_id, title) VALUES (?, ?)',
-    [userId, String(title).slice(0, 120)],
-  )
+  const r = await execute('INSERT INTO chat_sessions (user_id, title) VALUES (?, ?)', [
+    userId,
+    String(title).slice(0, 120),
+  ])
   return r.insertId
 }
 
@@ -64,17 +62,11 @@ export async function listChatSessions(userId, limit = 30) {
 
 /** 校验会话归属 —— 写消息前必须过这一关，否则能往别人会话里插话 */
 export async function findChatSession(userId, sessionId) {
-  return getOne(
-    'SELECT id, title, created_at FROM chat_sessions WHERE id = ? AND user_id = ?',
-    [sessionId, userId],
-  )
+  return getOne('SELECT id, title, created_at FROM chat_sessions WHERE id = ? AND user_id = ?', [sessionId, userId])
 }
 
 export async function deleteChatSession(userId, sessionId) {
-  const r = await execute(
-    'DELETE FROM chat_sessions WHERE id = ? AND user_id = ?',
-    [sessionId, userId],
-  )
+  const r = await execute('DELETE FROM chat_sessions WHERE id = ? AND user_id = ?', [sessionId, userId])
   // 消息靠 chat_messages 的 ON DELETE CASCADE 一起清，不用手动删
   return r.affectedRows > 0
 }
@@ -87,10 +79,11 @@ export async function deleteChatSession(userId, sessionId) {
  * 所以调用方必须先用 findChatSession 验过会话是自己的。
  */
 export async function saveChatMessage(sessionId, role, content) {
-  const r = await execute(
-    'INSERT INTO chat_messages (session_id, role, content) VALUES (?, ?, ?)',
-    [sessionId, role, content ?? ''],
-  )
+  const r = await execute('INSERT INTO chat_messages (session_id, role, content) VALUES (?, ?, ?)', [
+    sessionId,
+    role,
+    content ?? '',
+  ])
   return r.insertId
 }
 

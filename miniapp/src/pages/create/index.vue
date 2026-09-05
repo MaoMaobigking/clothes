@@ -75,13 +75,9 @@ function focusPanel(kind: 'info' | 'body') {
   })
 }
 
-const modelSrc = computed(() =>
-  store.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front,
-)
+const modelSrc = computed(() => (store.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front))
 const genderLabel = computed(() => (store.profile.gender === 'male' ? '男' : '女'))
-const hairLabel = computed(
-  () => HAIR_STYLES.find((h) => h.id === store.profile.hairstyle)?.label ?? '直发',
-)
+const hairLabel = computed(() => HAIR_STYLES.find((h) => h.id === store.profile.hairstyle)?.label ?? '直发')
 
 function chooseGender(gender: Gender) {
   store.setGender(gender)
@@ -123,14 +119,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
               图片本身不是 3:4，contain 之后左右会露出一条渐变色带（截图里那条粉边）。
               缺图时 from/to 仍会兜底，这里靠 emoji 提示。
             -->
-            <TileImage
-              :src="modelSrc"
-              from="transparent"
-              to="transparent"
-              emoji="🧍‍♀️"
-              ratio="3 / 4"
-              fit="contain"
-            />
+            <TileImage :src="modelSrc" from="transparent" to="transparent" emoji="🧍‍♀️" ratio="3 / 4" fit="contain" />
             <text class="gender-chip">{{ genderLabel }}</text>
             <text class="hair-chip">{{ hairLabel }}</text>
           </view>
@@ -144,20 +133,13 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
         <CreateToolRail class="panel panel-right" @tool="onTool" />
 
         <view class="tests">
-          <view
-            v-for="(s, i) in STEPS"
-            :key="s.key"
-            class="test"
-            @tap="goTest(i + 1)"
-          >
+          <view v-for="(s, i) in STEPS" :key="s.key" class="test" @tap="goTest(i + 1)">
             <UiIcon :name="s.icon" :size="30" tone="purple" />
             <text class="test-label">{{ s.title }}</text>
           </view>
         </view>
 
-        <view class="free" @tap="goFreeMatch">
-          自由搭配 →
-        </view>
+        <view class="free" @tap="goFreeMatch">自由搭配 →</view>
       </view>
 
       <view v-if="toast" class="toast">{{ toast }}</view>
@@ -169,18 +151,10 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
       <view class="sheet" @tap.stop>
         <view class="sheet-title">更换性别</view>
         <view class="gender-options">
-          <view
-            class="gender-option"
-            :class="{ on: store.profile.gender === 'female' }"
-            @tap="chooseGender('female')"
-          >
+          <view class="gender-option" :class="{ on: store.profile.gender === 'female' }" @tap="chooseGender('female')">
             女
           </view>
-          <view
-            class="gender-option"
-            :class="{ on: store.profile.gender === 'male' }"
-            @tap="chooseGender('male')"
-          >
+          <view class="gender-option" :class="{ on: store.profile.gender === 'male' }" @tap="chooseGender('male')">
             男
           </view>
         </view>
@@ -211,11 +185,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
       <view class="sheet fav-sheet" @tap.stop>
         <view class="sheet-title">收藏夹</view>
         <view v-if="wardrobe.favoriteGarments.length" class="fav-grid">
-          <view
-            v-for="g in wardrobe.favoriteGarments"
-            :key="g.id"
-            class="fav-card"
-          >
+          <view v-for="g in wardrobe.favoriteGarments" :key="g.id" class="fav-card">
             <UiIcon class="fav-emoji" :name="iconForEmoji(g.emoji) ?? 'image'" :size="48" tone="muted" />
             <text class="fav-name">{{ g.name }}</text>
           </view>
@@ -279,12 +249,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   height: 52rpx;
   margin-top: -20rpx;
   border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    rgba(255, 158, 200, 0.55),
-    rgba(214, 160, 255, 0.28) 70%,
-    transparent
-  );
+  background: radial-gradient(closest-side, rgba(255, 158, 200, 0.55), rgba(214, 160, 255, 0.28) 70%, transparent);
   box-shadow: 0 20rpx 40rpx rgba(255, 158, 200, 0.3);
 }
 
@@ -314,11 +279,15 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 .panel {
   position: absolute;
   z-index: 3;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 .panel.highlight {
   transform: translateY(-6rpx) scale(1.02);
-  box-shadow: 0 0 0 6rpx rgba(255, 143, 192, 0.35), var(--shadow-float);
+  box-shadow:
+    0 0 0 6rpx rgba(255, 143, 192, 0.35),
+    var(--shadow-float);
 }
 .panel-left {
   top: 80rpx;
@@ -395,7 +364,9 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 .gender-option.on {
   color: #fff;
@@ -418,7 +389,9 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   border: 2rpx solid var(--line);
   box-shadow: var(--shadow-card);
   color: var(--text-2);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 .hair-option.on {
   border-color: var(--pink);

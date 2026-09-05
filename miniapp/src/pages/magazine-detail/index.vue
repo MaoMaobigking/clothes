@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import {
-  bookmarkCommunityContent,
-  fetchCommunityContent,
-  type CommunityContent,
-} from '@/api/community'
+import { bookmarkCommunityContent, fetchCommunityContent, type CommunityContent } from '@/api/community'
 import { isAuthError } from '@/api/http'
 
 const contentId = ref('')
@@ -29,6 +25,9 @@ onMounted(async () => {
     return
   }
   await loadContent()
+  // 恢复上次读到的位置。这行原先漏了：滚动时进度一直在写 storage（见 onScroll），
+  // 但 restoreProgress 从未被调用，等于只写不读，重进文章永远显示 0%。
+  restoreProgress()
 })
 
 async function loadContent() {
@@ -37,9 +36,7 @@ async function loadContent() {
   try {
     content.value = await fetchCommunityContent(contentId.value)
     draftNote.value = content.value.note
-    offlineSaved.value = Boolean(
-      uni.getStorageSync(`ai-fashion-offline-${contentId.value}`),
-    )
+    offlineSaved.value = Boolean(uni.getStorageSync(`ai-fashion-offline-${contentId.value}`))
   } catch (error) {
     // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
     if (!isAuthError(error)) {
@@ -109,18 +106,9 @@ function restoreProgress() {
     <view v-if="loading" class="state">正在加载杂志...</view>
     <view v-else-if="errorText || !content" class="state error">{{ errorText }}</view>
 
-    <scroll-view
-      v-else
-      class="body"
-      scroll-y
-      @scroll="handleScroll"
-    >
+    <scroll-view v-else class="body" scroll-y @scroll="handleScroll">
       <view class="cover-wrap" @tap="zoomed = true">
-        <image
-          class="cover"
-          :src="content.coverUrl"
-          mode="aspectFill"
-        />
+        <image class="cover" :src="content.coverUrl" mode="aspectFill" />
         <view class="cover-mask">
           <text class="month">{{ content.publishedMonth }}</text>
           <view class="cover-title">{{ content.title }}</view>
@@ -132,11 +120,7 @@ function restoreProgress() {
       <view class="article">
         <text class="author">{{ content.authorAvatar }} {{ content.authorName }}</text>
         <view class="intro">{{ content.body.intro }}</view>
-        <view
-          v-for="(section, index) in content.body.sections"
-          :key="`${section.heading}-${index}`"
-          class="section"
-        >
+        <view v-for="(section, index) in content.body.sections" :key="`${section.heading}-${index}`" class="section">
           <view class="heading">{{ section.heading }}</view>
           <view class="paragraph">{{ section.text }}</view>
         </view>
@@ -167,12 +151,7 @@ function restoreProgress() {
     <view v-if="noteModal" class="note-mask" @tap="noteModal = false">
       <view class="note-sheet" @tap.stop>
         <view class="sheet-title">读书笔记</view>
-        <textarea
-          v-model="draftNote"
-          class="note-input"
-          maxlength="2000"
-          placeholder="写下这期杂志给你的灵感..."
-        />
+        <textarea v-model="draftNote" class="note-input" maxlength="2000" placeholder="写下这期杂志给你的灵感..." />
         <view class="sheet-actions">
           <view class="ghost-button" @tap="noteModal = false">取消</view>
           <view class="primary-button" @tap="saveBookmark">保存书签</view>

@@ -9,10 +9,4 @@
  * 新代码一律直接用 cartService，不要再往这里加东西。本文件可在
  * 前端调用点全部迁走后删除。
  */
-export {
-  listCart,
-  addItem,
-  addBatch,
-  removeItem,
-  hasOutfitInCart,
-} from './cartService.mjs'
+export { listCart, addItem, addBatch, removeItem, hasOutfitInCart } from './cartService.mjs'

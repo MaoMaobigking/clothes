@@ -75,10 +75,7 @@ export async function updateStatus(userId, taskId, { status, imageUrl, errorMess
 }
 
 export async function findByTaskId(userId, taskId) {
-  const row = await getOne(
-    `SELECT ${TASK_COLS} FROM ai_tasks WHERE task_id = ? AND user_id = ?`,
-    [taskId, userId],
-  )
+  const row = await getOne(`SELECT ${TASK_COLS} FROM ai_tasks WHERE task_id = ? AND user_id = ?`, [taskId, userId])
   return mapRow(row)
 }
 

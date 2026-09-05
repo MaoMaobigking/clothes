@@ -34,7 +34,8 @@ export const useWishlistStore = defineStore('wishlist', () => {
     if (i >= 0) ids.value.splice(i, 1)
   }
   function toggle(id: string) {
-    has(id) ? remove(id) : add(id)
+    if (has(id)) remove(id)
+    else add(id)
   }
   function clear() {
     ids.value = []

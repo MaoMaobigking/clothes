@@ -48,10 +48,7 @@ async function generate() {
     if (store.isComplete) {
       await saveCurrentProfile(store.profile)
     }
-    report.value = await fetchStyleReport(
-      buildPayload(),
-      toProfilePayload(store.profile),
-    )
+    report.value = await fetchStyleReport(buildPayload(), toProfilePayload(store.profile))
     source.value = report.value.source || 'ai'
     await refreshHistory()
   } catch (e) {
@@ -87,9 +84,7 @@ async function loadReport(id: number) {
   historyLoading.value = true
   try {
     const record = await fetchStyleReportById(id)
-    const result = typeof record.result === 'string'
-      ? JSON.parse(record.result)
-      : record.result
+    const result = typeof record.result === 'string' ? JSON.parse(record.result) : record.result
     report.value = result || null
     source.value = report.value?.source === 'rule' ? 'rule' : 'ai'
     error.value = ''
@@ -131,15 +126,9 @@ onMounted(async () => {
 
 // AI 有数据就用 AI 的，否则回退到本地示意
 const radar = computed(() => store.radar)
-const summary = computed(
-  () => report.value?.summary || store.summary || '完成测试即可生成你的专属画像',
-)
-const modelSrc = computed(() =>
-  store.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front,
-)
-const viewerLabel = computed(() =>
-  store.profile.gender === 'male' ? '男性虚拟形象' : '女性虚拟形象',
-)
+const summary = computed(() => report.value?.summary || store.summary || '完成测试即可生成你的专属画像')
+const modelSrc = computed(() => (store.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front))
+const viewerLabel = computed(() => (store.profile.gender === 'male' ? '男性虚拟形象' : '女性虚拟形象'))
 
 function formatDate(value: string) {
   const date = new Date(value)
@@ -167,7 +156,13 @@ function goBack() {
     <view class="top">
       <button class="back" aria-label="返回" @tap="goBack">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path
+            d="M15 18l-6-6 6-6"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       </button>
       <view class="title">我的专属风格报告</view>
@@ -177,7 +172,8 @@ function goBack() {
     <scroll-view scroll-y class="body">
       <!-- AI 状态条 -->
       <view v-if="loading" class="ai-banner loading">
-        <UiIcon class="spin" name="robot" :size="40" tone="purple" /> <text>AI 正在生成你的专属风格报告…</text>
+        <UiIcon class="spin" name="robot" :size="40" tone="purple" />
+        <text>AI 正在生成你的专属风格报告…</text>
       </view>
       <view v-else-if="error" class="ai-banner err">
         <text>AI 没连上：{{ error }}</text>
@@ -198,12 +194,7 @@ function goBack() {
           <text v-if="historyLoading" class="history-loading">读取中…</text>
         </view>
         <scroll-view scroll-x class="history-list" :show-scrollbar="false">
-          <view
-            v-for="item in history"
-            :key="item.id"
-            class="history-item"
-            @tap="loadReport(item.id)"
-          >
+          <view v-for="item in history" :key="item.id" class="history-item" @tap="loadReport(item.id)">
             <text class="history-time">{{ formatDate(item.created_at) }}</text>
             <text class="history-go">查看</text>
           </view>
@@ -226,11 +217,7 @@ function goBack() {
         <view class="sec-title">我的画像雷达</view>
         <RadarChart :dimensions="radar" />
         <view v-if="store.incompleteDimensions.length" class="incomplete-list">
-          <view
-            v-for="dim in store.incompleteDimensions"
-            :key="dim.name"
-            class="incomplete-item"
-          >
+          <view v-for="dim in store.incompleteDimensions" :key="dim.name" class="incomplete-item">
             <text class="dot">•</text>
             <text>{{ dim.name }}：该维度未完善</text>
           </view>
@@ -275,13 +262,16 @@ function goBack() {
         <view class="sec-title">关键标签</view>
         <view class="traits">
           <view class="trait">
-            <text class="k">肤色</text><text class="v">{{ store.skinLabel || '—' }}</text>
+            <text class="k">肤色</text>
+            <text class="v">{{ store.skinLabel || '—' }}</text>
           </view>
           <view class="trait">
-            <text class="k">脸型</text><text class="v">{{ store.faceLabel || '—' }}</text>
+            <text class="k">脸型</text>
+            <text class="v">{{ store.faceLabel || '—' }}</text>
           </view>
           <view class="trait">
-            <text class="k">BMI</text><text class="v">{{ store.bmi }}</text>
+            <text class="k">BMI</text>
+            <text class="v">{{ store.bmi }}</text>
           </view>
         </view>
         <view class="style-tags">

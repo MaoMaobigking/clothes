@@ -38,16 +38,13 @@ export async function findById(id) {
 }
 
 /** 创建用户，返回自增出来的真 id */
-export async function createUser(
-  openid,
-  nickname = '衣橱主人',
-  avatarUrl = null,
-  role = 'user',
-) {
-  const result = await execute(
-    'INSERT INTO users (openid, nickname, avatar_url, role) VALUES (?, ?, ?, ?)',
-    [openid, nickname, avatarUrl, role],
-  )
+export async function createUser(openid, nickname = '衣橱主人', avatarUrl = null, role = 'user') {
+  const result = await execute('INSERT INTO users (openid, nickname, avatar_url, role) VALUES (?, ?, ?, ?)', [
+    openid,
+    nickname,
+    avatarUrl,
+    role,
+  ])
   return { id: result.insertId, openid, nickname, avatar_url: avatarUrl, role }
 }
 
@@ -60,12 +57,7 @@ export async function findOrCreateByOpenid(openid, profile = {}) {
   const existing = await findByOpenid(openid)
   if (existing) return { user: existing, created: false }
   try {
-    const user = await createUser(
-      openid,
-      profile.nickname,
-      profile.avatarUrl,
-      profile.role || 'user',
-    )
+    const user = await createUser(openid, profile.nickname, profile.avatarUrl, profile.role || 'user')
     return { user, created: true }
   } catch (err) {
     // 并发下两个请求同时插同一个 openid，唯一索引会拦住后来的那个。
@@ -78,10 +70,7 @@ export async function findOrCreateByOpenid(openid, profile = {}) {
 }
 
 export async function setUserRole(id, role) {
-  const result = await execute(
-    'UPDATE users SET role = ? WHERE id = ?',
-    [role, id],
-  )
+  const result = await execute('UPDATE users SET role = ? WHERE id = ?', [role, id])
   return result.affectedRows > 0
 }
 
@@ -92,11 +81,26 @@ export async function setUserRole(id, role) {
 export async function setAccountCredentials(id, { account, passwordHash, demoKind, nickname, role }) {
   const fields = []
   const params = []
-  if (account !== undefined) { fields.push('account = ?'); params.push(account) }
-  if (passwordHash !== undefined) { fields.push('password_hash = ?'); params.push(passwordHash) }
-  if (demoKind !== undefined) { fields.push('demo_kind = ?'); params.push(demoKind) }
-  if (nickname !== undefined) { fields.push('nickname = ?'); params.push(nickname) }
-  if (role !== undefined) { fields.push('role = ?'); params.push(role) }
+  if (account !== undefined) {
+    fields.push('account = ?')
+    params.push(account)
+  }
+  if (passwordHash !== undefined) {
+    fields.push('password_hash = ?')
+    params.push(passwordHash)
+  }
+  if (demoKind !== undefined) {
+    fields.push('demo_kind = ?')
+    params.push(demoKind)
+  }
+  if (nickname !== undefined) {
+    fields.push('nickname = ?')
+    params.push(nickname)
+  }
+  if (role !== undefined) {
+    fields.push('role = ?')
+    params.push(role)
+  }
   if (!fields.length) return false
   params.push(id)
   const result = await execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params)
@@ -114,8 +118,14 @@ export async function setAccountCredentials(id, { account, passwordHash, demoKin
 export async function updateUserProfile(id, { nickname, avatarUrl }) {
   const fields = []
   const params = []
-  if (nickname !== undefined) { fields.push('nickname = ?'); params.push(nickname) }
-  if (avatarUrl !== undefined) { fields.push('avatar_url = ?'); params.push(avatarUrl) }
+  if (nickname !== undefined) {
+    fields.push('nickname = ?')
+    params.push(nickname)
+  }
+  if (avatarUrl !== undefined) {
+    fields.push('avatar_url = ?')
+    params.push(avatarUrl)
+  }
   if (!fields.length) return false
   params.push(id)
   const result = await execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params)

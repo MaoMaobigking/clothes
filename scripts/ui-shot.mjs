@@ -32,9 +32,7 @@ const ALL = {
 }
 
 const picked = process.argv.slice(2)
-const routes = picked.length
-  ? picked.filter((n) => ALL[n]).map((n) => [n, ALL[n]])
-  : Object.entries(ALL)
+const routes = picked.length ? picked.filter((n) => ALL[n]).map((n) => [n, ALL[n]]) : Object.entries(ALL)
 
 async function launch() {
   for (const channel of ['msedge', 'chrome']) {

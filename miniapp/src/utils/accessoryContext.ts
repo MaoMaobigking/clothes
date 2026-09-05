@@ -17,9 +17,7 @@ export function garmentToAccessoryContext(garment: Garment): AccessoryContextIte
     category: garment.category,
     colors: [
       garment.primaryColor || garment.from,
-      ...(garment.secondaryColors?.length
-        ? garment.secondaryColors
-        : garment.to ? [garment.to] : []),
+      ...(garment.secondaryColors?.length ? garment.secondaryColors : garment.to ? [garment.to] : []),
     ],
     season: garment.season,
     occasions: garment.occasions?.length ? garment.occasions : garment.tags || [],
