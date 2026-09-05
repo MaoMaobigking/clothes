@@ -7,8 +7,8 @@
 import { execute, getOne } from '../db/mysql.mjs'
 import { findOrCreateByOpenid } from '../repositories/userRepo.mjs'
 
-const MODEL_IMAGE = '/static/images/model/front.png'
-const MODEL_IMAGE_MALE = '/static/images/model/front-male.png'
+const MODEL_IMAGE = '/static/images/model/front.jpg'
+const MODEL_IMAGE_MALE = '/static/images/model/front-male.jpg'
 
 const DEMO_USERS = [
   { key: 'alice', openid: 'demo_community_alice', nickname: '小鱼要暴富', avatar: '🐟' },
