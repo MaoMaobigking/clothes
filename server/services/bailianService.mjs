@@ -16,8 +16,10 @@
  *   BAILIAN_TRYON_MODEL  可选，aitryon（默认）或 aitryon-plus，两者调用完全兼容
  */
 
-const BASE_URL = String(process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com').replace(/\/+$/, '')
-const API_KEY = process.env.DASHSCOPE_API_KEY || ''
+import { config } from '../config/env.mjs'
+
+const BASE_URL = config.bailian.baseUrl
+const API_KEY = config.bailian.apiKey
 
 /** 创建任务的超时。只是「提交」这一下，几秒就该回，不是等出图 */
 const CREATE_TIMEOUT_MS = 20000
@@ -48,7 +50,7 @@ export const CAPABILITIES = {
     label: 'AI 试衣',
     path: '/api/v1/services/aigc/image2image/image-synthesis/',
     models: ['aitryon', 'aitryon-plus'],
-    defaultModel: process.env.BAILIAN_TRYON_MODEL || 'aitryon',
+    defaultModel: config.bailian.tryonModel,
     /** 需要用户提供的图片字段，交给上层做「公网可达」校验 */
     imageFields: ['personImageUrl', 'topGarmentUrl', 'bottomGarmentUrl'],
     buildInput(payload) {

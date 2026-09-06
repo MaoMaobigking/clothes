@@ -5,6 +5,7 @@
  * - 未登录返回 401
  */
 import jwt from 'jsonwebtoken'
+import { config } from '../config/env.mjs'
 
 /**
  * JWT 密钥必须来自环境变量，没有就直接拒绝启动。
@@ -14,8 +15,11 @@ import jwt from 'jsonwebtoken'
  * 写在开源代码里的密钥签 token —— 任何人都能自己签一个 userId=任意值 的
  * 合法 token，所有 WHERE user_id = ? 的隔离一起失效。
  * 「启动失败」比「静默用弱密钥跑起来」安全得多。
+ *
+ * 读取上移到了 config/env.mjs，但这条硬性拒绝**留在这里**：
+ * config 那层只读不抛，改在那里抛会让本来不碰鉴权的脚本也起不来。
  */
-const JWT_SECRET = process.env.JWT_SECRET
+const JWT_SECRET = config.auth.jwtSecret
 if (!JWT_SECRET || JWT_SECRET.length < 16) {
   throw new Error(
     '缺少 JWT_SECRET 环境变量（或长度不足 16）。请在 server/.env 中配置，' +

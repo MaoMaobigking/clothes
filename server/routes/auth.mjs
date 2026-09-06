@@ -20,6 +20,7 @@ import {
   getMyProfile,
   updateMyProfile,
 } from '../services/authService.mjs'
+import { config } from '../config/env.mjs'
 
 const router = Router()
 
@@ -57,7 +58,7 @@ router.get('/demo-accounts', async (_req, res, next) => {
 
 // POST /api/auth/dev-token → 开发用，走完整登录流程建一个真用户
 // body: { tag } —— 换 tag 就是换一个人，用来手测数据隔离
-if (process.env.NODE_ENV !== 'production') {
+if (!config.runtime.isProduction) {
   router.post('/dev-token', async (req, res, next) => {
     try {
       const { tag } = req.body || {}
