@@ -11,7 +11,7 @@
  * 直接调 service 层而不是发 HTTP：不用先起服务器，跑得快，
  * 而且能顺手断言数据库里的真实行数 —— 接口返回值可以骗人，行数不会。
  */
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import * as garmentService from '../services/garmentService.mjs'
 import { getOne, getAll, closeDb, initDb } from '../db/mysql.mjs'
 

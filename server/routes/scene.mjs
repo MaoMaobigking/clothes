@@ -19,7 +19,7 @@ import {
   listSceneOutfits,
   findSceneOutfit,
   listCart,
-} from '../services/sceneService.mjs'
+} from '../services/scene/index.mjs'
 
 const router = Router()
 router.use(authRequired)

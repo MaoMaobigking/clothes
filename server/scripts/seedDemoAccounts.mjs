@@ -6,7 +6,7 @@
  */
 import { initDb, closeDb } from '../db/mysql.mjs'
 import { ensureDemoData } from '../services/demoSeedService.mjs'
-import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/authService.mjs'
+import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/auth/index.mjs'
 import { ensureAccessories } from '../services/accessoryService.mjs'
 
 const reset = process.argv.includes('--reset')

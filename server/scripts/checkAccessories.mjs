@@ -11,7 +11,7 @@
  *   5. 跨用户购物车和评分数据互不越权
  */
 import { closeDb, getOne, initDb } from '../db/mysql.mjs'
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import * as garmentService from '../services/garmentService.mjs'
 import {
   ACCESSORY_CATEGORIES,

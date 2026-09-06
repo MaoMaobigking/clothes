@@ -9,7 +9,7 @@
  *
  * 前置：服务端已在 8787 跑着（npm start）。
  */
-import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/authService.mjs'
+import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/auth/index.mjs'
 
 const BASE = process.env.CHECK_BASE_URL || 'http://127.0.0.1:8787'
 const DAY = '2026-08-18'

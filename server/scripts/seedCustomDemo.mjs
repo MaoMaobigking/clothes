@@ -3,7 +3,7 @@
  * 并各创建一条真实定制申请，方便现场直接演示入口、进度与 VIP 限制。
  */
 import { closeDb, initDb } from '../db/mysql.mjs'
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import {
   advanceRequest,
   createInquiry,

@@ -9,7 +9,7 @@
  * 需要彻底重置时用 `npm run seed:demo -- --reset`，它先清空再灌。
  */
 import { execute, getOne } from '../db/mysql.mjs'
-import { DEMO_ACCOUNTS, ensureDemoAccounts } from './authService.mjs'
+import { DEMO_ACCOUNTS, ensureDemoAccounts } from './auth/index.mjs'
 import * as garmentService from './garmentService.mjs'
 import * as profileService from './profileService.mjs'
 import * as outfitService from './outfitService.mjs'

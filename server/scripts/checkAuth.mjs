@@ -19,7 +19,7 @@ import {
   listDemoAccounts,
   passwordLogin,
   wxLogin,
-} from '../services/authService.mjs'
+} from '../services/auth/index.mjs'
 import { ensureDemoData } from '../services/demoSeedService.mjs'
 import { ensureAccessories } from '../services/accessoryService.mjs'
 import * as garmentService from '../services/garmentService.mjs'

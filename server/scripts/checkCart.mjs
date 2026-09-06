@@ -13,11 +13,11 @@
  *   7. hasOutfitInCart 仍能驱动功能三的搭配优惠价
  */
 import { closeDb, execute, getAll, getOne, initDb, migrateCartForCheck } from '../db/mysql.mjs'
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import * as garmentService from '../services/garmentService.mjs'
 import * as cartService from '../services/cartService.mjs'
 import { ensureAccessories } from '../services/accessoryService.mjs'
-import { ensureSceneCatalog } from '../services/sceneService.mjs'
+import { ensureSceneCatalog } from '../services/scene/index.mjs'
 import { generateOutfits } from '../services/outfitService.mjs'
 
 let failed = 0
