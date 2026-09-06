@@ -74,7 +74,7 @@ function executeTool(name, args) {
   switch (name) {
     case 'search_garments': {
       // 读取种子数据
-      const seed = JSON.parse(readFileSync(join(__dirname, '..', 'seed.json'), 'utf-8'))
+      const seed = JSON.parse(readFileSync(join(__dirname, '..', 'seeds', 'seed.json'), 'utf-8'))
       let items = seed
       if (args.category) items = items.filter((g) => g.category === args.category)
       if (args.query) {

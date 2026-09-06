@@ -8,82 +8,17 @@ import * as accessoryRepo from '../repositories/accessoryRepo.mjs'
 import * as cartService from './accessoryCartService.mjs'
 import * as profileRepo from '../repositories/profileRepo.mjs'
 import * as userRepo from '../repositories/userRepo.mjs'
+import {
+  ACCESSORY_CATEGORIES,
+  CATEGORY_LABELS,
+  GARMENT_CATEGORY_LABELS,
+  BUDGET_RANGES,
+  DEMO_RATINGS,
+} from '../constants/accessory.mjs'
 
-export const ACCESSORY_CATEGORIES = [
-  { key: 'jewelry', label: '首饰' },
-  { key: 'hat', label: '帽子' },
-  { key: 'scarf', label: '围巾' },
-  { key: 'belt', label: '腰带' },
-  { key: 'shoes', label: '鞋子' },
-]
-
-const CATEGORY_LABELS = Object.fromEntries(ACCESSORY_CATEGORIES.map((category) => [category.key, category.label]))
-
-const GARMENT_CATEGORY_LABELS = {
-  top: '上衣',
-  pants: '下装',
-  skirt: '下装',
-  dress: '连衣裙',
-  shoes: '鞋履',
-  bag: '包袋',
-  hat: '帽子',
-  jewelry: '首饰',
-  accessory: '配饰',
-}
-
-const BUDGET_RANGES = {
-  low: [0, 119],
-  mid: [120, 329],
-  high: [330, 9999],
-}
-
-const DEMO_RATINGS = [
-  [
-    'accessory_demo_lingxi_1',
-    '珍珠耳钉',
-    [
-      ['ac-jewelry-1', 5],
-      ['ac-shoes-1', 5],
-      ['ac-scarf-1', 4],
-    ],
-  ],
-  [
-    'accessory_demo_lingxi_2',
-    '法式试装',
-    [
-      ['ac-jewelry-2', 4],
-      ['ac-hat-2', 5],
-      ['ac-shoes-2', 5],
-    ],
-  ],
-  [
-    'accessory_demo_lingxi_3',
-    '通勤穿搭',
-    [
-      ['ac-belt-1', 5],
-      ['ac-shoes-4', 5],
-      ['ac-scarf-3', 4],
-    ],
-  ],
-  [
-    'accessory_demo_lingxi_4',
-    '街头造型',
-    [
-      ['ac-hat-3', 5],
-      ['ac-shoes-1', 4],
-      ['ac-jewelry-3', 4],
-    ],
-  ],
-  [
-    'accessory_demo_lingxi_5',
-    '约会灵感',
-    [
-      ['ac-jewelry-4', 5],
-      ['ac-shoes-2', 5],
-      ['ac-scarf-2', 4],
-    ],
-  ],
-]
+// 分类表原来定义在本文件并对外导出，迁走后在这里原样再导出，保持导入面不变
+// （routes/accessories.mjs 用 import * as accessoryService 取它）
+export { ACCESSORY_CATEGORIES }
 
 function asStringList(value) {
   if (!Array.isArray(value)) return []

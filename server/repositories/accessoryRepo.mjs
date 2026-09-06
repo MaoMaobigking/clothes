@@ -86,7 +86,7 @@ export async function countAccessories() {
  * 老的 NULL。评分等用户数据在 accessory_ratings，不受这里影响。
  */
 export async function seedAccessories() {
-  const seed = JSON.parse(readFileSync(join(here, '..', 'seed-accessories.json'), 'utf-8'))
+  const seed = JSON.parse(readFileSync(join(here, '..', 'seeds', 'seed-accessories.json'), 'utf-8'))
   let inserted = 0
   for (const item of seed) {
     const result = await execute(

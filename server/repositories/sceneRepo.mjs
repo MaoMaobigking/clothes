@@ -58,7 +58,7 @@ function mapSceneOutfit(row) {
 
 /** 初始化人工维护的场景商城目录。 */
 export async function ensureSceneCatalog() {
-  const items = JSON.parse(readFileSync(join(here, '..', 'scene-catalog.json'), 'utf-8'))
+  const items = JSON.parse(readFileSync(join(here, '..', 'seeds', 'scene-catalog.json'), 'utf-8'))
   if (!items.length) return 0
 
   await withTransaction(async (conn) => {
