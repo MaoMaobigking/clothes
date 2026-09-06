@@ -4,7 +4,7 @@
  * 用法：cd server && npm run check:ai
  * 不依赖 MySQL 和 HTTP 服务，直接调用 AI 服务层。
  */
-import { getAiRuntime, aiChat, aiChatStream, aiChatWithTools, generateReport } from '../services/aiService.mjs'
+import { getAiRuntime, aiChat, aiChatStream, aiChatWithTools, generateReport } from '../services/ai/index.mjs'
 
 const runtime = getAiRuntime()
 let failed = 0

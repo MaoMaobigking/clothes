@@ -16,7 +16,7 @@ import {
   aiChatStream,
   aiChatWithTools,
   TOOLS,
-} from '../services/aiService.mjs'
+} from '../services/ai/index.mjs'
 import { searchRAG, buildRAGPrompt } from '../services/ragService.mjs'
 import { listGarments } from '../services/garmentService.mjs'
 import { saveStyleReport, listStyleReports, findStyleReport } from '../repositories/aiRepo.mjs'
