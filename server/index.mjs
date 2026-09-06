@@ -38,7 +38,8 @@ import { createAiTaskRouter } from './routes/aiTasks.mjs'
 import { ensureDemoData } from './services/demoSeedService.mjs'
 import { getAiRuntime } from './services/aiService.mjs'
 import { getBailianRuntime } from './services/bailianService.mjs'
-import { initDb, ping, DB_NAME, DB_TARGET, DB_CONFIG_NOTES } from './db/mysql.mjs'
+import { initDb, ping, DB_NAME, DB_TARGET } from './db/mysql.mjs'
+import { config, CONFIG_NOTES } from './config/env.mjs'
 
 const app = express()
 const here = dirname(fileURLToPath(import.meta.url))
@@ -47,7 +48,7 @@ mkdirSync(uploadDir, { recursive: true })
 
 const ai = getAiRuntime()
 const bailian = getBailianRuntime()
-const PORT = Number(process.env.PORT || 8787)
+const PORT = config.runtime.port
 
 app.use(cors())
 app.use(express.json({ limit: '12mb' }))
@@ -68,7 +69,7 @@ app.use('/uploads', express.static(uploadDir))
  * 想放别处就用环境变量 IMAGES_DIR 指定。
  */
 const imagesDir = (() => {
-  if (process.env.IMAGES_DIR) return resolve(process.env.IMAGES_DIR)
+  if (config.runtime.imagesDir) return resolve(config.runtime.imagesDir)
   for (const dir of [join(here, '..', 'images'), join(here, '..', 'miniapp', 'src', 'static', 'images')]) {
     if (existsSync(dir)) return dir
   }
@@ -129,7 +130,7 @@ app.use(errorHandler)
 async function bootstrap() {
   // 配置体检要在连库【之前】打，否则一旦连不上，人只看得到驱动层那句
   // getaddrinfo / ECONNREFUSED，看不出是自己哪一格填串了。
-  for (const note of DB_CONFIG_NOTES) console.warn(`⚠️ 数据库配置：${note}`)
+  for (const note of CONFIG_NOTES) console.warn(`⚠️ 配置检查：${note}`)
   const dbHost = DB_TARGET
   try {
     await initDb()
@@ -151,7 +152,7 @@ async function bootstrap() {
   } catch (err) {
     const reason = [err.code, err.message].filter(Boolean).join(' ') || '(驱动没给原因)'
     console.error(`\n❌ MySQL 连接失败 (${dbHost}/${DB_NAME}): ${reason}`)
-    if (!process.env.MYSQL_HOST) {
+    if (!config.db.hostConfigured) {
       // 云托管上最常见的死法：环境变量面板漏了 MYSQL_HOST，于是回落到上面那个
       // localhost，而容器里当然没有 MySQL —— 表现成「镜像构建成功，部署时反复重启」
       // （Back-off restarting failed container）。所以这里要把「兜底值」这件事说出来，

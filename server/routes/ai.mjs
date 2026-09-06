@@ -20,11 +20,12 @@ import {
 import { searchRAG, buildRAGPrompt } from '../services/ragService.mjs'
 import { listGarments } from '../services/garmentService.mjs'
 import { saveStyleReport, listStyleReports, findStyleReport } from '../repositories/aiRepo.mjs'
+import { config } from '../config/env.mjs'
 
 const router = Router()
 
 function requireKey(_req, res) {
-  if (!process.env.AI_API_KEY) {
+  if (!config.ai.apiKey) {
     res.status(400).json({ error: 'NO_API_KEY', message: '请在 .env 中配置 AI_API_KEY' })
     return false
   }

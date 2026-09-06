@@ -19,6 +19,7 @@ import {
   listSceneOutfits,
   saveSceneOutfit,
 } from '../repositories/sceneRepo.mjs'
+import { config } from '../config/env.mjs'
 
 export const SCENE_DEFINITIONS = [
   {
@@ -165,7 +166,7 @@ export async function resolveWeather(input = {}) {
   }
 
   const fallback = buildFallbackWeather(latitude, longitude, season)
-  const apiKey = process.env.OPENWEATHER_API_KEY
+  const apiKey = config.weather.openWeatherKey
   if (!apiKey) return fallback
 
   try {

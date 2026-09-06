@@ -5,9 +5,11 @@
  *  - 兜底机制：手写 JSON 提取 + Schema 校验
  *  - 结果入库：style_reports 持久化
  *
- * 环境变量：AI_PROVIDER / AI_API_KEY / AI_MODEL / AI_BASE_URL
+ * 环境变量：AI_PROVIDER / AI_API_KEY / AI_MODEL / AI_BASE_URL（统一经 config/env.mjs 读取）
  * 使用 Node 18+ 内置 fetch。
  */
+
+import { config } from '../config/env.mjs'
 
 const PROVIDER_PRESETS = {
   deepseek: {
@@ -33,12 +35,12 @@ const PROVIDER_PRESETS = {
   },
 }
 
-const rawProvider = (process.env.AI_PROVIDER || 'deepseek').trim().toLowerCase()
+const rawProvider = config.ai.provider
 const PROVIDER = PROVIDER_PRESETS[rawProvider] ? rawProvider : 'openai'
 const PROVIDER_CONFIG = PROVIDER_PRESETS[PROVIDER]
-const API_KEY = process.env.AI_API_KEY || ''
-const MODEL = process.env.AI_MODEL || PROVIDER_CONFIG.model
-const BASE_URL = process.env.AI_BASE_URL || PROVIDER_CONFIG.baseUrl
+const API_KEY = config.ai.apiKey
+const MODEL = config.ai.model || PROVIDER_CONFIG.model
+const BASE_URL = config.ai.baseUrl || PROVIDER_CONFIG.baseUrl
 const API_STYLE = PROVIDER_CONFIG.api
 const SUPPORTS_JSON_SCHEMA = PROVIDER_CONFIG.supportsJsonSchema
 const CHAT_COMPLETIONS_URL = joinUrl(BASE_URL, 'chat/completions')

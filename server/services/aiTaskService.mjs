@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve, extname, sep } from 'node:path'
 import * as aiTaskRepo from '../repositories/aiTaskRepo.mjs'
 import * as bailian from './bailianService.mjs'
+import { config } from '../config/env.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -80,7 +81,7 @@ const LABELS = {
  * MINIAPP_STATIC_DIR 覆盖，或者干脆把素材拷进 server/uploads。
  */
 const UPLOAD_ROOT = resolve(here, '..', 'uploads')
-const STATIC_ROOT = resolve(process.env.MINIAPP_STATIC_DIR || join(here, '..', '..', 'miniapp', 'src', 'static'))
+const STATIC_ROOT = resolve(config.runtime.miniappStaticDir || join(here, '..', '..', 'miniapp', 'src', 'static'))
 
 /** 单张图上限。百炼自己也有限制，本地先拦一道，省得白传一趟 */
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024

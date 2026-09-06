@@ -17,9 +17,10 @@ import {
 } from '../repositories/userRepo.mjs'
 import { ensureSeeded } from './garmentService.mjs'
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { config } from '../config/env.mjs'
 
-const WX_APPID = process.env.WX_APPID || ''
-const WX_SECRET = process.env.WX_SECRET || ''
+const WX_APPID = config.auth.wxAppId
+const WX_SECRET = config.auth.wxSecret
 
 /**
  * code → openid。
@@ -193,8 +194,8 @@ export async function devToken(tag = 'dev') {
  * 不暴露普通账号选择器，也不接真实管理员系统。
  */
 export async function adminLogin(password) {
-  const expected = process.env.ADMIN_PASSWORD
-  if (process.env.NODE_ENV === 'production' && !expected) {
+  const expected = config.auth.adminPassword
+  if (config.runtime.isProduction && !expected) {
     const err = new Error('生产环境未配置 ADMIN_PASSWORD')
     err.status = 503
     err.code = 'ADMIN_NOT_CONFIGURED'
@@ -362,7 +363,7 @@ export async function passwordLogin(account, password) {
 export async function listDemoAccounts() {
   const rows = await listDemoUsers()
   const meta = new Map(DEMO_ACCOUNTS.map((entry) => [entry.kind, entry]))
-  const exposePassword = process.env.NODE_ENV !== 'production'
+  const exposePassword = !config.runtime.isProduction
   return rows.map((row) => {
     const entry = meta.get(row.demo_kind)
     return {
