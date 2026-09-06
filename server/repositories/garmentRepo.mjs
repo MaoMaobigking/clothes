@@ -280,7 +280,7 @@ export async function countGarments(userId) {
  * 注意这里用 conn.query 而不是 conn.execute —— 预处理语句无法展开 `VALUES ?` 数组。
  */
 export async function seedGarmentsForUser(userId) {
-  const seed = JSON.parse(readFileSync(join(here, '..', 'seed.json'), 'utf-8'))
+  const seed = JSON.parse(readFileSync(join(here, '..', 'seeds', 'seed.json'), 'utf-8'))
   const rows = seed.map((g, index) => [
     `u${userId}_${g.id}`,
     userId,

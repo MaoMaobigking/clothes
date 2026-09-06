@@ -148,3 +148,15 @@ export const config = Object.freeze({
  * 看不出是自己哪一格填串了。
  */
 export const CONFIG_NOTES = Object.freeze(notes)
+
+/**
+ * 按变量名动态取值，受控的逃生口。
+ *
+ * 存在的唯一理由：演示账号的密码变量名写在 seeds/demoAccounts.mjs 的 envKey 字段里，
+ * 是数据驱动的，没法在上面的 config 对象里静态列出来。
+ * 除了这种「键名本身是数据」的场景，一律往 config 里加字段，别用这个函数 ——
+ * 用了就等于把「服务吃哪些环境变量」这件事重新打散回去。
+ */
+export function envValue(name) {
+  return trimmed(name) || ''
+}

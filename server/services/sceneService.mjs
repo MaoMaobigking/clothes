@@ -20,62 +20,11 @@ import {
   saveSceneOutfit,
 } from '../repositories/sceneRepo.mjs'
 import { config } from '../config/env.mjs'
+import { SCENE_DEFINITIONS, SCENE_KEYS, WEATHER_CITIES, WEATHER_CONDITIONS } from '../constants/scene.mjs'
 
-export const SCENE_DEFINITIONS = [
-  {
-    key: 'daily',
-    label: '日常休闲',
-    keywords: ['舒适', '百搭', '休闲'],
-    slots: ['top', 'pants', 'shoes', 'accessory'],
-  },
-  {
-    key: 'business',
-    label: '商务正装',
-    keywords: ['通勤', '利落', '正式'],
-    slots: ['top', 'pants', 'shoes', 'bag'],
-  },
-  {
-    key: 'date',
-    label: '约会聚会',
-    keywords: ['浪漫', '精致', '社交'],
-    slots: ['dress', 'shoes', 'accessory', 'bag'],
-  },
-  {
-    key: 'travel',
-    label: '旅行度假',
-    keywords: ['轻便', '防晒', '度假'],
-    slots: ['top', 'pants', 'shoes', 'hat', 'bag'],
-  },
-  {
-    key: 'academy',
-    label: '学院风',
-    keywords: ['复古', '学院', '减龄'],
-    slots: ['top', 'skirt', 'shoes', 'accessory'],
-  },
-  {
-    key: 'cosplay',
-    label: 'cosplay',
-    keywords: ['造型', '戏剧', '个性'],
-    slots: ['dress', 'top', 'shoes', 'accessory'],
-  },
-]
-
-export const SCENE_KEYS = new Set(SCENE_DEFINITIONS.map((scene) => scene.key))
-
-const WEATHER_CITIES = [
-  { name: '杭州', latitude: 30.2741, longitude: 120.1551 },
-  { name: '重庆', latitude: 29.563, longitude: 106.5516 },
-  { name: '上海', latitude: 31.2304, longitude: 121.4737 },
-  { name: '北京', latitude: 39.9042, longitude: 116.4074 },
-  { name: '广州', latitude: 23.1291, longitude: 113.2644 },
-]
-
-const WEATHER_CONDITIONS = [
-  { condition: '晴', icon: '☀️' },
-  { condition: '多云', icon: '⛅' },
-  { condition: '小雨', icon: '🌦️' },
-  { condition: '阴', icon: '☁️' },
-]
+// 场景表原来定义在本文件并对外导出（routes/scene.mjs、scripts/checkScene.mjs 都在用），
+// 迁走后原样再导出，保持导入面不变
+export { SCENE_DEFINITIONS, SCENE_KEYS }
 
 function findScene(sceneKey) {
   return SCENE_DEFINITIONS.find((scene) => scene.key === sceneKey) || SCENE_DEFINITIONS[0]
