@@ -4,7 +4,7 @@
  * 直调 service，不依赖先起 HTTP 服务，和现有 checkIsolation.mjs 保持同一风格。
  */
 import { closeDb, initDb } from '../db/mysql.mjs'
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import * as customService from '../services/customService.mjs'
 
 let failed = 0

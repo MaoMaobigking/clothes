@@ -13,7 +13,7 @@
  *
  * 前置：服务端已在 8787 跑着（npm start），且 .env 里有北京地域的 DASHSCOPE_API_KEY。
  */
-import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/authService.mjs'
+import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/auth/index.mjs'
 
 const BASE = process.env.CHECK_BASE_URL || 'http://127.0.0.1:8787'
 const SKIP_REMOTE = process.env.CHECK_TRYON_SKIP_REMOTE === '1'

@@ -19,7 +19,7 @@ import {
   listDemoAccounts,
   getMyProfile,
   updateMyProfile,
-} from '../services/authService.mjs'
+} from '../services/auth/index.mjs'
 import { config } from '../config/env.mjs'
 
 const router = Router()

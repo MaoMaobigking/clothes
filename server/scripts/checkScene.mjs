@@ -5,7 +5,7 @@
  * 验证六场景、纯旧衣/新旧混搭、新品淘口令、保存模板隔离、购物车落库、
  * 以及商城目录（复用 scene_catalog）的淘口令与 catalog 入车。
  */
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import {
   SCENE_DEFINITIONS,
   buyOutfit,
@@ -15,7 +15,7 @@ import {
   listCart,
   listSceneOutfits,
   saveOutfit,
-} from '../services/sceneService.mjs'
+} from '../services/scene/index.mjs'
 import { listProducts } from '../services/mallService.mjs'
 import { addItem } from '../services/cartService.mjs'
 import { closeDb, getOne, initDb } from '../db/mysql.mjs'

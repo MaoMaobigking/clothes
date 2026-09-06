@@ -17,7 +17,7 @@
  */
 import { closeDb, initDb } from '../db/mysql.mjs'
 import { ensureAccessories } from '../services/accessoryService.mjs'
-import { ensureSceneCatalog, generateScenePlans, listSceneOutfits, saveOutfit } from '../services/sceneService.mjs'
+import { ensureSceneCatalog, generateScenePlans, listSceneOutfits, saveOutfit } from '../services/scene/index.mjs'
 import {
   advanceRequest,
   createInquiry,
@@ -27,7 +27,7 @@ import {
 } from '../services/customService.mjs'
 import { ensureDemoData } from '../services/demoSeedService.mjs'
 import { seedCommunityIfNeeded } from '../services/communitySeedService.mjs'
-import { DEMO_ACCOUNTS, demoPasswordOf, wxLogin } from '../services/authService.mjs'
+import { DEMO_ACCOUNTS, demoPasswordOf, wxLogin } from '../services/auth/index.mjs'
 
 const reset = process.argv.includes('--reset')
 

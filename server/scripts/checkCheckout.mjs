@@ -12,11 +12,11 @@
  *   6. 跨用户一律 404：读不到、改不动、推不了别人的订单和地址
  */
 import { closeDb, getAll, getOne, initDb } from '../db/mysql.mjs'
-import { wxLogin } from '../services/authService.mjs'
+import { wxLogin } from '../services/auth/index.mjs'
 import * as cartService from '../services/cartService.mjs'
 import * as orderService from '../services/orderService.mjs'
 import { ensureAccessories } from '../services/accessoryService.mjs'
-import { ensureSceneCatalog } from '../services/sceneService.mjs'
+import { ensureSceneCatalog } from '../services/scene/index.mjs'
 
 let failed = 0
 function check(label, ok, extra = '') {
