@@ -1,14 +1,18 @@
 /*
  * AI 路由
  *  - 挂载于裸 /api；每个路由各自挂 authRequired（原因见下方 router 处的注释）
- *  - POST /style-report   → 结构化输出（JSON Schema）
- *  - GET  /style-reports  → 本人历史报告列表 / :id 单条
- *  - POST /scene-outfits  → 结构化输出
- *  - POST /chat           → 普通对话
- *  - POST /chat/stream    → SSE 流式对话（3.2）
- *  - GET  /chat/tools     → 工具清单（OpenAI 格式，前端直接读）
- *  - POST /chat/tools     → 手写 tool-calling 对话（3.3）
- *  - POST /chat/rag       → 检索增强对话
+ *  - POST /style-report      → 结构化输出（JSON Schema）
+ *  - GET  /style-reports     → 本人历史报告列表 / :id 单条
+ *  - POST /scene-outfits     → 结构化输出
+ *  - POST /chat              → 普通对话
+ *  - POST /chat/stream       → SSE 流式对话（3.2）
+ *  - GET  /chat/tools        → 工具清单（OpenAI 格式，前端直接读）
+ *  - POST /chat/tools        → 手写 tool-calling 对话（3.3）
+ *  - POST /chat/rag          → 语义检索增强对话
+ *  - GET  /chat/sessions     → 会话列表 / :id 详情 / DELETE :id 删除
+ *
+ * 四个对话接口都接受可选的 sessionId：不传就新建会话，传了就续聊（会验归属）。
+ * 响应里一律回传 sessionId，前端拿它续下一轮。
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
@@ -19,10 +23,18 @@ import {
   aiChatStream,
   aiChatWithTools,
   TOOLS,
+  ensureSession,
+  appendMessage,
+  listSessions,
+  getHistory,
+  removeSession,
+  saveReport,
+  listReports,
+  getReport,
+  withAiLog,
 } from '../services/ai/index.mjs'
 import { searchRAG, buildRAGPrompt } from '../services/ragService.mjs'
 import { listGarments } from '../services/garmentService.mjs'
-import { saveStyleReport, listStyleReports, findStyleReport } from '../repositories/aiRepo.mjs'
 import { config } from '../config/env.mjs'
 
 const router = Router()
@@ -63,9 +75,11 @@ router.post(
   '/style-report',
   authRequired,
   asyncHandler(async (req, res) => {
-    const result = await generateReport(req.body?.profile ?? {})
+    const result = await withAiLog({ userId: req.userId, scene: 'style_report' }, () =>
+      generateReport(req.body?.profile ?? {}),
+    )
     const answers = req.body?.answers ?? req.body?.profile ?? {}
-    const reportId = await saveStyleReport(req.userId, answers, result)
+    const reportId = await saveReport(req.userId, answers, result)
     res.json({ ...result, reportId })
   }),
 )
@@ -75,7 +89,7 @@ router.get(
   '/style-reports',
   authRequired,
   asyncHandler(async (req, res) => {
-    const items = await listStyleReports(req.userId)
+    const items = await listReports(req.userId)
     res.json({ items })
   }),
 )
@@ -89,8 +103,8 @@ router.get(
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({ error: 'INVALID_REPORT_ID', message: '报告 ID 不合法' })
     }
-    const report = await findStyleReport(req.userId, id)
-    if (!report) return res.status(404).json({ error: 'NOT_FOUND', message: '报告不存在' })
+    // 不属于自己时 getReport 抛 404，交给 errorHandler
+    const report = await getReport(req.userId, id)
     res.json({ report })
   }),
 )
@@ -101,7 +115,9 @@ router.post(
   authRequired,
   asyncHandler(async (req, res) => {
     if (!requireKey(req, res)) return
-    const result = await generateSceneOutfits(req.body || {})
+    const result = await withAiLog({ userId: req.userId, scene: 'scene_outfits' }, () =>
+      generateSceneOutfits(req.body || {}),
+    )
     res.json(result)
   }),
 )
@@ -114,6 +130,19 @@ router.post('/chat/stream', authRequired, async (req, res, next) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
   if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
 
+  /*
+   * 会话要在写 SSE 响应头**之前**确定。
+   * ensureSession 在 sessionId 不属于当前用户时抛 404 —— 头一旦发出去就只能在
+   * data 事件里塞 error 了，前端处理起来麻烦得多，不如在这儿走正常的 HTTP 错误。
+   */
+  let sessionId
+  try {
+    sessionId = await ensureSession(req.userId, req.body?.sessionId, messages[messages.length - 1]?.content)
+  } catch (err) {
+    return next(err)
+  }
+  await appendMessage(req.userId, sessionId, 'user', messages[messages.length - 1]?.content)
+
   // SSE 响应头
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -121,20 +150,26 @@ router.post('/chat/stream', authRequired, async (req, res, next) => {
     Connection: 'keep-alive',
     'X-Accel-Buffering': 'no',
   })
+  // 先把 sessionId 推给前端：后面续聊要带上它，而且中途断了也已经拿到了
+  res.write(`data: ${JSON.stringify({ sessionId, delta: '', done: false })}\n\n`)
 
   const abortController = new AbortController()
   res.on('close', () => abortController.abort())
 
   try {
-    const fullText = await aiChatStream(
-      messages,
-      null,
-      (delta) => {
-        res.write(`data: ${JSON.stringify({ delta, done: false })}\n\n`)
-      },
-      abortController.signal,
+    const fullText = await withAiLog({ userId: req.userId, scene: 'chat_stream' }, () =>
+      aiChatStream(
+        messages,
+        null,
+        (delta) => {
+          res.write(`data: ${JSON.stringify({ delta, done: false })}\n\n`)
+        },
+        abortController.signal,
+      ),
     )
-    res.write(`data: ${JSON.stringify({ delta: '', done: true, fullText })}\n\n`)
+    // 流式结束、拿到完整文本才存 —— 逐片存会写一堆碎片
+    await appendMessage(req.userId, sessionId, 'assistant', fullText)
+    res.write(`data: ${JSON.stringify({ sessionId, delta: '', done: true, fullText })}\n\n`)
     res.end()
   } catch (err) {
     if (!res.headersSent) {
@@ -159,12 +194,22 @@ router.post('/chat/tools', authRequired, async (req, res, next) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
   if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
 
+  // 同 /chat/stream：会话要在写 SSE 头之前定好，越权才能走正常的 HTTP 404
+  let sessionId
+  try {
+    sessionId = await ensureSession(req.userId, req.body?.sessionId, messages[messages.length - 1]?.content)
+  } catch (err) {
+    return next(err)
+  }
+  await appendMessage(req.userId, sessionId, 'user', messages[messages.length - 1]?.content)
+
   // SSE 流式
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive',
   })
+  res.write(`data: ${JSON.stringify({ sessionId, delta: '', done: false })}\n\n`)
 
   const abortController = new AbortController()
   res.on('close', () => abortController.abort())
@@ -179,15 +224,18 @@ router.post('/chat/tools', authRequired, async (req, res, next) => {
     }
 
     // 流式输出：工具调用结果也通过 SSE 推送
-    const fullText = await aiChatWithTools(
-      messages,
-      (delta) => {
-        res.write(`data: ${JSON.stringify({ delta, done: false })}\n\n`)
-      },
-      context,
-      abortController.signal,
+    const fullText = await withAiLog({ userId: req.userId, scene: 'chat_tools' }, () =>
+      aiChatWithTools(
+        messages,
+        (delta) => {
+          res.write(`data: ${JSON.stringify({ delta, done: false })}\n\n`)
+        },
+        context,
+        abortController.signal,
+      ),
     )
-    res.write(`data: ${JSON.stringify({ delta: '', done: true, fullText })}\n\n`)
+    await appendMessage(req.userId, sessionId, 'assistant', fullText)
+    res.write(`data: ${JSON.stringify({ sessionId, delta: '', done: true, fullText })}\n\n`)
     res.end()
   } catch (err) {
     if (!res.headersSent) {
@@ -208,8 +256,16 @@ router.post(
   asyncHandler(async (req, res) => {
     if (!requireKey(req, res)) return
     const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
-    const reply = await aiChat(messages)
-    res.json({ reply })
+    if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
+
+    const lastMsg = messages[messages.length - 1]?.content
+    const sessionId = await ensureSession(req.userId, req.body?.sessionId, lastMsg)
+    await appendMessage(req.userId, sessionId, 'user', lastMsg)
+
+    const reply = await withAiLog({ userId: req.userId, scene: 'chat' }, () => aiChat(messages))
+    await appendMessage(req.userId, sessionId, 'assistant', reply)
+    // sessionId 一并返回：前端续聊时带回来就能接上同一个会话
+    res.json({ reply, sessionId })
   }),
 )
 
@@ -225,19 +281,64 @@ router.post(
     if (messages.length === 0) return res.status(400).json({ error: 'EMPTY_MESSAGES' })
 
     const lastMsg = messages[messages.length - 1].content
-    const chunks = searchRAG(lastMsg)
+    const sessionId = await ensureSession(req.userId, req.body?.sessionId, lastMsg)
+    // 存用户原话，不存拼了参考资料的增强版 —— 历史记录要能还原用户当时问了什么
+    await appendMessage(req.userId, sessionId, 'user', lastMsg)
 
-    let reply
-    if (chunks.length > 0) {
-      const ragPrompt = buildRAGPrompt(lastMsg, chunks)
-      // 保留历史消息，将 RAG 增强 prompt 作为最后一条 user 消息
-      const augmented = [...messages.slice(0, -1), { role: 'user', content: ragPrompt }]
-      reply = await aiChat(augmented)
-    } else {
-      reply = await aiChat(messages)
+    // 语义检索，要先把 query 向量化，所以是 async
+    const chunks = await searchRAG(lastMsg)
+
+    const reply = await withAiLog({ userId: req.userId, scene: 'chat_rag' }, () => {
+      if (chunks.length > 0) {
+        const ragPrompt = buildRAGPrompt(lastMsg, chunks)
+        // 保留历史消息，将 RAG 增强 prompt 作为最后一条 user 消息
+        return aiChat([...messages.slice(0, -1), { role: 'user', content: ragPrompt }])
+      }
+      return aiChat(messages)
+    })
+    await appendMessage(req.userId, sessionId, 'assistant', reply)
+
+    res.json({ reply, sessionId, sources: chunks.map((c) => c.source) })
+  }),
+)
+
+/* ============ 会话历史 ============ */
+
+// GET /chat/sessions — 本人会话列表（带消息条数）
+router.get(
+  '/chat/sessions',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const items = await listSessions(req.userId)
+    res.json({ items })
+  }),
+)
+
+// GET /chat/sessions/:id — 会话详情 + 全部消息
+router.get(
+  '/chat/sessions/:id',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'INVALID_SESSION_ID', message: '会话 ID 不合法' })
     }
+    // 不属于自己时 getHistory 抛 404（不区分「不存在」和「是别人的」）
+    res.json(await getHistory(req.userId, id))
+  }),
+)
 
-    res.json({ reply, sources: chunks.map((c) => c.source) })
+// DELETE /chat/sessions/:id — 消息靠 chat_messages 的外键级联一起删
+router.delete(
+  '/chat/sessions/:id',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'INVALID_SESSION_ID', message: '会话 ID 不合法' })
+    }
+    await removeSession(req.userId, id)
+    res.json({ ok: true })
   }),
 )
 

@@ -9,8 +9,9 @@
  * 依赖方向是单向的，不存在循环引用：
  *   provider ← client ← usecases
  *   provider ← stream
- *   provider ← tools
+ *   provider ← tools ← toolCore
  *   schemas  ← client / usecases
+ *   aiRepo   ← chat / observability   （这两层认识 userId，底层调用函数不认识）
  *
  * ⚠️ ESM 不支持目录导入，引用方必须写全 `services/ai/index.mjs`，
  * 少写 `/index.mjs` 会直接 ERR_MODULE_NOT_FOUND（好在不会静默失败）。
@@ -22,3 +23,14 @@ export { aiComplete, callOpenAI, callAnthropic } from './client.mjs'
 export { generateReport, generateSceneOutfits, aiChat } from './usecases.mjs'
 export { aiChatStream } from './stream.mjs'
 export { TOOLS, executeTool, aiChatWithTools } from './tools.mjs'
+export {
+  ensureSession,
+  appendMessage,
+  listSessions,
+  getHistory,
+  removeSession,
+  saveReport,
+  listReports,
+  getReport,
+} from './chat.mjs'
+export { withAiLog } from './observability.mjs'
