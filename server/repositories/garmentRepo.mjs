@@ -55,7 +55,9 @@ export function rowToGarment(row) {
   }
 }
 
-// from / to 是 MySQL 保留字，必须反引号
+// SQL 语句中直接写 from 和 to，数据库会误以为是语法出错。
+// 用反引号把它们包裹起来（\from`, `to``），
+// 是在告诉数据库：“这是我自己命名的表字段，不是系统关键字”。
 const SELECT_COLS = `
   id, name, category, brand, emoji, \`from\`, \`to\`, price, season,
   image_url, fav, primary_color, secondary_colors, seasons, occasions,
@@ -95,19 +97,35 @@ export async function listGarmentsByIds(userId, ids) {
 /**
  * 新增衣物。userId 由调用方从 JWT 传入，绝不从请求体读
  * （从 body 读 user_id 等于让客户端自己声明身份，是典型越权口子）。
+ *
+ * 业务默认值（默认名字 / 默认分类 / 默认配色 / id 生成规则）已搬到
+ * services/garmentService.mjs 的 applyGarmentDefaults()。搬走的理由：
+ * 那些值换掉数据库一个都不用改，不属于这一层；而且默认分类原来写的是
+ * '上衣'，跟 service 层 ALLOWED_CATEGORIES 的 'top' 对不上，隔着一层没人
+ * 发现 —— 分层错位本身就是那个 bug 的成因。
+ *
+ * 这里只保留「存储适配」，也就是换数据库就要跟着改的部分：
+ *   · boolean → TINYINT(1) 的 0/1
+ *   · 数组 → JSON 字符串（下面的 JSON.stringify）
+ *   · 空值 → NULL
+ *   · sort_order 下划线拼写的历史兜底
+ *
+ * 注意：本函数不再兜业务字段。绕过 service 直接调它、又漏传 name/category
+ * 这些字段时，mysql2 会以「Bind parameters must not contain undefined」当场
+ * 报错 —— 这是故意的，比静默写进一个错默认值好查得多。
  */
 export async function addGarment(userId, partial = {}) {
   const seasons = parseJsonList(partial.seasons, partial.season ? [partial.season] : [])
   const g = {
-    id: partial.id || `u${userId}_${Date.now().toString(36)}`,
-    name: partial.name || '未命名单品',
-    category: partial.category || '上衣',
-    brand: partial.brand || '',
-    emoji: partial.emoji || '👕',
-    from: partial.from || '#ffd1e8',
-    to: partial.to || '#c9b8ff',
-    price: Number(partial.price) || 0,
-    season: partial.season || '四季',
+    id: partial.id,
+    name: partial.name,
+    category: partial.category,
+    brand: partial.brand,
+    emoji: partial.emoji,
+    from: partial.from,
+    to: partial.to,
+    price: partial.price,
+    season: partial.season,
     img: partial.img || null,
     fav: partial.fav ? 1 : 0,
     primaryColor: partial.primaryColor || '',
@@ -116,8 +134,8 @@ export async function addGarment(userId, partial = {}) {
     occasions: parseJsonList(partial.occasions),
     frequentlyWorn: partial.frequentlyWorn ? 1 : 0,
     sortOrder: Number(partial.sortOrder ?? partial.sort_order ?? 0),
-    recognitionStatus: partial.recognitionStatus || 'confirmed',
-    recognitionSource: partial.recognitionSource || 'manual',
+    recognitionStatus: partial.recognitionStatus,
+    recognitionSource: partial.recognitionSource,
     uploadedAt: partial.uploadedAt || null,
   }
   await execute(

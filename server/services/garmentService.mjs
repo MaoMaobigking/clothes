@@ -27,12 +27,53 @@ function toArray(value) {
   return []
 }
 
+/**
+ * 新增衣物的业务默认值（原来写在 repo 的 addGarment 里）。
+ *
+ * 为什么搬上来：这十条全是产品决策 —— 默认叫什么名字、默认归哪一类、
+ * 默认什么配色。换掉数据库它们一个都不用改，所以不该待在 repo：
+ * repo 是「换数据库就得整个重写」的那一层，业务规则混在里面，重写时会被
+ * 迫跟着誊一遍，抄漏一条就是线上脏数据。
+ *
+ * 搬上来顺手修掉一个真实 bug：repo 那边的默认分类写的是 '上衣'，而下面
+ * ALLOWED_CATEGORIES 只认 'top' —— '上衣' 是前端 WARDROBE_CATEGORIES 里的
+ * 显示 label，不是枚举 key。两处隔着一层，没人发现它们对不上，于是不带
+ * category 的新增会写进一个既不是 key、也通不过后续 PATCH 校验的值。
+ * 现在默认值和校验规则在同一个文件里，看得见彼此。
+ *
+ * repo 那边只留「存储适配」：boolean→TINYINT(0/1)、数组→JSON 字符串、
+ * 空图片→NULL。那些是换数据库就要改的东西，属于它的本职。
+ */
+function applyGarmentDefaults(userId, input = {}) {
+  return {
+    ...input,
+    id: input.id || `u${userId}_${Date.now().toString(36)}`,
+    name: input.name || '未命名单品',
+    category: input.category || 'top',
+    brand: input.brand || '',
+    emoji: input.emoji || '👕',
+    from: input.from || '#ffd1e8',
+    to: input.to || '#c9b8ff',
+    price: Number(input.price) || 0,
+    /*
+     * season 是功能一之前的老字段（rowToGarment 里叫 legacySeason），
+     * 新代码一律用 seasons 数组。这里保持原来的 '四季' 不动：
+     * 它和 WARDROBE_SEASONS 的英文 key 同样对不上，但 rowToGarment 会拿它
+     * 兜 seasons 的底（seasons 为空时回退成 [season]），改它波及面比
+     * category 大得多，不混在这次改动里。
+     */
+    season: input.season || '四季',
+    recognitionStatus: input.recognitionStatus || 'confirmed',
+    recognitionSource: input.recognitionSource || 'manual',
+  }
+}
+
 export function listGarments(userId) {
   return repo.listGarments(userId)
 }
 
 export function addGarment(userId, partial) {
-  return repo.addGarment(userId, partial)
+  return repo.addGarment(userId, applyGarmentDefaults(userId, partial))
 }
 
 export async function deleteGarment(userId, id) {
@@ -41,6 +82,7 @@ export async function deleteGarment(userId, id) {
   await repo.deleteGarment(userId, id)
   if (item.img?.startsWith('/uploads/')) {
     const target = join(dirname(fileURLToPath(import.meta.url)), '..', item.img.slice(1))
+    //果删除文件时报错了（比如图片文件本来就不存在、或者已经被删了），就什么都不要做、不要让程序崩溃报错
     unlink(target).catch(() => {})
   }
   return true
@@ -201,23 +243,31 @@ export async function uploadGarments(userId, files) {
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index]
     const suggestion = buildUploadSuggestion(file, index)
-    const item = await repo.addGarment(userId, {
-      id: `u${userId}_upload_${timestamp}_${index}`,
-      name: suggestion.name,
-      category: suggestion.category,
-      emoji: suggestion.emoji,
-      from: suggestion.primaryColor,
-      to: suggestion.secondaryColors[0],
-      primaryColor: suggestion.primaryColor,
-      secondaryColors: suggestion.secondaryColors,
-      seasons: suggestion.seasons,
-      occasions: suggestion.occasions,
-      img: `/uploads/garments/${file.filename}`,
-      sortOrder: current + index + 1,
-      recognitionStatus: 'suggested',
-      recognitionSource: 'demo',
-      uploadedAt,
-    })
+    /*
+     * 也走 applyGarmentDefaults：这里没给的 brand / price / season / fav
+     * 由它补上，补出来的值和以前 repo 兜的完全一样，所以上传行为不变。
+     * 两个入口共用同一份默认值，才不会出现「手动新增」和「上传」两套默认。
+     */
+    const item = await repo.addGarment(
+      userId,
+      applyGarmentDefaults(userId, {
+        id: `u${userId}_upload_${timestamp}_${index}`,
+        name: suggestion.name,
+        category: suggestion.category,
+        emoji: suggestion.emoji,
+        from: suggestion.primaryColor,
+        to: suggestion.secondaryColors[0],
+        primaryColor: suggestion.primaryColor,
+        secondaryColors: suggestion.secondaryColors,
+        seasons: suggestion.seasons,
+        occasions: suggestion.occasions,
+        img: `/uploads/garments/${file.filename}`,
+        sortOrder: current + index + 1,
+        recognitionStatus: 'suggested',
+        recognitionSource: 'demo',
+        uploadedAt,
+      }),
+    )
     items.push(item)
   }
   return items
