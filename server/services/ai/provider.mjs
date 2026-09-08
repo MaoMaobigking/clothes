@@ -6,6 +6,26 @@
  * 三类 provider（DeepSeek / OpenAI 兼容 / Anthropic）的差异只有四点：
  * 基址、默认模型、走哪套 HTTP 协议、支不支持 json_schema。
  * 这里把差异收敛成常量，下游的 client / stream / tools 只管用，不再判断服务商。
+ *
+ * ────────────────────────────────────────────────────────────────
+ * 能力矩阵（2026-09-08 实测状态，改动能力时请同步更新这张表）
+ *
+ * | 能力            | OpenAI 兼容（含 DeepSeek） | Anthropic          |
+ * |-----------------|---------------------------|--------------------|
+ * | 普通对话        | ✅ 已实测                  | ⚠️ 已实现，未实测   |
+ * | 结构化输出      | ✅ 已实测                  | ⚠️ 已实现，未实测   |
+ * | SSE 流式        | ✅ 已实测                  | ⚠️ 已实现，未实测   |
+ * | 工具调用        | ✅ 已实测                  | ❌ 未实现（待接入） |
+ *
+ * 「已实现，未实测」= 代码按官方 API 形状写了（client.mjs 的 structuredAnthropic /
+ * callAnthropic、stream.mjs 的 streamAnthropic），但手上没有 Anthropic key，
+ * 一次都没真跑过，不能当成"支持"来讲。
+ *
+ * 「未实现」= tools.mjs 的 aiChatWithTools 只写了 OpenAI 兼容协议。
+ * Anthropic 的工具协议形状不同（tool_use / tool_result 内容块 + stop_reason 判定），
+ * 需要单独一条分支。该函数已在入口显式抛 TOOL_CALLING_UNSUPPORTED_PROVIDER，
+ * 不会伪装成网络错误。
+ * ────────────────────────────────────────────────────────────────
  */
 import { config } from '../../config/env.mjs'
 const PROVIDER_PRESETS = {
