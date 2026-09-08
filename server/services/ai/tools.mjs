@@ -1,107 +1,40 @@
 /**
  * 手写 tool-calling 循环（规格 3.3）。
  *
- * executeTool 的数据全部由调用方经 context 传入（context.garments / context.profile），
- * 这一层不 import 任何其它 service —— 保持无依赖，拆分时也就不会引入循环引用。
+ * 工具的 schema 和执行逻辑已上移到 ./toolCore.mjs —— 原来这里和 mcp/server.mjs 各写了一份，
+ * 改一个字段容易忘另一边。本文件现在只做两件事：
+ *   1. 把中性的 TOOL_SPECS 适配成 OpenAI 的 tools 格式；
+ *   2. 跑手写的 tool-calling 循环。
+ *
+ * executeTool 的数据仍然全部由调用方经 context 传入（context.garments / context.profile），
+ * 这一层不 import 任何 repository —— 保持无依赖，也就不会引入循环引用。
  */
 import { API_KEY, MODEL, CHAT_COMPLETIONS_URL } from './provider.mjs'
+import { TOOL_SPECS, toOpenAiTools, runTool } from './toolCore.mjs'
+
 /**
- * 工具定义
+ * 工具定义（OpenAI Chat Completions 格式）。
+ * GET /api/chat/tools 直接把这个数组吐给前端，形状不能改。
  */
-export const TOOLS = [
-  {
-    type: 'function',
-    function: {
-      name: 'search_garments',
-      description: '搜索用户的衣橱，根据关键词、分类、颜色等条件查找衣物',
-      parameters: {
-        type: 'object',
-        properties: {
-          query: { type: 'string', description: '搜索关键词（可选，如"白色衬衫"）' },
-          category: {
-            type: 'string',
-            enum: ['top', 'pants', 'skirt', 'dress', 'shoes', 'bag', 'hat', 'jewelry', 'accessory'],
-          },
-          color: { type: 'string', description: '颜色偏好（可选）' },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_weather',
-      description: '查询指定城市的天气信息',
-      parameters: {
-        type: 'object',
-        properties: {
-          city: { type: 'string', description: '城市名，如"北京"、"上海"、"重庆"' },
-        },
-        required: ['city'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_user_profile',
-      description: '获取当前用户的身形数据、风格偏好等信息',
-      parameters: {
-        type: 'object',
-        properties: {},
-      },
-    },
-  },
-]
+export const TOOLS = toOpenAiTools(TOOL_SPECS)
 
 /**
  * 工具执行器
+ *
+ * 这里刻意把异常吞成文本：tool-calling 是个多轮循环，单个工具挂掉不该打断整条 SSE，
+ * 把错误当成工具结果喂回模型，它可以换个说法重试或者向用户解释。
+ * MCP 侧不做这层包装 —— 那边由 SDK 转成协议里的 isError 字段。
+ *
  * @param {string} name 工具名
  * @param {object} args 参数
- * @param {object} context 上下文（garmentRepo, weather mock 等）
+ * @param {object} context 上下文（context.garments / context.profile，由调用方准备）
  * @returns {Promise<string>} 工具执行结果的文本描述
  */
 export async function executeTool(name, args, context = {}) {
-  switch (name) {
-    case 'search_garments': {
-      const { query = '', category, color } = args
-      let items = context.garments || []
-      if (category) items = items.filter((g) => g.category === category)
-      if (query) {
-        const q = query.toLowerCase()
-        items = items.filter(
-          (g) => g.name.toLowerCase().includes(q) || (g.tags || []).some((t) => t.toLowerCase().includes(q)),
-        )
-      }
-      if (color) items = items.filter((g) => (g.color || '').includes(color))
-      if (items.length === 0) return '衣橱中没有找到匹配的衣物。'
-      return (
-        '衣橱中找到以下衣物：\n' +
-        items
-          .slice(0, 8)
-          .map((g) => `- ${g.emoji || '👕'} ${g.name}（${g.category}，${g.brand || ''}，¥${g.price}）`)
-          .join('\n')
-      )
-    }
-    case 'get_weather': {
-      const { city } = args
-      // Mock 天气数据（生产环境接入真实天气 API）
-      const mockWeather = {
-        北京: { temp: 25, condition: '晴', icon: '☀️' },
-        上海: { temp: 28, condition: '多云', icon: '⛅' },
-        重庆: { temp: 23, condition: '暴雨', icon: '🌧️' },
-        广州: { temp: 30, condition: '雷阵雨', icon: '⛈️' },
-      }
-      const w = mockWeather[city] || { temp: 22, condition: '多云', icon: '☁️' }
-      return `${city}天气：${w.icon} ${w.condition}，气温 ${w.temp}°C`
-    }
-    case 'get_user_profile': {
-      const ctx = context.profile || {}
-      if (!ctx.styles || ctx.styles.length === 0) return '用户尚未完成风格测试，没有画像数据。'
-      return `用户画像：风格偏好 ${ctx.styles.join('、')}，肤色 ${ctx.skin || '未知'}，脸型 ${ctx.face || '未知'}，BMI ${ctx.bmi || '未知'}`
-    }
-    default:
-      return `未知工具: ${name}`
+  try {
+    return await runTool(name, args, context)
+  } catch (err) {
+    return `工具执行失败: ${err.message}`
   }
 }
 
