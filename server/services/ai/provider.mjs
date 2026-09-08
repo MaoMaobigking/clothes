@@ -1,6 +1,8 @@
 /**
  * AI 服务商适配：预设表 + 运行时选中的那一套参数。
- *
+ *核心作用是：把不同 AI 厂商（如 DeepSeek、OpenAI、Anthropic）
+ 之间不同的接口规范、默认模型和请求地址差异“屏蔽”掉，
+ 统合成一套统一的配置供下游代码调用。
  * 三类 provider（DeepSeek / OpenAI 兼容 / Anthropic）的差异只有四点：
  * 基址、默认模型、走哪套 HTTP 协议、支不支持 json_schema。
  * 这里把差异收敛成常量，下游的 client / stream / tools 只管用，不再判断服务商。
@@ -31,7 +33,9 @@ const PROVIDER_PRESETS = {
 }
 
 const rawProvider = config.ai.provider
+//检查一下你写得对不对。如果写对了就用你的；如果没写或者写错了，自动兜底改成 'openai'，防止程序报错。
 const PROVIDER = PROVIDER_PRESETS[rawProvider] ? rawProvider : 'openai'
+//一旦确定了服务商，就把文件上面看到的那个“预设配置卡片”整张拿过来。
 const PROVIDER_CONFIG = PROVIDER_PRESETS[PROVIDER]
 export const API_KEY = config.ai.apiKey
 export const MODEL = config.ai.model || PROVIDER_CONFIG.model
@@ -49,6 +53,8 @@ function joinUrl(baseUrl, path) {
   return `${String(baseUrl).replace(/\/+$/, '')}/${String(path).replace(/^\/+/, '')}`
 }
 
+//这是一个获取当前 AI 运行状态快照（Debug 报告）的函数。
+// 当你调用它时，它会把当前系统正在使用的 AI 配置打包成一个对象返回给你。
 export function getAiRuntime() {
   return {
     provider: PROVIDER,

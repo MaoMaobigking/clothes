@@ -14,6 +14,7 @@ const router = Router()
 //挂载中间件 凡是经过这个路由器的请求，在匹配具体的接口之前，都必须先给我过一遍这个函数
 router.use(authRequired)
 
+//自动捕获异步代码错误（防崩溃包装器）的经典工具函数
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next)
 }
@@ -40,6 +41,7 @@ router.post(
     delete body.userId
     delete body.user_id
     const item = await garmentService.addGarment(req.userId, body)
+    //把 HTTP 状态码设为 201，然后把刚创建的这件衣服数据打包成 JSON 发回给前端
     res.status(201).json({ item })
   }),
 )
