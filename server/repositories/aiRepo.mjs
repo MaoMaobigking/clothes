@@ -49,14 +49,18 @@ export async function createChatSession(userId, title = '新对话') {
 }
 
 export async function listChatSessions(userId, limit = 30) {
+  // LIMIT 不能用占位符：MySQL 预处理语句会报 ER_WRONG_ARGUMENTS
+  // (Incorrect arguments to mysqld_stmt_execute)。夹紧成整数后内联，和上面的
+  // listStyleReports 同一套写法 —— 数字已经被 clamp 过，没有注入面。
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100))
   return getAll(
     `SELECT s.id, s.title, s.created_at,
             (SELECT COUNT(*) FROM chat_messages m WHERE m.session_id = s.id) AS message_count
        FROM chat_sessions s
       WHERE s.user_id = ?
       ORDER BY s.created_at DESC
-      LIMIT ?`,
-    [userId, Number(limit)],
+      LIMIT ${safeLimit}`,
+    [userId],
   )
 }
 
@@ -89,11 +93,13 @@ export async function saveChatMessage(sessionId, role, content) {
 
 /** 拉一个会话的消息（已验权后调用），顺序正序，直接能喂给模型 */
 export async function listChatMessages(sessionId, limit = 100) {
+  // 同 listChatSessions：LIMIT 不能用占位符，夹紧后内联
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 500))
   return getAll(
     `SELECT id, role, content, created_at
        FROM chat_messages WHERE session_id = ?
-      ORDER BY id ASC LIMIT ?`,
-    [sessionId, Number(limit)],
+      ORDER BY id ASC LIMIT ${safeLimit}`,
+    [sessionId],
   )
 }
 
