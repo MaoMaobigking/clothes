@@ -23,7 +23,7 @@ import {
   saveSceneOutfit,
 } from '../../repositories/sceneRepo.mjs'
 import { SCENE_DEFINITIONS, SCENE_KEYS } from '../../constants/scene.mjs'
-import { seasonForMonth, resolveWeather } from './weather.mjs'
+import { seasonForMonth, resolveWeather } from '../weatherService.mjs'
 import { buildPurePlans, buildMixedPlans } from './planner.mjs'
 
 // 拆分前这些都从 sceneService.mjs 导出，routes/scene.mjs 和 5 个 check 脚本在用。

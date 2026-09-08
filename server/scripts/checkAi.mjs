@@ -67,7 +67,17 @@ try {
     null,
     { garments: [], profile: { styles: ['简约'] } },
   )
-  check('工具结果被模型正确消费', toolReply.includes('25°C'), toolReply.slice(0, 50))
+  /*
+   * 断言不能绑具体温度。
+   * 原来写的是 toolReply.includes('25°C') —— 那是 get_weather 还是 mock 时
+   * 北京写死的那个值。天气改成真调 OpenWeather（没 key 时按季节推算）之后，
+   * 温度每天都不一样，这条断言必然失败。
+   * 要验的是「工具真被调了、结果真被模型消费了」，所以看城市名 + 温度格式，
+   * 不看具体数字。
+   */
+  const mentionsCity = toolReply.includes('北京')
+  const mentionsTemp = /-?\d+\s*°?C/.test(toolReply)
+  check('工具结果被模型正确消费', mentionsCity && mentionsTemp, toolReply.slice(0, 60).replace(/\n/g, ' '))
 } catch (err) {
   check('AI 调用未抛出异常', false, err.message)
 }

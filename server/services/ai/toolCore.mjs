@@ -13,8 +13,10 @@
  *   这么切也顺带保证了本层不依赖 repositories，不会引入循环引用。
  *
  * 依赖方向：toolCore → usecases → client → provider（usecases 不反向依赖工具层，无环）。
+ *           toolCore → weatherService（顶层 service，不属于任何业务域，无环）。
  */
 import { generateReport } from './usecases.mjs'
+import { resolveWeatherByCity } from '../weatherService.mjs'
 
 /**
  * 工具清单。
@@ -96,17 +98,6 @@ export function toMcpTools(specs = TOOL_SPECS) {
 /* ============ 纯执行逻辑 ============ */
 
 /**
- * 天气 mock。
- * TODO: 接真实天气 API（和风/OpenWeather），需处理 key、超时和降级，单独一件事。
- */
-const MOCK_WEATHER = {
-  北京: { temp: 25, condition: '晴', icon: '☀️' },
-  上海: { temp: 28, condition: '多云', icon: '⛅' },
-  重庆: { temp: 23, condition: '暴雨', icon: '🌧️' },
-  广州: { temp: 30, condition: '雷阵雨', icon: '⛈️' },
-}
-
-/**
  * 一件衣物是否命中颜色关键词。
  *
  * 注意字段名：repositories/garmentRepo.mjs 的 rowToGarment 产出的是 primaryColor /
@@ -154,8 +145,12 @@ export async function runTool(name, args = {}, context = {}) {
 
     case 'get_weather': {
       const { city } = args
-      const w = MOCK_WEATHER[city] || { temp: 22, condition: '多云', icon: '☁️' }
-      return `${city}天气：${w.icon} ${w.condition}，气温 ${w.temp}°C`
+      // 走真实 OpenWeather（没配 key 或超时会自动降级，不会抛，见 weatherService 注释）。
+      // 把 source 带给模型：让它知道这条是实测数据还是降级推算，
+      // 而不是把降级值当真实天气斩钉截铁地讲给用户。
+      const w = await resolveWeatherByCity(city)
+      const label = w.source === 'located' ? '实时' : '推算'
+      return `${w.city}天气（${label}）：${w.icon} ${w.condition}，气温 ${w.temp}°C，当前${w.season}`
     }
 
     case 'get_user_profile': {

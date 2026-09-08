@@ -9,7 +9,7 @@
  * executeTool 的数据仍然全部由调用方经 context 传入（context.garments / context.profile），
  * 这一层不 import 任何 repository —— 保持无依赖，也就不会引入循环引用。
  */
-import { API_KEY, MODEL, CHAT_COMPLETIONS_URL } from './provider.mjs'
+import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL } from './provider.mjs'
 import { TOOL_SPECS, toOpenAiTools, runTool } from './toolCore.mjs'
 
 /**
@@ -46,6 +46,9 @@ export async function executeTool(name, args, context = {}) {
  * 2. 模型返回 tool_calls? → 执行工具 → 结果喂回模型
  * 3. 模型返回 text? → 流式输出给用户 → 结束
  *
+ * ⚠️ 只实现了 OpenAI 兼容协议（DeepSeek 也走这套）。Anthropic 的工具协议不一样
+ * （tool_use / tool_result 内容块 + stop_reason 判定），见 provider.mjs 的能力矩阵。
+ *
  * @param {string[]} messages - [{role, content}]
  * @param {function} onChunk - 流式回调
  * @param {object} context - 工具执行上下文 { garments, profile }
@@ -53,6 +56,26 @@ export async function executeTool(name, args, context = {}) {
  * @returns {Promise<string>} 完整回复文本
  */
 export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
+  /*
+   * 显式挡在门口，而不是让它带着 OpenAI 的形状往 Anthropic 的地址发。
+   *
+   * 补这个守卫之前：下面的 fetch 硬编码 CHAT_COMPLETIONS_URL + `Bearer`，
+   * AI_PROVIDER=anthropic 时会把 OpenAI 形状的请求发到
+   * https://api.anthropic.com/chat/completions 并带错认证头，
+   * 报出来是个让人摸不着头脑的 404/401 —— 看着像网络或密钥问题，
+   * 实际是「这条路根本没实现」。静默陷阱比明确不支持难查得多。
+   */
+  if (API_STYLE === 'anthropic') {
+    const err = new Error(
+      '工具调用目前只实现了 OpenAI 兼容协议（含 DeepSeek）。' +
+        'Anthropic 的 tool_use / tool_result 协议尚未接入，请改用 AI_PROVIDER=deepseek 或 openai。' +
+        '各 provider 的能力支持情况见 services/ai/provider.mjs 顶部的能力矩阵。',
+    )
+    err.code = 'TOOL_CALLING_UNSUPPORTED_PROVIDER'
+    err.status = 501
+    throw err
+  }
+
   const system =
     '你是「灵犀」——一个亲切专业的中文穿搭顾问。你可以使用工具来查询用户的衣橱、天气和画像信息，从而给出更精准的建议。'
 
