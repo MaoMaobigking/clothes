@@ -71,7 +71,7 @@
   justify-content: center;
   height: 100rpx;
   padding: 0 30rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   border-radius: var(--radius-pill);
 }
@@ -106,7 +106,7 @@
   min-width: 120rpx;
   height: 60rpx;
   padding: 0 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
 }
 
 /* ---------------- 卡片 ---------------- */
@@ -162,7 +162,7 @@
   align-items: center;
   align-self: flex-start;
   padding: 8rpx 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
@@ -182,7 +182,7 @@
   align-items: center;
   padding: 10rpx 26rpx;
   margin-right: 12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
@@ -220,7 +220,7 @@
   justify-content: center;
   height: var(--btn-h-sm);
   padding: 0 26rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   line-height: 1;
   border: none;
@@ -291,12 +291,12 @@
 }
 
 .empty-title {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-3);
 }
 
 .empty-sub {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-4);
 }
@@ -316,8 +316,41 @@
  * 撑满整屏。各页边距本来就不同，继续留在自己的 <style scoped> 里覆盖。
  */
 .state {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   text-align: center;
+}
+
+/*
+ * ------------------------------------------------------------
+ *  2026-09-08：把两种反复出现的边距 / 配色收成修饰类
+ * ------------------------------------------------------------
+ * 上面那段说「各页边距本来就不同，继续留在自己的 scoped 里覆盖」。
+ * 逐页数下来其实只有两种写法，各占 5 个和 4 个页面，逐字相同：
+ *   .state-fill  详情类页面（成就 / 杂志 / 收藏 / 分享 / 教程）——
+ *                进来整屏就这一行字，要 flex:1 撑开垂直居中的观感
+ *   .state-block 列表 / 表单类页面（购物车 / 结算 / 订单 / 订单详情）——
+ *                上面还有别的内容，给固定留白就行
+ *
+ * 顺带解决上面那条 ⚠️ 说的坑：页面在 scoped 里设了 .state{color}，
+ * 就必须自己再补一条 .state.error，否则错误文字变回正文色。
+ * 改用修饰类之后 color 和 .error 都在同一个文件里，
+ * `.state-fill.error`(0,2,0) 天然压过 `.state-fill`(0,1,0)，
+ * 不再依赖 app.wxss / page.wxss 的加载顺序，也不用每页抄一遍。
+ */
+.state-fill {
+  flex: 1;
+  padding: 80rpx 24rpx;
+  color: var(--text-2);
+}
+
+.state-block {
+  padding: 120rpx 40rpx;
+  color: var(--text-3);
+}
+
+.state-fill.error,
+.state-block.error {
+  color: var(--danger);
 }
 
 /*
@@ -428,7 +461,7 @@
 /* 标题规格对齐 uv-cell-group 的 title：30rpx + 主文字色，不加粗 */
 .sheet-title {
   margin-bottom: var(--gap-lg);
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -443,7 +476,7 @@
   z-index: var(--z-toast);
   max-width: 80%;
   padding: 18rpx 32rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: #fff;
   text-align: center;
   background: rgb(0 0 0 / 75%);
@@ -454,20 +487,30 @@
 /* ---------------- 小节标题 ---------------- */
 
 /*
- * 规格照抄 uv-cell-group 的 __title：font-size 15px = 30rpx、color $uv-main-color、
- * **font-weight 默认 400 不加粗**。原来是 32rpx / 800，比 uv-ui 重得多。
+ * 规格照抄 uv-cell-group 的 __title：font-size 15px = 30rpx、color $uv-main-color。
+ * 原来是 32rpx / 800，比 uv-ui 重得多。
  *
- * 这一处是全文件里最可能让人第一眼觉得「太素了」的地方，但它就是 uv-ui 的样子。
- * 第 ③ 批逐页看下来如果确实压不住内容层级，再统一提到 500 —— 改这一行即可，
- * 不要去页面里单独加粗。
+ * ------------------------------------------------------------
+ *  2026-09-08：font-weight 从 400 提到 500
+ * ------------------------------------------------------------
+ * 上一版这里留了一句「第 ③ 批逐页看下来如果确实压不住内容层级，再统一提到 500 ——
+ * 改这一行即可，不要去页面里单独加粗」。逐页数下来结论已经出来了：
+ * 用 .section-title 的 10 个页面里，8 个各自在 scoped 里补了 font-weight:500
+ * （achievements / admin / community / custom·category / custom·index /
+ *   scene / test·BodyStep / wardrobe-upload），只有 free-match 裸用全局。
+ *
+ * 也就是说 400 在真实内容里确实压不住，页面已经用脚投票了。按当初约定提到 500，
+ * 那 8 处 scoped 里的 font-weight 一并删掉。唯一的观感变化在 free-match ——
+ * 它从 400 变成 500，方向是和其余 8 页对齐，不是回退。
  */
 .section-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
+  font-weight: 500;
   color: var(--text-1);
 }
 
 .section-sub {
   margin-top: 4rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
