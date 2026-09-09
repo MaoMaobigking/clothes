@@ -26,6 +26,9 @@ import { piecesFromOutfit } from '@/utils/outfitPieces'
  */
 import type OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 import { MOMENT_HINT, copyText } from '@/utils/share'
+import { toast } from '@/utils/toast'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
 
 interface ReplaceTarget {
   outfitId: number
@@ -36,7 +39,7 @@ interface ReplaceTarget {
 const wardrobe = useWardrobeStore()
 const cart = useCartStore()
 const batch = ref<OutfitBatch | null>(null)
-const loading = ref(true)
+const { loading, run } = useAsyncTask({ message: '加载失败' })
 const replacing = ref<ReplaceTarget | null>(null)
 const replaceDraft = ref('')
 const algorithmTarget = ref<Outfit | null>(null)
@@ -88,18 +91,11 @@ async function regenerateWithSelection() {
     return
   }
   regenerating.value = true
-  loading.value = true
-  try {
-    batch.value = await apiGenerateOutfits(participants.value)
-    toast(`已用勾选的 ${participants.value.length} 件重新生成`)
-  } catch (error) {
-    if (!isAuthError(error)) {
-      toast((error as Error).message || '生成失败')
-    }
-  } finally {
-    regenerating.value = false
-    loading.value = false
-  }
+  const data = await run(() => apiGenerateOutfits(participants.value), { message: '生成失败', onError: toast })
+  regenerating.value = false
+  if (!data) return
+  batch.value = data
+  toast(`已用勾选的 ${participants.value.length} 件重新生成`)
 }
 
 /*
@@ -108,7 +104,7 @@ async function regenerateWithSelection() {
  * （pages.json 的 tabBar.list）。所以这是搭配页自己的页内底部 Tab。
  */
 function goMyOutfits() {
-  uni.navigateTo({ url: '/pages/outfits/index?source=wardrobe' })
+  go('outfits', { source: 'wardrobe' })
 }
 
 onLoad(async (query) => {
@@ -122,21 +118,8 @@ onLoad(async (query) => {
 })
 
 async function loadBatch(batchId: string) {
-  loading.value = true
-  try {
-    batch.value = await apiGetOutfitBatch(batchId)
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
-    if (!isAuthError(error)) {
-      uni.showToast({ title: (error as Error).message || '加载失败', icon: 'none' })
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
+  const data = await run(() => apiGetOutfitBatch(batchId), { onError: toast })
+  if (data) batch.value = data
 }
 
 function openReplace(outfit: Outfit, oldGarmentId: string) {
@@ -227,7 +210,7 @@ function goAccessory(outfit: Outfit) {
     outfit: outfit.items.map((entry) => garmentToAccessoryContext(entry.garment)),
     sourceId: String(outfit.id),
   })
-  uni.navigateTo({ url: '/pages/accessory/index' })
+  go('accessory')
 }
 
 function copyShareText() {
@@ -372,96 +355,87 @@ function saveSharePoster() {
       </view>
     </view>
 
-    <view v-if="replacing" class="mask" @tap="closeReplace">
-      <view class="sheet" @tap.stop>
-        <view class="sheet-title">替换单品</view>
-        <view class="sheet-sub">只能替换同类型：{{ categoryLabel(replacing.category) }}</view>
-        <scroll-view scroll-y class="replace-list">
-          <view
-            v-for="item in replacementItems"
-            :key="item.id"
-            class="replace-item"
-            :class="{ selected: replaceDraft === item.id }"
-            @tap="replaceDraft = item.id"
-          >
-            <TileImage
-              class="replace-img"
-              :src="item.img"
-              :emoji="item.emoji"
-              :from="item.primaryColor || item.from"
-              :to="item.secondaryColors?.[0] || item.to"
-              ratio="1 / 1"
-              rounded="16rpx"
-            />
-            <text class="replace-name">{{ item.name }}</text>
-          </view>
-        </scroll-view>
+    <Sheet v-if="replacing" title="替换单品" @close="closeReplace">
+      <view class="sheet-sub">只能替换同类型：{{ categoryLabel(replacing.category) }}</view>
+      <scroll-view scroll-y class="replace-list">
         <view
-          class="btn btn-primary replace-submit"
-          :class="{ 'btn-disabled': !replaceDraft }"
-          @tap="replaceWith(replaceDraft)"
+          v-for="item in replacementItems"
+          :key="item.id"
+          class="replace-item"
+          :class="{ selected: replaceDraft === item.id }"
+          @tap="replaceDraft = item.id"
         >
-          立即替换
+          <TileImage
+            class="replace-img"
+            :src="item.img"
+            :emoji="item.emoji"
+            :from="item.primaryColor || item.from"
+            :to="item.secondaryColors?.[0] || item.to"
+            ratio="1 / 1"
+            rounded="16rpx"
+          />
+          <text class="replace-name">{{ item.name }}</text>
         </view>
+      </scroll-view>
+      <view
+        class="btn btn-primary replace-submit"
+        :class="{ 'btn-disabled': !replaceDraft }"
+        @tap="replaceWith(replaceDraft)"
+      >
+        立即替换
       </view>
-    </view>
+    </Sheet>
 
-    <view v-if="algorithmTarget" class="mask" @tap="algorithmTarget = null">
-      <view class="sheet" @tap.stop>
-        <view class="sheet-title">为什么这样搭配</view>
-        <!--
+    <Sheet v-if="algorithmTarget" title="为什么这样搭配" @close="algorithmTarget = null">
+      <!--
           客户需求原文里 AI 算法说明浮层的那句话，件数是真实参与数量，
           不是写死的文案（规格 §8.10 要求浮层展示当前实际参与衣物数量）。
         -->
-        <view class="algorithm-lead">
-          本搭配基于你上传的 {{ algorithmTarget.algorithm?.garmentCount ?? 0 }} 件衣物，结合季节 / 场合 / 流行趋势生成
-        </view>
-        <view class="algorithm-row">
-          <text class="algorithm-label">参与旧衣</text>
-          <text class="algorithm-value">{{ algorithmTarget.algorithm?.garmentCount }} 件</text>
-        </view>
-        <view v-if="algorithmTarget.algorithm?.input" class="algorithm-row">
-          <text class="algorithm-label">输入范围</text>
-          <text class="algorithm-value">{{ algorithmTarget.algorithm.input }}</text>
-        </view>
-        <view class="algorithm-row">
-          <text class="algorithm-label">本套单品</text>
-          <text class="algorithm-value">{{ algorithmTarget.algorithm?.selectedCount }} 件</text>
-        </view>
-        <view class="algorithm-row">
-          <text class="algorithm-label">季节 / 场景</text>
-          <text class="algorithm-value">
-            {{ seasonLabel(algorithmTarget.algorithm?.season) }} /
-            {{ occasionLabel(algorithmTarget.algorithm?.occasion) }}
-          </text>
-        </view>
-        <view class="algorithm-row">
-          <text class="algorithm-label">排序策略</text>
-          <text class="algorithm-value">{{ algorithmTarget.algorithm?.strategy }}</text>
-        </view>
-        <view class="algorithm-note">{{ algorithmTarget.algorithm?.note }}</view>
-        <view class="btn btn-ghost algorithm-close" @tap="algorithmTarget = null">关闭</view>
+      <view class="algorithm-lead">
+        本搭配基于你上传的 {{ algorithmTarget.algorithm?.garmentCount ?? 0 }} 件衣物，结合季节 / 场合 / 流行趋势生成
       </view>
-    </view>
+      <view class="algorithm-row">
+        <text class="algorithm-label">参与旧衣</text>
+        <text class="algorithm-value">{{ algorithmTarget.algorithm?.garmentCount }} 件</text>
+      </view>
+      <view v-if="algorithmTarget.algorithm?.input" class="algorithm-row">
+        <text class="algorithm-label">输入范围</text>
+        <text class="algorithm-value">{{ algorithmTarget.algorithm.input }}</text>
+      </view>
+      <view class="algorithm-row">
+        <text class="algorithm-label">本套单品</text>
+        <text class="algorithm-value">{{ algorithmTarget.algorithm?.selectedCount }} 件</text>
+      </view>
+      <view class="algorithm-row">
+        <text class="algorithm-label">季节 / 场景</text>
+        <text class="algorithm-value">
+          {{ seasonLabel(algorithmTarget.algorithm?.season) }} /
+          {{ occasionLabel(algorithmTarget.algorithm?.occasion) }}
+        </text>
+      </view>
+      <view class="algorithm-row">
+        <text class="algorithm-label">排序策略</text>
+        <text class="algorithm-value">{{ algorithmTarget.algorithm?.strategy }}</text>
+      </view>
+      <view class="algorithm-note">{{ algorithmTarget.algorithm?.note }}</view>
+      <view class="btn btn-ghost algorithm-close" @tap="algorithmTarget = null">关闭</view>
+    </Sheet>
 
-    <view v-if="shareTarget" class="mask" @tap="closeShare">
-      <view class="sheet share-sheet" @tap.stop>
-        <view class="sheet-title">分享搭配</view>
-        <OutfitPoster
-          ref="posterRef"
-          :title="shareTarget.title"
-          :subtitle="posterSubtitle"
-          :pieces="piecesFromOutfit(shareTarget)"
-          :footnote="posterDate"
-        />
-        <view class="share-actions">
-          <view class="btn btn-ghost share-btn" @tap="saveSharePoster">保存图片</view>
-          <view class="btn btn-primary share-btn" @tap="copyShareText">复制分享文案</view>
-        </view>
-        <!-- 小程序发不了朋友圈，这条限制必须写在界面上，见 utils/share.ts -->
-        <text class="share-hint">{{ MOMENT_HINT }}</text>
+    <Sheet v-if="shareTarget" title="分享搭配" @close="closeShare">
+      <OutfitPoster
+        ref="posterRef"
+        :title="shareTarget.title"
+        :subtitle="posterSubtitle"
+        :pieces="piecesFromOutfit(shareTarget)"
+        :footnote="posterDate"
+      />
+      <view class="share-actions">
+        <view class="btn btn-ghost share-btn" @tap="saveSharePoster">保存图片</view>
+        <view class="btn btn-primary share-btn" @tap="copyShareText">复制分享文案</view>
       </view>
-    </view>
+      <!-- 小程序发不了朋友圈，这条限制必须写在界面上，见 utils/share.ts -->
+      <text class="share-hint">{{ MOMENT_HINT }}</text>
+    </Sheet>
   </view>
 </template>
 
@@ -473,13 +447,13 @@ function saveSharePoster() {
 }
 
 .head-stat-num {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--pink-deep);
 }
 
 .head-stat-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -490,7 +464,7 @@ function saveSharePoster() {
   gap: 20rpx;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-2);
 }
 
@@ -548,7 +522,7 @@ function saveSharePoster() {
 
 .left-hint {
   padding-bottom: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: center;
 }
@@ -563,7 +537,7 @@ function saveSharePoster() {
   justify-content: center;
   width: 32rpx;
   height: 32rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: #fff;
   background: var(--surface);
   border: 2rpx solid var(--line);
@@ -590,7 +564,7 @@ function saveSharePoster() {
 }
 
 .regen-hint {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -599,7 +573,7 @@ function saveSharePoster() {
   align-items: center;
   height: var(--btn-h-sm, 64rpx);
   padding: 0 28rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
 }
 
 .result-tabs {
@@ -614,7 +588,7 @@ function saveSharePoster() {
 .result-tab {
   flex: 1;
   padding: 16rpx 0;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-2);
   text-align: center;
   border-radius: var(--radius-pill);
@@ -636,7 +610,7 @@ function saveSharePoster() {
   min-width: 32rpx;
   height: 32rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -647,7 +621,7 @@ function saveSharePoster() {
   margin: 8rpx 4rpx 2rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: var(--text-2);
   text-align: center;
   white-space: nowrap;
@@ -675,21 +649,21 @@ function saveSharePoster() {
 }
 
 .plan-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .plan-scene {
   margin-top: 4rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .algorithm-link {
   flex-shrink: 0;
   padding: 10rpx 18rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
   background: #f1edff;
@@ -698,7 +672,7 @@ function saveSharePoster() {
 
 .plan-reason {
   margin-top: 14rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   line-height: 1.55;
   color: var(--text-2);
 }
@@ -728,7 +702,7 @@ function saveSharePoster() {
   margin: 8rpx 2rpx 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -737,7 +711,7 @@ function saveSharePoster() {
   position: absolute;
   right: 14rpx;
   bottom: 10rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -756,7 +730,7 @@ function saveSharePoster() {
   justify-content: center;
   min-height: 64rpx;
   padding: 8rpx 4rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface-tint);
@@ -764,16 +738,13 @@ function saveSharePoster() {
 }
 
 .action-icon {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
   gap: 18rpx;
-  align-items: center;
   padding-top: 180rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
 }
 
@@ -783,7 +754,7 @@ function saveSharePoster() {
 
 .sheet-sub {
   margin-top: 8rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -816,7 +787,7 @@ function saveSharePoster() {
   margin-top: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -828,7 +799,7 @@ function saveSharePoster() {
 .algorithm-lead {
   padding: 18rpx 20rpx;
   margin-bottom: 4rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--text-1);
   background: var(--pink-soft);
@@ -844,12 +815,12 @@ function saveSharePoster() {
 }
 
 .algorithm-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
 .algorithm-value {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
   text-align: right;
@@ -858,7 +829,7 @@ function saveSharePoster() {
 .algorithm-note {
   padding: 18rpx;
   margin-top: 22rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--text-2);
   background: var(--surface-tint);
@@ -867,11 +838,6 @@ function saveSharePoster() {
 
 .algorithm-close {
   margin-top: 22rpx;
-}
-
-.share-sheet {
-  display: flex;
-  flex-direction: column;
 }
 
 .share-actions {
@@ -887,13 +853,9 @@ function saveSharePoster() {
 .share-hint {
   display: block;
   margin-top: 16rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   line-height: 1.5;
   color: var(--text-3);
   text-align: center;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

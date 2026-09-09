@@ -12,6 +12,8 @@ import {
   type CustomSummary,
 } from '@/api/custom'
 import { isAuthError } from '@/utils/request'
+import { useToast } from '@/composables/useToast'
+import { go } from '@/utils/nav'
 
 const category = ref<CustomCategory>(getCustomCategory())
 const summary = ref<CustomSummary | null>(null)
@@ -20,8 +22,7 @@ const showMeasure = ref(false)
 const showVipUpgrade = ref(false)
 const submitting = ref(false)
 const upgrading = ref(false)
-const toast = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | undefined
+const { toast, showToast } = useToast()
 
 const inquiry = reactive({
   requirements: '',
@@ -68,12 +69,6 @@ onLoad(async (options) => {
     summary.value = null
   }
 })
-
-function showToast(message: string) {
-  toast.value = message
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = ''), 1900)
-}
 
 function chooseImages(target: string[], limit: number) {
   const remaining = Math.max(0, limit - target.length)
@@ -127,7 +122,7 @@ async function submitInquiry() {
     })
     showInquiry.value = false
     showToast('已提交，设计师将尽快联系')
-    uni.navigateTo({ url: `/pages/custom/order?id=${request.id}` })
+    go('customOrder', { id: request.id })
   } catch (err) {
     // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
     if (!isAuthError(err)) {
@@ -194,7 +189,7 @@ async function submitMeasurement(vipOnly = false) {
     })
     showMeasure.value = false
     showToast('量体预约已提交')
-    uni.navigateTo({ url: `/pages/custom/order?id=${request.id}` })
+    go('customOrder', { id: request.id })
   } catch (err) {
     // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
     if (!isAuthError(err)) {
@@ -332,73 +327,74 @@ async function upgradeVip() {
       </view>
     </scroll-view>
 
-    <view v-if="showInquiry" class="mask" @tap="showInquiry = false">
-      <view class="sheet" @tap.stop>
+    <Sheet v-if="showInquiry" @close="showInquiry = false">
+      <template #header>
         <view class="sheet-head">
           <text class="sheet-title">立即咨询</text>
           <text class="sheet-close" @tap="showInquiry = false">关闭</text>
         </view>
-        <!--
+      </template>
+      <!--
           flex + gap 挂在 scroll-view **里面**这层 .sheet-form 上，不能挂在 scroll-view 本体：
           微信小程序下给 <scroll-view> 加 display:flex 会让 scroll-y 失效（内容撑不出容器高度）。
           scroll-view 自己只负责「吃掉剩余高度并滚动」= flex:1 + min-height:0。
         -->
-        <scroll-view scroll-y class="sheet-body">
-          <view class="sheet-form">
-            <textarea
-              v-model="inquiry.requirements"
-              class="textarea"
-              placeholder="描述风格、用途和特殊要求"
+      <scroll-view scroll-y class="sheet-body">
+        <view class="sheet-form">
+          <textarea
+            v-model="inquiry.requirements"
+            class="textarea"
+            placeholder="描述风格、用途和特殊要求"
+            :placeholder-style="PH_STYLE"
+            maxlength="1000"
+          />
+          <view class="field-row">
+            <input
+              v-model="inquiry.budget"
+              class="input half"
+              placeholder="预算区间（可选）"
               :placeholder-style="PH_STYLE"
-              maxlength="1000"
             />
-            <view class="field-row">
-              <input
-                v-model="inquiry.budget"
-                class="input half"
-                placeholder="预算区间（可选）"
-                :placeholder-style="PH_STYLE"
-              />
-              <input
-                v-model="inquiry.sizeNotes"
-                class="input half"
-                placeholder="尺码说明（可选）"
-                :placeholder-style="PH_STYLE"
-              />
+            <input
+              v-model="inquiry.sizeNotes"
+              class="input half"
+              placeholder="尺码说明（可选）"
+              :placeholder-style="PH_STYLE"
+            />
+          </view>
+          <text class="field-label">参考图（最多 3 张）</text>
+          <view class="image-picker">
+            <view v-for="(path, index) in inquiry.referenceImages" :key="path" class="picked">
+              <image :src="path" class="picked-image" mode="aspectFill" @tap="previewImage(path)" />
+              <text class="remove" @tap.stop="removeImage(inquiry.referenceImages, index)">×</text>
             </view>
-            <text class="field-label">参考图（最多 3 张）</text>
-            <view class="image-picker">
-              <view v-for="(path, index) in inquiry.referenceImages" :key="path" class="picked">
-                <image :src="path" class="picked-image" mode="aspectFill" @tap="previewImage(path)" />
-                <text class="remove" @tap.stop="removeImage(inquiry.referenceImages, index)">×</text>
-              </view>
-              <view
-                v-if="inquiry.referenceImages.length < 3"
-                class="picker"
-                @tap="chooseImages(inquiry.referenceImages, 3)"
-              >
-                <text class="picker-plus">+</text>
-                <text class="picker-label">添加图片</text>
-              </view>
+            <view
+              v-if="inquiry.referenceImages.length < 3"
+              class="picker"
+              @tap="chooseImages(inquiry.referenceImages, 3)"
+            >
+              <text class="picker-plus">+</text>
+              <text class="picker-label">添加图片</text>
             </view>
           </view>
-        </scroll-view>
-        <button class="btn btn-primary sheet-submit" :disabled="submitting" @tap="submitInquiry">
-          {{ submitting ? '提交中…' : '提交咨询' }}
-        </button>
-      </view>
-    </view>
+        </view>
+      </scroll-view>
+      <button class="btn btn-primary sheet-submit" :disabled="submitting" @tap="submitInquiry">
+        {{ submitting ? '提交中…' : '提交咨询' }}
+      </button>
+    </Sheet>
 
-    <view v-if="showMeasure" class="mask" @tap="closeMeasure">
-      <view class="sheet" @tap.stop>
+    <Sheet v-if="showMeasure" @close="closeMeasure">
+      <template #header>
         <view class="sheet-head">
           <text class="sheet-title">预约量体裁衣</text>
           <text class="sheet-close" @tap="closeMeasure">关闭</text>
         </view>
-        <scroll-view scroll-y class="sheet-body">
-          <view class="sheet-form">
-            <text class="field-label">六项必填尺寸（cm / kg）</text>
-            <!--
+      </template>
+      <scroll-view scroll-y class="sheet-body">
+        <view class="sheet-form">
+          <text class="field-label">六项必填尺寸（cm / kg）</text>
+          <!--
               placeholder 全部改成「如 160」这种带前缀的形式，并用 placeholder-style
               压成弱色（$uv-light-color #c0c4cc）。
 
@@ -411,95 +407,94 @@ async function upgradeVip() {
               .ph[data-v-xxx]，而小程序把 placeholder-class 的值当纯类名匹配，
               带 data-v 属性选择器的规则匹配不上，写了也不生效。
             -->
-            <view class="measure-grid">
-              <label class="measure-field">
-                <text>身高</text>
-                <input v-model="measurement.height" type="digit" placeholder="如 160" :placeholder-style="PH_STYLE" />
-              </label>
-              <label class="measure-field">
-                <text>体重</text>
-                <input v-model="measurement.weight" type="digit" placeholder="如 55" :placeholder-style="PH_STYLE" />
-              </label>
-              <label class="measure-field">
-                <text>胸围</text>
-                <input v-model="measurement.bust" type="digit" placeholder="如 88" :placeholder-style="PH_STYLE" />
-              </label>
-              <label class="measure-field">
-                <text>腰围</text>
-                <input v-model="measurement.waist" type="digit" placeholder="如 68" :placeholder-style="PH_STYLE" />
-              </label>
-              <label class="measure-field">
-                <text>臀围</text>
-                <input v-model="measurement.hips" type="digit" placeholder="如 92" :placeholder-style="PH_STYLE" />
-              </label>
-              <label class="measure-field">
-                <text>肩宽</text>
-                <input v-model="measurement.shoulder" type="digit" placeholder="如 39" :placeholder-style="PH_STYLE" />
-              </label>
-            </view>
-
-            <text class="field-label required">正面全身照</text>
-            <view v-if="measurement.frontImage" class="required-image">
-              <image :src="measurement.frontImage" mode="aspectFill" @tap="previewImage(measurement.frontImage)" />
-              <text class="remove" @tap.stop="measurement.frontImage = ''">×</text>
-            </view>
-            <view v-else class="required-image picker-box" @tap="chooseSingle('frontImage')">
-              <text class="picker-plus">+</text>
-              <text class="picker-label">正面照</text>
-            </view>
-
-            <text class="field-label required">侧面全身照</text>
-            <view v-if="measurement.sideImage" class="required-image">
-              <image :src="measurement.sideImage" mode="aspectFill" @tap="previewImage(measurement.sideImage)" />
-              <text class="remove" @tap.stop="measurement.sideImage = ''">×</text>
-            </view>
-            <view v-else class="required-image picker-box" @tap="chooseSingle('sideImage')">
-              <text class="picker-plus">+</text>
-              <text class="picker-label">侧面照</text>
-            </view>
-
-            <text class="field-label">后视图（可选）</text>
-            <view v-if="measurement.backImage" class="optional-image">
-              <image :src="measurement.backImage" mode="aspectFill" @tap="previewImage(measurement.backImage)" />
-              <text class="remove" @tap.stop="measurement.backImage = ''">×</text>
-            </view>
-            <view v-else class="optional-image picker-box" @tap="chooseSingle('backImage')">
-              <text class="picker-plus">+</text>
-            </view>
-
-            <text class="field-label">细节图（最多 3 张）</text>
-            <view class="image-picker">
-              <view v-for="(path, index) in measurement.detailImages" :key="path" class="picked">
-                <image :src="path" class="picked-image" mode="aspectFill" @tap="previewImage(path)" />
-                <text class="remove" @tap.stop="removeImage(measurement.detailImages, index)">×</text>
-              </view>
-              <view
-                v-if="measurement.detailImages.length < 3"
-                class="picker"
-                @tap="chooseImages(measurement.detailImages, 3)"
-              >
-                <text class="picker-plus">+</text>
-              </view>
-            </view>
-
-            <textarea
-              v-model="measurement.notes"
-              class="textarea notes"
-              placeholder="特殊体态或穿着说明（可选）"
-              :placeholder-style="PH_STYLE"
-              maxlength="512"
-            />
+          <view class="measure-grid">
+            <label class="measure-field">
+              <text>身高</text>
+              <input v-model="measurement.height" type="digit" placeholder="如 160" :placeholder-style="PH_STYLE" />
+            </label>
+            <label class="measure-field">
+              <text>体重</text>
+              <input v-model="measurement.weight" type="digit" placeholder="如 55" :placeholder-style="PH_STYLE" />
+            </label>
+            <label class="measure-field">
+              <text>胸围</text>
+              <input v-model="measurement.bust" type="digit" placeholder="如 88" :placeholder-style="PH_STYLE" />
+            </label>
+            <label class="measure-field">
+              <text>腰围</text>
+              <input v-model="measurement.waist" type="digit" placeholder="如 68" :placeholder-style="PH_STYLE" />
+            </label>
+            <label class="measure-field">
+              <text>臀围</text>
+              <input v-model="measurement.hips" type="digit" placeholder="如 92" :placeholder-style="PH_STYLE" />
+            </label>
+            <label class="measure-field">
+              <text>肩宽</text>
+              <input v-model="measurement.shoulder" type="digit" placeholder="如 39" :placeholder-style="PH_STYLE" />
+            </label>
           </view>
-        </scroll-view>
-        <button
-          class="btn btn-primary sheet-submit"
-          :disabled="submitting"
-          @tap="submitVipAfterOpen ? submitVipMeasurement() : submitMeasurement(false)"
-        >
-          {{ submitting ? '提交中…' : submitVipAfterOpen ? '提交 VIP 量体预约' : '提交量体预约' }}
-        </button>
-      </view>
-    </view>
+
+          <text class="field-label required">正面全身照</text>
+          <view v-if="measurement.frontImage" class="required-image">
+            <image :src="measurement.frontImage" mode="aspectFill" @tap="previewImage(measurement.frontImage)" />
+            <text class="remove" @tap.stop="measurement.frontImage = ''">×</text>
+          </view>
+          <view v-else class="required-image picker-box" @tap="chooseSingle('frontImage')">
+            <text class="picker-plus">+</text>
+            <text class="picker-label">正面照</text>
+          </view>
+
+          <text class="field-label required">侧面全身照</text>
+          <view v-if="measurement.sideImage" class="required-image">
+            <image :src="measurement.sideImage" mode="aspectFill" @tap="previewImage(measurement.sideImage)" />
+            <text class="remove" @tap.stop="measurement.sideImage = ''">×</text>
+          </view>
+          <view v-else class="required-image picker-box" @tap="chooseSingle('sideImage')">
+            <text class="picker-plus">+</text>
+            <text class="picker-label">侧面照</text>
+          </view>
+
+          <text class="field-label">后视图（可选）</text>
+          <view v-if="measurement.backImage" class="optional-image">
+            <image :src="measurement.backImage" mode="aspectFill" @tap="previewImage(measurement.backImage)" />
+            <text class="remove" @tap.stop="measurement.backImage = ''">×</text>
+          </view>
+          <view v-else class="optional-image picker-box" @tap="chooseSingle('backImage')">
+            <text class="picker-plus">+</text>
+          </view>
+
+          <text class="field-label">细节图（最多 3 张）</text>
+          <view class="image-picker">
+            <view v-for="(path, index) in measurement.detailImages" :key="path" class="picked">
+              <image :src="path" class="picked-image" mode="aspectFill" @tap="previewImage(path)" />
+              <text class="remove" @tap.stop="removeImage(measurement.detailImages, index)">×</text>
+            </view>
+            <view
+              v-if="measurement.detailImages.length < 3"
+              class="picker"
+              @tap="chooseImages(measurement.detailImages, 3)"
+            >
+              <text class="picker-plus">+</text>
+            </view>
+          </view>
+
+          <textarea
+            v-model="measurement.notes"
+            class="textarea notes"
+            placeholder="特殊体态或穿着说明（可选）"
+            :placeholder-style="PH_STYLE"
+            maxlength="512"
+          />
+        </view>
+      </scroll-view>
+      <button
+        class="btn btn-primary sheet-submit"
+        :disabled="submitting"
+        @tap="submitVipAfterOpen ? submitVipMeasurement() : submitMeasurement(false)"
+      >
+        {{ submitting ? '提交中…' : submitVipAfterOpen ? '提交 VIP 量体预约' : '提交量体预约' }}
+      </button>
+    </Sheet>
 
     <view v-if="showVipUpgrade" class="mask" @tap="showVipUpgrade = false">
       <view class="vip-sheet" @tap.stop>
@@ -569,7 +564,7 @@ async function upgradeVip() {
 }
 
 .hero-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -594,7 +589,7 @@ async function upgradeVip() {
   justify-content: center;
   width: 50rpx;
   height: 50rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -602,7 +597,7 @@ async function upgradeVip() {
 }
 
 .process-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   line-height: 1.25;
   color: var(--text-2);
   text-align: center;
@@ -610,9 +605,6 @@ async function upgradeVip() {
 
 .section-title {
   margin-bottom: 20rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
 }
 
 .cases {
@@ -660,7 +652,7 @@ async function upgradeVip() {
 }
 
 .case-title {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -669,7 +661,7 @@ async function upgradeVip() {
 .vip-badge {
   flex-shrink: 0;
   padding: 5rpx 13rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: var(--purple-deep);
   background: var(--pink-soft);
@@ -677,7 +669,7 @@ async function upgradeVip() {
 }
 
 .case-desc {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -690,7 +682,7 @@ async function upgradeVip() {
 .action {
   flex: 1;
   height: 84rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
 }
 
 .premium {
@@ -709,14 +701,14 @@ async function upgradeVip() {
 
 .premium-title {
   display: block;
-  font-size: 29rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
 }
 
 .premium-desc {
   display: block;
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
@@ -729,7 +721,7 @@ async function upgradeVip() {
 
 .premium-case {
   padding: 11rpx 17rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-1);
   background: var(--surface-soft);
   border: 2rpx solid var(--line);
@@ -759,7 +751,7 @@ async function upgradeVip() {
 }
 
 .sheet-close {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -782,7 +774,7 @@ async function upgradeVip() {
   box-sizing: border-box;
   width: 100%;
   padding: 22rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   color: var(--text-1);
   background: #fff;
   border: 2rpx solid var(--line);
@@ -809,7 +801,7 @@ async function upgradeVip() {
 }
 
 .field-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -823,13 +815,13 @@ async function upgradeVip() {
   display: flex;
   flex-direction: column;
   gap: 9rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
 .measure-field input {
   padding: 16rpx 18rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   border: 2rpx solid var(--line);
   border-radius: var(--radius);
 }
@@ -881,7 +873,7 @@ async function upgradeVip() {
   justify-content: center;
   width: 42rpx;
   height: 42rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   color: #fff;
   background: rgb(47 47 58 / 78%);
   border-radius: 50%;
@@ -895,7 +887,7 @@ async function upgradeVip() {
 .picker-label {
   position: absolute;
   bottom: 20rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -915,12 +907,12 @@ async function upgradeVip() {
 }
 
 .vip-sheet-title {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 500;
 }
 
 .vip-sheet-desc {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   line-height: 1.55;
   color: var(--text-2);
 }

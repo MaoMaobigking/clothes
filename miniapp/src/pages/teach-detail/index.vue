@@ -3,11 +3,11 @@ import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { completeCommunityTutorial, fetchCommunityContent, type CommunityContent } from '@/api/community'
 import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '教程加载失败' })
 const activeStep = ref(0)
 const finishing = ref(false)
 let videoContext: any = null
@@ -26,18 +26,7 @@ onMounted(async () => {
 })
 
 async function loadTutorial() {
-  loading.value = true
-  errorText.value = ''
-  try {
-    content.value = await fetchCommunityContent(contentId.value)
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '教程加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  content.value = (await run(() => fetchCommunityContent(contentId.value))) ?? null
 }
 
 function selectStep(index: number) {
@@ -73,8 +62,8 @@ async function finishTutorial() {
   <view class="page">
     <PageHeader title="穿搭教程" to="/pages/community/index?tab=tutorial" />
 
-    <view v-if="loading" class="state">正在加载教程...</view>
-    <view v-else-if="errorText || !content" class="state error">{{ errorText }}</view>
+    <view v-if="loading" class="state state-fill">正在加载教程...</view>
+    <view v-else-if="errorText || !content" class="state state-fill error">{{ errorText }}</view>
 
     <view v-else class="body scroll-y hide-scrollbar">
       <view class="player">
@@ -133,16 +122,6 @@ async function finishTutorial() {
   padding: 12rpx 32rpx 48rpx;
 }
 
-.state {
-  flex: 1;
-  padding: 80rpx 24rpx;
-  color: var(--text-2);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .player {
   position: relative;
   width: 100%;
@@ -166,7 +145,7 @@ async function finishTutorial() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: rgb(255 255 255 / 82%);
   pointer-events: none;
@@ -177,7 +156,7 @@ async function finishTutorial() {
 }
 
 .category {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
 }
@@ -185,7 +164,7 @@ async function finishTutorial() {
 .verified {
   display: inline-block;
   margin-left: 10rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--mint-deep);
 }
@@ -200,7 +179,7 @@ async function finishTutorial() {
 
 .subtitle {
   margin-top: 10rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   line-height: 1.55;
   color: var(--text-2);
 }
@@ -233,7 +212,7 @@ async function finishTutorial() {
   justify-content: center;
   width: 54rpx;
   height: 54rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-2);
   background: var(--surface-soft);
@@ -251,14 +230,14 @@ async function finishTutorial() {
 }
 
 .step-title {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .step-desc {
   margin-top: 10rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.55;
   color: var(--text-2);
 }
@@ -276,14 +255,14 @@ async function finishTutorial() {
 }
 
 .finish-title {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .finish-sub {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -294,7 +273,7 @@ async function finishTutorial() {
   justify-content: center;
   height: 74rpx;
   padding: 0 26rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);

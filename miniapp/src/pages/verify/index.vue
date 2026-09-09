@@ -242,13 +242,13 @@ function revoke() {
 }
 
 .notice-title {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .notice-desc {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.6;
   color: var(--text-3);
 }
@@ -256,9 +256,6 @@ function revoke() {
 .card {
   padding: 24rpx;
   margin-top: 22rpx;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
 }
 
 .card-head {
@@ -269,14 +266,14 @@ function revoke() {
 }
 
 .card-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .vip-tag {
   padding: 4rpx 18rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);
@@ -297,12 +294,12 @@ function revoke() {
 }
 
 .k {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
 .v {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -310,7 +307,7 @@ function revoke() {
 .card-foot {
   display: block;
   margin-top: 12rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -326,12 +323,8 @@ function revoke() {
 .foot {
   display: block;
   margin-top: 16rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: center;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

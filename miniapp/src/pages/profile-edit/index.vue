@@ -16,6 +16,7 @@ import { apiUpdateMe, fetchMe } from '@/api/auth'
 import { isAuthError } from '@/utils/request'
 import { useAuthStore } from '@/stores/auth'
 import { iconForEmoji } from '@/utils/icons'
+import { back } from '@/utils/nav'
 
 const auth = useAuthStore()
 
@@ -75,7 +76,7 @@ async function submit() {
     // 写回会话（顺带落 storage），「我的」页返回时立刻是新昵称，不用等重新登录
     auth.applyProfile(profile)
     uni.showToast({ title: '已保存', icon: 'none' })
-    setTimeout(() => uni.navigateBack(), 600)
+    setTimeout(() => back('me'), 600)
   } catch (error) {
     if (!isAuthError(error)) {
       uni.showToast({
@@ -167,13 +168,13 @@ async function submit() {
 }
 
 .pv-name {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 500;
   color: var(--text-on-brand);
 }
 
 .pv-account {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: rgb(255 255 255 / 85%);
 }
 
@@ -183,7 +184,7 @@ async function submit() {
 
 .label {
   margin-bottom: 12rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -192,7 +193,7 @@ async function submit() {
   width: 100%;
   height: 88rpx;
   padding: 22rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-1);
   background: var(--surface);
   border-radius: var(--radius);
@@ -201,14 +202,14 @@ async function submit() {
 
 .counter {
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: right;
 }
 
 .hint {
   margin-top: 12rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -247,7 +248,7 @@ async function submit() {
   justify-content: center;
   height: 92rpx;
   margin-top: 44rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);

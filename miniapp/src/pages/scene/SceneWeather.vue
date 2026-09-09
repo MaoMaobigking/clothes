@@ -244,12 +244,12 @@ defineExpose({ requestLocation })
 }
 
 .wc-city {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
 }
 
 .wc-date {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -293,12 +293,12 @@ defineExpose({ requestLocation })
 .wc-cond {
   align-self: flex-end;
   margin-bottom: 12rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
 }
 
 .wc-message {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--purple-deep);
 }
@@ -326,7 +326,7 @@ defineExpose({ requestLocation })
 .manual-label {
   flex-shrink: 0;
   width: 92rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
 }
 
@@ -335,7 +335,7 @@ defineExpose({ requestLocation })
 }
 
 .picker-value {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -346,7 +346,7 @@ defineExpose({ requestLocation })
   min-width: 0;
   height: 68rpx;
   padding: 0 20rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius);
@@ -354,7 +354,7 @@ defineExpose({ requestLocation })
 
 .manual-unit {
   margin-left: 12rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
 }
 </style>

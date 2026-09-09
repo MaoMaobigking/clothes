@@ -109,7 +109,7 @@ const emit = defineEmits<{
   flex-shrink: 0;
   padding: 16rpx 20rpx;
   margin-left: 20rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
 }
 </style>

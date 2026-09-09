@@ -68,8 +68,6 @@ function save() {
   padding: 16rpx 14rpx;
   background: var(--surface-glass);
   border: 2rpx solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
   backdrop-filter: blur(8px);
 }
 
@@ -81,7 +79,7 @@ function save() {
 }
 
 .head-text {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -102,7 +100,7 @@ function save() {
 .label {
   flex-shrink: 0;
   width: 64rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
 }
 
@@ -113,7 +111,7 @@ function save() {
   justify-content: center;
   width: 26rpx;
   height: 26rpx;
-  font-size: 16rpx;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -128,7 +126,7 @@ function save() {
   justify-content: center;
   width: 34rpx;
   height: 34rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--surface);
@@ -138,7 +136,7 @@ function save() {
 
 .val {
   flex: 1;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text-1);
   text-align: center;
@@ -147,7 +145,7 @@ function save() {
 
 .unit {
   margin-left: 2rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   font-style: normal;
   color: var(--text-3);
 }
@@ -156,7 +154,7 @@ function save() {
   width: 100%;
   height: 60rpx;
   margin-top: 16rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
 }
 
 .save.ok {

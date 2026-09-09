@@ -14,20 +14,15 @@ import { isAuthError } from '@/utils/request'
 // 模板里的静态图不能写死路径：走云图方案时它得换成远程地址，
 // 而 .vue 模板的 src 字面量会被 uni 当资源引用处理（见 vite.config.ts）
 import { assetUrl } from '@/utils/cloud'
+import { useToast } from '@/composables/useToast'
+import { go } from '@/utils/nav'
 
 const summary = ref<CustomSummary | null>(null)
 const requests = ref<CustomRequest[]>([])
 const loading = ref(true)
 const upgrading = ref(false)
 const error = ref('')
-const toast = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | undefined
-
-function showToast(message: string) {
-  toast.value = message
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = ''), 1800)
-}
+const { toast, showToast } = useToast()
 
 async function loadData() {
   loading.value = true
@@ -61,15 +56,15 @@ async function upgrade() {
 }
 
 function openCategory(key: string) {
-  uni.navigateTo({ url: `/pages/custom/category?key=${key}` })
+  go('customCategory', { key })
 }
 
 function openOrders() {
-  uni.navigateTo({ url: '/pages/custom/orders' })
+  go('customOrders')
 }
 
 function openRequest(id: number) {
-  uni.navigateTo({ url: `/pages/custom/order?id=${id}` })
+  go('customOrder', { id })
 }
 
 onShow(loadData)
@@ -213,7 +208,7 @@ onShow(loadData)
 }
 
 .eyebrow {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--pink-deep);
 }
@@ -228,7 +223,7 @@ onShow(loadData)
 
 .desc {
   margin-top: 18rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.55;
   color: var(--text-2);
 }
@@ -250,9 +245,6 @@ onShow(loadData)
 
 .section-title {
   margin-bottom: 22rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
 }
 
 .category-grid {
@@ -303,13 +295,13 @@ onShow(loadData)
 }
 
 .category-label {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .category-desc {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.35;
   color: var(--text-3);
 }
@@ -344,7 +336,7 @@ onShow(loadData)
   justify-content: center;
   width: 44rpx;
   height: 44rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -352,7 +344,7 @@ onShow(loadData)
 }
 
 .step-label {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -366,21 +358,21 @@ onShow(loadData)
 
 .vip-title {
   display: block;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
 }
 
 .vip-desc {
   display: block;
   margin-top: 10rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
 .vip-badge {
   flex-shrink: 0;
   padding: 8rpx 18rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--purple-deep);
   background: var(--pink-soft);
@@ -395,7 +387,7 @@ onShow(loadData)
 .vip-ready {
   display: block;
   margin-top: 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--mint-deep);
 }
@@ -407,7 +399,7 @@ onShow(loadData)
 }
 
 .requests-more {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -440,14 +432,14 @@ onShow(loadData)
   overflow: hidden;
   text-overflow: ellipsis;
   -webkit-line-clamp: 2;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
   -webkit-box-orient: vertical;
 }
 
 .request-meta {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -459,7 +451,7 @@ onShow(loadData)
 }
 
 .status {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -472,7 +464,7 @@ onShow(loadData)
 .empty,
 .error {
   display: block;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
 }
@@ -493,12 +485,12 @@ onShow(loadData)
 }
 
 .empty-title {
-  font-size: 29rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
 }
 
 .empty-desc {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 

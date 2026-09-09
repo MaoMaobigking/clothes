@@ -7,6 +7,7 @@
  * 品牌名、logo 之类的全局配置在 @/setting。
  */
 import type { IconName } from '@/utils/icons'
+import type { RouteKey } from './routes'
 
 /** 虚拟形象模特图 */
 export const MODEL_IMAGES = {
@@ -72,7 +73,10 @@ export const AI_FEATURES: {
   icon: IconName
   from: string
   to: string
-  route: string
+  /* 路由 key 而不是路径字符串：写错 key 是编译错误，写错路径只会静默跳不动 */
+  route: RouteKey
+  /** 少数入口要带参数进社区页的某个 tab */
+  query?: Record<string, string>
 }[] = [
   {
     key: 'create',
@@ -82,7 +86,7 @@ export const AI_FEATURES: {
     icon: 'me',
     from: '#ffd6e8',
     to: '#d6a0ff',
-    route: '/pages/body-create/index',
+    route: 'bodyCreate',
   },
   {
     key: 'stylist',
@@ -92,7 +96,7 @@ export const AI_FEATURES: {
     icon: 'robot',
     from: '#c9f0e6',
     to: '#7fd0c0',
-    route: '/pages/stylist/index',
+    route: 'stylist',
   },
   {
     key: 'free',
@@ -102,7 +106,7 @@ export const AI_FEATURES: {
     icon: 'outfit-switch',
     from: '#c9d8ff',
     to: '#9ab0ff',
-    route: '/pages/free-match/index',
+    route: 'freeMatch',
   },
   {
     key: 'scene',
@@ -112,7 +116,7 @@ export const AI_FEATURES: {
     icon: 'w-cloud-sun',
     from: '#c9ecff',
     to: '#8fc9f0',
-    route: '/pages/scene/index',
+    route: 'scene',
   },
   {
     key: 'renew',
@@ -122,7 +126,7 @@ export const AI_FEATURES: {
     icon: 'recycle',
     from: '#d6f0d9',
     to: '#9fceb0',
-    route: '/pages/wardrobe-upload/index',
+    route: 'wardrobeUpload',
   },
   {
     key: 'accessory',
@@ -132,7 +136,7 @@ export const AI_FEATURES: {
     icon: 'gem',
     from: '#f3e0d6',
     to: '#d8b08f',
-    route: '/pages/accessory/index',
+    route: 'accessory',
   },
   {
     key: 'magazine',
@@ -142,7 +146,8 @@ export const AI_FEATURES: {
     icon: 'book',
     from: '#f3e0d6',
     to: '#d8b08f',
-    route: '/pages/community/index?tab=magazine',
+    route: 'community',
+    query: { tab: 'magazine' },
   },
   {
     key: 'community',
@@ -152,7 +157,8 @@ export const AI_FEATURES: {
     icon: 'comment',
     from: '#efe0f0',
     to: '#c29ad6',
-    route: '/pages/community/index?tab=share',
+    route: 'community',
+    query: { tab: 'share' },
   },
   {
     key: 'custom',
@@ -162,6 +168,6 @@ export const AI_FEATURES: {
     icon: 'scissors',
     from: '#f8d8c7',
     to: '#d7a7df',
-    route: '/pages/custom/index',
+    route: 'custom',
   },
 ]

@@ -3,30 +3,22 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { useProfileStore } from '@/stores/profile'
+import { useCartStore } from '@/stores/cart'
 import { MODEL_IMAGES } from '@/constants/ui'
 import type { Garment } from '@/types'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { resolveImageUrl } from '@/api/wardrobe'
 import {
-  addAccessoryCartBatch,
-  addAccessoryToCart,
-  fetchAccessoryCart,
   fetchAccessoryRecommendations,
   rateAccessory,
-  removeAccessoryCartItem,
   type Accessory,
-  type AccessoryCart,
-  type AccessoryCartItem,
   type AccessoryContextItem,
   type AccessoryRecommendations,
 } from '@/api/accessories'
-// 改数量走统一购物车接口（规格 §4.5 §13）
-import { updateCartQuantity } from '@/api/cart'
+import type { CartItem } from '@/api/cart'
 import {
   ACCESSORY_CATEGORY_EMOJI,
   buildFallbackRecommendations,
-  loadLocalAccessoryCart,
-  saveLocalAccessoryCart,
   saveLocalAccessoryRating,
 } from '@/utils/accessoryFallback'
 import {
@@ -34,11 +26,36 @@ import {
   getAccessoryPageContext,
   mallProductToAccessoryContext,
 } from '@/utils/accessoryContext'
+import { toast } from '@/utils/toast'
+import { go } from '@/utils/nav'
 
 type PickerItem = { kind: 'garment'; item: Garment } | { kind: 'mall'; item: MallProduct }
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
+/*
+ * 购物车统一走 stores/cart（规格 §4.5 §13）。
+ *
+ * 这一页原来自己维护了一份 `cart = ref<AccessoryCart>()`，外加一整套
+ * 「接口可用走服务端 / 否则写 localStorage」的双路径，五个函数里各抄了一遍
+ *   cart.count = items.reduce(...) + saveLocalAccessoryCart(cart)
+ *
+ * 拆掉它的两个理由（不只是重复）：
+ *
+ * 1. **本地兜底车和「查看完整购物车」自相矛盾。** 抽屉底部那个按钮跳
+ *    /pages/cart/index，那一页读的是 stores/cart（服务端车）。离线时这里
+ *    弹「已加入购物车」，跳过去却是空的 —— 演示时看着像丢数据的 bug，
+ *    比老老实实报一句「加入失败」更糟。而且本地车用的是 LOCAL_ACCESSORIES
+ *    里的假 id，服务端根本不认，两边永远合不到一起。
+ *
+ * 2. **usingApi 判的是推荐接口，却拿来决定购物车走哪条路。** 推荐挂了但
+ *    购物车好着的时候（比如没有搭配上下文），加购会被塞进 localStorage，
+ *    服务端车里什么都没有 —— 这是两个服务被一个开关混在了一起。
+ *
+ * 所以：购物车只有服务端一个真相，失败就如实报错。
+ * usingApi 保留，但只再负责它本来该管的事 —— 推荐和评分要不要走本地兜底。
+ */
+const cart = useCartStore()
 
 const currentOutfit = ref<AccessoryContextItem[]>([])
 const contextSource = ref<'outfit' | 'garment' | 'mall'>('garment')
@@ -46,7 +63,6 @@ const contextTitle = ref('当前服装')
 const recommendations = ref<AccessoryRecommendations | null>(null)
 const activeCategory = ref('jewelry')
 const selectedAccessory = ref<Accessory | null>(null)
-const cart = ref<AccessoryCart>({ items: [], count: 0, totalPrice: 0 })
 const loading = ref(true)
 const usingApi = ref(false)
 const cartOpen = ref(false)
@@ -104,7 +120,7 @@ onLoad(async () => {
     pickerOpen.value = true
   }
 
-  await Promise.all([loadRecommendations(), loadCart(), loadMallProducts()])
+  await Promise.all([loadRecommendations(), cart.load(), loadMallProducts()])
 })
 
 async function loadMallProducts() {
@@ -115,10 +131,6 @@ async function loadMallProducts() {
     // 目录拉不到就只剩衣橱那一栏可选，不阻断配饰推荐
     mallProducts.value = []
   }
-}
-
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
 }
 
 function displaySrc(src?: string) {
@@ -157,18 +169,6 @@ async function loadRecommendations() {
     activeCategory.value = recommendations.value?.categories[0]?.key || 'jewelry'
     selectedAccessory.value = first
     loading.value = false
-  }
-}
-
-async function loadCart() {
-  if (!usingApi.value) {
-    cart.value = loadLocalAccessoryCart()
-    return
-  }
-  try {
-    cart.value = await fetchAccessoryCart()
-  } catch {
-    cart.value = { items: [], count: 0, totalPrice: 0 }
   }
 }
 
@@ -225,53 +225,19 @@ async function submitRating(item: Accessory, score: number) {
   await loadRecommendations()
 }
 
-function toLocalCartItem(item: Accessory, seq = 0): AccessoryCartItem {
-  return {
-    // seq 用于批量加购：同一毫秒内连续建多条时 Date.now() 会撞成同一个 key
-    cartId: Date.now() + seq,
-    itemType: 'accessory',
-    itemId: item.id,
-    quantity: 1,
-    sourceOutfitId: null,
-    available: true,
-    createdAt: new Date().toISOString(),
-    name: item.name,
-    brand: item.brand,
-    price: displayPrice(item),
-    imageUrl: item.imageUrl,
-    emoji: accessoryEmoji(item),
-    from: item.primaryColor,
-    to: item.secondaryColor,
-    taobaoUrl: item.taobaoUrl,
-    taokouling: item.taokouling,
-  }
-}
-
 async function addAccessory(item: Accessory) {
-  if (usingApi.value) {
-    try {
-      cart.value = await addAccessoryToCart('accessory', item.id)
-    } catch (error) {
-      toast((error as Error).message || '加入购物车失败')
-      return
-    }
-  } else {
-    const existing = cart.value.items.find((entry) => entry.itemType === 'accessory' && entry.itemId === item.id)
-    if (existing) {
-      existing.quantity += 1
-    } else {
-      cart.value.items.push(toLocalCartItem(item))
-    }
-    cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
-    saveLocalAccessoryCart(cart.value)
+  try {
+    await cart.add('accessory', item.id)
+  } catch (error) {
+    toast((error as Error).message || '加入购物车失败')
+    return
   }
   toast('已加入购物车')
 }
 
 /*
  * 分类维度「一键加入购物车」（客户需求原文：支持"一键加入购物车"或"单独购买"）。
- * 把当前分类下的推荐配饰整批写入购物车，走已有的 batch 接口，
- * 断网兜底分支与 addAccessory 用同一套本地累加规则。
+ * 把当前分类下的推荐配饰整批写入购物车，走 store 的 addBatch。
  */
 async function addActiveCategoryToCart() {
   const items = activeItems.value
@@ -279,23 +245,11 @@ async function addActiveCategoryToCart() {
     toast('这个分类暂无推荐')
     return
   }
-  if (usingApi.value) {
-    try {
-      cart.value = await addAccessoryCartBatch(
-        items.map((item) => ({ itemType: 'accessory' as const, itemId: item.id })),
-      )
-    } catch (error) {
-      toast((error as Error).message || '加入购物车失败')
-      return
-    }
-  } else {
-    items.forEach((item, index) => {
-      const existing = cart.value.items.find((entry) => entry.itemType === 'accessory' && entry.itemId === item.id)
-      if (existing) existing.quantity += 1
-      else cart.value.items.push(toLocalCartItem(item, index))
-    })
-    cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
-    saveLocalAccessoryCart(cart.value)
+  try {
+    await cart.addBatch(items.map((item) => ({ itemType: 'accessory' as const, itemId: item.id })))
+  } catch (error) {
+    toast((error as Error).message || '加入购物车失败')
+    return
   }
   toast(`${activeCategoryData.value?.label || '本类'} ${items.length} 件已加入购物车`)
 }
@@ -306,53 +260,19 @@ async function addOutfitToCart() {
     toast('商城商品可直接从详情页购买')
     return
   }
-  const payload = currentOutfit.value.map((item) => ({
-    itemType: 'garment' as const,
-    itemId: item.id,
-  }))
-  if (usingApi.value) {
-    try {
-      cart.value = await addAccessoryCartBatch(payload)
-    } catch (error) {
-      toast((error as Error).message || '加入购物车失败')
-      return
-    }
-  } else {
-    for (const piece of currentOutfit.value) {
-      if (!cart.value.items.some((entry) => entry.itemId === piece.id)) {
-        cart.value.items.push({
-          cartId: Date.now(),
-          itemType: 'garment',
-          itemId: piece.id,
-          quantity: 1,
-          sourceOutfitId: null,
-          available: true,
-          createdAt: new Date().toISOString(),
-          name: piece.name,
-          brand: '',
-          price: 0,
-          imageUrl: piece.img || '',
-          emoji: piece.emoji || '👕',
-          from: piece.from || '#ffd1e8',
-          to: piece.to || '#c9b8ff',
-          taobaoUrl: '',
-          taokouling: '',
-        })
-      }
-    }
-    cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
-    saveLocalAccessoryCart(cart.value)
+  try {
+    await cart.addBatch(currentOutfit.value.map((item) => ({ itemType: 'garment' as const, itemId: item.id })))
+  } catch (error) {
+    toast((error as Error).message || '加入购物车失败')
+    return
   }
+  // 车里有了当前服装，配饰要重新算搭配价（discountEligible 由服务端判定）
   await loadRecommendations()
   toast('当前服装已入车，配饰显示搭配价')
 }
 
-/**
- * 抽屉内改数量（规格 §9.7 §4.5「商品可以修改数量或删除」）。
- * 和本页其他购物车操作一样保留双路径：接口可用就走服务端，
- * 否则只改本地缓存，保证断网演示不至于点了没反应。
- */
-async function changeCartQuantity(item: AccessoryCartItem, delta: number) {
+/** 抽屉内改数量（规格 §9.7 §4.5「商品可以修改数量或删除」）。1–99 的夹取在 store 里 */
+async function changeCartQuantity(item: CartItem, delta: number) {
   const next = item.quantity + delta
   if (next < 1) {
     await removeCartItem(item.cartId)
@@ -362,39 +282,24 @@ async function changeCartQuantity(item: AccessoryCartItem, delta: number) {
     toast('单件最多 99 件')
     return
   }
-  if (usingApi.value) {
-    try {
-      await updateCartQuantity(item.cartId, next)
-      cart.value = await fetchAccessoryCart()
-    } catch (error) {
-      toast((error as Error).message || '修改数量失败')
-    }
-    return
+  try {
+    await cart.setQuantity(item.cartId, next)
+  } catch (error) {
+    toast((error as Error).message || '修改数量失败')
   }
-  item.quantity = next
-  cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
-  saveLocalAccessoryCart(cart.value)
 }
 
 /** §9.2 §4.5：从配饰抽屉进完整购物车 */
 function goFullCart() {
   cartOpen.value = false
-  uni.navigateTo({ url: '/pages/cart/index' })
+  go('cart')
 }
 
 async function removeCartItem(id: number) {
-  if (usingApi.value) {
-    try {
-      await removeAccessoryCartItem(id)
-      cart.value = await fetchAccessoryCart()
-    } catch (error) {
-      toast((error as Error).message || '删除失败')
-      return
-    }
-  } else {
-    cart.value.items = cart.value.items.filter((entry) => entry.cartId !== id)
-    cart.value.count = cart.value.items.reduce((sum, entry) => sum + entry.quantity, 0)
-    saveLocalAccessoryCart(cart.value)
+  try {
+    await cart.remove(id)
+  } catch (error) {
+    toast((error as Error).message || '删除失败')
   }
 }
 
@@ -421,7 +326,7 @@ function copyPurchase() {
   })
 }
 
-function copyCartItem(item: AccessoryCartItem) {
+function copyCartItem(item: CartItem) {
   uni.setClipboardData({
     data: item.taokouling || item.name,
     success: () => toast('淘口令已复制'),
@@ -482,7 +387,7 @@ function copyCartItem(item: AccessoryCartItem) {
         </view>
 
         <view class="tryon-card">
-          <view class="section-title">
+          <view class="section-head">
             <view>
               <view class="section-main">3D 虚拟试戴</view>
               <view class="section-sub">拖拽旋转 · 双指缩放 · 正面背面切换</view>
@@ -600,7 +505,7 @@ function copyCartItem(item: AccessoryCartItem) {
         </view>
 
         <view class="hot-section">
-          <view class="section-title">
+          <view class="section-head">
             <view>
               <view class="section-main">热门搭配榜</view>
               <view class="section-sub">来自数据库中的评分与互动热度</view>
@@ -633,39 +538,36 @@ function copyCartItem(item: AccessoryCartItem) {
       </template>
     </scroll-view>
 
-    <view v-if="pickerOpen" class="mask" @tap="pickerOpen = false">
-      <view class="sheet picker-sheet" @tap.stop>
-        <view class="sheet-title">选择当前服装</view>
-        <view class="picker-tabs">
-          <view class="picker-tab" :class="{ on: pickerTab === 'garment' }" @tap="pickerTab = 'garment'">我的衣橱</view>
-          <view class="picker-tab" :class="{ on: pickerTab === 'mall' }" @tap="pickerTab = 'mall'">商城商品</view>
-        </view>
-        <scroll-view scroll-y class="picker-list">
-          <view v-if="pickerItems.length" class="picker-grid">
-            <view
-              v-for="entry in pickerItems"
-              :key="`${entry.kind}-${entry.item.id}`"
-              class="picker-item"
-              @tap="entry.kind === 'garment' ? selectGarment(entry.item) : selectMallProduct(entry.item)"
-            >
-              <TileImage
-                :src="pickerImage(entry)"
-                :from="entry.item.from"
-                :to="entry.item.to"
-                :emoji="entry.item.emoji"
-                ratio="1 / 1"
-                rounded="20rpx"
-              />
-              <text class="picker-name">{{ entry.item.name }}</text>
-            </view>
-          </view>
-          <view v-else class="picker-empty">
-            <text>暂无可选服装</text>
-            <text v-if="pickerTab === 'garment'" class="picker-link" @tap="wardrobe.load()">刷新衣橱</text>
-          </view>
-        </scroll-view>
+    <Sheet v-if="pickerOpen" title="选择当前服装" @close="pickerOpen = false">
+      <view class="picker-tabs">
+        <view class="picker-tab" :class="{ on: pickerTab === 'garment' }" @tap="pickerTab = 'garment'">我的衣橱</view>
+        <view class="picker-tab" :class="{ on: pickerTab === 'mall' }" @tap="pickerTab = 'mall'">商城商品</view>
       </view>
-    </view>
+      <scroll-view scroll-y class="picker-list">
+        <view v-if="pickerItems.length" class="picker-grid">
+          <view
+            v-for="entry in pickerItems"
+            :key="`${entry.kind}-${entry.item.id}`"
+            class="picker-item"
+            @tap="entry.kind === 'garment' ? selectGarment(entry.item) : selectMallProduct(entry.item)"
+          >
+            <TileImage
+              :src="pickerImage(entry)"
+              :from="entry.item.from"
+              :to="entry.item.to"
+              :emoji="entry.item.emoji"
+              ratio="1 / 1"
+              rounded="20rpx"
+            />
+            <text class="picker-name">{{ entry.item.name }}</text>
+          </view>
+        </view>
+        <view v-else class="picker-empty">
+          <text>暂无可选服装</text>
+          <text v-if="pickerTab === 'garment'" class="picker-link" @tap="wardrobe.load()">刷新衣橱</text>
+        </view>
+      </scroll-view>
+    </Sheet>
 
     <view v-if="purchaseTarget" class="mask purchase-mask" @tap="closePurchase">
       <view class="purchase-dialog" @tap.stop>
@@ -681,43 +583,40 @@ function copyCartItem(item: AccessoryCartItem) {
       </view>
     </view>
 
-    <view v-if="cartOpen" class="mask" @tap="cartOpen = false">
-      <view class="sheet" @tap.stop>
-        <view class="sheet-title">配饰购物车</view>
-        <scroll-view scroll-y class="cart-list">
-          <view v-if="cart.items.length">
-            <view v-for="item in cart.items" :key="item.cartId" class="cart-row">
-              <TileImage
-                class="cart-thumb"
-                :src="displaySrc(item.imageUrl)"
-                :from="item.from"
-                :to="item.to"
-                :emoji="item.emoji || '🛍️'"
-                ratio="1 / 1"
-                rounded="16rpx"
-              />
-              <view class="cart-info">
-                <view class="cart-name">{{ item.name }}</view>
-                <view class="cart-meta">¥{{ item.price }} × {{ item.quantity }}</view>
-                <view class="cart-stepper">
-                  <view class="cart-step" @tap="changeCartQuantity(item, -1)">−</view>
-                  <text class="cart-qty">{{ item.quantity }}</text>
-                  <view class="cart-step" @tap="changeCartQuantity(item, 1)">+</view>
-                </view>
+    <Sheet v-if="cartOpen" title="配饰购物车" @close="cartOpen = false">
+      <scroll-view scroll-y class="cart-list">
+        <view v-if="cart.items.length">
+          <view v-for="item in cart.items" :key="item.cartId" class="cart-row">
+            <TileImage
+              class="cart-thumb"
+              :src="displaySrc(item.imageUrl)"
+              :from="item.from"
+              :to="item.to"
+              :emoji="item.emoji || '🛍️'"
+              ratio="1 / 1"
+              rounded="16rpx"
+            />
+            <view class="cart-info">
+              <view class="cart-name">{{ item.name }}</view>
+              <view class="cart-meta">¥{{ item.price }} × {{ item.quantity }}</view>
+              <view class="cart-stepper">
+                <view class="cart-step" @tap="changeCartQuantity(item, -1)">−</view>
+                <text class="cart-qty">{{ item.quantity }}</text>
+                <view class="cart-step" @tap="changeCartQuantity(item, 1)">+</view>
               </view>
-              <view class="cart-action" @tap="copyCartItem(item)">复制口令</view>
-              <view class="cart-delete" @tap="removeCartItem(item.cartId)">×</view>
             </view>
+            <view class="cart-action" @tap="copyCartItem(item)">复制口令</view>
+            <view class="cart-delete" @tap="removeCartItem(item.cartId)">×</view>
           </view>
-          <view v-else class="cart-empty">
-            <UiIcon class="cart-empty-emoji" name="cart" :size="88" tone="muted" :stroke-width="1.3" />
-            <text>购物车还是空的</text>
-          </view>
-        </scroll-view>
-        <view class="btn btn-primary cart-full" @tap="goFullCart">查看完整购物车</view>
-        <view class="btn btn-ghost cart-close" @tap="cartOpen = false">关闭</view>
-      </view>
-    </view>
+        </view>
+        <view v-else class="cart-empty">
+          <UiIcon class="cart-empty-emoji" name="cart" :size="88" tone="muted" :stroke-width="1.3" />
+          <text>购物车还是空的</text>
+        </view>
+      </scroll-view>
+      <view class="btn btn-primary cart-full" @tap="goFullCart">查看完整购物车</view>
+      <view class="btn btn-ghost cart-close" @tap="cartOpen = false">关闭</view>
+    </Sheet>
   </view>
 </template>
 
@@ -733,7 +632,7 @@ function copyCartItem(item: AccessoryCartItem) {
   justify-content: center;
   width: 76rpx;
   height: 76rpx;
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   background: rgb(255 255 255 / 80%);
   border-radius: 50%;
   box-shadow: var(--shadow-card);
@@ -749,7 +648,7 @@ function copyCartItem(item: AccessoryCartItem) {
   min-width: 34rpx;
   height: 34rpx;
   padding: 0 7rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: #fff;
   background: var(--pink-deep);
@@ -762,7 +661,7 @@ function copyCartItem(item: AccessoryCartItem) {
   gap: 22rpx;
   align-items: center;
   padding-top: 220rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   color: var(--text-2);
 }
 
@@ -794,8 +693,14 @@ function copyCartItem(item: AccessoryCartItem) {
   padding: 28rpx;
 }
 
+/*
+ * 本页的「小节头」是一行 flex：左边标题+副标题，右边一个 demo-tag。
+ * 原来这个类叫 .section-title，和 components.css 里那个「一行小节标题」
+ * 撞名了 —— 全局那个管字号字重，这里管的是行内布局，两码事。
+ * 改名 .section-head，真正的标题文字在里面的 .section-main 上。
+ */
 .current-head,
-.section-title {
+.section-head {
   display: flex;
   gap: 20rpx;
   align-items: flex-start;
@@ -803,13 +708,13 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .eyebrow {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .current-title {
   margin-top: 4rpx;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -817,7 +722,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .change-btn {
   flex-shrink: 0;
   padding: 12rpx 22rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--surface-tint);
@@ -844,7 +749,7 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .current-tag {
   padding: 8rpx 18rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--pink-deep);
   background: #fff2f6;
@@ -854,7 +759,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .outfit-cart-btn {
   padding: 15rpx 18rpx;
   margin-top: 20rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
   text-align: center;
@@ -868,7 +773,7 @@ function copyCartItem(item: AccessoryCartItem) {
   align-items: center;
   padding: 16rpx 22rpx;
   margin-top: 20rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #24765e;
   background: #e9f8f2;
@@ -881,7 +786,7 @@ function copyCartItem(item: AccessoryCartItem) {
   justify-content: center;
   width: 34rpx;
   height: 34rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: #fff;
   background: #2e9b77;
   border-radius: 50%;
@@ -892,26 +797,25 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 22rpx;
 }
 
-.section-title {
+.section-head {
   margin-bottom: 8rpx;
 }
 
 .section-main {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .section-sub {
   margin-top: 5rpx;
-  font-size: 21rpx;
-  color: var(--text-3);
+  font-size: var(--fs-xs);
 }
 
 .demo-tag {
   flex-shrink: 0;
   padding: 8rpx 18rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--surface-tint);
@@ -927,13 +831,13 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .tryon-name {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .tryon-status {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -950,7 +854,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .category-bulk-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -959,7 +863,7 @@ function copyCartItem(item: AccessoryCartItem) {
   align-items: center;
   height: var(--btn-h-sm);
   padding: 0 26rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
 }
 
 .category-tabs {
@@ -973,7 +877,7 @@ function copyCartItem(item: AccessoryCartItem) {
   align-items: center;
   padding: 13rpx 24rpx;
   margin-right: 12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface);
@@ -987,7 +891,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .category-emoji {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
 }
 
 .accessory-list {
@@ -1015,7 +919,7 @@ function copyCartItem(item: AccessoryCartItem) {
   left: 12rpx;
   z-index: 3;
   padding: 7rpx 14rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: #fff;
   background: rgb(0 0 0 / 70%);
@@ -1034,7 +938,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .accessory-name {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   line-height: 1.3;
   color: var(--text-1);
@@ -1042,7 +946,7 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .accessory-meta {
   margin-top: 6rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -1052,7 +956,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .price-now {
-  font-size: 31rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--pink-deep);
 }
@@ -1060,7 +964,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .price-old {
   display: block;
   margin-top: 2rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-decoration: line-through;
 }
@@ -1068,7 +972,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .match-reason {
   padding: 12rpx 14rpx;
   margin-top: 14rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   line-height: 1.45;
   color: var(--text-2);
   background: var(--surface-tint);
@@ -1083,7 +987,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .rating-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -1093,7 +997,7 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .star {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   color: #ded8e8;
 }
 
@@ -1113,7 +1017,7 @@ function copyCartItem(item: AccessoryCartItem) {
   align-items: center;
   justify-content: center;
   min-height: 58rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface-tint);
@@ -1132,7 +1036,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .empty-recommend {
   padding: 50rpx 20rpx;
   margin-top: 22rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
   background: var(--surface-soft);
@@ -1169,7 +1073,7 @@ function copyCartItem(item: AccessoryCartItem) {
   justify-content: center;
   width: 48rpx;
   height: 48rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -1182,14 +1086,14 @@ function copyCartItem(item: AccessoryCartItem) {
 }
 
 .hot-title {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .hot-sub {
   margin-top: 5rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -1216,14 +1120,14 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 5rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   color: var(--text-2);
   white-space: nowrap;
 }
 
 .hot-score {
   flex-shrink: 0;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: #ffb020;
 }
@@ -1240,7 +1144,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .picker-tab {
   flex: 1;
   padding: 14rpx 10rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   text-align: center;
@@ -1276,14 +1180,14 @@ function copyCartItem(item: AccessoryCartItem) {
   margin-top: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
   white-space: nowrap;
 }
 
 .picker-empty {
   padding: 100rpx 20rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
 }
@@ -1330,7 +1234,7 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .purchase-title {
   margin-top: 24rpx;
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -1366,7 +1270,7 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .purchase-product {
   margin-top: 22rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
 }
@@ -1374,7 +1278,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .purchase-command {
   padding: 14rpx;
   margin-top: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--purple-deep);
   word-break: break-all;
   background: var(--surface-tint);
@@ -1387,7 +1291,7 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .purchase-close {
   margin-top: 16rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -1419,7 +1323,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .cart-name {
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
   white-space: nowrap;
@@ -1427,7 +1331,7 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .cart-meta {
   margin-top: 5rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -1446,14 +1350,14 @@ function copyCartItem(item: AccessoryCartItem) {
   justify-content: center;
   width: 44rpx;
   height: 40rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-1);
   background: var(--surface-tint);
 }
 
 .cart-qty {
   min-width: 48rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text-1);
   text-align: center;
@@ -1466,7 +1370,7 @@ function copyCartItem(item: AccessoryCartItem) {
 .cart-action {
   flex-shrink: 0;
   padding: 10rpx 16rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--surface-tint);
@@ -1479,14 +1383,14 @@ function copyCartItem(item: AccessoryCartItem) {
   justify-content: center;
   width: 48rpx;
   height: 48rpx;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   color: #d04c5b;
   border-radius: 50%;
 }
 
 .cart-empty {
   padding: 100rpx 0;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
 }
@@ -1499,9 +1403,5 @@ function copyCartItem(item: AccessoryCartItem) {
 
 .cart-close {
   margin-top: 22rpx;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

@@ -14,10 +14,12 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { advanceOrder, fetchOrder, type ShopOrder } from '@/api/order'
 import { isAuthError } from '@/utils/request'
+import { toast } from '@/utils/toast'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
 
 const order = ref<ShopOrder | null>(null)
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '订单加载失败' })
 const busy = ref(false)
 let orderId = 0
 
@@ -35,21 +37,9 @@ const nextLabel = computed(() => {
   }
 })
 
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
-}
-
 async function load() {
-  try {
-    order.value = await fetchOrder(orderId)
-    errorText.value = ''
-  } catch (error) {
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '订单加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const data = await run(() => fetchOrder(orderId))
+  if (data) order.value = data
 }
 
 onLoad((options) => {
@@ -79,7 +69,7 @@ async function advance(action: 'next' | 'cancel') {
 
 /** 商城是 tabBar 页，只能 switchTab，navigateTo 会静默失败 */
 function goShopping() {
-  uni.switchTab({ url: '/pages/mall/mall' })
+  go('mall')
 }
 
 function confirmCancel() {
@@ -98,8 +88,8 @@ function confirmCancel() {
     <PageHeader title="订单详情" to="/pages/cart/index" />
 
     <scroll-view scroll-y class="body hide-scrollbar">
-      <view v-if="loading" class="state">加载中…</view>
-      <view v-else-if="errorText" class="state error">{{ errorText }}</view>
+      <view v-if="loading" class="state state-block">加载中…</view>
+      <view v-else-if="errorText" class="state state-block error">{{ errorText }}</view>
 
       <template v-else-if="order">
         <view class="card">
@@ -192,21 +182,9 @@ function confirmCancel() {
   padding: 12rpx 30rpx 48rpx;
 }
 
-.state {
-  padding: 120rpx 40rpx;
-  color: var(--text-3);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .card {
   padding: 22rpx;
   margin-top: 20rpx;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
 }
 
 .head {
@@ -217,26 +195,26 @@ function confirmCancel() {
 }
 
 .status {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--pink-deep);
 }
 
 .order-no {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .card-title {
   margin-bottom: 10rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .cancelled-tip {
   display: block;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -285,7 +263,7 @@ function confirmCancel() {
   justify-content: center;
   width: 48rpx;
   height: 48rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-3);
   background: #e7e1f0;
@@ -300,7 +278,7 @@ function confirmCancel() {
 }
 
 .progress-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   white-space: nowrap;
 }
 
@@ -330,14 +308,14 @@ function confirmCancel() {
 
 .k {
   flex-shrink: 0;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .v {
   flex: 1;
   min-width: 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   text-align: right;
 }
@@ -348,7 +326,7 @@ function confirmCancel() {
 }
 
 .pay {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 700;
 }
 
@@ -376,7 +354,7 @@ function confirmCancel() {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   white-space: nowrap;
 }
@@ -388,21 +366,21 @@ function confirmCancel() {
 
 .goods-price {
   display: block;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
 }
 
 .goods-qty {
   display: block;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .demo-note {
   display: block;
   margin-top: 22rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   line-height: 1.55;
   color: var(--text-3);
 }
@@ -419,9 +397,5 @@ function confirmCancel() {
 
 .act.disabled {
   opacity: 0.6;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

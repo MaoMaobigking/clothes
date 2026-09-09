@@ -9,6 +9,7 @@
  */
 
 import { USE_CLOUD, cloudRequest, rewriteAssetPaths } from './cloud'
+import { ROUTES } from '@/constants/routes'
 
 /*
  * 接口根地址。打包时用 VITE_API_BASE_URL 注入，不注入则退回开发地址。
@@ -41,8 +42,14 @@ export const API_BASE_URL = (() => {
 const TOKEN_KEY = 'ai-fashion-token'
 const DEV_TAG_KEY = 'ai-fashion-dev-tag'
 
-/** 登录页路径。放常量是为了让「跳登录」和「判断当前是否已在登录页」用同一个来源。 */
-export const LOGIN_PAGE = '/pages/login/index'
+/**
+ * 登录页路径。放常量是为了让「跳登录」和「判断当前是否已在登录页」用同一个来源。
+ *
+ * 值本身来自 constants/routes.ts —— 那里是全站路由表。
+ * 这里保留这个导出名（stores/auth.ts 在用），但不再自己写死路径字符串，
+ * 否则改登录页路径时会漏掉这一处。
+ */
+export const LOGIN_PAGE: string = ROUTES.login
 
 interface RequestOptions {
   url: string

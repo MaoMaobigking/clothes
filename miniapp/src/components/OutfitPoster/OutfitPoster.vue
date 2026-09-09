@@ -16,6 +16,7 @@ import setting from '@/setting'
  */
 import { computed, getCurrentInstance, ref, watch } from 'vue'
 import type { OutfitPiece } from '@/utils/outfitPieces'
+import { toast } from '@/utils/toast'
 
 const props = withDefaults(
   defineProps<{
@@ -56,10 +57,6 @@ const instance = getCurrentInstance()
 const drawing = ref(false)
 const saving = ref(false)
 const drawError = ref('')
-
-function toast(title: string, icon: 'none' | 'success' = 'none') {
-  uni.showToast({ title, icon })
-}
 
 /** 按字符数粗暴截断：measureText 在小程序端不够可靠，宁可保守 */
 function ellipsis(text: string, max: number) {
@@ -353,7 +350,7 @@ defineExpose({ savePoster, draw })
   bottom: 16rpx;
   left: 50%;
   padding: 8rpx 20rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #fff;
   background: rgb(0 0 0 / 70%);

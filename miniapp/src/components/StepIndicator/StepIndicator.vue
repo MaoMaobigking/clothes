@@ -129,14 +129,14 @@ function onSwiperChange(e: { detail: { current: number } }) {
 }
 
 .check {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   color: #fff;
 }
 
 .label {
   margin-top: 12rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-4);
 }
 

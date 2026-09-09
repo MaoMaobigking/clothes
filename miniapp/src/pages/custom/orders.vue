@@ -4,6 +4,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_ORDER } from '@/constants/custom'
 import { fetchCustomRequests, type CustomRequest } from '@/api/custom'
 import { isAuthError } from '@/utils/request'
+import { go } from '@/utils/nav'
 
 const requests = ref<CustomRequest[]>([])
 const loading = ref(true)
@@ -25,11 +26,11 @@ async function loadRequests() {
 }
 
 function openRequest(id: number) {
-  uni.navigateTo({ url: `/pages/custom/order?id=${id}` })
+  go('customOrder', { id })
 }
 
 function openCategory() {
-  uni.navigateTo({ url: '/pages/custom/category?key=body' })
+  go('customCategory', { key: 'body' })
 }
 
 /**
@@ -127,7 +128,7 @@ onShow(loadRequests)
 .state {
   display: block;
   padding-top: 40rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -168,20 +169,20 @@ onShow(loadRequests)
 }
 
 .type {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .number {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .status {
   flex-shrink: 0;
   padding: 8rpx 18rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--pink-deep);
   background: rgb(255 92 157 / 10%);
@@ -194,7 +195,7 @@ onShow(loadRequests)
   overflow: hidden;
   text-overflow: ellipsis;
   -webkit-line-clamp: 2;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.55;
   color: var(--text-1);
   -webkit-box-orient: vertical;
@@ -202,7 +203,7 @@ onShow(loadRequests)
 
 .meta {
   margin-top: 18rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -245,7 +246,7 @@ onShow(loadRequests)
   z-index: 1;
   width: 30rpx;
   height: 30rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 24rpx;
   color: #fff;
@@ -267,7 +268,7 @@ onShow(loadRequests)
 }
 
 .tl-label {
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: var(--text-3);
   white-space: nowrap;
 }
@@ -285,7 +286,7 @@ onShow(loadRequests)
 }
 
 .action-text {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--purple-deep);
 }
@@ -297,12 +298,8 @@ onShow(loadRequests)
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
   gap: 16rpx;
-  align-items: center;
   padding: 90rpx 40rpx;
-  text-align: center;
 }
 
 .empty-emoji {
@@ -310,12 +307,12 @@ onShow(loadRequests)
 }
 
 .empty-title {
-  font-size: 31rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
 }
 
 .empty-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
 }

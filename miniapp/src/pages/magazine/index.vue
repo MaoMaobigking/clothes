@@ -11,8 +11,9 @@
  * 真正的杂志列表上，而不是撞一个不存在的路由。
  */
 import { onLoad } from '@dcloudio/uni-app'
+import { ROUTES } from '@/constants/routes'
 
-const TARGET = '/pages/community/index?tab=magazine'
+const TARGET = `${ROUTES.community}?tab=magazine`
 
 onLoad(() => {
   // redirectTo 而不是 navigateTo：这个壳不该留在页面栈里，
@@ -32,7 +33,7 @@ onLoad(() => {
 
 <style scoped>
 .hint {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
 }
 </style>

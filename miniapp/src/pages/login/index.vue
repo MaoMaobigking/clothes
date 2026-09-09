@@ -13,6 +13,7 @@ import setting from '@/setting'
 import { onMounted, ref } from 'vue'
 import { fetchDemoAccounts, type DemoAccount } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { ROUTES } from '@/constants/routes'
 
 const auth = useAuthStore()
 
@@ -22,7 +23,7 @@ const errorText = ref('')
 const notice = ref('')
 
 /** 登录后要去哪。被路由守卫踢回来时带 redirect，否则回首页。 */
-const redirect = ref('/pages/home/home')
+const redirect = ref<string>(ROUTES.home)
 
 const demoAccounts = ref<DemoAccount[]>([])
 const demoLoading = ref(false)
@@ -233,7 +234,7 @@ onMounted(() => {
 }
 
 .brand-sub {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
   text-align: center;
@@ -245,20 +246,18 @@ onMounted(() => {
   flex-direction: column;
   gap: 20rpx;
   padding: 36rpx 32rpx;
-  background: var(--surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
 }
 
 .card-title {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .card-sub {
   margin-top: -12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -266,7 +265,7 @@ onMounted(() => {
 .field {
   height: 92rpx;
   padding: 0 28rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-1);
   background: var(--surface-tint);
   border: 1px solid var(--line);
@@ -278,14 +277,14 @@ onMounted(() => {
 }
 
 .error {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: #e5484d;
 }
 
 .notice,
 .hint {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -324,7 +323,7 @@ onMounted(() => {
 }
 
 .demo-label {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -332,7 +331,7 @@ onMounted(() => {
 .demo-tag {
   padding: 4rpx 14rpx;
   margin-left: 12rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--purple-deep);
   background: #efe8ff;
@@ -340,13 +339,13 @@ onMounted(() => {
 }
 
 .demo-desc {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--text-2);
 }
 
 .demo-account {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -358,7 +357,7 @@ onMounted(() => {
 .dev-entry {
   align-self: center;
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   text-decoration: underline;
 }

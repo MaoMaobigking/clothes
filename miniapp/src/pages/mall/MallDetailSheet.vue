@@ -16,56 +16,54 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view v-if="product" class="mask" @tap="emit('close')">
-    <view class="sheet" @tap.stop>
-      <view class="grip" />
-      <view class="preview">
-        <TileImage
-          :from="product.from"
-          :to="product.to"
-          :emoji="product.emoji"
-          :src="product.imageUrl"
-          ratio="1 / 1"
-          rounded="var(--radius-lg)"
-        />
-      </view>
+  <Sheet v-if="product" @close="emit('close')">
+    <view class="grip" />
+    <view class="preview">
+      <TileImage
+        :from="product.from"
+        :to="product.to"
+        :emoji="product.emoji"
+        :src="product.imageUrl"
+        ratio="1 / 1"
+        rounded="var(--radius-lg)"
+      />
+    </view>
 
-      <view class="info">
-        <view class="head">
-          <text class="name">{{ product.name }}</text>
-          <view class="fav" :class="{ on: fav }" @tap="emit('fav')">
-            <UiIcon name="heart" :size="34" :tone="fav ? 'brand' : 'muted'" :stroke-width="fav ? 2.6 : 1.7" />
-          </view>
+    <view class="info">
+      <view class="head">
+        <text class="name">{{ product.name }}</text>
+        <view class="fav" :class="{ on: fav }" @tap="emit('fav')">
+          <UiIcon name="heart" :size="34" :tone="fav ? 'brand' : 'muted'" :stroke-width="fav ? 2.6 : 1.7" />
         </view>
-        <view class="tags">
-          <text class="tag">{{ product.categoryLabel }}</text>
-          <text v-if="product.season" class="tag ghost">{{ product.season }}</text>
-        </view>
-        <text class="desc">
-          {{ product.keywords.length ? product.keywords.join(' · ') : '精选材质，百搭日常与约会造型' }}
-        </text>
-        <text class="price">
-          <text class="price-symbol">¥</text>
-          {{ product.price.toFixed(2) }}
-        </text>
-        <!-- §4.4：商品必须带淘宝链接与淘口令，这里明示给用户 -->
-        <text v-if="product.taokouling" class="taokouling">淘口令 {{ product.taokouling }}</text>
-        <text v-else class="taokouling missing">该商品暂未配置淘口令</text>
       </view>
+      <view class="tags">
+        <text class="tag">{{ product.categoryLabel }}</text>
+        <text v-if="product.season" class="tag ghost">{{ product.season }}</text>
+      </view>
+      <text class="desc">
+        {{ product.keywords.length ? product.keywords.join(' · ') : '精选材质，百搭日常与约会造型' }}
+      </text>
+      <text class="price">
+        <text class="price-symbol">¥</text>
+        {{ product.price.toFixed(2) }}
+      </text>
+      <!-- §4.4：商品必须带淘宝链接与淘口令，这里明示给用户 -->
+      <text v-if="product.taokouling" class="taokouling">淘口令 {{ product.taokouling }}</text>
+      <text v-else class="taokouling missing">该商品暂未配置淘口令</text>
+    </view>
 
-      <view class="actions">
-        <view class="btn btn-ghost" @tap="emit('accessory')">
-          <text>配配饰</text>
-        </view>
-        <view class="btn btn-ghost" @tap="emit('buy')">
-          <text>去淘宝</text>
-        </view>
-        <view class="btn btn-primary" @tap="emit('add')">
-          <text>加入购物车</text>
-        </view>
+    <view class="actions">
+      <view class="btn btn-ghost" @tap="emit('accessory')">
+        <text>配配饰</text>
+      </view>
+      <view class="btn btn-ghost" @tap="emit('buy')">
+        <text>去淘宝</text>
+      </view>
+      <view class="btn btn-primary" @tap="emit('add')">
+        <text>加入购物车</text>
       </view>
     </view>
-  </view>
+  </Sheet>
 </template>
 
 <style scoped>
@@ -127,7 +125,7 @@ const emit = defineEmits<{
 .tag {
   align-self: flex-start;
   padding: 6rpx 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-on-brand);
   background: var(--brand-gradient);
@@ -140,7 +138,7 @@ const emit = defineEmits<{
 }
 
 .taokouling {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
   word-break: break-all;
@@ -153,7 +151,7 @@ const emit = defineEmits<{
 
 .desc {
   margin: 0;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--text-2);
 }
@@ -167,7 +165,7 @@ const emit = defineEmits<{
 
 .price-symbol {
   margin-right: 4rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-style: normal;
 }
 

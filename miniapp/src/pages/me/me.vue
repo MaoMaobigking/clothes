@@ -7,6 +7,9 @@ import { useProfileStore } from '@/stores/profile'
 import { useAuthStore } from '@/stores/auth'
 import { fetchAchievements, type AchievementSummary } from '@/api/community'
 import { iconForEmoji } from '@/utils/icons'
+import { useToast } from '@/composables/useToast'
+import { go } from '@/utils/nav'
+import type { RouteKey } from '@/constants/routes'
 
 /** 菜单项里存的还是 emoji，查表换成线性图标 */
 const menuIcon = (emoji: string) => iconForEmoji(emoji) ?? 'chevron-right'
@@ -22,13 +25,7 @@ const achievements = ref<AchievementSummary>({
 })
 
 /** 轻提示（页面内小气泡） */
-const toast = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | undefined
-function showToast(text: string) {
-  toast.value = text
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = ''), 1600)
-}
+const { toast, showToast } = useToast()
 
 const stats = [
   { key: 'fav', label: '收藏', value: () => wardrobe.favIds.length },
@@ -37,7 +34,7 @@ const stats = [
 ]
 
 function goAvatar() {
-  uni.navigateTo({ url: '/pages/body-create/index' })
+  go('bodyCreate')
 }
 
 /**
@@ -47,18 +44,21 @@ function goAvatar() {
 const avatarIcon = computed(() => iconForEmoji(auth.session.avatarUrl) ?? 'me')
 
 function goProfileEdit() {
-  uni.navigateTo({ url: '/pages/profile-edit/index' })
+  go('profileEdit')
 }
 
 function goAchievements() {
-  uni.navigateTo({ url: '/pages/achievements/index' })
+  go('achievements')
 }
 
 interface MenuItem {
   key: string
   emoji: string
   label: string
-  route?: string
+  /* 路由 key 而不是路径字符串：写错 key 编译期就报，写错路径只会静默跳不动 */
+  route?: RouteKey
+  /** 社区页那两项要带 tab 参数进去 */
+  query?: Record<string, string>
   /** 右侧小字，用来提前说明「点进去还要过一道」 */
   hint?: string
 }
@@ -66,22 +66,22 @@ interface MenuItem {
 const menus: MenuItem[] = [
   // 商城订单（购物车结算出来的 shop_orders）和定制订单（custom_requests）是两套状态机，
   // 分成两个入口列，不合并成一个「我的订单」——合并只会让两种进度条混在一条时间线上
-  { key: 'shopOrders', emoji: '📦', label: '商城订单', route: '/pages/orders/index' },
+  { key: 'shopOrders', emoji: '📦', label: '商城订单', route: 'orders' },
   // 定制订单列表页是现成的（pages/custom/orders），直接接上，不用再弹「敬请期待」
-  { key: 'orders', emoji: '🧾', label: '定制订单', route: '/pages/custom/orders' },
-  { key: 'cart', emoji: '🛒', label: '购物车', route: '/pages/cart/index' },
-  { key: 'outfits', emoji: '👗', label: '我的搭配', route: '/pages/outfits/index' },
-  { key: 'diary', emoji: '📔', label: '穿搭日记', route: '/pages/diary/index' },
-  { key: 'magazine', emoji: '📖', label: '时尚杂志', route: '/pages/community/index?tab=magazine' },
-  { key: 'community', emoji: '💬', label: '时尚社群', route: '/pages/community/index?tab=share' },
-  { key: 'favorites', emoji: '⭐', label: '我的收藏', route: '/pages/my-favorites/index' },
-  { key: 'achievements', emoji: '🏅', label: '学习成就', route: '/pages/achievements/index' },
+  { key: 'orders', emoji: '🧾', label: '定制订单', route: 'customOrders' },
+  { key: 'cart', emoji: '🛒', label: '购物车', route: 'cart' },
+  { key: 'outfits', emoji: '👗', label: '我的搭配', route: 'outfits' },
+  { key: 'diary', emoji: '📔', label: '穿搭日记', route: 'diary' },
+  { key: 'magazine', emoji: '📖', label: '时尚杂志', route: 'community', query: { tab: 'magazine' } },
+  { key: 'community', emoji: '💬', label: '时尚社群', route: 'community', query: { tab: 'share' } },
+  { key: 'favorites', emoji: '⭐', label: '我的收藏', route: 'myFavorites' },
+  { key: 'achievements', emoji: '🏅', label: '学习成就', route: 'achievements' },
   // 只校验号码编得对不对，不接三要素比对，所以 hint 直接把话说在门口
-  { key: 'verify', emoji: '🪪', label: '实名认证', route: '/pages/verify/index', hint: '演示' },
+  { key: 'verify', emoji: '🪪', label: '实名认证', route: 'verify', hint: '演示' },
   // 看板本身有密码闸（pages/admin/index.vue），这里只提示，不重复弹一次输入框
-  { key: 'admin', emoji: '📊', label: '管理员看板', route: '/pages/admin/index', hint: '需密码' },
-  { key: 'scene', emoji: '🌦️', label: '情景模拟', route: '/pages/scene/index' },
-  { key: 'custom', emoji: '🧵', label: '差异化定制', route: '/pages/custom/index' },
+  { key: 'admin', emoji: '📊', label: '管理员看板', route: 'admin', hint: '需密码' },
+  { key: 'scene', emoji: '🌦️', label: '情景模拟', route: 'scene' },
+  { key: 'custom', emoji: '🧵', label: '差异化定制', route: 'custom' },
   // 「设置」原来是置灰的「开发中」占位项。用户 2026-08-18 决定：没做就别摆着，删掉。
   // 一并删掉的还有只为它服务的 soon 置灰机制（MenuItem.soon / .menu-item.soon / .mi-soon）。
   // 真要做设置页、或再出现别的「开发中」项时，去 58d155e 之前的 me.vue 捡回那套。
@@ -94,7 +94,7 @@ function onMenu(m: MenuItem) {
     return
   }
   if (m.route) {
-    uni.navigateTo({ url: m.route })
+    go(m.route, m.query)
   } else {
     showToast(`「${m.label}」功能敬请期待～`)
   }
@@ -268,7 +268,7 @@ onMounted(async () => {
 }
 
 .uc-sign {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.4;
   color: rgb(255 255 255 / 85%);
 }
@@ -277,7 +277,7 @@ onMounted(async () => {
   flex-shrink: 0;
   align-self: flex-start;
   padding: 10rpx 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-on-brand);
   background: rgb(255 255 255 / 25%);
@@ -313,7 +313,7 @@ onMounted(async () => {
 }
 
 .stat-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -356,7 +356,7 @@ onMounted(async () => {
 }
 
 .learning-label {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
@@ -383,7 +383,7 @@ onMounted(async () => {
 }
 
 .learning-meta {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -400,14 +400,14 @@ onMounted(async () => {
 }
 
 .ac-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .ac-sub {
   flex: 1;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -448,14 +448,14 @@ onMounted(async () => {
 
 .mi-label {
   flex: 1;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--text-1);
   text-align: left;
 }
 
 .mi-hint {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 

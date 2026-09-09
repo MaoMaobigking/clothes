@@ -16,6 +16,8 @@ import { listSceneOutfits, type SavedSceneOutfit } from '@/api/scene'
 import { apiListOutfits, type Outfit } from '@/api/wardrobe'
 import { isAuthError } from '@/utils/request'
 import { piecesFromOutfit, piecesFromSceneItems, type OutfitPiece } from '@/utils/outfitPieces'
+import { go } from '@/utils/nav'
+import type { RouteKey } from '@/constants/routes'
 
 type SourceKey = 'wardrobe' | 'scene'
 
@@ -29,8 +31,8 @@ interface OutfitEntry {
   meta: string
   tag: string
   pieces: OutfitPiece[]
-  /** 点「重新打开」去哪 */
-  route: string
+  /** 点「重新打开」去哪。存 key + query 而不是拼好的路径，跳转交给 utils/nav 的 go() */
+  route: { key: RouteKey; query?: Record<string, string | number> }
   shareText: string
 }
 
@@ -66,7 +68,7 @@ const entries = computed<OutfitEntry[]>(() => {
     meta: [outfit.occasion, outfit.season, outfit.scene].filter(Boolean).join(' · ') || '旧衣智能搭配',
     tag: SOURCE_LABELS.wardrobe,
     pieces: piecesFromOutfit(outfit),
-    route: `/pages/outfit-result/index?batchId=${outfit.batchId}`,
+    route: { key: 'outfitResult' as RouteKey, query: { batchId: outfit.batchId } },
     shareText: `${outfit.title}\n${outfit.items.map((item) => item.garment.name).join(' / ')}\n来自${setting.fullName} · 旧衣智能搭配。`,
   }))
 
@@ -84,7 +86,7 @@ const entries = computed<OutfitEntry[]>(() => {
       .join(' · '),
     tag: SOURCE_LABELS.scene,
     pieces: piecesFromSceneItems(outfit.composition || []),
-    route: `/pages/scene/index?outfitId=${outfit.id}`,
+    route: { key: 'scene' as RouteKey, query: { outfitId: outfit.id } },
     shareText: `${outfit.title}\n${outfit.weather?.city || '未记录城市'} ${outfit.weather?.condition || ''} ${outfit.weather?.temp ?? ''}℃\n${(outfit.composition || []).map((item) => item.name).join(' / ')}`,
   }))
 
@@ -135,7 +137,7 @@ onLoad((options) => {
 onShow(load)
 
 function openEntry(entry: OutfitEntry) {
-  uni.navigateTo({ url: entry.route })
+  go(entry.route.key, entry.route.query)
 }
 
 function copyEntry(entry: OutfitEntry) {
@@ -146,13 +148,13 @@ function copyEntry(entry: OutfitEntry) {
 }
 
 function goScene() {
-  uni.navigateTo({ url: '/pages/scene/index' })
+  go('scene')
 }
 
 function goCloset() {
   // closet 是 pages.json 里的 tabBar 页，只能 switchTab；
   // navigateTo 到 tabBar 页在任何端都必定失败，别再加「兜底」。
-  uni.switchTab({ url: '/pages/closet/closet' })
+  go('closet')
 }
 </script>
 
@@ -270,11 +272,9 @@ function goCloset() {
   color: var(--warning);
 }
 
+/* 全局 .empty 已是 flex column + align-items:center，这里只改间距 */
 .empty {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
-  align-items: center;
 }
 
 .empty-emoji {

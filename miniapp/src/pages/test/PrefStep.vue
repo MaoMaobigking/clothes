@@ -48,7 +48,7 @@ const subtitle = computed(() => `共 ${PREFERENCE_QUESTIONS.length} 题，已答
 
 .q-title {
   margin: 0 0 24rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -60,16 +60,12 @@ const subtitle = computed(() => `共 ${PREFERENCE_QUESTIONS.length} 题，已答
 }
 
 .chip {
-  display: inline-flex;
   gap: 10rpx;
-  align-items: center;
   padding: 18rpx 32rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
-  color: var(--text-2);
   background: var(--surface-tint);
   border: 4rpx solid transparent;
-  border-radius: var(--radius-pill);
   transition: all 0.15s ease;
 }
 
@@ -84,6 +80,6 @@ const subtitle = computed(() => `共 ${PREFERENCE_QUESTIONS.length} 题，已答
 }
 
 .chip-emoji {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
 }
 </style>

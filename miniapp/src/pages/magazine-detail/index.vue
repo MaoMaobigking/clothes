@@ -3,11 +3,11 @@ import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { bookmarkCommunityContent, fetchCommunityContent, type CommunityContent } from '@/api/community'
 import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '杂志加载失败' })
 const zoomed = ref(false)
 const noteModal = ref(false)
 const draftNote = ref('')
@@ -31,20 +31,11 @@ onMounted(async () => {
 })
 
 async function loadContent() {
-  loading.value = true
-  errorText.value = ''
-  try {
-    content.value = await fetchCommunityContent(contentId.value)
-    draftNote.value = content.value.note
-    offlineSaved.value = Boolean(uni.getStorageSync(`ai-fashion-offline-${contentId.value}`))
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '杂志加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const data = await run(() => fetchCommunityContent(contentId.value))
+  if (!data) return
+  content.value = data
+  draftNote.value = data.note
+  offlineSaved.value = Boolean(uni.getStorageSync(`ai-fashion-offline-${contentId.value}`))
 }
 
 function handleScroll(event: any) {
@@ -103,8 +94,8 @@ function restoreProgress() {
   <view class="page">
     <PageHeader title="杂志阅读" to="/pages/community/index?tab=magazine" />
 
-    <view v-if="loading" class="state">正在加载杂志...</view>
-    <view v-else-if="errorText || !content" class="state error">{{ errorText }}</view>
+    <view v-if="loading" class="state state-fill">正在加载杂志...</view>
+    <view v-else-if="errorText || !content" class="state state-fill error">{{ errorText }}</view>
 
     <scroll-view v-else class="body" scroll-y @scroll="handleScroll">
       <view class="cover-wrap" @tap="zoomed = true">
@@ -166,16 +157,6 @@ function restoreProgress() {
   padding: 12rpx 32rpx 48rpx;
 }
 
-.state {
-  flex: 1;
-  padding: 80rpx 24rpx;
-  color: var(--text-2);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .cover-wrap {
   position: relative;
   width: 100%;
@@ -201,7 +182,7 @@ function restoreProgress() {
 }
 
 .month {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: rgb(255 255 255 / 82%);
 }
@@ -215,7 +196,7 @@ function restoreProgress() {
 
 .cover-subtitle {
   margin-top: 10rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: rgb(255 255 255 / 90%);
 }
 
@@ -224,7 +205,7 @@ function restoreProgress() {
   top: 20rpx;
   right: 20rpx;
   padding: 8rpx 18rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: #fff;
   background: rgb(0 0 0 / 45%);
   border-radius: var(--radius-pill);
@@ -236,13 +217,13 @@ function restoreProgress() {
 
 .author {
   display: block;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
 .intro {
   margin-top: 24rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   line-height: 1.7;
   color: var(--text-1);
@@ -253,14 +234,14 @@ function restoreProgress() {
 }
 
 .heading {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--purple-deep);
 }
 
 .paragraph {
   margin-top: 12rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   line-height: 1.75;
   color: var(--text-2);
 }
@@ -268,7 +249,7 @@ function restoreProgress() {
 .quote {
   padding: 28rpx;
   margin-top: 36rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   line-height: 1.65;
   color: var(--text-1);
@@ -282,7 +263,7 @@ function restoreProgress() {
 
 .progress-label {
   margin-bottom: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -310,7 +291,7 @@ function restoreProgress() {
   align-items: center;
   justify-content: center;
   height: 82rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
   background: var(--surface);
@@ -359,7 +340,7 @@ function restoreProgress() {
   height: 260rpx;
   padding: 22rpx;
   margin-top: 24rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text-1);
   background: var(--surface-soft);
@@ -379,7 +360,7 @@ function restoreProgress() {
   align-items: center;
   justify-content: center;
   height: 82rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   border-radius: var(--radius-pill);
 }

@@ -53,13 +53,13 @@ const emit = defineEmits<{ (e: 'tool', tool: (typeof AI_TOOLS)[number]): void }>
 }
 
 .t-soon {
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   line-height: 1.2;
   color: var(--text-4);
 }
 
 .t-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-2);
 }

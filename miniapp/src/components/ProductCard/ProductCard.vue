@@ -83,7 +83,7 @@ const emit = defineEmits<{
   top: 12rpx;
   left: 12rpx;
   padding: 4rpx 12rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: #fff;
   background: var(--pink-deep);
   border-radius: var(--radius-sm);
@@ -115,7 +115,7 @@ const emit = defineEmits<{
   margin-left: 4rpx;
   overflow: hidden;
   -webkit-line-clamp: 2;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.4;
   color: var(--text-1);
   -webkit-box-orient: vertical;
@@ -130,13 +130,13 @@ const emit = defineEmits<{
   margin-top: 8rpx;
   margin-bottom: 8rpx;
   margin-left: 4rpx;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--price);
 }
 
 .price-symbol {
   margin-right: 2rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
 }
 </style>

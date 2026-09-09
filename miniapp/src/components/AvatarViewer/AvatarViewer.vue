@@ -489,7 +489,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   top: 24rpx;
   right: 24rpx;
   padding: 8rpx 20rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   background: rgb(255 255 255 / 72%);
   border-radius: var(--radius-pill);
@@ -502,7 +502,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   left: 24rpx;
   z-index: 3;
   padding: 8rpx 20rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
   background: rgb(255 255 255 / 78%);
@@ -518,7 +518,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   z-index: 6;
   max-width: 62%;
   padding: 10rpx 20rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--warning);
   background: rgb(255 243 240 / 94%);
@@ -550,7 +550,7 @@ defineExpose({ resetView, zoom, setEngine, setView })
   min-width: 112rpx;
   height: 56rpx;
   padding: 0 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   border-radius: var(--radius-pill);

@@ -12,6 +12,7 @@ import {
 } from '@/api/custom'
 import { isAuthError } from '@/utils/request'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
 
@@ -22,8 +23,7 @@ const sending = ref(false)
 const advancing = ref(false)
 const input = ref('')
 const scrollTop = ref(0)
-const toast = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | undefined
+const { toast, showToast } = useToast()
 
 const request = computed(() => detail.value?.request)
 const measurement = computed(() => detail.value?.measurement)
@@ -49,12 +49,6 @@ const measurementPhotos = computed(() => {
     { label: '背面', url: measurement.value.backImage },
   ].filter((item) => Boolean(item.url))
 })
-
-function showToast(message: string) {
-  toast.value = message
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = ''), 1900)
-}
 
 async function loadDetail() {
   if (!requestId.value) return
@@ -282,7 +276,7 @@ function messageClass(message: CustomMessage) {
   flex: 1;
   align-items: center;
   justify-content: center;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
 }
 
@@ -328,24 +322,24 @@ function messageClass(message: CustomMessage) {
 }
 
 .designer-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .designer-name {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
 }
 
 .designer-specialty {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
 .source {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #388d83;
   background: rgb(169 220 214 / 22%);
@@ -355,7 +349,7 @@ function messageClass(message: CustomMessage) {
 .card-title,
 .card-subtitle {
   display: block;
-  font-size: 29rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -370,7 +364,7 @@ function messageClass(message: CustomMessage) {
 .advance {
   flex-shrink: 0;
   padding: 10rpx 20rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--pink-soft);
@@ -378,7 +372,7 @@ function messageClass(message: CustomMessage) {
 }
 
 .finished {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--mint-deep);
 }
@@ -427,7 +421,7 @@ function messageClass(message: CustomMessage) {
   justify-content: center;
   width: 48rpx;
   height: 48rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-3);
   background: #e7e1f0;
@@ -442,7 +436,7 @@ function messageClass(message: CustomMessage) {
 }
 
 .progress-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   white-space: nowrap;
 }
 
@@ -461,12 +455,12 @@ function messageClass(message: CustomMessage) {
 }
 
 .requirement-label {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .requirement-text {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   line-height: 1.55;
   color: var(--text-1);
 }
@@ -489,19 +483,19 @@ function messageClass(message: CustomMessage) {
 }
 
 .measure-label {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .measure-value {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .unit {
   margin-left: 4rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: var(--text-3);
 }
@@ -509,14 +503,14 @@ function messageClass(message: CustomMessage) {
 .notes {
   display: block;
   margin-top: 16rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--text-2);
 }
 
 .card-subtitle {
   margin-top: 24rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
 }
 
 .photo-grid,
@@ -547,7 +541,7 @@ function messageClass(message: CustomMessage) {
   bottom: 8rpx;
   left: 8rpx;
   padding: 6rpx 13rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   color: #fff;
   background: rgb(47 47 58 / 74%);
   border-radius: var(--radius-pill);
@@ -567,7 +561,7 @@ function messageClass(message: CustomMessage) {
 
 .welcome {
   padding: 24rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   line-height: 1.55;
   color: var(--text-2);
   text-align: center;
@@ -589,14 +583,14 @@ function messageClass(message: CustomMessage) {
 
 .message-role {
   padding-left: 8rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: var(--text-3);
 }
 
 .bubble {
   max-width: 82%;
   padding: 18rpx 22rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-1);
   word-break: break-word;
@@ -616,7 +610,7 @@ function messageClass(message: CustomMessage) {
 
 .message-time {
   padding: 0 8rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   color: var(--text-3);
 }
 
@@ -632,7 +626,7 @@ function messageClass(message: CustomMessage) {
   min-width: 0;
   height: 82rpx;
   padding: 0 26rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   background: #fff;
   border: 2rpx solid var(--line);
   border-radius: var(--radius-pill);
@@ -642,7 +636,7 @@ function messageClass(message: CustomMessage) {
   flex-shrink: 0;
   height: 82rpx;
   padding: 0 30rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);

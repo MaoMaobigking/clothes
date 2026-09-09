@@ -12,6 +12,8 @@ import { useCartStore } from '@/stores/cart'
 import { resolveImageUrl } from '@/api/wardrobe'
 import { isAuthError } from '@/utils/request'
 import type { CartItem } from '@/api/cart'
+import { toast } from '@/utils/toast'
+import { go } from '@/utils/nav'
 
 const cart = useCartStore()
 const busy = ref(0)
@@ -34,10 +36,6 @@ onShow(() => {
 })
 
 const hasUnavailable = computed(() => cart.items.some((item) => !item.available))
-
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function displaySrc(src?: string) {
   return resolveImageUrl(src || '')
@@ -120,12 +118,12 @@ function copyToken(item: CartItem) {
 }
 
 function goShopping() {
-  uni.navigateTo({ url: '/pages/accessory/index' })
+  go('accessory')
 }
 
 /** 去演示结算页。下架商品不参与结算，结算页会再提示一次，这里不拦。 */
 function goCheckout() {
-  uni.navigateTo({ url: '/pages/checkout/index' })
+  go('checkout')
 }
 </script>
 
@@ -133,10 +131,10 @@ function goCheckout() {
   <view class="page page-stage">
     <PageHeader title="购物车" to="/pages/me/me" />
 
-    <view v-if="cart.loading && !cart.loaded" class="state">正在读取购物车...</view>
-    <view v-else-if="cart.error" class="state error">{{ cart.error }}</view>
+    <view v-if="cart.loading && !cart.loaded" class="state state-block">正在读取购物车...</view>
+    <view v-else-if="cart.error" class="state state-block error">{{ cart.error }}</view>
 
-    <view v-else-if="cart.isEmpty" class="state empty">
+    <view v-else-if="cart.isEmpty" class="state state-block empty">
       <UiIcon class="empty-emoji" name="cart" :size="88" tone="muted" :stroke-width="1.3" />
       <view class="empty-title">购物车还是空的</view>
       <view class="empty-sub">从配饰推荐或搭配方案里加点东西吧</view>
@@ -211,15 +209,6 @@ function goCheckout() {
   padding: 12rpx 30rpx 24rpx;
 }
 
-.state {
-  padding: 120rpx 40rpx;
-  color: var(--text-3);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .empty-emoji {
   display: block;
   margin-bottom: 18rpx;
@@ -227,14 +216,13 @@ function goCheckout() {
 }
 
 .empty-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .empty-sub {
   margin-top: 10rpx;
-  font-size: 24rpx;
 }
 
 .empty-btn {
@@ -245,7 +233,7 @@ function goCheckout() {
 .notice {
   padding: 16rpx 20rpx;
   margin-bottom: 16rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: #a05a12;
   background: #fff4e5;
   border-radius: var(--radius);
@@ -281,7 +269,7 @@ function goCheckout() {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
   white-space: nowrap;
@@ -296,7 +284,7 @@ function goCheckout() {
 
 .tag {
   padding: 4rpx 12rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: var(--purple-deep);
   background: var(--surface-tint);
   border-radius: var(--radius-pill);
@@ -320,13 +308,13 @@ function goCheckout() {
 }
 
 .price {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: #d04c5b;
 }
 
 .brand {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -351,7 +339,7 @@ function goCheckout() {
   justify-content: center;
   width: 52rpx;
   height: 48rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   color: var(--text-1);
   background: var(--surface-tint);
 }
@@ -362,7 +350,7 @@ function goCheckout() {
 
 .qty {
   min-width: 56rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
   text-align: center;
@@ -370,7 +358,7 @@ function goCheckout() {
 
 .op-btn {
   padding: 10rpx 18rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--surface-tint);
@@ -384,7 +372,7 @@ function goCheckout() {
 
 .tail {
   padding: 30rpx 0 10rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: center;
 }
@@ -405,12 +393,12 @@ function goCheckout() {
 
 .bar-label {
   display: block;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .bar-price {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   color: #d04c5b;
 }
@@ -420,9 +408,5 @@ function goCheckout() {
   flex: 1;
   min-width: 0;
   max-width: 240rpx;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

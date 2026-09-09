@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ROUTES, isTabPath } from '@/constants/routes'
+
 const props = withDefaults(
   defineProps<{
     title: string
@@ -8,9 +10,6 @@ const props = withDefaults(
   }>(),
   { to: '', sub: '' },
 )
-
-/** tabBar 五页：只能 switchTab，navigateTo 到 tab 页在小程序上必定失败 */
-const TAB_ROUTES = ['/pages/home/home', '/pages/ai/ai', '/pages/closet/closet', '/pages/mall/mall', '/pages/me/me']
 
 /*
  * 返回。
@@ -31,6 +30,9 @@ const TAB_ROUTES = ['/pages/home/home', '/pages/ai/ai', '/pages/closet/closet', 
  *   2. 栈底（分享/深链/扫码直接落在这一页，没有上一页可回）→ 用 props.to：
  *      tab 页只能 switchTab（navigateTo 到 tab 页在小程序上必定失败），
  *      其余 redirectTo 替换当前页（栈深不变，不堆积）。
+ *
+ * tabBar 五页的名单原先在本文件里又抄了一遍（全站第四份），
+ * 现在统一由 constants/routes.ts 的 isTabPath 判定。
  */
 function back() {
   // getCurrentPages() 至少含当前页；> 1 才说明真有上一页
@@ -38,8 +40,8 @@ function back() {
     uni.navigateBack()
     return
   }
-  const target = props.to || '/pages/home/home'
-  if (TAB_ROUTES.includes(target.split('?')[0])) {
+  const target = props.to || ROUTES.home
+  if (isTabPath(target)) {
     uni.switchTab({ url: target })
     return
   }
@@ -113,7 +115,7 @@ function back() {
 .title {
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text-1);
   white-space: nowrap;
@@ -121,7 +123,7 @@ function back() {
 
 .sub {
   margin-top: 2rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 </style>

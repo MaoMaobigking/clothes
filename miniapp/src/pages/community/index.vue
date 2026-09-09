@@ -8,6 +8,8 @@ import {
   type CommunityContentType,
 } from '@/api/community'
 import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
 
 const TABS: { key: CommunityContentType; label: string }[] = [
   { key: 'magazine', label: '杂志推送' },
@@ -17,8 +19,7 @@ const TABS: { key: CommunityContentType; label: string }[] = [
 ]
 
 const activeTab = ref<CommunityContentType>('magazine')
-const loading = ref(false)
-const loadError = ref('')
+const { loading, errorText: loadError, run } = useAsyncTask({ initialLoading: false, message: '内容加载失败' })
 const topicFilter = ref('')
 const activeCategory = ref('全部')
 const contentByType = reactive<Record<CommunityContentType, CommunityContent[]>>({
@@ -105,25 +106,14 @@ async function loadCurrentTab() {
    * 手里已经有数据时静默刷新：旧内容一直挂着，新数据到了直接替换，中间没有空帧。
    */
   const silent = hasCurrentData.value
-  if (!silent) loading.value = true
-  loadError.value = ''
-  try {
-    const filters =
-      activeTab.value === 'tutorial'
-        ? { category: activeCategory.value === '全部' ? '' : activeCategory.value }
-        : activeTab.value === 'share'
-          ? { topic: topicFilter.value }
-          : {}
-    const items = await fetchCommunityContents(activeTab.value, filters)
-    contentByType[activeTab.value] = items
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
-    if (!isAuthError(error)) {
-      loadError.value = error instanceof Error ? error.message : '内容加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const filters =
+    activeTab.value === 'tutorial'
+      ? { category: activeCategory.value === '全部' ? '' : activeCategory.value }
+      : activeTab.value === 'share'
+        ? { topic: topicFilter.value }
+        : {}
+  const items = await run(() => fetchCommunityContents(activeTab.value, filters), { silent })
+  if (items) contentByType[activeTab.value] = items
 }
 
 function switchTab(tab: CommunityContentType) {
@@ -139,16 +129,16 @@ function setCategory(category: string) {
 
 function openContent(item: CommunityContent) {
   if (item.type === 'magazine') {
-    uni.navigateTo({ url: `/pages/magazine-detail/index?id=${encodeURIComponent(item.id)}` })
+    go('magazineDetail', { id: item.id })
   } else if (item.type === 'tutorial') {
-    uni.navigateTo({ url: `/pages/teach-detail/index?id=${encodeURIComponent(item.id)}` })
+    go('teachDetail', { id: item.id })
   } else {
-    uni.navigateTo({ url: `/pages/share-detail/index?id=${encodeURIComponent(item.id)}` })
+    go('shareDetail', { id: item.id })
   }
 }
 
 function publishShare() {
-  uni.navigateTo({ url: '/pages/share-editor/index' })
+  go('shareEditor')
 }
 
 async function toggleAction(item: CommunityContent, action: 'like' | 'favorite' | 'report') {
@@ -395,7 +385,7 @@ function showCooperationTip() {
   min-width: 72rpx;
   height: 64rpx;
   padding: 0 22rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);
@@ -420,7 +410,7 @@ function showCooperationTip() {
   align-items: center;
   justify-content: center;
   height: 72rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-2);
   white-space: nowrap;
@@ -460,16 +450,9 @@ function showCooperationTip() {
   margin: 18rpx 0 22rpx;
 }
 
-.section-title {
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
-}
-
 .section-sub {
   margin-top: 8rpx;
-  font-size: 22rpx;
-  color: var(--text-3);
+  font-size: var(--fs-sm);
 }
 
 .share-button,
@@ -480,7 +463,7 @@ function showCooperationTip() {
   justify-content: center;
   height: 64rpx;
   padding: 0 26rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);
@@ -537,7 +520,7 @@ function showCooperationTip() {
 .tutorial-category,
 .challenge-category {
   display: block;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
 }
@@ -545,7 +528,7 @@ function showCooperationTip() {
 .magazine-title,
 .card-title {
   margin-top: 10rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   line-height: 1.4;
   color: var(--text-1);
@@ -554,7 +537,7 @@ function showCooperationTip() {
 .magazine-subtitle,
 .challenge-subtitle {
   margin-top: 6rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -579,14 +562,14 @@ function showCooperationTip() {
 }
 
 .blogger-title {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: #3d716b;
 }
 
 .blogger-sub {
   margin-top: 6rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: #618d86;
 }
 
@@ -596,7 +579,7 @@ function showCooperationTip() {
   align-items: center;
   height: 60rpx;
   padding: 0 22rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #fff;
   background: var(--mint);
@@ -609,7 +592,7 @@ function showCooperationTip() {
   align-items: center;
   height: 60rpx;
   padding: 0 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface-soft);
@@ -628,7 +611,7 @@ function showCooperationTip() {
   align-items: center;
   justify-content: space-between;
   margin-top: 12rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -636,7 +619,7 @@ function showCooperationTip() {
   display: inline-block;
   margin-top: 10rpx;
   margin-right: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--mint-deep);
 }
@@ -652,7 +635,7 @@ function showCooperationTip() {
   justify-content: space-between;
   padding: 18rpx 22rpx;
   margin-bottom: 18rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #477a72;
   background: rgb(169 220 214 / 25%);
@@ -676,7 +659,7 @@ function showCooperationTip() {
   justify-content: center;
   width: 44rpx;
   height: 44rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   background: var(--surface-soft);
   border-radius: 50%;
 }
@@ -684,7 +667,7 @@ function showCooperationTip() {
 .author-name {
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -694,7 +677,7 @@ function showCooperationTip() {
   margin-top: 12rpx;
   overflow: hidden;
   -webkit-line-clamp: 2;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   line-height: 1.45;
   color: var(--text-1);
@@ -709,7 +692,7 @@ function showCooperationTip() {
 }
 
 .topic {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--purple-deep);
 }
 
@@ -722,7 +705,7 @@ function showCooperationTip() {
 }
 
 .action {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -737,7 +720,7 @@ function showCooperationTip() {
 
 .challenge-body {
   margin-top: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -751,7 +734,7 @@ function showCooperationTip() {
 }
 
 .participants {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 </style>

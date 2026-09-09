@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { STEPS } from '@/constants/questions'
 import { useProfileStore } from '@/stores/profile'
+import { back, go } from '@/utils/nav'
 
 const store = useProfileStore()
 
@@ -56,7 +57,7 @@ function finishOrWarn() {
 
 function handleBack() {
   if (store.currentStep > 1) store.goPrev()
-  else uni.navigateBack()
+  else back()
 }
 
 // 步骤指示器点击：只允许回到已经走过的步骤
@@ -68,7 +69,7 @@ function viewReport() {
   showAi.value = false
   store.persist()
   uni.setStorageSync('ai-fashion-pending-report', '1')
-  uni.navigateTo({ url: '/pages/result/index' })
+  go('result')
 }
 </script>
 
@@ -129,7 +130,7 @@ function viewReport() {
   left: 50%;
   z-index: 30;
   padding: 18rpx 32rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: #fff;
   white-space: nowrap;
   background: rgb(47 47 58 / 86%);
