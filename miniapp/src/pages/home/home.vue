@@ -8,6 +8,7 @@ import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { isAuthError } from '@/utils/request'
 import { useProfileStore } from '@/stores/profile'
 import { useWishlistStore } from '@/stores/wishlist'
+import { go } from '@/utils/nav'
 
 const profile = useProfileStore()
 const wishlist = useWishlistStore()
@@ -30,19 +31,19 @@ onMounted(async () => {
 })
 
 function createAvatar() {
-  uni.navigateTo({ url: '/pages/body-create/index' })
+  go('bodyCreate')
 }
 
-function goFeature(route: string) {
-  uni.navigateTo({ url: route })
+function goFeature(feature: (typeof AI_FEATURES)[number]) {
+  go(feature.route, feature.query)
 }
 
 function goScene() {
-  uni.navigateTo({ url: '/pages/scene/index' })
+  go('scene')
 }
 
 function goMall() {
-  uni.switchTab({ url: '/pages/mall/mall' })
+  go('mall')
 }
 </script>
 
@@ -97,7 +98,7 @@ function goMall() {
       <view>
         <SectionTitle title="AI 工作流" />
         <view class="features">
-          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="goFeature(f.route)">
+          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="goFeature(f)">
             <view class="f-ico">
               <UiIcon :name="f.icon" :size="44" tone="soft" />
             </view>
@@ -181,7 +182,7 @@ function goMall() {
 
 .hi {
   margin: 0;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-2);
 }
 
@@ -218,7 +219,7 @@ function goMall() {
 }
 
 .w-temp {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -245,13 +246,13 @@ function goMall() {
 }
 
 .ac-title {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
 }
 
 .ac-sub {
   flex: 1;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -298,13 +299,13 @@ function goMall() {
 }
 
 .f-label {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .f-desc {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   line-height: 1.3;
   color: var(--text-3);
   text-align: center;
@@ -334,7 +335,7 @@ function goMall() {
 
 .reco-title {
   margin: 20rpx 4rpx 4rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }

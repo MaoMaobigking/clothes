@@ -191,7 +191,7 @@ const tileStyle = computed(() => ({
   position: absolute;
   bottom: 8px;
   left: 8px;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-2);
 }

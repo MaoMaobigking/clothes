@@ -76,7 +76,7 @@ const TRACK_COLOR = '#ececec'
 }
 
 .counter {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 </style>

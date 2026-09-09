@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { createCommunityShare } from '@/api/community'
 import { isAuthError } from '@/utils/request'
+import { redirect } from '@/utils/nav'
 
 const caption = ref('')
 const description = ref('')
@@ -94,9 +95,7 @@ async function submit() {
       imageDataUrl: imageDataUrl.value,
       topics: normalizeTopics(),
     })
-    uni.redirectTo({
-      url: `/pages/share-detail/index?id=${encodeURIComponent(share.id)}`,
-    })
+    redirect('shareDetail', { id: share.id })
   } catch (error) {
     // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
     if (!isAuthError(error)) {
@@ -199,19 +198,19 @@ async function submit() {
 }
 
 .photo-text {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
 }
 
 .photo-sub {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .error {
   display: block;
   margin-top: 12rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--danger);
 }
 
@@ -229,7 +228,7 @@ async function submit() {
 
 .label {
   margin-bottom: 12rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -238,7 +237,7 @@ async function submit() {
 .input {
   width: 100%;
   padding: 22rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text-1);
   background: var(--surface);
@@ -260,14 +259,14 @@ async function submit() {
 
 .counter {
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: right;
 }
 
 .hint {
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -277,7 +276,7 @@ async function submit() {
   justify-content: center;
   height: 92rpx;
   margin-top: 34rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);

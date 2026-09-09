@@ -140,14 +140,11 @@ const bmiTip = (bmi: number) => {
   gap: 12rpx;
   align-items: center;
   margin-bottom: 20rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
 }
 
 .required {
   padding: 4rpx 14rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--pink-deep);
   background: rgb(255 92 157 / 12%);
   border-radius: var(--radius-pill);
@@ -215,14 +212,14 @@ const bmiTip = (bmi: number) => {
 }
 
 .body-label {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .body-desc {
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   line-height: 1.35;
   color: var(--text-3);
 }
@@ -236,7 +233,7 @@ const bmiTip = (bmi: number) => {
   justify-content: center;
   width: 34rpx;
   height: 34rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -255,7 +252,7 @@ const bmiTip = (bmi: number) => {
   align-items: center;
   justify-content: center;
   height: 108rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface);
@@ -292,7 +289,7 @@ const bmiTip = (bmi: number) => {
 }
 
 .name {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -304,20 +301,20 @@ const bmiTip = (bmi: number) => {
 
 .done-dot {
   margin-left: 10rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--mint-deep);
 }
 
 .value {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--purple-deep);
 }
 
 .unit {
   margin-left: 4rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -329,7 +326,7 @@ const bmiTip = (bmi: number) => {
 
 .optional-hint {
   margin-top: 18rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   text-align: right;
 }
@@ -353,7 +350,7 @@ const bmiTip = (bmi: number) => {
 }
 
 .bmi-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   opacity: 0.9;
 }
 
@@ -364,7 +361,7 @@ const bmiTip = (bmi: number) => {
 
 .bmi-tag {
   padding: 12rpx 26rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   background: rgb(255 255 255 / 25%);
   border-radius: var(--radius-pill);

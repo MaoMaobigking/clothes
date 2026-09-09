@@ -1,28 +1,19 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { fetchAchievements, type AchievementSummary } from '@/api/community'
-import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
 
 const summary = ref<AchievementSummary>({
   points: 0,
   badges: [],
   completed: [],
 })
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '成就加载失败' })
 const totalTutorials = 4
 
 onMounted(async () => {
-  try {
-    summary.value = await fetchAchievements()
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '成就加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const data = await run(() => fetchAchievements())
+  if (data) summary.value = data
 })
 
 function progressWidth() {
@@ -34,8 +25,8 @@ function progressWidth() {
   <view class="page">
     <PageHeader title="学习成就" to="/pages/me/me" />
 
-    <view v-if="loading" class="state">正在读取成就...</view>
-    <view v-else-if="errorText" class="state error">{{ errorText }}</view>
+    <view v-if="loading" class="state state-fill">正在读取成就...</view>
+    <view v-else-if="errorText" class="state state-fill error">{{ errorText }}</view>
 
     <view v-else class="body scroll-y hide-scrollbar">
       <view class="points-card">
@@ -72,16 +63,6 @@ function progressWidth() {
   padding: 12rpx 32rpx 48rpx;
 }
 
-.state {
-  flex: 1;
-  padding: 80rpx 24rpx;
-  color: var(--text-2);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .points-card {
   display: flex;
   flex-direction: column;
@@ -94,7 +75,7 @@ function progressWidth() {
 }
 
 .points-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   opacity: 0.88;
 }
@@ -106,7 +87,7 @@ function progressWidth() {
 }
 
 .points-sub {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   opacity: 0.82;
 }
 
@@ -122,7 +103,7 @@ function progressWidth() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -143,16 +124,12 @@ function progressWidth() {
 
 .section-title {
   margin: 30rpx 0 18rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
 }
 
 .empty {
   padding: 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
-  text-align: center;
   background: var(--surface-soft);
   border-radius: var(--radius);
 }
@@ -180,13 +157,13 @@ function progressWidth() {
 }
 
 .badge-title {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .badge-points {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 </style>

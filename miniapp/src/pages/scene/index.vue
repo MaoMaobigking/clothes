@@ -41,6 +41,10 @@ import { useWardrobeStore } from '@/stores/wardrobe'
  */
 import type OutfitPoster from '@/components/OutfitPoster/OutfitPoster.vue'
 import { MOMENT_HINT } from '@/utils/share'
+import { useToast } from '@/composables/useToast'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
+import { ROUTES } from '@/constants/routes'
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
@@ -51,8 +55,8 @@ const mode = ref<SceneMode>('mixed')
 const filterKey = ref<SceneFilterKey>('day')
 const compareMode = ref(false)
 const planIndex = ref(0)
-const loading = ref(false)
-const errorMessage = ref('')
+// initialLoading:false —— 本页进来先显示表单和天气卡，不是首屏转圈
+const { loading, errorText: errorMessage, run } = useAsyncTask({ initialLoading: false })
 const result = ref<ScenePlanResult | null>(null)
 const weather = ref<SceneWeatherInfo>({
   city: '杭州',
@@ -116,15 +120,7 @@ const forecast = computed(() => {
   })
 })
 
-const toast = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | undefined
-function showToast(message: string) {
-  toast.value = message
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => {
-    toast.value = ''
-  }, 1800)
-}
+const { toast, showToast } = useToast()
 
 const scene = computed(() => SCENE_OPTIONS.find((item) => item.key === selectedScene.value) ?? SCENE_OPTIONS[0])
 
@@ -178,25 +174,17 @@ const stageCaption = computed(
 )
 
 async function generate() {
-  loading.value = true
-  errorMessage.value = ''
-  try {
-    const data = await fetchScenePlans({
+  const data = await run(() =>
+    fetchScenePlans({
       sceneKey: selectedScene.value,
       season: season.value,
       weather: weather.value,
-    })
-    result.value = data
-    planIndex.value = 0
-    sourceOutfitId.value = ''
-  } catch (error) {
-    // 未登录已由请求层跳登录页，页面不用再挂一条报错（规格 §5）
-    if (!isAuthError(error)) {
-      errorMessage.value = error instanceof Error ? error.message : String(error)
-    }
-  } finally {
-    loading.value = false
-  }
+    }),
+  )
+  if (!data) return
+  result.value = data
+  planIndex.value = 0
+  sourceOutfitId.value = ''
 }
 
 function onWeatherChange(value: SceneWeatherInfo) {
@@ -227,27 +215,22 @@ function copyTaokouling(item: ScenePlanItem) {
 
 async function saveTemplate() {
   if (!activePlan.value || !result.value) return
-  loading.value = true
-  try {
-    const outfit = await saveSceneOutfit({
-      sceneKey: selectedScene.value,
-      title: `${scene.value.label} · ${season.value}`,
-      season: season.value,
-      mode: activePlan.value.mode,
-      filterKey: filterKey.value,
-      weather: weather.value,
-      composition: activePlan.value.items,
-    })
-    sourceOutfitId.value = String(outfit.id)
-    showToast('已保存到我的搭配')
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
-    if (!isAuthError(error)) {
-      showToast(error instanceof Error ? error.message : '保存失败')
-    }
-  } finally {
-    loading.value = false
-  }
+  const outfit = await run(
+    () =>
+      saveSceneOutfit({
+        sceneKey: selectedScene.value,
+        title: `${scene.value.label} · ${season.value}`,
+        season: season.value,
+        mode: activePlan.value!.mode,
+        filterKey: filterKey.value,
+        weather: weather.value,
+        composition: activePlan.value!.items,
+      }),
+    { message: '保存失败', onError: showToast },
+  )
+  if (!outfit) return
+  sourceOutfitId.value = String(outfit.id)
+  showToast('已保存到我的搭配')
 }
 
 const shareText = computed(() => {
@@ -280,21 +263,15 @@ async function buyAll() {
     showToast('纯旧衣方案没有需要购买的新品')
     return
   }
-  loading.value = true
-  try {
-    const summary = await buySceneOutfit(
-      newItems.value.map((item) => item.id),
-      activePlan.value.id,
-    )
-    purchaseSummary.value = summary
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
-    if (!isAuthError(error)) {
-      showToast(error instanceof Error ? error.message : '加入购物车失败')
-    }
-  } finally {
-    loading.value = false
-  }
+  const summary = await run(
+    () =>
+      buySceneOutfit(
+        newItems.value.map((item) => item.id),
+        activePlan.value!.id,
+      ),
+    { message: '加入购物车失败', onError: showToast },
+  )
+  if (summary) purchaseSummary.value = summary
 }
 
 /*
@@ -311,22 +288,18 @@ const itemDetail = ref<ScenePlanItem | null>(null)
 async function addDetailToCart() {
   const item = itemDetail.value
   if (!item || !item.isNew || !activePlan.value) return
-  loading.value = true
-  try {
-    purchaseSummary.value = await buySceneOutfit([item.id], activePlan.value.id)
-    itemDetail.value = null
-  } catch (error) {
-    if (!isAuthError(error)) {
-      showToast(error instanceof Error ? error.message : '加入购物车失败')
-    }
-  } finally {
-    loading.value = false
-  }
+  const summary = await run(() => buySceneOutfit([item.id], activePlan.value!.id), {
+    message: '加入购物车失败',
+    onError: showToast,
+  })
+  if (!summary) return
+  purchaseSummary.value = summary
+  itemDetail.value = null
 }
 
 function goClosetFromDetail() {
   itemDetail.value = null
-  uni.switchTab({ url: '/pages/closet/closet' })
+  go('closet')
 }
 
 /*
@@ -339,17 +312,17 @@ function goDiary() {
   const d = new Date()
   const p = (n: number) => (n < 10 ? `0${n}` : String(n))
   const today = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-  uni.navigateTo({ url: `/pages/diary/index?date=${today}` })
+  go('diary', { date: today })
 }
 
 /** 「个性化定制」→ 差异化定制页 */
 function goCustom() {
-  uni.navigateTo({ url: '/pages/custom/index' })
+  go('custom')
 }
 
 /** 「一键预约」→ 走定制的量体预约入口 */
 function goBooking() {
-  uni.navigateTo({ url: '/pages/custom/index' })
+  go('custom')
 }
 
 async function hydrateSavedOutfit(outfit: SavedSceneOutfit) {
@@ -398,7 +371,7 @@ onLoad(async (options) => {
 
 onShareAppMessage(() => ({
   title: shareText.value,
-  path: `/pages/scene/index?outfitId=${sourceOutfitId.value || ''}`,
+  path: `${ROUTES.scene}?outfitId=${sourceOutfitId.value || ''}`,
 }))
 
 const posterVisible = ref(false)
@@ -822,7 +795,7 @@ function savePoster() {
 }
 
 .wc-city {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-1);
 }
 
@@ -840,7 +813,7 @@ function savePoster() {
 }
 
 .wc-date {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -879,13 +852,13 @@ function savePoster() {
 }
 
 .fc-temp-now {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .fc-cond {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
 }
 
@@ -895,12 +868,12 @@ function savePoster() {
  * 这正是 tokens.css 里「别在玻璃面上放浅灰小字」那条说的情况，提到 --text-2。
  */
 .fc-day {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
 }
 
 .fc-range {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
@@ -938,12 +911,12 @@ function savePoster() {
 }
 
 .rec-link {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--pink-deep);
 }
 
 .rec-sep {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-4);
 }
 
@@ -981,7 +954,7 @@ function savePoster() {
   justify-content: center;
   min-width: 0;
   height: var(--btn-h-md);
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
@@ -1022,14 +995,7 @@ function savePoster() {
   justify-content: space-between;
 }
 
-.section-title {
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
-}
-
 .section-sub {
-  font-size: 24rpx;
   color: var(--text-2);
 }
 
@@ -1045,7 +1011,7 @@ function savePoster() {
   gap: 10rpx;
   align-items: center;
   padding: 20rpx 8rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface-soft);
@@ -1076,7 +1042,7 @@ function savePoster() {
 .control-label {
   flex-shrink: 0;
   width: 84rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -1094,7 +1060,7 @@ function savePoster() {
   flex: 1;
   min-width: 0;
   height: var(--btn-h-sm);
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
@@ -1117,7 +1083,7 @@ function savePoster() {
 }
 
 .error-message {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--warning);
   text-align: center;
 }
@@ -1133,12 +1099,12 @@ function savePoster() {
 }
 
 .active-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
 }
 
 .active-sub {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   opacity: 0.9;
 }
 
@@ -1151,7 +1117,7 @@ function savePoster() {
 .filter-chip {
   height: var(--btn-h-sm);
   padding: 0 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   background: var(--surface);
   border: var(--hairline);
@@ -1176,7 +1142,7 @@ function savePoster() {
 .plan-action {
   height: var(--btn-h-sm);
   padding: 0 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--pink-deep);
   background: var(--surface);
   border: var(--hairline);
@@ -1184,7 +1150,7 @@ function savePoster() {
 }
 
 .plan-count {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-2);
 }
@@ -1225,7 +1191,7 @@ function savePoster() {
 
 .plan-title {
   flex: 1;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   line-height: 1.35;
   color: var(--text-1);
@@ -1234,7 +1200,7 @@ function savePoster() {
 .plan-tag {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);
@@ -1242,7 +1208,7 @@ function savePoster() {
 }
 
 .plan-reason {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -1262,7 +1228,7 @@ function savePoster() {
 
 .item-name {
   min-height: 50rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   line-height: 1.25;
   color: var(--text-1);
 }
@@ -1270,7 +1236,7 @@ function savePoster() {
 .item-tag {
   align-self: flex-start;
   padding: 4rpx 10rpx;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--pink-soft);
@@ -1278,7 +1244,7 @@ function savePoster() {
 }
 
 .item-price {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--pink-deep);
 }
@@ -1293,7 +1259,7 @@ function savePoster() {
 }
 
 .new-title {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -1307,7 +1273,7 @@ function savePoster() {
 
 .new-name {
   flex: 1;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
@@ -1315,7 +1281,7 @@ function savePoster() {
   flex-shrink: 0;
   height: var(--btn-h-sm);
   padding: 0 24rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);
@@ -1327,13 +1293,13 @@ function savePoster() {
 }
 
 .difference-title {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .difference-text {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--text-2);
 }
@@ -1349,7 +1315,7 @@ function savePoster() {
   min-width: 0;
   height: var(--btn-h-md);
   padding: 0 16rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   background: var(--surface);
   border: var(--hairline);
@@ -1412,7 +1378,7 @@ function savePoster() {
 .detail-tag {
   align-self: flex-start;
   padding: 4rpx 16rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
   background: var(--surface-placeholder);
   border-radius: var(--radius-pill);
@@ -1424,13 +1390,13 @@ function savePoster() {
 }
 
 .detail-line {
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
 .detail-price {
   margin-top: 4rpx;
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   color: var(--pink-deep);
 }
 
@@ -1457,13 +1423,13 @@ function savePoster() {
 }
 
 .purchase-name {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .purchase-price {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -1480,13 +1446,13 @@ function savePoster() {
 }
 
 .poster-message {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   text-align: center;
 }
 
 .poster-message.weak {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   line-height: 1.5;
   color: var(--text-3);
 }

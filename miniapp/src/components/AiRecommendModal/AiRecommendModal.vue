@@ -78,14 +78,14 @@ function onChange(e: { show: boolean }) {
 
 .title {
   margin-top: 24rpx;
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .desc {
   margin-top: 12rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--text-2);
 }
@@ -103,7 +103,7 @@ function onChange(e: { show: boolean }) {
 .btn-text {
   padding: 16rpx 32rpx;
   margin-top: 16rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-3);
 }
 </style>

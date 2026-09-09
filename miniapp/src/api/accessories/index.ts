@@ -2,8 +2,7 @@
  * 配饰推荐接口（功能三）。
  */
 import { request } from '@/utils/request'
-import { addCartBatch, addCartItem, fetchCart, removeCartItem } from '@/api/cart'
-import type { AccessoryCart, AccessoryContextItem, AccessoryRecommendations } from './type'
+import type { AccessoryContextItem, AccessoryRecommendations } from './type'
 
 enum API {
   /** 按当前搭配推荐配饰 */
@@ -44,27 +43,10 @@ export async function rateAccessory(id: string, score: number) {
 }
 
 /*
- * 以下购物车函数已弃用（规格 §4.5 §13）。
+ * 这里原来还有四个购物车薄封装（fetchAccessoryCart / addAccessoryToCart /
+ * addAccessoryCartBatch / removeAccessoryCartItem），转手调 api/cart，
+ * 注释里写着「已弃用…勿再新增调用方，保留只为不打断配饰页的双路径逻辑」。
  *
- * 购物车已统一到 api/cart + /api/cart，请改用那边的
- * fetchCart / addCartItem / addCartBatch / removeCartItem，
- * 或直接用 stores/cart.ts。这里保留为薄封装，只为不打断配饰页
- * 现有的「接口失败就退回本地缓存」双路径逻辑，勿再新增调用方。
+ * 2026-09-08：配饰页已改用 stores/cart，唯一的调用方没了，四个封装一并删除。
+ * 购物车只走 api/cart 或 stores/cart 这一条路。
  */
-export async function fetchAccessoryCart(): Promise<AccessoryCart> {
-  return fetchCart()
-}
-
-export async function addAccessoryToCart(itemType: 'garment' | 'accessory', itemId: string) {
-  return addCartItem(itemType, itemId)
-}
-
-export async function addAccessoryCartBatch(
-  items: Array<{ itemType: 'garment' | 'accessory'; itemId: string }>,
-): Promise<AccessoryCart> {
-  return addCartBatch(items)
-}
-
-export async function removeAccessoryCartItem(id: number): Promise<boolean> {
-  return removeCartItem(id)
-}

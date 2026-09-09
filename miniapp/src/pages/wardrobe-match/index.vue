@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import { apiGenerateOutfits } from '@/api/wardrobe'
 import { WARDROBE_CATEGORIES, categoryLabel } from '@/constants/wardrobe'
+import { toast } from '@/utils/toast'
+import { go } from '@/utils/nav'
 
 const wardrobe = useWardrobeStore()
 const selectedIds = ref<string[]>([])
@@ -14,10 +16,6 @@ const filtered = computed(() =>
 )
 
 onMounted(() => wardrobe.load())
-
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function toggle(id: string) {
   const index = selectedIds.value.indexOf(id)
@@ -38,9 +36,7 @@ async function generate() {
   generating.value = true
   try {
     const batch = await apiGenerateOutfits(selectedIds.value)
-    uni.navigateTo({
-      url: `/pages/outfit-result/index?batchId=${batch.id}`,
-    })
+    go('outfitResult', { batchId: batch.id })
   } catch (error) {
     toast((error as Error).message || '生成失败')
   } finally {
@@ -129,20 +125,20 @@ async function generate() {
 }
 
 .summary-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .summary-sub {
   margin-top: 4rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .clear {
   padding: 12rpx 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
   background: var(--surface);
@@ -160,7 +156,7 @@ async function generate() {
   display: inline-flex;
   padding: 13rpx 28rpx;
   margin-right: 14rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface-soft);
@@ -207,7 +203,7 @@ async function generate() {
   justify-content: center;
   width: 48rpx;
   height: 48rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--pink-deep);
   background: rgb(255 255 255 / 90%);
@@ -218,7 +214,7 @@ async function generate() {
   margin: 14rpx 4rpx 2rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text-1);
   white-space: nowrap;
@@ -226,7 +222,7 @@ async function generate() {
 
 .garment-tags {
   margin: 4rpx 4rpx 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -238,9 +234,8 @@ async function generate() {
 
 .empty {
   padding-top: 180rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
-  text-align: center;
 }
 
 .footer {
@@ -266,7 +261,7 @@ async function generate() {
   margin-right: 10rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--pink-deep);
   white-space: nowrap;
@@ -276,9 +271,5 @@ async function generate() {
 
 .generate {
   width: 100%;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

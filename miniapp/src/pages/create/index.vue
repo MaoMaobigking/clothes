@@ -6,28 +6,21 @@ import { useProfileStore } from '@/stores/profile'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { Gender, HairStyleId } from '@/types'
 import { iconForEmoji } from '@/utils/icons'
+import { useToast } from '@/composables/useToast'
+import { back, go } from '@/utils/nav'
 
 const store = useProfileStore()
 const wardrobe = useWardrobeStore()
 
-const toast = ref('')
+const { toast, showToast } = useToast()
 const activePanel = ref<'info' | 'body' | ''>('')
 const showGender = ref(false)
 const showHair = ref(false)
 const showFav = ref(false)
 
-let timer: number | undefined
 let highlightTimer: number | undefined
 
 onMounted(() => store.loadPersisted())
-
-function showToast(msg: string) {
-  toast.value = msg
-  clearTimeout(timer)
-  timer = setTimeout(() => {
-    toast.value = ''
-  }, 1600)
-}
 
 function save() {
   store.persist()
@@ -37,18 +30,16 @@ function save() {
 function complete() {
   save()
   setTimeout(() => {
-    uni.navigateBack({
-      fail: () => uni.switchTab({ url: '/pages/home/home' }),
-    })
+    back()
   }, 280)
 }
 
 function goTest(step: number) {
-  uni.navigateTo({ url: `/pages/test/index?step=${step}` })
+  go('test', { step })
 }
 
 function goFreeMatch() {
-  uni.navigateTo({ url: '/pages/free-match/index' })
+  go('freeMatch')
 }
 
 function onTool(tool: (typeof AI_TOOLS)[number]) {
@@ -89,14 +80,6 @@ function chooseHair(hairstyle: (typeof HAIR_STYLES)[number]) {
   store.setHairstyle(hairstyle.id as HairStyleId)
   showHair.value = false
   showToast(`已应用${hairstyle.label}发型`)
-}
-
-function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
-  if (e.target === e.currentTarget) {
-    if (kind === 'gender') showGender.value = false
-    if (kind === 'hair') showHair.value = false
-    if (kind === 'fav') showFav.value = false
-  }
 }
 </script>
 
@@ -147,53 +130,44 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 
     <BottomNav active="" />
 
-    <view v-if="showGender" class="mask" @tap="onMaskTap('gender', $event)">
-      <view class="sheet" @tap.stop>
-        <view class="sheet-title">更换性别</view>
-        <view class="gender-options">
-          <view class="gender-option" :class="{ on: store.profile.gender === 'female' }" @tap="chooseGender('female')">
-            女
-          </view>
-          <view class="gender-option" :class="{ on: store.profile.gender === 'male' }" @tap="chooseGender('male')">
-            男
-          </view>
+    <Sheet v-if="showGender" title="更换性别" @close="showGender = false">
+      <view class="gender-options">
+        <view class="gender-option" :class="{ on: store.profile.gender === 'female' }" @tap="chooseGender('female')">
+          女
         </view>
-        <view class="btn btn-ghost sheet-close" @tap="showGender = false">取消</view>
+        <view class="gender-option" :class="{ on: store.profile.gender === 'male' }" @tap="chooseGender('male')">
+          男
+        </view>
       </view>
-    </view>
+      <view class="btn btn-ghost sheet-close" @tap="showGender = false">取消</view>
+    </Sheet>
 
-    <view v-if="showHair" class="mask" @tap="onMaskTap('hair', $event)">
-      <view class="sheet" @tap.stop>
-        <view class="sheet-title">造型优化 · 换发型</view>
-        <view class="hair-options">
-          <view
-            v-for="h in HAIR_STYLES"
-            :key="h.id"
-            class="hair-option"
-            :class="{ on: store.profile.hairstyle === h.id }"
-            @tap="chooseHair(h)"
-          >
-            <UiIcon class="hair-emoji" :name="h.icon" :size="52" tone="soft" />
-            <text class="hair-label">{{ h.label }}</text>
-          </view>
+    <Sheet v-if="showHair" title="造型优化 · 换发型" @close="showHair = false">
+      <view class="hair-options">
+        <view
+          v-for="h in HAIR_STYLES"
+          :key="h.id"
+          class="hair-option"
+          :class="{ on: store.profile.hairstyle === h.id }"
+          @tap="chooseHair(h)"
+        >
+          <UiIcon class="hair-emoji" :name="h.icon" :size="52" tone="soft" />
+          <text class="hair-label">{{ h.label }}</text>
         </view>
-        <view class="btn btn-ghost sheet-close" @tap="showHair = false">取消</view>
       </view>
-    </view>
+      <view class="btn btn-ghost sheet-close" @tap="showHair = false">取消</view>
+    </Sheet>
 
-    <view v-if="showFav" class="mask" @tap="onMaskTap('fav', $event)">
-      <view class="sheet fav-sheet" @tap.stop>
-        <view class="sheet-title">收藏夹</view>
-        <view v-if="wardrobe.favoriteGarments.length" class="fav-grid">
-          <view v-for="g in wardrobe.favoriteGarments" :key="g.id" class="fav-card">
-            <UiIcon class="fav-emoji" :name="iconForEmoji(g.emoji) ?? 'image'" :size="48" tone="muted" />
-            <text class="fav-name">{{ g.name }}</text>
-          </view>
+    <Sheet v-if="showFav" title="收藏夹" @close="showFav = false">
+      <view v-if="wardrobe.favoriteGarments.length" class="fav-grid">
+        <view v-for="g in wardrobe.favoriteGarments" :key="g.id" class="fav-card">
+          <UiIcon class="fav-emoji" :name="iconForEmoji(g.emoji) ?? 'image'" :size="48" tone="muted" />
+          <text class="fav-name">{{ g.name }}</text>
         </view>
-        <view v-else class="fav-empty">还没有收藏</view>
-        <view class="btn btn-ghost sheet-close" @tap="showFav = false">关闭</view>
       </view>
-    </view>
+      <view v-else class="fav-empty">还没有收藏</view>
+      <view class="btn btn-ghost sheet-close" @tap="showFav = false">关闭</view>
+    </Sheet>
   </view>
 </template>
 
@@ -207,7 +181,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 
 .done {
   padding: 8rpx 12rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--purple-deep);
 }
@@ -259,7 +233,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   position: absolute;
   z-index: 3;
   padding: 6rpx 18rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text-2);
   background: rgb(255 255 255 / 88%);
@@ -335,7 +309,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 }
 
 .test-label {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-2);
 }
@@ -346,7 +320,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
   bottom: 20rpx;
   z-index: 3;
   padding: 18rpx 32rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-on-brand);
   background: var(--brand-gradient);
@@ -421,7 +395,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 }
 
 .hair-label {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
 }
 
@@ -455,7 +429,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 }
 
 .fav-name {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-2);
   text-align: center;
@@ -463,7 +437,7 @@ function onMaskTap(kind: 'gender' | 'hair' | 'fav', e: any) {
 
 .fav-empty {
   padding: 72rpx 0;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
   text-align: center;
 }

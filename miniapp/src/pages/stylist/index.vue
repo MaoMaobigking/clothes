@@ -125,7 +125,7 @@ async function send(text?: string) {
 .bubble {
   max-width: 76%;
   padding: 20rpx 28rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   line-height: 1.55;
   word-break: break-word;
   white-space: pre-wrap;
@@ -190,7 +190,7 @@ async function send(text?: string) {
 .q {
   flex-shrink: 0;
   padding: 16rpx 28rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--purple-deep);
   white-space: nowrap;
@@ -212,7 +212,7 @@ async function send(text?: string) {
   flex: 1;
   height: 92rpx;
   padding: 0 36rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   outline: none;
   background: #fff;
   border: 1px solid var(--line);

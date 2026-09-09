@@ -4,6 +4,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useWardrobeStore } from '@/stores/wardrobe'
 import type { WardrobeItem } from '@/api/wardrobe'
 import { WARDROBE_CATEGORIES, WARDROBE_COLORS, WARDROBE_OCCASIONS, WARDROBE_SEASONS } from '@/constants/wardrobe'
+import { toast } from '@/utils/toast'
+import { back } from '@/utils/nav'
 
 interface ReviewDraft {
   name: string
@@ -32,10 +34,6 @@ const remaining = computed(() => Math.max(0, 100 - wardrobe.items.length))
 const canUpload = computed(() => selectedPaths.value.length > 0 && remaining.value > 0)
 
 onMounted(() => wardrobe.load())
-
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function chooseImages(source: 'album' | 'camera') {
   if (remaining.value <= 0) {
@@ -113,7 +111,7 @@ async function confirm(item: WardrobeItem) {
   delete drafts.value[item.id]
   if (reviewItems.value.length === 0) {
     toast('旧衣已保存到衣橱')
-    setTimeout(() => uni.navigateBack(), 600)
+    setTimeout(() => back('closet'), 600)
   }
 }
 
@@ -316,7 +314,7 @@ function resetReview() {
 
 .hero-sub {
   margin-top: 12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   opacity: 0.9;
 }
 
@@ -342,25 +340,19 @@ function resetReview() {
 
 .upload-title {
   margin-top: 18rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .upload-sub {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .preview-panel {
   margin-top: 28rpx;
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
 }
 
 .preview-grid {
@@ -408,7 +400,7 @@ function resetReview() {
 }
 
 .remain {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -453,13 +445,13 @@ function resetReview() {
 
 .loading-title {
   margin-top: 22rpx;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
 }
 
 .loading-sub {
   margin-top: 8rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -476,13 +468,11 @@ function resetReview() {
 }
 
 .section-sub {
-  margin-top: 4rpx;
-  font-size: 22rpx;
-  color: var(--text-3);
+  font-size: var(--fs-sm);
 }
 
 .text-btn {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -512,7 +502,7 @@ function resetReview() {
 .recognition-badge {
   align-self: flex-start;
   padding: 6rpx 16rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #5f78a8;
   background: #eef4ff;
@@ -523,7 +513,7 @@ function resetReview() {
   height: 72rpx;
   padding: 0 20rpx;
   margin-top: 12rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   background: var(--surface-tint);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -531,7 +521,7 @@ function resetReview() {
 
 .field-label {
   margin-top: 18rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
 }
@@ -547,7 +537,7 @@ function resetReview() {
   align-items: center;
   justify-content: center;
   padding: 12rpx 22rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-2);
   background: var(--surface-tint);
@@ -605,7 +595,7 @@ function resetReview() {
 .frequent {
   flex-shrink: 0;
   padding: 18rpx 28rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   border: 1px solid var(--line);
@@ -621,10 +611,6 @@ function resetReview() {
 .confirm-btn {
   flex: 1;
   height: 82rpx;
-  font-size: 27rpx;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+  font-size: var(--fs-md);
 }
 </style>

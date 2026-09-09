@@ -4,6 +4,7 @@ import { STEPS } from '@/constants/questions'
 import { MODEL_IMAGES } from '@/constants/ui'
 import { useProfileStore } from '@/stores/profile'
 import { iconForEmoji } from '@/utils/icons'
+import { go } from '@/utils/nav'
 
 const store = useProfileStore()
 
@@ -22,10 +23,10 @@ onMounted(() => store.loadPersisted())
 
 function start() {
   if (store.isComplete) {
-    uni.navigateTo({ url: '/pages/result/index' })
+    go('result')
     return
   }
-  uni.navigateTo({ url: `/pages/test/index?step=${nextStep.value}` })
+  go('test', { step: nextStep.value })
 }
 </script>
 
@@ -103,7 +104,7 @@ function start() {
 
 .eyebrow {
   margin-bottom: 12rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--pink-deep);
   letter-spacing: 1px;
@@ -118,7 +119,7 @@ function start() {
 
 .subtitle {
   margin-top: 16rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -133,7 +134,7 @@ function start() {
 
 .guide-title {
   margin-bottom: 24rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -157,7 +158,7 @@ function start() {
   justify-content: center;
   width: 52rpx;
   height: 52rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--purple-deep);
   background: var(--pink-soft);
@@ -173,19 +174,19 @@ function start() {
 }
 
 .guide-label {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .guide-emoji {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
 }
 
 .guide-tag {
   flex-shrink: 0;
   padding: 6rpx 16rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--pink-deep);
   background: rgb(255 92 157 / 10%);

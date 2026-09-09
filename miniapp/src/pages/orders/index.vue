@@ -9,35 +9,27 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { fetchOrders, type ShopOrder } from '@/api/order'
-import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
 
 const orders = ref<ShopOrder[]>([])
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '订单加载失败' })
 
 async function load() {
-  try {
-    orders.value = await fetchOrders()
-    errorText.value = ''
-  } catch (error) {
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '订单加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const data = await run(() => fetchOrders())
+  if (data) orders.value = data
 }
 
 // onShow 而不是 onLoad：从详情页推进过状态再返回，列表要跟着变
 onShow(load)
 
 function openOrder(id: number) {
-  uni.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
+  go('orderDetail', { id })
 }
 
 /** 商城是 tabBar 页，只能 switchTab */
 function goShopping() {
-  uni.switchTab({ url: '/pages/mall/mall' })
+  go('mall')
 }
 </script>
 
@@ -46,9 +38,9 @@ function goShopping() {
     <PageHeader title="商城订单" to="/pages/me/me" />
 
     <scroll-view scroll-y class="body hide-scrollbar">
-      <view v-if="loading" class="state">加载中…</view>
-      <view v-else-if="errorText" class="state error">{{ errorText }}</view>
-      <view v-else-if="!orders.length" class="state">
+      <view v-if="loading" class="state state-block">加载中…</view>
+      <view v-else-if="errorText" class="state state-block error">{{ errorText }}</view>
+      <view v-else-if="!orders.length" class="state state-block">
         <text class="empty-title">还没有订单</text>
         <text class="empty-sub">购物车里选好东西，去结算就会出现在这里</text>
         <view class="btn btn-primary empty-btn" @tap="goShopping">去商城看看</view>
@@ -81,18 +73,9 @@ function goShopping() {
   padding: 12rpx 30rpx 48rpx;
 }
 
-.state {
-  padding: 120rpx 40rpx;
-  color: var(--text-3);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .empty-title {
   display: block;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -100,7 +83,7 @@ function goShopping() {
 .empty-sub {
   display: block;
   margin-top: 10rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
 }
 
 .empty-btn {
@@ -111,7 +94,7 @@ function goShopping() {
 .tip {
   display: block;
   margin-top: 14rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   line-height: 1.5;
   color: var(--text-3);
 }
@@ -119,9 +102,6 @@ function goShopping() {
 .card {
   padding: 22rpx;
   margin-top: 18rpx;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
 }
 
 .head {
@@ -132,13 +112,13 @@ function goShopping() {
 }
 
 .order-no {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .status {
   flex-shrink: 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -152,7 +132,7 @@ function goShopping() {
   margin-top: 12rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   white-space: nowrap;
 }
@@ -167,17 +147,13 @@ function goShopping() {
 }
 
 .count {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .pay {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--pink-deep);
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

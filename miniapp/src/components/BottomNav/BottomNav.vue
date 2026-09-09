@@ -1,21 +1,26 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import type { IconName } from '@/utils/icons'
+import { ROUTES, type TabRouteKey } from '@/constants/routes'
 
+/*
+ * key 用 TabRouteKey（constants/routes.ts 里 tabBar 五页的字面量联合类型），
+ * 路径也从 ROUTES 取 —— 这里原来自己写了一遍五条 '/pages/xxx' 字符串。
+ * 打错一个字母不会有编译错误，switchTab 只会静默失败，这一栏就点不动。
+ */
 interface Tab {
-  key: string
+  key: TabRouteKey
   label: string
-  route: string
   /** Ai 那格是方块徽标，没有 icon */
   icon?: IconName
 }
 
 const tabs: Tab[] = [
-  { key: 'home', label: '首页', route: '/pages/home/home', icon: 'home' },
-  { key: 'ai', label: 'Ai', route: '/pages/ai/ai' },
-  { key: 'closet', label: '衣橱', route: '/pages/closet/closet', icon: 'closet' },
-  { key: 'mall', label: '商城', route: '/pages/mall/mall', icon: 'mall' },
-  { key: 'me', label: '我的', route: '/pages/me/me', icon: 'me' },
+  { key: 'home', label: '首页', icon: 'home' },
+  { key: 'ai', label: 'Ai' },
+  { key: 'closet', label: '衣橱', icon: 'closet' },
+  { key: 'mall', label: '商城', icon: 'mall' },
+  { key: 'me', label: '我的', icon: 'me' },
 ]
 
 const props = defineProps<{ active: string }>()
@@ -33,12 +38,16 @@ function hideNativeTabBar() {
 
 onMounted(hideNativeTabBar)
 
+/*
+ * 这一格自己的跳转，**不能**换成 utils/nav 的 go()：
+ * 它多一步 complete: hideNativeTabBar —— switchTab 之后原生栏会被系统重新显示，
+ * 跳完必须再藏一次，否则底部会同时出现两条导航。
+ */
 function go(key: string) {
   if (key === props.active) return
   const t = tabs.find((x) => x.key === key)
   if (!t) return
-  // switchTab 之后原生栏可能被重新显示出来，跳完再藏一次
-  uni.switchTab({ url: t.route, complete: hideNativeTabBar })
+  uni.switchTab({ url: ROUTES[t.key], complete: hideNativeTabBar })
 }
 
 /* 和 uni.scss 的 $uv-primary / $uv-tips-color 同值。
@@ -106,7 +115,7 @@ const INACTIVE_COLOR = '#909193'
   justify-content: center;
   width: 54rpx;
   height: 40rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #909193;
   border: 2rpx solid #909193;

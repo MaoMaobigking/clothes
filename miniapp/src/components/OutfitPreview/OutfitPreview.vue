@@ -206,7 +206,7 @@ watch(
   bottom: 0;
   left: 0;
   padding: 2rpx 0;
-  font-size: 18rpx;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: #fff;
   text-align: center;
@@ -222,7 +222,7 @@ watch(
   padding: 8rpx 18rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: #fff;
   white-space: nowrap;

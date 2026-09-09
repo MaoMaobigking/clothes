@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { AI_FEATURES } from '@/constants/ui'
 import { OUTFIT_RECOS } from '@/mocks/demo'
-
-function navigateTo(url: string) {
-  uni.navigateTo({ url })
-}
+import { go } from '@/utils/nav'
 </script>
 
 <template>
@@ -17,7 +14,7 @@ function navigateTo(url: string) {
       </view>
 
       <!-- 主推 banner -->
-      <view class="banner" @tap="navigateTo('/pages/body-create/index')">
+      <view class="banner" @tap="go('bodyCreate')">
         <UiIcon class="banner-emoji" name="me" :size="80" tone="white" :stroke-width="1.3" />
         <view class="banner-text">
           <text class="banner-title">打造你的专属虚拟形象</text>
@@ -30,7 +27,7 @@ function navigateTo(url: string) {
       <view>
         <SectionTitle title="全部功能" />
         <view class="features">
-          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="navigateTo(f.route)">
+          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="go(f.route, f.query)">
             <text class="f-ico" :style="{ background: `linear-gradient(140deg, ${f.from}, ${f.to})` }">
               <UiIcon :name="f.icon" :size="44" tone="dark" />
             </text>
@@ -42,7 +39,7 @@ function navigateTo(url: string) {
 
       <!-- 最近灵感（横滑） -->
       <view>
-        <SectionTitle title="最近灵感" more="情景模拟" @more="navigateTo('/pages/scene/index')" />
+        <SectionTitle title="最近灵感" more="情景模拟" @more="go('scene')" />
         <view class="recos hide-scrollbar">
           <view v-for="o in OUTFIT_RECOS" :key="o.id" class="reco">
             <view class="reco-pieces">
@@ -90,7 +87,7 @@ function navigateTo(url: string) {
 
 .sub {
   margin: 0;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-2);
 }
 
@@ -124,19 +121,19 @@ function navigateTo(url: string) {
 }
 
 .banner-title {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 500;
 }
 
 .banner-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   opacity: 0.9;
 }
 
 .banner-go {
   flex-shrink: 0;
   padding: 12rpx 24rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   background: rgb(255 255 255 / 25%);
   border-radius: var(--radius-pill);
@@ -176,13 +173,13 @@ function navigateTo(url: string) {
 }
 
 .f-label {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .f-desc {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.4;
   color: var(--text-3);
 }
@@ -211,7 +208,7 @@ function navigateTo(url: string) {
 
 .reco-title {
   margin: 20rpx 4rpx 4rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }

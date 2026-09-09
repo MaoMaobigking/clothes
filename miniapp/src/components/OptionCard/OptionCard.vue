@@ -138,13 +138,13 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 }
 
 .label {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-1);
 }
 
 .desc {
   margin-top: 4rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -159,7 +159,7 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
   min-width: 40rpx;
   height: 40rpx;
   padding: 0 10rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: #fff;
   background: var(--pink-deep);
   border-radius: var(--radius-pill);

@@ -13,6 +13,7 @@ import {
 } from '@/api/profile'
 import { buildLocalStyleReport } from '@/utils/localReport'
 import { MODEL_IMAGES } from '@/constants/ui'
+import { back, go, redirect } from '@/utils/nav'
 
 const store = useProfileStore()
 
@@ -98,7 +99,7 @@ async function loadReport(id: number) {
 onMounted(async () => {
   store.loadPersisted()
   if (!store.isComplete) {
-    uni.redirectTo({ url: '/pages/test/index' })
+    redirect('test')
     return
   }
 
@@ -139,15 +140,15 @@ function formatDate(value: string) {
 
 function save() {
   store.persist()
-  uni.switchTab({ url: '/pages/home/home' })
+  go('home')
 }
 function retest() {
   store.reset()
   store.persist()
-  uni.navigateTo({ url: '/pages/test/index' })
+  go('test')
 }
 function goBack() {
-  uni.navigateBack()
+  back()
 }
 </script>
 
@@ -310,14 +311,14 @@ function goBack() {
 .title {
   flex: 1;
   margin: 0;
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   text-align: center;
 }
 
 .retest {
   padding: 14rpx 24rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--purple-deep);
   background: rgb(255 255 255 / 70%);
@@ -338,7 +339,7 @@ function goBack() {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 28rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   border-radius: var(--radius);
 }
@@ -372,7 +373,7 @@ function goBack() {
 .mini {
   flex-shrink: 0;
   padding: 8rpx 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: inherit;
   background: rgb(255 255 255 / 60%);
@@ -381,9 +382,7 @@ function goBack() {
 
 .card {
   padding: 36rpx;
-  background: var(--surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
 }
 
 .history {
@@ -398,13 +397,13 @@ function goBack() {
   gap: 12rpx;
   align-items: center;
   margin-bottom: 14rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .history-loading {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-3);
 }
@@ -426,12 +425,12 @@ function goBack() {
 }
 
 .history-time {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
 }
 
 .history-go {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--purple-deep);
 }
@@ -449,7 +448,7 @@ function goBack() {
   display: flex;
   gap: 10rpx;
   align-items: center;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -464,7 +463,7 @@ function goBack() {
 
 .summary {
   margin: 8rpx 0 0;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-1);
   text-align: center;
@@ -472,7 +471,7 @@ function goBack() {
 
 .sec-title {
   margin: 0 0 20rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -511,14 +510,14 @@ function goBack() {
 }
 
 .reco-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .reco-scene {
   padding: 4rpx 16rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);
@@ -534,7 +533,7 @@ function goBack() {
 
 .piece {
   padding: 8rpx 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--purple-deep);
   background: #fff;
   border: 1px solid var(--line);
@@ -543,7 +542,7 @@ function goBack() {
 
 .reco-reason {
   margin: 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -558,7 +557,7 @@ function goBack() {
 }
 
 .tip-item {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text-1);
 }
@@ -581,12 +580,12 @@ function goBack() {
 }
 
 .trait .k {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
 .trait .v {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--purple-deep);
 }
@@ -599,7 +598,7 @@ function goBack() {
 
 .style-tag {
   padding: 14rpx 28rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--pink-deep);
   background: var(--pink-soft);

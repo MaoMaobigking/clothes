@@ -6,6 +6,8 @@ import { categoryLabel, seasonLabel } from '@/constants/wardrobe'
 import { CLOSET_CATEGORIES } from '@/constants/ui'
 import { iconForEmoji } from '@/utils/icons'
 import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
+import { toast } from '@/utils/toast'
+import { go } from '@/utils/nav'
 
 const wardrobe = useWardrobeStore()
 const activeCategory = ref('all')
@@ -45,16 +47,12 @@ onMounted(async () => {
   await wardrobe.load()
 })
 
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
-}
-
 function goUpload() {
-  uni.navigateTo({ url: '/pages/wardrobe-upload/index' })
+  go('wardrobeUpload')
 }
 
 function goManual() {
-  uni.navigateTo({ url: '/pages/wardrobe-match/index' })
+  go('wardrobeMatch')
 }
 
 async function generateNow() {
@@ -66,7 +64,7 @@ async function generateNow() {
   generating.value = true
   try {
     const batch = await apiGenerateOutfits()
-    uni.navigateTo({ url: `/pages/outfit-result/index?batchId=${batch.id}` })
+    go('outfitResult', { batchId: batch.id })
   } catch (error) {
     toast((error as Error).message || '生成失败')
   } finally {
@@ -88,7 +86,13 @@ async function removeItem(id: string) {
     content: '删除后会同时从搭配历史中移除，确定继续吗？',
     success: async (result) => {
       if (!result.confirm) return
-      await wardrobe.removeItem(id)
+      // store 的删除失败会抛（不再本地假删），这里必须接住，否则是未捕获 rejection
+      try {
+        await wardrobe.removeItem(id)
+      } catch (error) {
+        toast((error as Error)?.message || '删除失败')
+        return
+      }
       toast('已删除')
     },
   })
@@ -143,7 +147,7 @@ async function saveSort() {
 
 /** 收藏的搭配和场景模板都在同一页（§8.11 §10.10），带上来源筛选过去 */
 function goMyOutfits() {
-  uni.navigateTo({ url: '/pages/outfits/index?source=wardrobe' })
+  go('outfits', { source: 'wardrobe' })
 }
 
 function maskClose(event: any) {
@@ -156,7 +160,7 @@ function goAccessory(item: WardrobeItem) {
     title: item.name,
     outfit: [garmentToAccessoryContext(item)],
   })
-  uni.navigateTo({ url: '/pages/accessory/index' })
+  go('accessory')
 }
 </script>
 
@@ -332,7 +336,7 @@ function goAccessory(item: WardrobeItem) {
 
 .subtitle {
   margin-top: 4rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -348,7 +352,7 @@ function goAccessory(item: WardrobeItem) {
   justify-content: center;
   height: 64rpx;
   padding: 0 24rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface);
@@ -382,7 +386,7 @@ function goAccessory(item: WardrobeItem) {
 .seg-item {
   flex: 1;
   padding: 15rpx 10rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-2);
   text-align: center;
@@ -431,13 +435,13 @@ function goAccessory(item: WardrobeItem) {
 }
 
 .action-title {
-  font-size: 31rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
 }
 
 .action-sub {
   margin-top: 8rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   line-height: 1.4;
   opacity: 0.9;
 }
@@ -446,14 +450,14 @@ function goAccessory(item: WardrobeItem) {
   flex-shrink: 0;
   height: 76rpx;
   padding: 0 22rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--purple-deep);
   background: rgb(255 255 255 / 95%);
   box-shadow: 0 10rpx 20rpx rgb(80 45 120 / 24%);
 }
 
 .manual-link {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   opacity: 0.9;
 }
@@ -466,7 +470,7 @@ function goAccessory(item: WardrobeItem) {
 }
 
 .sort-link {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
 }
@@ -555,7 +559,7 @@ function goAccessory(item: WardrobeItem) {
 }
 
 .rail-toggle-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   letter-spacing: 2rpx;
 
@@ -586,7 +590,7 @@ function goAccessory(item: WardrobeItem) {
 }
 
 .cat-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-3);
 }
@@ -630,7 +634,7 @@ function goAccessory(item: WardrobeItem) {
   left: 22rpx;
   z-index: 3;
   padding: 6rpx 14rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   background: rgb(255 255 255 / 88%);
   border-radius: var(--radius-pill);
@@ -651,7 +655,7 @@ function goAccessory(item: WardrobeItem) {
   right: 22rpx;
   z-index: 4;
   padding: 7rpx 14rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: var(--purple-deep);
   background: rgb(255 255 255 / 90%);
@@ -663,7 +667,7 @@ function goAccessory(item: WardrobeItem) {
   margin: 14rpx 4rpx 2rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
   white-space: nowrap;
@@ -671,7 +675,7 @@ function goAccessory(item: WardrobeItem) {
 
 .cell-meta {
   margin: 4rpx 4rpx 10rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -684,7 +688,7 @@ function goAccessory(item: WardrobeItem) {
 .cell-control {
   flex: 1;
   padding: 10rpx 4rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text-2);
   text-align: center;
@@ -697,10 +701,7 @@ function goAccessory(item: WardrobeItem) {
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
   gap: 12rpx;
-  align-items: center;
   padding-top: 140rpx;
   color: var(--text-3);
 }
@@ -710,20 +711,19 @@ function goAccessory(item: WardrobeItem) {
 }
 
 .empty-title {
-  font-size: 28rpx;
   font-weight: 700;
   color: var(--text-1);
 }
 
 .empty-sub {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
 }
 
 .empty-btn {
   height: 82rpx;
   padding: 0 40rpx;
   margin-top: 16rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
 }
 
 .sort-sheet {
@@ -737,7 +737,7 @@ function goAccessory(item: WardrobeItem) {
 
 .sheet-sub {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -789,7 +789,7 @@ function goAccessory(item: WardrobeItem) {
 .sort-name {
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-1);
   white-space: nowrap;
@@ -797,22 +797,18 @@ function goAccessory(item: WardrobeItem) {
 
 .sort-meta {
   margin-top: 5rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .sort-index {
   flex-shrink: 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--purple-deep);
 }
 
 .sort-save {
   margin-top: 24rpx;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

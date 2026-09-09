@@ -14,6 +14,8 @@ import { onLoad } from '@dcloudio/uni-app'
 import { apiDeleteDiary, apiListDiary, apiSaveDiary, type DiaryEntry } from '@/api/diary'
 import { apiListOutfits, type Outfit } from '@/api/wardrobe'
 import { isAuthError } from '@/utils/request'
+import { toast } from '@/utils/toast'
+import { useAsyncTask } from '@/composables/useAsyncTask'
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -44,7 +46,7 @@ const year = ref(now.getFullYear())
 const month = ref(now.getMonth() + 1) // 1-based，和 'YYYY-MM' 对齐
 
 const entries = ref<DiaryEntry[]>([])
-const loading = ref(false)
+const { loading, run } = useAsyncTask({ initialLoading: false, message: '加载失败' })
 
 const monthKey = computed(() => `${year.value}-${pad(month.value)}`)
 
@@ -75,17 +77,8 @@ const cells = computed(() => {
 })
 
 async function loadMonth() {
-  loading.value = true
-  try {
-    entries.value = await apiListDiary(monthKey.value)
-  } catch (error) {
-    entries.value = []
-    if (!isAuthError(error)) {
-      uni.showToast({ title: error instanceof Error ? error.message : '加载失败', icon: 'none' })
-    }
-  } finally {
-    loading.value = false
-  }
+  // 失败时清空当月列表：run() 出错返回 undefined，?? [] 正好覆盖原来 catch 里的那一行
+  entries.value = (await run(() => apiListDiary(monthKey.value), { onError: toast })) ?? []
 }
 
 function shiftMonth(delta: number) {
@@ -413,7 +406,7 @@ onLoad(async (query) => {
 
 .today-btn {
   padding: 8rpx 22rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   background: #f3f4f6;
   border-radius: var(--radius-pill);
@@ -441,7 +434,7 @@ onLoad(async (query) => {
 
 .mb-title {
   min-width: 220rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
   text-align: center;
@@ -461,7 +454,7 @@ onLoad(async (query) => {
 
 .cw {
   flex: 1;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   text-align: center;
 }
@@ -489,7 +482,7 @@ onLoad(async (query) => {
 }
 
 .cd {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   line-height: 1;
   color: var(--text-1);
 }
@@ -514,7 +507,7 @@ onLoad(async (query) => {
 
 .cal-tip {
   margin-top: 12rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: center;
 }
@@ -528,33 +521,30 @@ onLoad(async (query) => {
 }
 
 .sec-t {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .sec-n {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
   gap: 10rpx;
-  align-items: center;
   padding: 64rpx 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
 .empty-t {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-2);
 }
 
 .empty-s {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -583,14 +573,14 @@ onLoad(async (query) => {
 }
 
 .rd-d {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 500;
   line-height: 1.1;
   color: var(--pink-deep);
 }
 
 .rd-w {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -607,7 +597,7 @@ onLoad(async (query) => {
 
 .tag {
   padding: 2rpx 14rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
   background: #f3f4f6;
   border-radius: var(--radius-pill);
@@ -632,7 +622,7 @@ onLoad(async (query) => {
   margin-top: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -672,7 +662,7 @@ onLoad(async (query) => {
 }
 
 .sh-title {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -693,7 +683,7 @@ onLoad(async (query) => {
 
 .f-label {
   margin: 22rpx 0 12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -707,22 +697,19 @@ onLoad(async (query) => {
 .chip {
   display: flex;
   gap: 6rpx;
-  align-items: center;
   padding: 12rpx 22rpx;
   background: #f3f4f6;
 
   /* 未选中也留一圈同宽透明边，选中时才不会把整格顶大 */
   border: 2rpx solid transparent;
-  border-radius: var(--radius-pill);
 }
 
 .chip.on {
   background: #fff2f7;
-  border-color: var(--pink-deep);
 }
 
 .chip-t {
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
@@ -755,7 +742,7 @@ onLoad(async (query) => {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   white-space: nowrap;
 }
@@ -765,14 +752,14 @@ onLoad(async (query) => {
   margin-top: 4rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   white-space: nowrap;
 }
 
 .fit-empty {
   padding: 20rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   background: #f3f4f6;
   border-radius: var(--radius);
@@ -783,7 +770,7 @@ onLoad(async (query) => {
   width: 100%;
   height: 160rpx;
   padding: 20rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   background: #f3f4f6;
   border-radius: var(--radius);
@@ -795,7 +782,7 @@ onLoad(async (query) => {
 
 .counter {
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
   text-align: right;
 }
@@ -825,7 +812,7 @@ onLoad(async (query) => {
   align-items: center;
   justify-content: center;
   height: 88rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -835,9 +822,5 @@ onLoad(async (query) => {
 
 .btn-save.disabled {
   opacity: 0.5;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

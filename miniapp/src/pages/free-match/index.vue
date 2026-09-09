@@ -12,18 +12,14 @@ import { apiTryonEnabled, runTryon } from '@/api/tryon'
 import { isAuthError } from '@/utils/request'
 import { garmentToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
 import { MOMENT_HINT_PREVIEW, copyText } from '@/utils/share'
+import { useToast } from '@/composables/useToast'
+import { go } from '@/utils/nav'
 
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
 
 /* ---------- 轻提示 ---------- */
-const toastMsg = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | undefined
-function showToast(msg: string) {
-  toastMsg.value = msg
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toastMsg.value = ''), 1500)
-}
+const { toast: toastMsg, showToast } = useToast()
 
 /* ---------- 已选单品（本地管理） ---------- */
 const selected = ref<Garment[]>([])
@@ -392,7 +388,7 @@ function setChip(sectionKey: string, chipKey: string) {
 }
 
 function goCreate() {
-  uni.navigateTo({ url: '/pages/create/index' })
+  go('create')
 }
 
 function goAccessory() {
@@ -406,7 +402,7 @@ function goAccessory() {
     title: selected.value.length ? '当前自由搭配' : '衣橱推荐服装',
     outfit: outfit.map(garmentToAccessoryContext),
   })
-  uni.navigateTo({ url: '/pages/accessory/index' })
+  go('accessory')
 }
 </script>
 
@@ -639,7 +635,7 @@ function goAccessory() {
   left: 20rpx;
   z-index: 3;
   padding: 6rpx 20rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--pink-deep);
   background: var(--pink-soft);
   border-radius: var(--radius-pill);
@@ -656,7 +652,7 @@ function goAccessory() {
   right: 20rpx;
   z-index: 3;
   padding: 6rpx 20rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: #fff;
   background: var(--pink-deep);
   border-radius: var(--radius-pill);
@@ -681,7 +677,7 @@ function goAccessory() {
   align-items: center;
   height: 56rpx;
   padding: 0 28rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1;
   color: var(--pink-deep);
@@ -696,7 +692,7 @@ function goAccessory() {
 
 .tryon-share-hint {
   padding: 4rpx 16rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: rgb(255 255 255 / 92%);
   text-align: center;
   background: rgb(0 0 0 / 45%);
@@ -784,7 +780,7 @@ function goAccessory() {
 }
 
 .tool-label {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-2);
 }
@@ -798,7 +794,7 @@ function goAccessory() {
   gap: 8rpx;
   align-items: center;
   padding: 14rpx 24rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-on-brand);
   background: var(--brand-gradient);
@@ -824,7 +820,7 @@ function goAccessory() {
   gap: 10rpx;
   align-items: center;
   padding: 12rpx 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   background: var(--surface);
   border-radius: var(--radius-pill);
@@ -832,7 +828,7 @@ function goAccessory() {
 }
 
 .sel-emoji {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
 }
 
 .sel-name {
@@ -840,14 +836,14 @@ function goAccessory() {
 }
 
 .sel-x {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--pink-deep);
 }
 
 .sel-empty {
   margin: 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
 }
@@ -891,14 +887,14 @@ function goAccessory() {
   margin-top: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-2);
   white-space: nowrap;
 }
 
 .pnl-empty {
   padding: 40rpx 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
 }
@@ -910,23 +906,6 @@ function goAccessory() {
  */
 .chips {
   white-space: nowrap;
-}
-
-.chip {
-  display: inline-flex;
-  padding: 10rpx 26rpx;
-  margin-right: 12rpx;
-  font-size: 24rpx;
-  color: var(--text-2);
-  background: var(--surface);
-  border: var(--hairline);
-  border-radius: var(--radius-pill);
-}
-
-.chip.on {
-  color: var(--text-on-brand);
-  background: var(--pink-deep);
-  border-color: var(--pink-deep);
 }
 
 /* .grid-wrap / .grid / .empty 已随「两列网格 → 横滑条」的改版删除 */

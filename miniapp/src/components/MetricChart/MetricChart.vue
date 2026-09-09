@@ -66,7 +66,7 @@ watch(() => props.option, apply, { deep: true })
 .metric-chart-failed {
   display: block;
   padding: 20rpx 0;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   text-align: center;
 }

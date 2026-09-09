@@ -2,10 +2,12 @@
 import setting from '@/setting'
 import { computed, onMounted, ref } from 'vue'
 import { fetchMallProducts, type MallCategory, type MallProduct } from '@/api/mall'
-import { isAuthError } from '@/utils/request'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
 import { mallProductToAccessoryContext, setAccessoryPageContext } from '@/utils/accessoryContext'
+import { useToast } from '@/composables/useToast'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
 
 /*
  * 商城商品来自服务端 scene_catalog（规格 §4.4 §10.6），和功能四场景模拟
@@ -20,8 +22,7 @@ const wishlist = useWishlistStore()
 const categories = ref<MallCategory[]>([])
 const products = ref<MallProduct[]>([])
 const activeCat = ref('')
-const loading = ref(false)
-const errorMessage = ref('')
+const { loading, errorText: errorMessage, run } = useAsyncTask({ initialLoading: false, message: '商品加载失败' })
 const detail = ref<MallProduct | null>(null)
 /** 淘口令弹窗目标（§4.4：小程序写剪贴板，H5 先试跳转再复制） */
 const purchaseTarget = ref<MallProduct | null>(null)
@@ -41,31 +42,15 @@ const filtered = computed(() =>
   activeCat.value ? products.value.filter((p) => p.category === activeCat.value) : products.value,
 )
 
-const toast = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | null = null
-function showToast(msg: string) {
-  toast.value = msg
-  if (toastTimer) clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = ''), 1600)
-}
+const { toast, showToast } = useToast()
 
 async function loadProducts() {
-  loading.value = true
-  errorMessage.value = ''
-  try {
-    const data = await fetchMallProducts()
-    categories.value = data.categories
-    products.value = data.items
-    if (!activeCat.value || !data.categories.some((c) => c.key === activeCat.value)) {
-      activeCat.value = data.categories[0]?.key ?? ''
-    }
-  } catch (error) {
-    // 未登录已由请求层跳登录页，这里再报一次错只是噪音（规格 §5）
-    if (!isAuthError(error)) {
-      errorMessage.value = error instanceof Error ? error.message : '商品加载失败'
-    }
-  } finally {
-    loading.value = false
+  const data = await run(() => fetchMallProducts())
+  if (!data) return
+  categories.value = data.categories
+  products.value = data.items
+  if (!activeCat.value || !data.categories.some((c) => c.key === activeCat.value)) {
+    activeCat.value = data.categories[0]?.key ?? ''
   }
 }
 
@@ -78,9 +63,10 @@ onMounted(() => {
 async function buyAll() {
   const items = filtered.value
   if (!items.length) return
-  await cart.addBatch(items.map((p) => ({ itemType: 'catalog' as const, itemId: p.id })))
-  if (cart.error) {
-    showToast(cart.error)
+  try {
+    await cart.addBatch(items.map((p) => ({ itemType: 'catalog' as const, itemId: p.id })))
+  } catch (error) {
+    showToast((error as Error)?.message || '加入购物车失败')
     return
   }
   showToast(`已把 ${items.length} 件${catLabel.value}加入购物车`)
@@ -89,11 +75,13 @@ async function buyAll() {
 async function addFromSheet() {
   if (!detail.value) return
   const target = detail.value
-  await cart.add('catalog', target.id)
-  detail.value = null
-  if (cart.error) {
-    showToast(cart.error)
+  try {
+    await cart.add('catalog', target.id)
+  } catch (error) {
+    showToast((error as Error)?.message || '加入购物车失败')
     return
+  } finally {
+    detail.value = null
   }
   showToast(`已加入购物车 · ${target.name}`)
 }
@@ -132,7 +120,7 @@ function buyFromSheet() {
 }
 
 function goCart() {
-  uni.navigateTo({ url: '/pages/cart/index' })
+  go('cart')
 }
 
 function goAccessoryFromSheet() {
@@ -148,11 +136,11 @@ function goAccessoryFromSheet() {
     ],
   })
   detail.value = null
-  uni.navigateTo({ url: '/pages/accessory/index' })
+  go('accessory')
 }
 
 function goFreeMatch() {
-  uni.navigateTo({ url: '/pages/scene/index' })
+  go('scene')
 }
 </script>
 
@@ -317,7 +305,7 @@ function goFreeMatch() {
   min-width: 36rpx;
   height: 36rpx;
   padding: 0 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #fff;
   background: var(--pink-deep);
@@ -337,11 +325,11 @@ function goFreeMatch() {
 }
 
 .s-ico {
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
 }
 
 .s-ph {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-3);
 }
 
@@ -356,7 +344,7 @@ function goFreeMatch() {
 .cat {
   flex-shrink: 0;
   padding: 14rpx 32rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--text-2);
   background: var(--surface-soft);
@@ -393,14 +381,14 @@ function goFreeMatch() {
 
 .b-cn {
   margin: 0;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text-on-brand);
 }
 
 .b-en {
   margin: 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: rgb(255 255 255 / 85%);
   letter-spacing: 1rpx;
@@ -418,14 +406,10 @@ function goFreeMatch() {
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
   gap: 12rpx;
-  align-items: center;
   padding-top: 140rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-3);
-  text-align: center;
 }
 
 .empty-emoji {
@@ -458,13 +442,13 @@ function goFreeMatch() {
 }
 
 .purchase-title {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .purchase-product {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   color: var(--text-2);
   text-align: center;
 }
@@ -472,7 +456,7 @@ function goFreeMatch() {
 .purchase-command {
   width: 100%;
   padding: 16rpx 20rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--pink-deep);
   text-align: center;
@@ -484,13 +468,13 @@ function goFreeMatch() {
 .purchase-copy {
   width: 100%;
   height: 88rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   border-radius: var(--radius-pill);
 }
 
 .purchase-close {
   padding: 8rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
 }
 
@@ -507,7 +491,7 @@ function goFreeMatch() {
 .pill {
   flex: 1;
   height: 92rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   border-radius: var(--radius-pill);
 }
 
@@ -517,7 +501,4 @@ function goFreeMatch() {
 }
 
 /* 隐藏滚动条 */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
 </style>

@@ -1,33 +1,22 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { fetchCommunityBookmarks, type CommunityContent } from '@/api/community'
-import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { go } from '@/utils/nav'
+import type { RouteKey } from '@/constants/routes'
 
 const items = ref<CommunityContent[]>([])
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '收藏加载失败' })
 
 onMounted(async () => {
-  try {
-    items.value = await fetchCommunityBookmarks()
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '收藏加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const data = await run(() => fetchCommunityBookmarks())
+  if (data) items.value = data
 })
 
 function openItem(item: CommunityContent) {
-  const route =
-    item.type === 'magazine'
-      ? '/pages/magazine-detail/index'
-      : item.type === 'tutorial'
-        ? '/pages/teach-detail/index'
-        : '/pages/share-detail/index'
-  uni.navigateTo({ url: `${route}?id=${encodeURIComponent(item.id)}` })
+  const route: RouteKey =
+    item.type === 'magazine' ? 'magazineDetail' : item.type === 'tutorial' ? 'teachDetail' : 'shareDetail'
+  go(route, { id: item.id })
 }
 </script>
 
@@ -35,9 +24,9 @@ function openItem(item: CommunityContent) {
   <view class="page">
     <PageHeader title="我的收藏" to="/pages/me/me" />
 
-    <view v-if="loading" class="state">正在读取收藏...</view>
-    <view v-else-if="errorText" class="state error">{{ errorText }}</view>
-    <view v-else-if="!items.length" class="state">还没有收藏内容</view>
+    <view v-if="loading" class="state state-fill">正在读取收藏...</view>
+    <view v-else-if="errorText" class="state state-fill error">{{ errorText }}</view>
+    <view v-else-if="!items.length" class="state state-fill">还没有收藏内容</view>
 
     <view v-else class="body scroll-y hide-scrollbar">
       <view v-for="item in items" :key="item.id" class="item" @tap="openItem(item)">
@@ -70,16 +59,6 @@ function openItem(item: CommunityContent) {
   padding: 12rpx 32rpx 44rpx;
 }
 
-.state {
-  flex: 1;
-  padding: 80rpx 24rpx;
-  color: var(--text-2);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .item {
   display: flex;
   gap: 20rpx;
@@ -101,14 +80,14 @@ function openItem(item: CommunityContent) {
 }
 
 .type {
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
 }
 
 .title {
   margin-top: 8rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   line-height: 1.4;
   color: var(--text-1);
@@ -119,7 +98,7 @@ function openItem(item: CommunityContent) {
   margin-top: 6rpx;
   overflow: hidden;
   -webkit-line-clamp: 2;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.4;
   color: var(--text-2);
   -webkit-box-orient: vertical;
@@ -128,7 +107,7 @@ function openItem(item: CommunityContent) {
 .note {
   display: block;
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--mint-deep);
 }
 

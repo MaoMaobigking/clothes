@@ -9,12 +9,13 @@ import {
   type CommunityContent,
 } from '@/api/community'
 import { isAuthError } from '@/utils/request'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { back } from '@/utils/nav'
 
 const contentId = ref('')
 const content = ref<CommunityContent | null>(null)
 const comments = ref<CommunityComment[]>([])
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '分享加载失败' })
 const commentDraft = ref('')
 const sending = ref(false)
 
@@ -32,19 +33,10 @@ onMounted(async () => {
 })
 
 async function loadContent() {
-  loading.value = true
-  errorText.value = ''
-  try {
-    content.value = await fetchCommunityContent(contentId.value)
-    comments.value = content.value.comments || []
-  } catch (error) {
-    // 未登录时请求层已跳登录页并提示过一次，这里不再重复报错（规格 §5）
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '分享加载失败'
-    }
-  } finally {
-    loading.value = false
-  }
+  const data = await run(() => fetchCommunityContent(contentId.value))
+  if (!data) return
+  content.value = data
+  comments.value = data.comments || []
 }
 
 async function toggleAction(action: 'like' | 'favorite' | 'report') {
@@ -54,7 +46,7 @@ async function toggleAction(action: 'like' | 'favorite' | 'report') {
     content.value = result.content
     if (action === 'report' && result.active) {
       uni.showToast({ title: '已举报，将不再向你展示', icon: 'none' })
-      setTimeout(() => uni.navigateBack(), 700)
+      setTimeout(() => back('community'), 700)
     }
   } catch (error) {
     // 未登录时请求层已跳登录页并提示过一次，这里不再重复弹（规格 §5）
@@ -94,8 +86,8 @@ async function sendComment() {
   <view class="page">
     <PageHeader title="穿搭分享" to="/pages/community/index?tab=share" />
 
-    <view v-if="loading" class="state">正在加载分享...</view>
-    <view v-else-if="errorText || !content" class="state error">{{ errorText }}</view>
+    <view v-if="loading" class="state state-fill">正在加载分享...</view>
+    <view v-else-if="errorText || !content" class="state state-fill error">{{ errorText }}</view>
 
     <view v-else class="body scroll-y hide-scrollbar">
       <image class="hero-image" :src="content.coverUrl" mode="aspectFill" />
@@ -164,16 +156,6 @@ async function sendComment() {
   padding: 12rpx 32rpx 48rpx;
 }
 
-.state {
-  flex: 1;
-  padding: 80rpx 24rpx;
-  color: var(--text-2);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .hero-image {
   width: 100%;
   aspect-ratio: 4 / 5;
@@ -206,20 +188,20 @@ async function sendComment() {
 }
 
 .name {
-  font-size: 27rpx;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .time {
   margin-top: 4rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .caption {
   margin-top: 24rpx;
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   line-height: 1.5;
   color: var(--text-1);
@@ -227,7 +209,7 @@ async function sendComment() {
 
 .description {
   margin-top: 12rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   line-height: 1.6;
   color: var(--text-2);
 }
@@ -241,7 +223,7 @@ async function sendComment() {
 
 .topic {
   padding: 8rpx 18rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--pink-soft);
@@ -261,7 +243,7 @@ async function sendComment() {
   align-items: center;
   justify-content: center;
   height: 80rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface);
@@ -274,19 +256,19 @@ async function sendComment() {
 }
 
 .action-icon {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
 }
 
 .comment-title {
   margin-top: 36rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-xl);
   font-weight: 500;
   color: var(--text-1);
 }
 
 .empty-comment {
   margin-top: 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
 }
 
@@ -303,7 +285,7 @@ async function sendComment() {
   justify-content: center;
   width: 58rpx;
   height: 58rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   background: var(--surface);
   border-radius: 50%;
 }
@@ -314,13 +296,13 @@ async function sendComment() {
 }
 
 .comment-name {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
 .comment-text {
   margin-top: 8rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   line-height: 1.55;
   color: var(--text-1);
 }
@@ -336,7 +318,7 @@ async function sendComment() {
   min-width: 0;
   height: 82rpx;
   padding: 0 22rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   background: var(--surface);
   border-radius: var(--radius-pill);
@@ -350,7 +332,7 @@ async function sendComment() {
   justify-content: center;
   height: 82rpx;
   padding: 0 30rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: #fff;
   background: var(--brand-gradient);

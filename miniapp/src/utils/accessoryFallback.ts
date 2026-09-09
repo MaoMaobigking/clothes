@@ -9,10 +9,9 @@
  * 真实推荐走 api/accessories 的 fetchAccessoryRecommendations()，
  * 这里只在它失败时兜底，别把两者的结果混着用。
  */
-import type { Accessory, AccessoryCart, AccessoryContextItem, AccessoryRecommendations } from '@/api/accessories'
+import type { Accessory, AccessoryContextItem, AccessoryRecommendations } from '@/api/accessories'
 
 const RATINGS_KEY = 'ai-fashion-accessory-ratings'
-const CART_KEY = 'ai-fashion-accessory-cart'
 
 type LocalAccessory = Omit<
   Accessory,
@@ -541,23 +540,15 @@ export function buildFallbackRecommendations(outfit: AccessoryContextItem[]): Ac
   }
 }
 
-export function loadLocalAccessoryCart(): AccessoryCart {
-  // 形状要和服务端购物车一致（规格 §4.5 §13），否则断网回退时
-  // 页面上的合计、下架标记这些字段会突然变 undefined。
-  const empty: AccessoryCart = { items: [], count: 0, totalPrice: 0 }
-  try {
-    const saved = JSON.parse(uni.getStorageSync(CART_KEY) || 'null')
-    if (!saved?.items) return empty
-    return {
-      items: saved.items,
-      count: saved.count ?? 0,
-      totalPrice: saved.totalPrice ?? 0,
-    }
-  } catch {
-    return empty
-  }
-}
-
-export function saveLocalAccessoryCart(cart: AccessoryCart) {
-  uni.setStorageSync(CART_KEY, JSON.stringify(cart))
-}
+/*
+ * 这里原来还有 loadLocalAccessoryCart / saveLocalAccessoryCart，
+ * 在 ai-fashion-accessory-cart 这个 storage key 上维护一份「断网时的本地购物车」。
+ *
+ * 2026-09-08 删除：那份本地车和 /pages/cart（读服务端车）永远对不上，
+ * 配饰抽屉里点「查看完整购物车」跳过去就是空的；而且它用的是本文件
+ * LOCAL_ACCESSORIES 里的假 id，服务端不认，两边合不到一起。
+ * 购物车现在只有服务端一个真相，见 stores/cart.ts。
+ *
+ * 本文件保留的仍是**推荐算法**的本地兜底（buildFallbackRecommendations）
+ * 和评分缓存 —— 那两件事在端上算得出来，和购物车不是一回事。
+ */

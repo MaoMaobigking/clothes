@@ -314,13 +314,13 @@ function logout() {
 }
 
 .login-title {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .login-sub {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
   text-align: center;
 }
@@ -330,7 +330,7 @@ function logout() {
   height: 88rpx;
   padding: 0 24rpx;
   margin-top: 14rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-1);
   background: var(--surface-soft);
   border-radius: var(--radius);
@@ -338,7 +338,7 @@ function logout() {
 }
 
 .error {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--danger);
 }
 
@@ -349,7 +349,7 @@ function logout() {
   width: 100%;
   height: 88rpx;
   margin-top: 12rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: #fff;
   background: var(--brand-gradient);
@@ -365,7 +365,7 @@ function logout() {
 }
 
 .toolbar-title {
-  font-size: 32rpx;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text-1);
 }
@@ -380,7 +380,7 @@ function logout() {
   align-items: center;
   height: 62rpx;
   padding: 0 22rpx;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text-2);
   background: var(--surface);
@@ -414,7 +414,7 @@ function logout() {
 }
 
 .stat-label {
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
   text-align: center;
 }
@@ -451,7 +451,7 @@ function logout() {
 .chart-badge {
   flex-shrink: 0;
   padding: 4rpx 18rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--purple-deep);
   background: var(--surface-soft);
@@ -461,16 +461,13 @@ function logout() {
 .chart-note {
   display: block;
   margin-top: 8rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   line-height: 1.55;
   color: var(--text-3);
 }
 
 .section-title {
   margin-bottom: 16rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-1);
 }
 
 .row,
@@ -480,7 +477,7 @@ function logout() {
   align-items: center;
   justify-content: space-between;
   padding: 14rpx 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
   border-bottom: 1px solid var(--line);
 }
@@ -506,7 +503,7 @@ function logout() {
 
 .empty {
   padding: 20rpx 0;
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 </style>

@@ -19,10 +19,12 @@ import { onShow } from '@dcloudio/uni-app'
 import { createAddress, fetchCheckoutPreview, submitOrder, type CheckoutPreview } from '@/api/order'
 import { isAuthError } from '@/utils/request'
 import { validatePhone, validateRealName } from '@/utils/idCard'
+import { toast } from '@/utils/toast'
+import { useAsyncTask } from '@/composables/useAsyncTask'
+import { redirect } from '@/utils/nav'
 
 const preview = ref<CheckoutPreview | null>(null)
-const loading = ref(true)
-const errorText = ref('')
+const { loading, errorText, run } = useAsyncTask({ message: '结算信息加载失败' })
 const submitting = ref(false)
 
 const couponKey = ref('')
@@ -66,28 +68,16 @@ const addressRules = {
   ],
 }
 
-function toast(title: string) {
-  uni.showToast({ title, icon: 'none' })
-}
-
 async function load(nextCoupon = couponKey.value) {
-  try {
-    const data = await fetchCheckoutPreview(nextCoupon)
-    preview.value = data
-    // 后端会把「选了但当前不满门槛」的券降级成不选，这里跟随后端结果，避免两边不一致
-    couponKey.value = data.selectedCoupon
-    if (addressId.value === null) {
-      addressId.value = data.addresses.find((item) => item.isDefault)?.id ?? data.addresses[0]?.id ?? null
-    }
-    addingAddress.value = data.addresses.length === 0
-    errorText.value = ''
-  } catch (error) {
-    if (!isAuthError(error)) {
-      errorText.value = error instanceof Error ? error.message : '结算信息加载失败'
-    }
-  } finally {
-    loading.value = false
+  const data = await run(() => fetchCheckoutPreview(nextCoupon))
+  if (!data) return
+  preview.value = data
+  // 后端会把「选了但当前不满门槛」的券降级成不选，这里跟随后端结果，避免两边不一致
+  couponKey.value = data.selectedCoupon
+  if (addressId.value === null) {
+    addressId.value = data.addresses.find((item) => item.isDefault)?.id ?? data.addresses[0]?.id ?? null
   }
+  addingAddress.value = data.addresses.length === 0
 }
 
 onShow(() => {
@@ -144,7 +134,7 @@ async function submit() {
       remark: remark.value.trim(),
     })
     // redirectTo：订单已经建了，返回键回到结算页只会让人以为要再下一单
-    uni.redirectTo({ url: `/pages/order-detail/index?id=${order.id}` })
+    redirect('orderDetail', { id: order.id })
   } catch (error) {
     if (!isAuthError(error)) {
       toast(error instanceof Error ? error.message : '下单失败')
@@ -160,8 +150,8 @@ async function submit() {
     <PageHeader title="确认订单" to="/pages/cart/index" />
 
     <scroll-view scroll-y class="body hide-scrollbar">
-      <view v-if="loading" class="state">加载中…</view>
-      <view v-else-if="errorText" class="state error">{{ errorText }}</view>
+      <view v-if="loading" class="state state-block">加载中…</view>
+      <view v-else-if="errorText" class="state state-block error">{{ errorText }}</view>
 
       <template v-else-if="preview">
         <!-- 这一条是这一页最该被看见的话，所以放在最上面而不是塞进页脚小字 -->
@@ -311,19 +301,10 @@ async function submit() {
   padding: 12rpx 30rpx 24rpx;
 }
 
-.state {
-  padding: 120rpx 40rpx;
-  color: var(--text-3);
-}
-
-.state.error {
-  color: var(--danger);
-}
-
 .demo-banner {
   padding: 16rpx 22rpx;
   margin-top: 14rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   line-height: 1.55;
   color: var(--text-2);
   background: var(--surface-soft);
@@ -333,9 +314,6 @@ async function submit() {
 .card {
   padding: 22rpx;
   margin-top: 20rpx;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
 }
 
 .card-head {
@@ -346,18 +324,18 @@ async function submit() {
 }
 
 .card-title {
-  font-size: 28rpx;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .card-sub {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .link {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -389,19 +367,19 @@ async function submit() {
 }
 
 .addr-name {
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
 }
 
 .addr-phone {
-  font-size: 23rpx;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
 .addr-tag {
   padding: 2rpx 12rpx;
-  font-size: 19rpx;
+  font-size: var(--fs-2xs);
   color: var(--pink-deep);
   background: var(--pink-soft);
   border-radius: var(--radius-pill);
@@ -410,7 +388,7 @@ async function submit() {
 .addr-detail {
   display: block;
   margin-top: 6rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-sm);
   color: var(--text-3);
 }
 
@@ -421,7 +399,7 @@ async function submit() {
 .form-note {
   display: block;
   margin-top: 12rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -458,7 +436,7 @@ async function submit() {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   white-space: nowrap;
 }
@@ -466,7 +444,7 @@ async function submit() {
 .goods-brand {
   display: block;
   margin-top: 4rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -477,21 +455,21 @@ async function submit() {
 
 .goods-price {
   display: block;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--pink-deep);
 }
 
 .goods-qty {
   display: block;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .warn {
   display: block;
   margin-top: 12rpx;
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--warning);
 }
 
@@ -521,7 +499,7 @@ async function submit() {
 
 .coupon-label {
   display: block;
-  font-size: 25rpx;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text-1);
 }
@@ -529,7 +507,7 @@ async function submit() {
 .coupon-reason {
   display: block;
   margin-top: 4rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
@@ -537,7 +515,7 @@ async function submit() {
   width: 100%;
   height: 130rpx;
   padding: 16rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-1);
   background: var(--surface-soft);
   border-radius: var(--radius);
@@ -556,14 +534,14 @@ async function submit() {
   align-items: center;
   justify-content: space-between;
   padding: 8rpx 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-2);
 }
 
 .amount-row.total {
   padding-top: 14rpx;
   margin-top: 6rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-1);
   border-top: 1px solid var(--line);
@@ -574,7 +552,7 @@ async function submit() {
 }
 
 .pay {
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   color: var(--pink-deep);
 }
 
@@ -594,13 +572,13 @@ async function submit() {
 }
 
 .bar-label {
-  font-size: 21rpx;
+  font-size: var(--fs-xs);
   color: var(--text-3);
 }
 
 .bar-price {
   display: block;
-  font-size: 34rpx;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   color: var(--pink-deep);
 }
@@ -612,9 +590,5 @@ async function submit() {
 
 .bar-btn.disabled {
   opacity: 0.6;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 </style>

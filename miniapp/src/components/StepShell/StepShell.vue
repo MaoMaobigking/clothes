@@ -64,7 +64,7 @@ withDefaults(
 
 .subtitle {
   margin-top: 12rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-md);
   color: var(--text-3);
 }
 

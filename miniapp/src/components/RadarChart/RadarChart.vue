@@ -121,7 +121,7 @@ watch(() => props.dimensions, apply, { deep: true })
 .radar-failed {
   display: block;
   padding: 24rpx 0;
-  font-size: 24rpx;
+  font-size: var(--fs-base);
   color: var(--text-3);
   text-align: center;
 }
