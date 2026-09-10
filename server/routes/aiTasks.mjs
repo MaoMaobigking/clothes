@@ -3,7 +3,7 @@
  *
  * 导出的是一个**工厂**而不是路由实例：试衣 / 换脸 / 场景生成的接口形状完全一样
  * （POST 提交、GET :taskId 查、GET 列表），只有 capability 不同。
- * 加一个能力 = bailianService 的 CAPABILITIES 加一条 + index.mjs 加一行 app.use，
+ * 加一个能力 = services/vision/bailian.mjs 的 CAPABILITIES 加一条 + index.mjs 加一行 app.use，
  * 这个文件不用动。
  *
  *   POST /api/tryon          提交任务，立刻返回 { task } （status=PENDING）

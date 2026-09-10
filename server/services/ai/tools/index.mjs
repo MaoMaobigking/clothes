@@ -1,7 +1,7 @@
 /**
  * 手写 tool-calling 循环（规格 3.3）。
  *
- * 工具的 schema 和执行逻辑已上移到 ./toolCore.mjs —— 原来这里和 mcp/server.mjs 各写了一份，
+ * 工具的 schema 和执行逻辑已上移到 ./handlers.mjs —— 原来这里和 mcp/server.mjs 各写了一份，
  * 改一个字段容易忘另一边。本文件现在只做两件事：
  *   1. 把中性的 TOOL_SPECS 适配成 OpenAI 的 tools 格式；
  *   2. 跑手写的 tool-calling 循环。

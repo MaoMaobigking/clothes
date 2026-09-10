@@ -5,7 +5,7 @@
  * 当前用户历史评分和少量聚合评分共同决定排序，并把每个来源转成可读理由。
  */
 import * as accessoryRepo from '../../repositories/accessoryRepo.mjs'
-import * as cartService from '../accessoryCartService.mjs'
+import * as cartService from '../commerce/cart.mjs'
 import * as profileRepo from '../../repositories/profileRepo.mjs'
 import * as userRepo from '../../repositories/userRepo.mjs'
 import {

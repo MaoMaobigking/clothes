@@ -164,7 +164,7 @@ export async function runTool(name, args = {}, context = {}) {
 
     case 'get_weather': {
       const { city } = args
-      // 走真实 OpenWeather（没配 key 或超时会自动降级，不会抛，见 weatherService 注释）。
+      // 走真实 OpenWeather（没配 key 或超时会自动降级，不会抛，见 services/weather.mjs 注释）。
       // 把 source 带给模型：让它知道这条是实测数据还是降级推算，
       // 而不是把降级值当真实天气斩钉截铁地讲给用户。
       const w = await resolveWeatherByCity(city)

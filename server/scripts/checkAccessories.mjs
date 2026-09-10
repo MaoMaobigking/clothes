@@ -20,7 +20,7 @@ import {
   rateAccessory,
   recommend,
 } from '../services/wardrobe/accessory.mjs'
-import { addBatch, hasOutfitInCart, listCart, removeItem } from '../services/accessoryCartService.mjs'
+import { addBatch, hasOutfitInCart, listCart, removeItem } from '../services/commerce/cart.mjs'
 
 let failed = 0
 function check(label, ok, extra = '') {
