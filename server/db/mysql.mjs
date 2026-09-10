@@ -128,6 +128,7 @@ export async function initDb() {
     await migrateCommunityRoles(conn)
     await migrateAccounts(conn)
     await migrateCart(conn)
+    await migrateAiLogs(conn)
   } finally {
     await conn.end()
   }
@@ -344,6 +345,37 @@ async function migrateCart(conn) {
         SET c.item_type = 'catalog'
       WHERE c.item_type = 'garment' AND g.id IS NULL`,
   )
+}
+
+/**
+ * ai_logs 补齐 token 成本字段（2026-09-10）。
+ *
+ * 表和 prompt_tokens / completion_tokens 两列早就在，但底层调用从不透出 provider 的
+ * usage，所以那两列长期固定是 0 —— 「我做了 token 成本统计」这句话当时是不能说的。
+ * 接上 services/ai/usage.mjs 之后补三列：
+ *   cache_hit_tokens / cache_write_tokens —— 缓存命中情况，算真实成本要用
+ *   model_calls                          —— 一次逻辑调用底下的模型往返次数（tool-calling > 1）
+ */
+async function migrateAiLogs(conn) {
+  const columns = [
+    ['cache_hit_tokens', 'INT DEFAULT 0'],
+    ['cache_write_tokens', 'INT DEFAULT 0'],
+    ['model_calls', 'INT DEFAULT 0'],
+  ]
+  const [rows] = await conn.query(
+    `SELECT COLUMN_NAME AS name
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'ai_logs'`,
+    [DB_NAME],
+  )
+  // 表还没建出来（首次初始化时 schema.sql 已经带上这三列）就不用迁移
+  if (!rows.length) return
+  const existing = new Set(rows.map((row) => row.name))
+  for (const [name, ddl] of columns) {
+    if (!existing.has(name)) {
+      await conn.query(`ALTER TABLE ai_logs ADD COLUMN ${name} ${ddl}`)
+    }
+  }
 }
 
 /**

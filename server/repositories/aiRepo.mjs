@@ -108,13 +108,19 @@ export async function listChatMessages(sessionId, limit = 100) {
 /**
  * 记一次大模型调用。日志失败不能影响主流程 —— 所以这里自己吞异常。
  * 「监控把业务搞挂了」是很常见的线上事故。
+ *
+ * token 字段由 services/ai/usage.mjs 的作用域累加后经 withAiLog 传进来。
+ * `model_calls` = 这一次逻辑调用底下真实发生了几次模型往返：
+ * tool-calling 会 > 1，所以 token 数要和它一起看才有意义
+ * （同一个 scene 下 token 高，可能是提示词长，也可能是工具循环多跑了两轮）。
  */
 export async function logAiCall(entry = {}) {
   try {
     await execute(
       `INSERT INTO ai_logs
-         (user_id, scene, provider, model, prompt_tokens, completion_tokens, latency_ms, ok, error_msg)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (user_id, scene, provider, model, prompt_tokens, completion_tokens,
+          cache_hit_tokens, cache_write_tokens, model_calls, latency_ms, ok, error_msg)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         entry.userId ?? null,
         entry.scene || 'unknown',
@@ -122,6 +128,9 @@ export async function logAiCall(entry = {}) {
         entry.model || null,
         entry.promptTokens || 0,
         entry.completionTokens || 0,
+        entry.cacheHitTokens || 0,
+        entry.cacheWriteTokens || 0,
+        entry.modelCalls || 0,
         entry.latencyMs || 0,
         entry.ok === false ? 0 : 1,
         entry.errorMsg ? String(entry.errorMsg).slice(0, 500) : null,

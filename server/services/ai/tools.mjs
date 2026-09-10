@@ -11,6 +11,7 @@
  */
 import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL } from './provider.mjs'
 import { TOOL_SPECS, toOpenAiTools, runTool } from './toolCore.mjs'
+import { reportUsage } from './usage.mjs'
 
 /**
  * 工具定义（OpenAI Chat Completions 格式）。
@@ -97,6 +98,9 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
     })
     if (!r.ok) throw new Error(`OpenAI 接口 ${r.status}: ${await r.text()}`)
     const data = await r.json()
+    // 每轮各报一次，由 usage.mjs 的累加器求和 —— 这条链路一次对话最多 5 次往返，
+    // 「这次对话花了多少」问的是总和，不是最后一轮。
+    reportUsage(data.usage)
     const msg = data.choices?.[0]?.message
     if (!msg) throw new Error('模型返回为空')
 

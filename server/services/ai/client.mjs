@@ -14,6 +14,7 @@ import {
   ANTHROPIC_MESSAGES_URL,
 } from './provider.mjs'
 import { parseJson } from './schemas.mjs'
+import { reportUsage } from './usage.mjs'
 /**
  * 带 JSON Schema 的结构化调用
  * @param {object} opts
@@ -57,6 +58,7 @@ async function structuredOpenAI(system, prompt, jsonSchema) {
     throw new Error(`OpenAI 接口 ${r.status}: ${errText}`)
   }
   const data = await r.json()
+  reportUsage(data.usage)
   const content = data.choices?.[0]?.message?.content ?? ''
   return parseJson(content, jsonSchema)
 }
@@ -102,6 +104,7 @@ async function structuredAnthropic(system, prompt, jsonSchema) {
   })
   if (!r.ok) throw new Error(`Anthropic 接口 ${r.status}: ${await r.text()}`)
   const data = await r.json()
+  reportUsage(data.usage)
 
   // 从 tool_use 块提取 JSON
   for (const block of data.content || []) {
@@ -157,6 +160,7 @@ export async function callOpenAI(system, messages) {
   })
   if (!r.ok) throw new Error(`OpenAI兼容接口 ${r.status}: ${await r.text()}`)
   const data = await r.json()
+  reportUsage(data.usage)
   return data.choices?.[0]?.message?.content ?? ''
 }
 
@@ -172,5 +176,6 @@ export async function callAnthropic(system, messages) {
   })
   if (!r.ok) throw new Error(`Anthropic接口 ${r.status}: ${await r.text()}`)
   const data = await r.json()
+  reportUsage(data.usage)
   return data.content?.[0]?.text ?? ''
 }

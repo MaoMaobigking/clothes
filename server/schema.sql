@@ -232,6 +232,9 @@ CREATE TABLE IF NOT EXISTS ai_logs (
   model VARCHAR(64),
   prompt_tokens INT DEFAULT 0,
   completion_tokens INT DEFAULT 0,
+  cache_hit_tokens INT DEFAULT 0,        -- 命中缓存的输入 token（便宜的那部分）
+  cache_write_tokens INT DEFAULT 0,      -- 写入缓存的输入 token（略贵，只有部分 provider 报）
+  model_calls INT DEFAULT 0,             -- 这一次逻辑调用底下的模型往返次数，tool-calling 会 > 1
   latency_ms INT DEFAULT 0,
   ok TINYINT(1) DEFAULT 1,
   error_msg VARCHAR(512),
