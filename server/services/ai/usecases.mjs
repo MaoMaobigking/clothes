@@ -7,6 +7,7 @@
  */
 import { API_KEY } from './provider.mjs'
 import { withTimeout, structuredComplete, aiCompleteText, aiComplete } from './client.mjs'
+import { fitContext } from './context.mjs'
 import {
   STYLE_REPORT_SCHEMA,
   SCENE_OUTFIT_SCHEMA,
@@ -223,12 +224,30 @@ export async function aiChat(messages, system) {
   const sys =
     system ||
     '你是「灵犀」——一个亲切专业的中文穿搭顾问。回答简洁口语化，多给具体、可执行的单品和搭配建议，必要时分点。不要超过 200 字。'
+  // 上下文压进预算再上行：客户端每次把整个历史发上来，服务端原本一个上限都没有
+  const { messages: fitted } = await fitContext(messages, { summarize: summarizeTranscript })
   const reply = await aiComplete({
     system: sys,
-    messages: messages.map((m) => ({
+    messages: fitted.map((m) => ({
       role: m.role === 'assistant' ? 'assistant' : 'user',
       content: String(m.content || ''),
     })),
   })
   return reply
+}
+
+/**
+ * 把一段被裁掉的历史摘成几句话。传给 context.fitContext 的第 4 层用。
+ *
+ * 放在 usecases 而不是 context.mjs：context.mjs 刻意不依赖任何东西（好单测、
+ * 也避免绕出环），所以「怎么摘」由调用方注入。
+ *
+ * ⚠️ 这是四层里唯一花钱的一层（要多打一次模型），所以 fitContext 只在前三层
+ * 压不下来时才会调到它。摘要失败由 context.summarizeDropped 吞掉，不影响主流程。
+ */
+export async function summarizeTranscript(transcript) {
+  return aiCompleteText(
+    '你是对话摘要器。把下面的穿搭咨询记录压成 3 句话以内的要点，只保留对后续对话有用的信息（用户的偏好、已排除的选项、已确定的结论）。不要寒暄，不要复述。',
+    transcript,
+  )
 }

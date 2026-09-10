@@ -89,14 +89,19 @@ MCP 如何跑在 HTTP 上"。主要变化：
 ### 逐条核对本项目
 
 `server/mcp/server.mjs` 的形状：stdio 传输 + 低阶 `Server` + `capabilities` 只声明
-`tools` + 四个工具全无状态（每次 `buildContext` 重新查库）+ 身份进程级锁定。
+`tools` + 五个工具**都不持有跨调用的协议状态**（每次 `buildContext` 重新查库）+ 身份进程级锁定。
+
+> **2026-09-10 补注**：新增 `remember_preference` 之后有了一个**写**工具，
+> 但上面那句话仍然成立 —— 它写的是按 userId 存的持久化偏好，
+> 不是 `requestState` 说的那种「一次调用签发、下次调用回传」的协议级会话状态。
+> 两者别混：前者是业务数据，后者是协议机制。
 
 | 破坏性变更                               | 本项目踩到了吗              | 为什么                                                      |
 | ---------------------------------------- | --------------------------- | ----------------------------------------------------------- |
 | 删 `Mcp-Session-Id` + 协议级 session     | ❌ **不适用**               | 那是 Streamable HTTP 传输的头。本项目是 stdio，一进程一连接 |
 | 删 `initialize` 握手 → `server/discover` | ⚠️ **由 SDK 承担**          | 本文件没手写握手                                            |
 | `tools/list` 不再随连接变化（可缓存）    | ✅ **已满足**               | `TOOLS` 是模块加载时算好的常量                              |
-| `requestState` 取代 per-session 状态     | ❌ **不适用**               | 工具全无状态，身份在 connect 之前就定死                     |
+| `requestState` 取代 per-session 状态     | ❌ **不适用**               | 没有跨调用的协议状态，身份在 connect 之前就定死             |
 | MRT 取代 sampling / elicitation          | ❌ **不适用**               | 没用这两个                                                  |
 | Roots / Sampling / Logging 废弃          | ✅ **不受影响**             | `capabilities` 只声明了 `tools`，三个都没用                 |
 | HTTP+SSE 传输降级                        | ❌ **不适用**               | stdio                                                       |

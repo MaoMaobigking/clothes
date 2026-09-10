@@ -77,16 +77,19 @@ function toNestedProfile(flat) {
 /**
  * 按工具名只取它真正需要的数据 —— get_weather 不该顺带查一遍衣橱。
  * 每次调用都重新查，因为衣橱和画像在 HTTP 侧随时会被改。
+ *
+ * userId 一律带上：写工具 remember_preference 需要它，而身份必须由本进程给
+ * （启动时注入、进程级锁定），不能来自模型填的参数 —— 见本文件顶部「身份」一节。
  */
 async function buildContext(name) {
   switch (name) {
     case 'search_garments':
-      return { garments: await listGarments(mcpUserId) }
+      return { userId: mcpUserId, garments: await listGarments(mcpUserId) }
     case 'get_user_profile':
     case 'generate_style_report':
-      return { profile: toNestedProfile(await getLatestProfile(mcpUserId)) }
+      return { userId: mcpUserId, profile: toNestedProfile(await getLatestProfile(mcpUserId)) }
     default:
-      return {}
+      return { userId: mcpUserId }
   }
 }
 

@@ -108,3 +108,25 @@ export async function upsertProfile(userId, profile) {
   )
   return findProfileById(userId, result.insertId)
 }
+
+/**
+ * 只更新 preferences 一列。
+ *
+ * 为什么不复用 upsertProfile：它**整行覆盖所有列**，而且上层 saveProfile 还强制
+ * styles/gender/身高/体重必填。这条路径是给 AI 工具 `remember_preference` 用的 ——
+ * **模型能写的字段和用户能写的字段必须是两套权限**：模型只该碰 preferences 这一列，
+ * 碰不到身形数据，更不该有能力把整行覆盖掉。
+ *
+ * 没有画像行时返回 null（不隐式建行 —— body_profiles 的其余列有业务必填语义，
+ * 凭一句聊天就造一行半空的画像，比存不下这条偏好更糟）。
+ */
+export async function updatePreferences(userId, preferences) {
+  const existing = await getOne('SELECT id FROM body_profiles WHERE user_id = ? ORDER BY id DESC LIMIT 1', [userId])
+  if (!existing) return null
+  await execute('UPDATE body_profiles SET preferences = ? WHERE id = ? AND user_id = ?', [
+    JSON.stringify(preferences),
+    existing.id,
+    userId,
+  ])
+  return findProfileById(userId, existing.id)
+}
