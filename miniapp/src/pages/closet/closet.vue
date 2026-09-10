@@ -212,7 +212,7 @@ function goAccessory(item: WardrobeItem) {
         收起状态下把手上显示当前分类名，否则用户看不出自己在哪一类。
       -->
       <view class="closet-body">
-        <scroll-view v-if="railOpen" scroll-y class="cat-rail hide-scrollbar">
+        <view v-if="railOpen" class="cat-rail">
           <view
             v-for="category in CLOSET_CATEGORIES"
             :key="category.key"
@@ -222,12 +222,12 @@ function goAccessory(item: WardrobeItem) {
           >
             <UiIcon
               :name="iconForEmoji(category.emoji) ?? 'grid'"
-              :size="34"
+              :size="28"
               :tone="activeCategory === category.key ? 'brand' : 'muted'"
             />
             <text class="cat-label">{{ category.label }}</text>
           </view>
-        </scroll-view>
+        </view>
 
         <view
           class="rail-toggle"
@@ -399,6 +399,32 @@ function goAccessory(item: WardrobeItem) {
   box-shadow: var(--shadow-float);
 }
 
+/*
+ * 钉死一屏高度 —— 只在本页覆盖全局的 .page-stage。
+ *
+ * 根因：全局 base.css 里 `page` 只写了 min-height:100%、没有 height，所以
+ * .page 的 height:100% 解析不出确定值、退化成 auto，内容一多页面就被顶长。
+ * 于是 .closet-body 被右侧网格撑高，而分类栏是 absolute + bottom:0，跟着一起
+ * 变高 —— 整页滚动时它就跟着右侧衣物走了。点「全部」时衣物最多，所以那时最明显。
+ *
+ * 不去动全局的 `page`：有 15 个页面（home / me / test 等）没有内部 scroll-view、
+ * 靠整页滚动，给 page 钉死高度会把它们超出一屏的内容裁掉。这一类 page-stage
+ * 页面本来就是「内部滚动」结构（全局那条 overflow:hidden 就是证据），钉高度才对。
+ *
+ * 用 100vh 而不是 100%：100% 依赖父链，而断点正在父链上。
+ *
+ * 再减掉 BottomNav 的高度（uv-tabbar 固定 50px + 安全区，fixed 不占文档流），
+ * 让内容区的底边正好落在 tab 栏的上边缘。这样 .closet-body 的底边也在那里，
+ * 分类栏 absolute + bottom:0 就直接顶到 tab，中间不留空隙；右侧网格同时也
+ * 正好滚到 tab 上沿，最后一行不会被压住。
+ *
+ * 减的是 50px 而不是 100rpx：tabbar 的 50px 是 CSS 像素、固定值，而 rpx 按
+ * 屏宽换算（750rpx = 屏宽），只在 375 宽的屏上两者恰好相等，宽屏上会多留一截。
+ */
+.page-stage {
+  height: calc(100vh - env(safe-area-inset-bottom, 0px) - 50px);
+}
+
 .today-panel {
   display: flex;
   flex: 1;
@@ -509,6 +535,12 @@ function goAccessory(item: WardrobeItem) {
  * 保持 v-if 卸载（不是把宽度动画到 0）—— 上面模板里的注释解释了原因：
  * 小程序的 scroll-view 在宽度变化时不重算内部滚动容器，动画收起会留下
  * 一片能滚但看不见的区域。改成浮层不改变这个约束。
+ *
+ * 本体是普通 view 而不是 scroll-view：十个分类得「一眼看全」。之前用
+ * scroll-view，closet-body 的可用高度装不下十项（每项约 98rpx，合计 980rpx，
+ * 上面还压着 topbar / SegTabs / 生成搭配面板），于是栏内自己滚 ——
+ * 滑到「配饰」时「全部」「上衣」就滑出视野了，和固定菜单的预期相反。
+ * 现在改成 flex 列 + 子项 flex:1 均分高度，多少项都是一屏。
  */
 .cat-rail {
   position: absolute;
@@ -523,8 +555,13 @@ function goAccessory(item: WardrobeItem) {
    */
   left: var(--rail-x);
   z-index: var(--z-float);
+  display: flex;
+  flex-direction: column;
   width: var(--rail-w);
-  padding: 8rpx;
+  padding: 6rpx;
+
+  /* 极端矮屏（或以后分类加更多）时宁可裁掉一点，也不要退回内部滚动 */
+  overflow: hidden;
   background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-float);
@@ -569,10 +606,15 @@ function goAccessory(item: WardrobeItem) {
 
 .cat {
   display: flex;
+
+  /* 均分 .cat-rail 的高度：十项一屏排满，不出现内部滚动 */
+  flex: 1;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 4rpx;
   align-items: center;
-  padding: 16rpx 0;
+  justify-content: center;
+  min-height: 56rpx;
+  padding: 6rpx 0;
 
   /*
    * 概念稿图①的选中态是「带圆角的浅色高亮块」（Highlight Capsule）。

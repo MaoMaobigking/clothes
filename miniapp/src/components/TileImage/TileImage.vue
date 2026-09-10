@@ -64,6 +64,7 @@ const props = withDefaults(
   },
 )
 
+//当换一张图片的时候，把旧的错误状态清空，给新图片一次重新加载的机会
 const failed = ref(false)
 watch(
   () => props.src,
