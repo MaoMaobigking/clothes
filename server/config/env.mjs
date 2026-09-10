@@ -123,7 +123,7 @@ export const config = Object.freeze({
   }),
 
   ai: Object.freeze({
-    /** 仅做大小写归一；合法性由 services/ai/provider.mjs 按预设表校验 */
+    /** 仅做大小写归一；合法性由 services/ai/runtime/provider.mjs 按预设表校验 */
     provider: trimmed('AI_PROVIDER').toLowerCase() || 'deepseek',
     apiKey: trimmed('AI_API_KEY'),
     /** 没配则由 provider 预设填默认值 */

@@ -9,11 +9,11 @@
  * 这一层只做编排：取数据 → 交给 planner 算 → 落库。
  * 算法在 planner.mjs，天气在 weather.mjs，场景/天气常量表在 constants/scene.mjs。
  */
-import { listGarments } from '../garmentService.mjs'
-import { getLatestProfile } from '../profileService.mjs'
+import { listGarments } from '../wardrobe/garment.mjs'
+import { getLatestProfile } from '../wardrobe/bodyProfile.mjs'
 // 购物车已统一到 cartService（规格 §4.5 §13）。场景新品以 item_type='catalog'
 // 入车，不再冒充 garment —— 那是历史脏数据被功能三静默丢弃的根因。
-import { addCatalogItems, listCart } from '../cartService.mjs'
+import { addCatalogItems, listCart } from '../commerce/cart.mjs'
 import {
   ensureSceneCatalog,
   findCatalogByIds,
@@ -23,7 +23,7 @@ import {
   saveSceneOutfit,
 } from '../../repositories/sceneRepo.mjs'
 import { SCENE_DEFINITIONS, SCENE_KEYS } from '../../constants/scene.mjs'
-import { seasonForMonth, resolveWeather } from '../weatherService.mjs'
+import { seasonForMonth, resolveWeather } from '../weather.mjs'
 import { buildPurePlans, buildMixedPlans } from './planner.mjs'
 
 // 拆分前这些都从 sceneService.mjs 导出，routes/scene.mjs 和 5 个 check 脚本在用。

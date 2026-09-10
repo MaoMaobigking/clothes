@@ -14,7 +14,7 @@ import {
   ANTHROPIC_MESSAGES_URL,
 } from './provider.mjs'
 import { parseJson } from './schemas.mjs'
-import { reportUsage } from './usage.mjs'
+import { reportUsage } from '../telemetry/usage.mjs'
 /**
  * 带 JSON Schema 的结构化调用
  * @param {object} opts

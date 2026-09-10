@@ -16,8 +16,8 @@ import {
   listSceneOutfits,
   saveOutfit,
 } from '../services/scene/index.mjs'
-import { listProducts } from '../services/mallService.mjs'
-import { addItem } from '../services/cartService.mjs'
+import { listProducts } from '../services/commerce/mall.mjs'
+import { addItem } from '../services/commerce/cart.mjs'
 import { closeDb, getOne, initDb } from '../db/mysql.mjs'
 
 let failed = 0

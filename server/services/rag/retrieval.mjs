@@ -3,7 +3,7 @@
  *
  * 分工（2026-09-08 从 TF-IDF 换成真向量时定下的边界）：
  *   切块 / 检索 / 相关度阈值 / 拼 prompt —— 全部手写，这些是能讲原理的部分。
- *   文本 → 向量 —— 交给 services/embeddingService.mjs（百炼 text-embedding-v3）。
+ *   文本 → 向量 —— 交给 ./embedding.mjs（百炼 text-embedding-v3）。
  *
  * 为什么不再手搓 TF-IDF：
  *   原来是 bigram 分词 + TF-IDF + 余弦。问题不在于慢，在于它只会字面匹配 ——
@@ -19,11 +19,12 @@
 import { readFileSync, readdirSync, writeFileSync, existsSync, statSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { embedTexts, embedOne, isEmbeddingEnabled, EMBEDDING_MODEL, EMBEDDING_DIM } from './embeddingService.mjs'
+import { embedTexts, embedOne, isEmbeddingEnabled, EMBEDDING_MODEL, EMBEDDING_DIM } from './embedding.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const DOCS_DIR = join(__dirname, '..', 'rag-docs')
-const INDEX_FILE = join(__dirname, '..', 'rag_index.json')
+// 两段回退到 server/：本文件在 services/rag/ 下，单个 '..' 只到 services/
+const DOCS_DIR = join(__dirname, '..', '..', 'rag-docs')
+const INDEX_FILE = join(__dirname, '..', '..', 'rag_index.json')
 const CHUNK_SIZE = 400
 const TOP_K = 3
 

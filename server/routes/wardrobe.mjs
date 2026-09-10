@@ -4,8 +4,8 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { authRequired } from '../middleware/auth.mjs'
-import * as garmentService from '../services/garmentService.mjs'
-import * as outfitService from '../services/outfitService.mjs'
+import * as garmentService from '../services/wardrobe/garment.mjs'
+import * as outfitService from '../services/wardrobe/outfit.mjs'
 
 const router = Router()
 const here = dirname(fileURLToPath(import.meta.url))

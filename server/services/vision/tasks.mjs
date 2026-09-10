@@ -13,9 +13,9 @@ import { readFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve, extname, sep } from 'node:path'
-import * as aiTaskRepo from '../repositories/aiTaskRepo.mjs'
-import * as bailian from './bailianService.mjs'
-import { config } from '../config/env.mjs'
+import * as aiTaskRepo from '../../repositories/aiTaskRepo.mjs'
+import * as bailian from './bailian.mjs'
+import { config } from '../../config/env.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -80,8 +80,9 @@ const LABELS = {
  * 演示素材的根目录默认按仓库布局找 ../miniapp/src/static；前后端分开部署时用
  * MINIAPP_STATIC_DIR 覆盖，或者干脆把素材拷进 server/uploads。
  */
-const UPLOAD_ROOT = resolve(here, '..', 'uploads')
-const STATIC_ROOT = resolve(config.runtime.miniappStaticDir || join(here, '..', '..', 'miniapp', 'src', 'static'))
+// 都多退一段：本文件在 services/vision/ 下，单个 '..' 只到 services/
+const UPLOAD_ROOT = resolve(here, '..', '..', 'uploads')
+const STATIC_ROOT = resolve(config.runtime.miniappStaticDir || join(here, '..', '..', '..', 'miniapp', 'src', 'static'))
 
 /** 单张图上限。百炼自己也有限制，本地先拦一道，省得白传一趟 */
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024

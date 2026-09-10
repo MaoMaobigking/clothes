@@ -58,7 +58,7 @@ const MIN_KEPT_MESSAGES = 6
  * **是估算，不是真值。** 真值要 provider 的 tokenizer，本地拿不到。
  * 经验规则：中日韩字符约 1 token/字，其余（英文、数字、标点）约 1 token/4 字符。
  * 用途只是「决定要不要压缩」这个阈值判断，偏差一两成不影响决策。
- * 真实用量以 ai_logs 里 provider 回报的 usage 为准（见 services/ai/usage.mjs）。
+ * 真实用量以 ai_logs 里 provider 回报的 usage 为准（见 services/ai/telemetry/usage.mjs）。
  */
 export function estimateTokens(text) {
   const s = String(text ?? '')

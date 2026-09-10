@@ -1,7 +1,7 @@
 /**
  * 配饰领域的固定配置表。
  *
- * 从 services/accessoryService.mjs 迁出（第 4 条规矩：数据与逻辑分离）。
+ * 从 services/wardrobe/accessory.mjs 迁出（第 4 条规矩：数据与逻辑分离）。
  * 这些是「规则推荐」用到的查表数据，改一条分类标签或预算档位不该去翻推荐算法。
  * 算法本身（色彩调和、评分、预算/体型修正）留在 service 层。
  */

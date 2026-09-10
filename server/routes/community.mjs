@@ -5,7 +5,7 @@
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as communityService from '../services/communityService.mjs'
+import * as communityService from '../services/community/index.mjs'
 
 const router = Router()
 router.use(authRequired)

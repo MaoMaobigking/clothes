@@ -10,8 +10,8 @@
  * 目录里的价是元（可能带小数），一路用浮点加下来 0.1+0.2 那类误差会落进订单表。
  * 所以进这一层第一件事就是 元 → 分 取整，之后全是整数运算，出口再除回去。
  */
-import * as orderRepo from '../repositories/orderRepo.mjs'
-import * as cartService from './cartService.mjs'
+import * as orderRepo from '../../repositories/orderRepo.mjs'
+import * as cartService from './cart.mjs'
 
 function badRequest(message, code) {
   const err = new Error(message)

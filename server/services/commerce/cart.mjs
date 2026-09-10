@@ -12,10 +12,10 @@
  *   3. 查不到明细的行不静默丢弃，降级成占位条目并标 available=false，
  *      否则用户会看到「加购成功但购物车是空的」。
  */
-import * as cartRepo from '../repositories/cartRepo.mjs'
-import * as accessoryRepo from '../repositories/accessoryRepo.mjs'
-import * as garmentRepo from '../repositories/garmentRepo.mjs'
-import { findCatalogByIds } from '../repositories/sceneRepo.mjs'
+import * as cartRepo from '../../repositories/cartRepo.mjs'
+import * as accessoryRepo from '../../repositories/accessoryRepo.mjs'
+import * as garmentRepo from '../../repositories/garmentRepo.mjs'
+import { findCatalogByIds } from '../../repositories/sceneRepo.mjs'
 
 const ITEM_TYPES = new Set(['garment', 'accessory', 'catalog'])
 

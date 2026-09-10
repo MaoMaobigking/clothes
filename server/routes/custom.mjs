@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { Router } from 'express'
 import multer from 'multer'
 import { authRequired } from '../middleware/auth.mjs'
-import * as customService from '../services/customService.mjs'
+import * as customService from '../services/commerce/custom.mjs'
 
 const router = Router()
 const UPLOAD_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'uploads', 'custom')

@@ -5,14 +5,14 @@
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as profileService from '../services/profileService.mjs'
+import * as bodyProfile from '../services/wardrobe/bodyProfile.mjs'
 
 const router = Router()
 router.use(authRequired)
 
 router.get('/current', async (req, res, next) => {
   try {
-    const profile = await profileService.getLatestProfile(req.userId)
+    const profile = await bodyProfile.getLatestProfile(req.userId)
     res.json({ profile })
   } catch (err) {
     next(err)
@@ -21,7 +21,7 @@ router.get('/current', async (req, res, next) => {
 
 router.put('/current', async (req, res, next) => {
   try {
-    const profile = await profileService.saveProfile(req.userId, req.body || {})
+    const profile = await bodyProfile.saveProfile(req.userId, req.body || {})
     res.json({ profile })
   } catch (err) {
     next(err)

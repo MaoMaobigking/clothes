@@ -109,7 +109,7 @@ export async function listChatMessages(sessionId, limit = 100) {
  * 记一次大模型调用。日志失败不能影响主流程 —— 所以这里自己吞异常。
  * 「监控把业务搞挂了」是很常见的线上事故。
  *
- * token 字段由 services/ai/usage.mjs 的作用域累加后经 withAiLog 传进来。
+ * token 字段由 services/ai/telemetry/usage.mjs 的作用域累加后经 withAiLog 传进来。
  * `model_calls` = 这一次逻辑调用底下真实发生了几次模型往返：
  * tool-calling 会 > 1，所以 token 数要和它一起看才有意义
  * （同一个 scene 下 token 高，可能是提示词长，也可能是工具循环多跑了两轮）。

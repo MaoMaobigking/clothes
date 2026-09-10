@@ -10,10 +10,10 @@
  */
 import { execute, getOne } from '../db/mysql.mjs'
 import { DEMO_ACCOUNTS, ensureDemoAccounts } from './auth/index.mjs'
-import * as garmentService from './garmentService.mjs'
-import * as profileService from './profileService.mjs'
-import * as outfitService from './outfitService.mjs'
-import * as cartService from './cartService.mjs'
+import * as garmentService from './wardrobe/garment.mjs'
+import * as bodyProfile from './wardrobe/bodyProfile.mjs'
+import * as outfitService from './wardrobe/outfit.mjs'
+import * as cartService from './commerce/cart.mjs'
 import * as aiRepo from '../repositories/aiRepo.mjs'
 import * as profileRepo from '../repositories/profileRepo.mjs'
 import * as customRepo from '../repositories/customRepo.mjs'
@@ -102,7 +102,7 @@ const STYLE_LABELS = {
 
 async function seedProfileAndReport(userId, profile) {
   const existing = await profileRepo.findLatestProfile(userId)
-  if (!existing) await profileService.saveProfile(userId, profile)
+  if (!existing) await bodyProfile.saveProfile(userId, profile)
 
   const reports = await aiRepo.listStyleReports(userId, 1)
   if (reports.length) return

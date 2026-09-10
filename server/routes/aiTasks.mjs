@@ -12,7 +12,7 @@
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as aiTaskService from '../services/aiTaskService.mjs'
+import * as aiTaskService from '../services/vision/tasks.mjs'
 
 export function createAiTaskRouter(capability) {
   const router = Router()

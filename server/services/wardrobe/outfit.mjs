@@ -1,5 +1,5 @@
-import * as garmentRepo from '../repositories/garmentRepo.mjs'
-import * as outfitRepo from '../repositories/outfitRepo.mjs'
+import * as garmentRepo from '../../repositories/garmentRepo.mjs'
+import * as outfitRepo from '../../repositories/outfitRepo.mjs'
 
 const RECIPES = [
   {

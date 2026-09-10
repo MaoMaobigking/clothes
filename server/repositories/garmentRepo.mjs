@@ -99,7 +99,7 @@ export async function listGarmentsByIds(userId, ids) {
  * （从 body 读 user_id 等于让客户端自己声明身份，是典型越权口子）。
  *
  * 业务默认值（默认名字 / 默认分类 / 默认配色 / id 生成规则）已搬到
- * services/garmentService.mjs 的 applyGarmentDefaults()。搬走的理由：
+ * services/wardrobe/garment.mjs 的 applyGarmentDefaults()。搬走的理由：
  * 那些值换掉数据库一个都不用改，不属于这一层；而且默认分类原来写的是
  * '上衣'，跟 service 层 ALLOWED_CATEGORIES 的 'top' 对不上，隔着一层没人
  * 发现 —— 分层错位本身就是那个 bug 的成因。

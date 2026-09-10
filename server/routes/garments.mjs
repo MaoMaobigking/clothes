@@ -8,7 +8,7 @@
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as garmentService from '../services/garmentService.mjs'
+import * as garmentService from '../services/wardrobe/garment.mjs'
 
 const router = Router()
 //挂载中间件 凡是经过这个路由器的请求，在匹配具体的接口之前，都必须先给我过一遍这个函数

@@ -5,7 +5,7 @@
  */
 import { closeDb, initDb } from '../db/mysql.mjs'
 import { wxLogin } from '../services/auth/index.mjs'
-import * as customService from '../services/customService.mjs'
+import * as customService from '../services/commerce/custom.mjs'
 
 let failed = 0
 function check(label, ok, extra = '') {

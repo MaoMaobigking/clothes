@@ -4,7 +4,7 @@
  * 校验规则与需求清单第 7.5 节一致：性别、身高、体重、视觉体型必填，
  * 风格必须刚好选择 3 项；其他维度可为空。
  */
-import * as repo from '../repositories/profileRepo.mjs'
+import * as repo from '../../repositories/profileRepo.mjs'
 
 const GENDERS = new Set(['female', 'male'])
 

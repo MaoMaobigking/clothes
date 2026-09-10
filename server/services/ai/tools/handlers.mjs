@@ -2,7 +2,7 @@
  * 工具的唯一真源（schema + 纯执行逻辑）。
  *
  * 为什么要有这一层：
- *   原来同一批工具定义了两遍 —— services/ai/tools.mjs 给手写 tool-calling 用（OpenAI 格式），
+ *   原来同一批工具定义了两遍 —— services/ai/tools/index.mjs 给手写 tool-calling 用（OpenAI 格式），
  *   mcp/server.mjs 给 MCP 协议用（inputSchema 格式）。过滤逻辑几乎一样、schema 也几乎一样，
  *   只有外层包装不同。改一个字段忘了另一边就是 bug，所以收敛到这里，两侧各写一个薄适配器。
  *
@@ -12,19 +12,19 @@
  *   所以本层共享的是「schema + 吃 context 的纯逻辑」，取数据一律由调用方负责。
  *   这么切也顺带保证了本层不依赖 repositories，不会引入循环引用。
  *
- * 依赖方向：toolCore → usecases → client → provider（usecases 不反向依赖工具层，无环）。
- *           toolCore → weatherService（顶层 service，不属于任何业务域，无环）。
- *           toolCore → profileService（写偏好用，profileService 不反向依赖 AI 层，无环）。
+ * 依赖方向：tools/handlers → chat/usecases → client → provider（usecases 不反向依赖工具层，无环）。
+ *           tools/handlers → weather（services/ 顶层，不属于任何业务域，无环）。
+ *           tools/handlers → wardrobe/bodyProfile（写偏好用，业务域不反向依赖 AI 层，无环）。
  */
-import { generateReport } from './usecases.mjs'
-import { resolveWeatherByCity } from '../weatherService.mjs'
-import { rememberPreference } from '../profileService.mjs'
+import { generateReport } from '../chat/usecases.mjs'
+import { resolveWeatherByCity } from '../../weather.mjs'
+import { rememberPreference } from '../../wardrobe/bodyProfile.mjs'
 
 /**
  * 工具清单。
  *
  * surfaces 决定这个工具在哪些「面」上暴露：
- *   'openai' → services/ai/tools.mjs 的手写 tool-calling（GET /api/chat/tools 也读它）
+ *   'openai' → services/ai/tools/index.mjs 的手写 tool-calling（GET /api/chat/tools 也读它）
  *   'mcp'    → mcp/server.mjs 的 MCP 协议
  * generate_style_report 只在 MCP 暴露 —— 聊天链路里报告是走 POST /api/style-report 的独立接口，
  * 不该让对话模型再多一条路径生成报告。
@@ -199,7 +199,7 @@ export async function runTool(name, args = {}, context = {}) {
        * MCP_USER_ID），**绝不从 args 取** —— 模型可以填任意 userId，那就是水平越权。
        * 这和 mcp/server.mjs 里否掉「userId 进 inputSchema」是同一条理由。
        *
-       * 写入本身走 profileService.rememberPreference，它只改 preferences 一列、
+       * 写入本身走 wardrobe/bodyProfile 的 rememberPreference，它只改 preferences 一列、
        * 强制截断、条数封顶。模型碰不到身形数据。
        */
       if (!context.userId) return '当前调用没有用户身份，无法保存偏好。'

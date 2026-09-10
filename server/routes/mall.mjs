@@ -9,7 +9,7 @@
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as mallService from '../services/mallService.mjs'
+import * as mallService from '../services/commerce/mall.mjs'
 
 const router = Router()
 router.use(authRequired)

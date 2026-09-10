@@ -1,9 +1,10 @@
 /**
  * 功能六（时尚分享与穿搭教学）的预置内容数据。
  *
- * 从 services/communitySeedService.mjs 迁出：那个文件 432 行里有 327 行是这些
+ * 从 services/community/seed.mjs 迁出：那个文件 432 行里有 327 行是这些
  * 写死的数据，真正的写库逻辑只有 90 行 —— 数据和逻辑混在一起，改一条文案要在
  * 三百行 JSON 里翻。这是 miniapp 那套架构第 4 条规矩（数据与逻辑分离）在后端的落地。
+ * （迁出时那个文件叫 services/communitySeedService.mjs，2026-09-10 按业务域收进 community/。）
  *
  * 所有 id 都是稳定字符串，重复启动只更新同一批演示数据，不清空用户数据。
  */

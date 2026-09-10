@@ -8,10 +8,11 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
-import * as repo from '../repositories/communityRepo.mjs'
+import * as repo from '../../repositories/communityRepo.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const uploadRoot = join(here, '..', 'uploads', 'community')
+// 三段回退到 server/：本文件在 services/community/ 下，'..' 只到 services/
+const uploadRoot = join(here, '..', '..', 'uploads', 'community')
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 const IMAGE_MIME = {
   'image/jpeg': 'jpg',
