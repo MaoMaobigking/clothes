@@ -28,6 +28,22 @@ function start() {
   }
   go('test', { step: nextStep.value })
 }
+
+/*
+ * 重新测试。
+ *
+ * reset + persist 必须成对：reset() 只清 store 里的内存状态，不写回缓存的话
+ * 下次进页面 onMounted 的 loadPersisted() 会把旧答案又读回来，isComplete
+ * 立刻变回 true，按钮又成了「查看风格报告」。和 pages/result 的 retest() 同一套。
+ *
+ * 显式传 step: 1 而不是复用 nextStep —— 那个算的是「断点续答」的落点，
+ * 重测要的是从第一步开始。
+ */
+function retest() {
+  store.reset()
+  store.persist()
+  go('test', { step: 1 })
+}
 </script>
 
 <template>
@@ -40,7 +56,6 @@ function start() {
           :src="MODEL_IMAGES.front"
           from="#ffe3ef"
           to="#e7d4ff"
-          emoji="🧍‍♀️"
           ratio="3 / 4"
           fit="contain"
           class="hero-model"
@@ -69,6 +84,11 @@ function start() {
         <button class="btn btn-primary start" @tap="start">
           {{ store.isComplete ? '查看风格报告' : started ? '继续完成' : '开始测试' }}
         </button>
+        <!--
+          只在测完之后才给这个入口：没测过时上面那个按钮本身就是「开始测试」，
+          再并排放一个「重新测试」只会让人犹豫点哪个。
+        -->
+        <button v-if="store.isComplete" class="btn btn-ghost start" @tap="retest">重新测试</button>
       </view>
     </scroll-view>
   </view>
@@ -199,6 +219,9 @@ function start() {
 }
 
 .foot {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
   margin-top: 28rpx;
 }
 

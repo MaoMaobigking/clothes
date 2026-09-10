@@ -186,7 +186,16 @@ function goBack() {
         <button class="mini" @tap="generate">换一份</button>
       </view>
       <view v-else-if="report && source === 'rule'" class="ai-banner ok">
-        <text>基础规则版（AI 未连接）</text>
+        <!--
+          文案是「未调用 AI」而不是「AI 未连接」：demo 账号的预置报告 source 天生就是
+          rule（demoSeedService.buildDemoReport 写死的，为了离线可重建），这时候 AI
+          完全正常，说「未连接」会把人往错方向带。
+
+          aiError 是后端真降级时给的原因（12s 超时 / 模型结果 Schema 校验不通过，
+          见 services/ai/usecases.mjs）。显示出来能省一轮排查 —— 否则只看到「未连接」，
+          分不清是没调、调失败、还是结果不合格。
+        -->
+        <text>基础规则版（未调用 AI）{{ report.aiError ? `：${report.aiError}` : '' }}</text>
         <button class="mini" @tap="generate">重试 AI</button>
       </view>
 
