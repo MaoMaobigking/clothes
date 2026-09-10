@@ -48,7 +48,7 @@ const TOOLS = toMcpTools(TOOL_SPECS)
 // ── 取数据 ───────────────────────────────────────────────────
 
 /**
- * profileRepo 返回的是扁平形状，而 toolCore / usecases.generateReport 吃的是嵌套形状
+ * profileRepo 返回的是扁平形状，而 services/ai/tools/handlers.mjs 与 chat/usecases.mjs 的 generateReport 吃的是嵌套形状
  * （styles/skin/face/bmi 在顶层，围度收在 body 下），这里做一次转换。
  * 用户还没做过风格测试时 findLatestProfile 返回 null，转成 {} 交给下游的空值分支处理。
  */

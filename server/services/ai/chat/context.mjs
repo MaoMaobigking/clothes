@@ -21,7 +21,7 @@
  *   | Memory Tool     | **存**跨会话的长期记忆      | `memory_20250818`                 |
  *
  * 本项目主链路是 DeepSeek（OpenAI 兼容协议），**这三个都没有**，所以手写等价物：
- * 本文件对应前两个，`toolCore.mjs` 的 `remember_preference` 对应第三个。
+ * 本文件对应前两个，`../tools/handlers.mjs` 的 `remember_preference` 对应第三个。
  *
  * 手写的取舍：摘要质量不如服务端，也没有官方那套「compaction 块要原样回传」的协议保证；
  * 但换来的是可控（我决定摘什么、留什么）和不绑定某一家的 beta。

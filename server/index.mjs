@@ -114,7 +114,7 @@ app.use('/api/custom', customRoutes)
 app.use('/api/community', communityRoutes)
 // 演示结算：收货地址 + 订单（无支付，状态由演示按钮推进，见 services/commerce/order.mjs）
 app.use('/api/orders', orderRoutes)
-// 阿里百炼异步任务。加新能力（换脸 / 场景生成）= bailianService 的 CAPABILITIES
+// 阿里百炼异步任务。加新能力（换脸 / 场景生成）= services/vision/bailian.mjs 的 CAPABILITIES
 // 加一条 + 这里加一行，路由和服务层都不用改。
 app.use('/api/tryon', createAiTaskRouter('tryon'))
 

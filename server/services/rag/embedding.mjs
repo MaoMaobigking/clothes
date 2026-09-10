@@ -1,7 +1,7 @@
 /**
  * 文本向量化（阿里百炼 text-embedding-v3）。
  *
- * 为什么单独一个文件、不并进 bailianService.mjs：
+ * 为什么单独一个文件、不并进 ./../vision/bailian.mjs：
  * 那一层的注释写得很清楚，它是**异步任务**协议的适配器 ——
  * createTask 拿 task_id、轮询 /api/v1/tasks/{id} 到终态，CAPABILITIES 表描述的是这套流程。
  * embedding 是同步接口，一次请求直接拿结果，塞进那张表会破坏它自己申明的契约。

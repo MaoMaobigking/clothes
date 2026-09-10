@@ -107,7 +107,7 @@ export const config = Object.freeze({
     port: servicePort,
     /** 演示图目录。没配则由 index.mjs 按候选目录回落 */
     imagesDir: optional('IMAGES_DIR'),
-    /** miniapp 静态资源根。没配则由 aiTaskService 按自身位置回落 */
+    /** miniapp 静态资源根。没配则由 services/vision/tasks.mjs 按自身位置回落 */
     miniappStaticDir: optional('MINIAPP_STATIC_DIR'),
   }),
 

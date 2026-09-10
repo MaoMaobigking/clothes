@@ -9,7 +9,11 @@
  * 现在有两个消费者 —— 场景页（services/scene/index.mjs）和 AI 工具层的
  * get_weather（services/ai/tools/handlers.mjs）。留在 scene/ 子目录下，
  * services/ai/ 就得反向依赖 services/scene/，读代码的人会以为工具依赖场景功能。
- * 它本来就不是 scene 专属的，放到 services/ 顶层和 ragService / profileService 平级。
+ * 它本来就不是 scene 专属的，所以留在 services/ 顶层。
+ *
+ * 2026-09-10 按业务域分目录时又确认了一次：跨域的叶子进任何一个域都会造出
+ * 假的反向依赖，所以它和 demoSeed.mjs 一起是 services/ 顶层仅剩的两个裸文件。
+ * 判据见 docs/开发手册.md 的 3.6.3 第 ④ 条。
  */
 import { WEATHER_CITIES, WEATHER_CONDITIONS } from '../constants/scene.mjs'
 import { config } from '../config/env.mjs'
@@ -117,7 +121,7 @@ export async function resolveWeather(input = {}) {
       longitude: roundCoord(longitude),
     }
   } catch (error) {
-    console.warn('[weatherService] 真实天气接口不可用，使用定位降级:', error.message)
+    console.warn('[weather] 真实天气接口不可用，使用定位降级:', error.message)
     return fallback
   }
 }
@@ -155,7 +159,7 @@ export async function resolveWeatherByCity(cityName) {
         return { ...weather, city: name }
       }
     } catch (error) {
-      console.warn('[weatherService] 城市地理编码失败，使用降级:', error.message)
+      console.warn('[weather] 城市地理编码失败，使用降级:', error.message)
     }
   }
 
