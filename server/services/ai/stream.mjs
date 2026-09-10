@@ -10,6 +10,8 @@
  */
 import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL, ANTHROPIC_MESSAGES_URL } from './provider.mjs'
 import { reportUsage } from './usage.mjs'
+import { fitContext } from './context.mjs'
+import { summarizeTranscript } from './usecases.mjs'
 /**
  * 流式 AI 对话（SSE）
  * @param {string[]} messages - [{role, content}]
@@ -23,10 +25,14 @@ export async function aiChatStream(messages, system, onChunk, signal) {
     system ||
     '你是「灵犀」——一个亲切专业的中文穿搭顾问。回答简洁口语化，多给具体、可执行的单品和搭配建议，必要时分点。不要超过 200 字。'
 
+  // 上下文压进预算再上行。客户端每次把整个历史发上来，服务端原本一个上限都没有 ——
+  // 聊得越久越贵越慢，而且任何人都能构造一个巨大的 messages 数组来烧钱。
+  const { messages: fitted } = await fitContext(messages, { summarize: summarizeTranscript })
+
   if (API_STYLE === 'anthropic') {
-    return streamAnthropic(sys, messages, onChunk, signal)
+    return streamAnthropic(sys, fitted, onChunk, signal)
   }
-  return streamOpenAI(sys, messages, onChunk, signal)
+  return streamOpenAI(sys, fitted, onChunk, signal)
 }
 
 /**

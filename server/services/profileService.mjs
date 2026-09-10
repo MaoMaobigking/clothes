@@ -93,3 +93,51 @@ export async function saveProfile(userId, input = {}) {
 
   return repo.upsertProfile(userId, profile)
 }
+
+/* ============ AI 可写的偏好记忆（跨会话） ============ */
+
+/** 偏好最多存几条。满了淘汰最早写入的那条（JS 对象保插入顺序） */
+const PREFERENCE_MAX_KEYS = 20
+const PREFERENCE_KEY_MAX = 32
+const PREFERENCE_VALUE_MAX = 200
+
+/**
+ * 记一条用户偏好。给 AI 工具 `remember_preference` 用。
+ *
+ * ⚠️ **这是模型能触发的写操作，所以每一条约束都是必要的，不是防御性洁癖**：
+ *
+ *   - 只写 `preferences` 一列（走 repo.updatePreferences，不走 saveProfile）——
+ *     模型碰不到身形数据，也没有能力整行覆盖。
+ *   - key / value 都强制转字符串并截断 —— 否则一次 prompt injection 就能往这行里
+ *     塞任意大的内容，把 JSON 列撑爆。
+ *   - 只存扁平的 string → string，不接受嵌套对象。
+ *   - 条数封顶，满了淘汰最早的 —— 记忆是有限容量的，无上限增长等于没有淘汰策略。
+ *
+ * userId 由调用方（HTTP 侧的 JWT / MCP 侧的启动配置）给定，**不从模型参数取**，
+ * 理由同 MCP 那条：模型填的身份不可信。
+ *
+ * @returns {Promise<{ ok: boolean, reason?: string, key?: string, value?: string, total?: number }>}
+ */
+export async function rememberPreference(userId, key, value) {
+  const k = String(key ?? '')
+    .trim()
+    .slice(0, PREFERENCE_KEY_MAX)
+  const v = String(value ?? '')
+    .trim()
+    .slice(0, PREFERENCE_VALUE_MAX)
+  if (!k || !v) return { ok: false, reason: 'EMPTY' }
+
+  const profile = await repo.findLatestProfile(userId)
+  // 没做过风格测试就没有画像行。不隐式建行，理由见 repo.updatePreferences 的注释
+  if (!profile) return { ok: false, reason: 'NO_PROFILE' }
+
+  const next = { ...(profile.preferences || {}) }
+  if (!(k in next) && Object.keys(next).length >= PREFERENCE_MAX_KEYS) {
+    delete next[Object.keys(next)[0]] // 淘汰最早写入的
+  }
+  next[k] = v
+
+  const saved = await repo.updatePreferences(userId, next)
+  if (!saved) return { ok: false, reason: 'NO_PROFILE' }
+  return { ok: true, key: k, value: v, total: Object.keys(next).length }
+}

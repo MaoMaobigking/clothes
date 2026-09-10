@@ -221,6 +221,8 @@ router.post('/chat/tools', authRequired, async (req, res, next) => {
     const context = {
       garments,
       profile: req.body?.profile || {},
+      // 写工具 remember_preference 要用。身份来自 JWT，**不能让模型从参数里填**
+      userId: req.userId,
     }
 
     // 流式输出：工具调用结果也通过 SSE 推送

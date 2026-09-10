@@ -14,9 +14,11 @@
  *
  * 依赖方向：toolCore → usecases → client → provider（usecases 不反向依赖工具层，无环）。
  *           toolCore → weatherService（顶层 service，不属于任何业务域，无环）。
+ *           toolCore → profileService（写偏好用，profileService 不反向依赖 AI 层，无环）。
  */
 import { generateReport } from './usecases.mjs'
 import { resolveWeatherByCity } from '../weatherService.mjs'
+import { rememberPreference } from '../profileService.mjs'
 
 /**
  * 工具清单。
@@ -74,6 +76,22 @@ export const TOOL_SPECS = [
       properties: {},
     },
   },
+  {
+    name: 'remember_preference',
+    description:
+      '记住用户在对话中透露的长期穿搭偏好，下次对话仍然有效。' +
+      '只在用户明确表达稳定偏好时调用（如"我不穿亮色""我对羊毛过敏""我通勤要求正式"），' +
+      '不要记录一次性的临时需求（如"今天想穿得休闲点"）。',
+    surfaces: ['openai', 'mcp'],
+    schema: {
+      type: 'object',
+      properties: {
+        key: { type: 'string', description: '偏好的类别，如"颜色禁忌"、"材质过敏"、"通勤要求"' },
+        value: { type: 'string', description: '偏好的具体内容，一句话' },
+      },
+      required: ['key', 'value'],
+    },
+  },
 ]
 
 /* ============ 格式适配器 ============ */
@@ -114,10 +132,11 @@ function matchesColor(garment, color) {
  *
  * @param {string} name 工具名
  * @param {object} args 模型传来的参数
- * @param {object} context 调用方准备好的数据 { garments, profile }
+ * @param {object} context 调用方准备好的数据 { garments, profile, userId }
  *   - garments: rowToGarment 形状的数组
  *   - profile: 嵌套形状（styles/skin/face/bmi 在顶层，围度在 body 下），
  *              与 usecases.generateReport 的入参一致
+ *   - userId: 只有写工具（remember_preference）需要。**必须由调用方给，不能来自模型参数**
  * @returns {Promise<string>}
  */
 export async function runTool(name, args = {}, context = {}) {
@@ -170,6 +189,25 @@ export async function runTool(name, args = {}, context = {}) {
       // generateReport 自带三级兜底：没配 key / 超时 / 不合 Schema 都会退到本地规则版，不会抛。
       const report = await generateReport(p)
       return JSON.stringify(report, null, 2)
+    }
+
+    case 'remember_preference': {
+      /*
+       * 这是唯一一个**写**工具，所以身份来源要特别小心。
+       *
+       * userId 从 context 来（HTTP 侧是 JWT 解出的 req.userId，MCP 侧是启动时注入的
+       * MCP_USER_ID），**绝不从 args 取** —— 模型可以填任意 userId，那就是水平越权。
+       * 这和 mcp/server.mjs 里否掉「userId 进 inputSchema」是同一条理由。
+       *
+       * 写入本身走 profileService.rememberPreference，它只改 preferences 一列、
+       * 强制截断、条数封顶。模型碰不到身形数据。
+       */
+      if (!context.userId) return '当前调用没有用户身份，无法保存偏好。'
+      const { key, value } = args
+      const res = await rememberPreference(context.userId, key, value)
+      if (res.ok) return `已记住偏好：${res.key} —— ${res.value}（当前共 ${res.total} 条）`
+      if (res.reason === 'NO_PROFILE') return '用户尚未完成风格测试，还没有画像可以挂载偏好，无法保存。'
+      return '偏好内容为空，没有保存。'
     }
 
     default:

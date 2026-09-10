@@ -12,6 +12,8 @@
 import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL } from './provider.mjs'
 import { TOOL_SPECS, toOpenAiTools, runTool } from './toolCore.mjs'
 import { reportUsage } from './usage.mjs'
+import { fitContext } from './context.mjs'
+import { summarizeTranscript } from './usecases.mjs'
 
 /**
  * 工具定义（OpenAI Chat Completions 格式）。
@@ -50,9 +52,23 @@ export async function executeTool(name, args, context = {}) {
  * ⚠️ 只实现了 OpenAI 兼容协议（DeepSeek 也走这套）。Anthropic 的工具协议不一样
  * （tool_use / tool_result 内容块 + stop_reason 判定），见 provider.mjs 的能力矩阵。
  *
- * @param {string[]} messages - [{role, content}]
+ * ────────────────────────────────────────────────────────────────
+ * 两条 2026-09-10 的改动
+ *
+ * 1. **只追加不改写调用方的数组。** 旧版直接 `messages.push(...)`，而 messages 是
+ *    routes/ai.mjs 直接透传的 `req.body.messages` —— 循环在改调用方的数据，是个真实的副作用 bug。
+ *    同时这也不符合 append-only：2026-08-31 起，改写历史轮次在新账号上会被 400
+ *    （思考块和产出它的模型绑定，改历史会让它失效）。所以这里先拷一份本地数组，
+ *    整个循环只往本地数组末尾追加，原数组一个字节都不碰。
+ *
+ * 2. **进循环前先把上下文压进预算**（services/ai/context.mjs）。
+ *    这条链路是全项目最烧 token 的：实测 tool-calling 的 prompt token 是普通对话的
+ *    20 倍（1055 vs 53），因为工具定义和上一轮的工具结果每轮都要重发。
+ * ────────────────────────────────────────────────────────────────
+ *
+ * @param {string[]} messages - [{role, content}]，**不会被修改**
  * @param {function} onChunk - 流式回调
- * @param {object} context - 工具执行上下文 { garments, profile }
+ * @param {object} context - 工具执行上下文 { garments, profile, userId }
  * @param {AbortSignal} [signal]
  * @returns {Promise<string>} 完整回复文本
  */
@@ -80,12 +96,16 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
   const system =
     '你是「灵犀」——一个亲切专业的中文穿搭顾问。你可以使用工具来查询用户的衣橱、天气和画像信息，从而给出更精准的建议。'
 
+  // 压进预算 + 拷成本地数组。下面整个循环只往 working 末尾追加，不碰调用方的 messages。
+  const { messages: fitted } = await fitContext(messages, { summarize: summarizeTranscript })
+  const working = fitted.map(normalizeOpenAiMessage)
+
   // 最多循环 5 轮（防止无限循环）
   for (let round = 0; round < 5; round++) {
     const body = {
       model: MODEL,
       temperature: 0.8,
-      messages: [{ role: 'system', content: system }, ...messages.map(normalizeOpenAiMessage)],
+      messages: [{ role: 'system', content: system }, ...working],
       tools: TOOLS,
       tool_choice: 'auto',
     }
@@ -106,8 +126,8 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
 
     // 检查是否有 tool_calls
     if (msg.tool_calls && msg.tool_calls.length > 0) {
-      // 记录 assistant 的 tool_calls 消息
-      messages.push({ role: 'assistant', content: null, tool_calls: msg.tool_calls })
+      // 追加到本地数组（不是调用方的 messages）
+      working.push({ role: 'assistant', content: null, tool_calls: msg.tool_calls })
 
       // 执行每个工具并添加结果
       for (const tc of msg.tool_calls) {
@@ -119,7 +139,7 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
           /* ignore */
         }
         const result = await executeTool(toolName, args, context)
-        messages.push({
+        working.push({
           role: 'tool',
           tool_call_id: tc.id,
           content: result,
