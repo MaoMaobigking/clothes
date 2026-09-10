@@ -77,6 +77,7 @@ export async function setUserRole(id, role) {
 /**
  * 给用户绑定登录账号与密码哈希（预置演示账号用）。
  * 幂等：重复调用只是覆盖同样的值。
+ * 动态拼SQL
  */
 export async function setAccountCredentials(id, { account, passwordHash, demoKind, nickname, role }) {
   const fields = []

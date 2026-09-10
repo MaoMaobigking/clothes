@@ -28,7 +28,7 @@ function toArray(value) {
 }
 
 /**
- * 新增衣物的业务默认值（原来写在 repo 的 addGarment 里）。
+ * 新增衣物的业务默认值
  *
  * 为什么搬上来：这十条全是产品决策 —— 默认叫什么名字、默认归哪一类、
  * 默认什么配色。换掉数据库它们一个都不用改，所以不该待在 repo：
@@ -82,7 +82,7 @@ export async function deleteGarment(userId, id) {
   await repo.deleteGarment(userId, id)
   if (item.img?.startsWith('/uploads/')) {
     const target = join(dirname(fileURLToPath(import.meta.url)), '..', item.img.slice(1))
-    //果删除文件时报错了（比如图片文件本来就不存在、或者已经被删了），就什么都不要做、不要让程序崩溃报错
+    //如果删除文件时报错了（比如图片文件本来就不存在、或者已经被删了），就什么都不要做、不要让程序崩溃报错
     unlink(target).catch(() => {})
   }
   return true

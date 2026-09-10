@@ -84,6 +84,9 @@ router.post('/admin-login', async (req, res, next) => {
 //
 // 这条不走 authRequired：它本来就是「token 还能用吗」的探针，
 // 401 是正常答案之一，中间件那套统一错误反而不好在前端区分。
+//前端写这个探针逻辑时，
+// 往往希望后端能温和地返回一个结果（比如告诉前端“无效”或返回空值），
+// 让前端自己去决定是静默刷新还是跳转登录，而不是触发全局那种强硬的错误拦截。
 router.get('/me', async (req, res, next) => {
   const header = req.headers.authorization || ''
   const token = header.replace(/^Bearer\s+/i, '')

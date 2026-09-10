@@ -21,6 +21,7 @@ import { config } from '../config/env.mjs'
  */
 const JWT_SECRET = config.auth.jwtSecret
 if (!JWT_SECRET || JWT_SECRET.length < 16) {
+  //主动让程序崩掉，并附上一句话说明原因
   throw new Error(
     '缺少 JWT_SECRET 环境变量（或长度不足 16）。请在 server/.env 中配置，' +
       "可用 node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\" 生成。",
@@ -51,6 +52,7 @@ export function verifyToken(token) {
 
 /**
  * Express 中间件：必须登录
+ * 适用于登录才能看的页面
  */
 export function authRequired(req, res, next) {
   const header = req.headers.authorization || ''
@@ -70,6 +72,7 @@ export function authRequired(req, res, next) {
 
 /**
  * Express 中间件：可选登录（不强制，但如果有 token 就解析）
+ * 适用于不登录也能看的页面
  */
 export function authOptional(req, _res, next) {
   const header = req.headers.authorization || ''
