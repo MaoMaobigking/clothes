@@ -2,7 +2,7 @@
  * 功能四数据层与业务层验收
  *
  * 用法：cd server && npm run check:scene
- * 验证六场景、纯旧衣/新旧混搭、新品淘口令、保存模板隔离、购物车落库、
+ * 验证十场景、纯旧衣/新旧混搭、新品淘口令、保存模板隔离、购物车落库、
  * 以及商城目录（复用 scene_catalog）的淘口令与 catalog 入车。
  */
 import { wxLogin } from '../services/auth/index.mjs'
@@ -33,14 +33,14 @@ const stamp = Date.now().toString(36)
 const a = await wxLogin(`scene_a_${stamp}`)
 const b = await wxLogin(`scene_b_${stamp}`)
 
-console.log('\n【1】六场景')
-check('场景定义正好 6 个', SCENE_DEFINITIONS.length === 6)
-check('场景 key 唯一', new Set(SCENE_DEFINITIONS.map((scene) => scene.key)).size === 6)
+console.log('\n【1】十场景')
+check('场景定义正好 10 个', SCENE_DEFINITIONS.length === 10)
+check('场景 key 唯一', new Set(SCENE_DEFINITIONS.map((scene) => scene.key)).size === 10)
 
 console.log('\n【2】场景方案生成')
 const result = await generateScenePlans({
   userId: a.userId,
-  sceneKey: 'business',
+  sceneKey: 'meeting',
   season: '秋季',
   weather: { city: '杭州', temp: 22, condition: '晴', icon: '☀️' },
 })
@@ -66,8 +66,8 @@ check('激活旧衣数量大于 0', result.activatedGarmentCount > 0)
 console.log('\n【3】保存模板与用户隔离')
 const plan = result.plans.mixed[0]
 const saved = await saveOutfit(a.userId, {
-  sceneKey: 'business',
-  title: '商务正装 · 秋季',
+  sceneKey: 'meeting',
+  title: '会议室 · 秋季',
   season: '秋季',
   mode: plan.mode,
   filterKey: 'day',

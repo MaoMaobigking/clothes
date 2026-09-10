@@ -49,7 +49,10 @@ import { ROUTES } from '@/constants/routes'
 const wardrobe = useWardrobeStore()
 const profile = useProfileStore()
 
-const selectedScene = ref<SceneKey>('daily')
+// 默认选第一个场景。写 SCENE_OPTIONS[0].key 而不是写死某个 key ——
+// 场景表跟着素材换过一轮（六个抽象场景 → 十个具体地点），写死的话
+// 每次改表这里都是个哑掉的默认值。
+const selectedScene = ref<SceneKey>(SCENE_OPTIONS[0].key)
 const season = ref(currentSeason())
 const mode = ref<SceneMode>('mixed')
 const filterKey = ref<SceneFilterKey>('day')

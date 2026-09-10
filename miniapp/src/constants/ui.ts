@@ -13,6 +13,13 @@ import type { RouteKey } from './routes'
 export const MODEL_IMAGES = {
   front: '/static/images/model/front.jpg',
   frontMale: '/static/images/model/front-male.jpg',
+  /*
+   * 背面人台。素材清单 B 组标的 P0，之前一直缺，AvatarViewer 只能拿正面图
+   * 镜像顶替并在角标标注「背面演示」。客户实拍素材到位后这两张是真背面，
+   * 传进 :frames 的 back 就不再有那个角标。
+   */
+  back: '/static/images/model/back.jpg',
+  backMale: '/static/images/model/back-male.jpg',
   outfit: '/static/images/model/outfit.jpg',
   /** 百炼官方示例人像（720×1280，AI 试衣出图质量有保证） */
   official: '/static/images/tryon/person.jpg',

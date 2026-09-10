@@ -551,6 +551,22 @@ const EMOJI_ICON_ENTRIES: [string, IconName][] = [
   ['🎡', 'sc-play'],
   ['🎓', 'sc-graduate'],
   ['🎭', 'sc-stage'],
+  /*
+   * 十个通勤 / 社交场景（客户素材版）。
+   * 没有为它们单画图标，按语义复用上面这批 —— 允许几个撞同一个图标：
+   * 这些只在场景底图加载失败时当占位显示，撞图标也比全部回落成通用
+   * 'image' 有区分度。
+   */
+  ['🚇', 'sc-work'],
+  ['🚉', 'sc-travel'],
+  ['💻', 'sc-work'],
+  ['📊', 'sc-work'],
+  ['🍽', 'sc-date'],
+  ['🏨', 'sc-party'],
+  ['☕', 'sc-daily'],
+  ['🌿', 'sc-play'],
+  ['🥂', 'sc-party'],
+  ['🍸', 'sc-stage'],
   // 五步测试 / 工具
   ['🎨', 'test-skin'],
   ['🙂', 'test-face'],

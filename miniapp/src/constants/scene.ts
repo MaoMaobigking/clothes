@@ -1,4 +1,14 @@
-export type SceneKey = 'daily' | 'business' | 'date' | 'travel' | 'academy' | 'cosplay'
+/*
+ * 十个场景，key 必须和 static/images/scene/ 下的文件名一一对应。
+ *
+ * 原先是 daily/business/date/travel/academy/cosplay 六个抽象场景，配的是脚本
+ * 抓来的占位图。客户交付的实拍素材是十个具体地点（通勤 + 社交两条线），
+ * 语义对不上——「学院风」「cosplay」在这批素材里压根没有对应场景——所以
+ * 场景表跟着素材重建。后端 constants/scene.mjs 的 SCENE_DEFINITIONS 和
+ * seeds/scene-catalog.json 的 sceneKey 必须同步，三者是一套 key。
+ */
+export type SceneKey =
+  'subway' | 'station' | 'desk' | 'meeting' | 'restaurant' | 'lobby' | 'cafe' | 'terrace' | 'banquet' | 'bar'
 
 export type SceneMode = 'pure' | 'mixed'
 export type SceneFilterKey = 'day' | 'night' | 'indoor' | 'outdoor'
@@ -15,58 +25,94 @@ export interface SceneOption {
 
 export const SCENE_OPTIONS: SceneOption[] = [
   {
-    key: 'daily',
-    label: '日常休闲',
-    emoji: '🛋️',
-    keywords: ['舒适', '百搭', '休闲'],
-    img: '/static/images/scene/daily.jpg',
+    key: 'subway',
+    label: '地铁通勤',
+    emoji: '🚇',
+    keywords: ['通勤', '利落', '耐挤'],
+    img: '/static/images/scene/subway.jpg',
+    from: '#dfe6f0',
+    to: '#9aa8c0',
+  },
+  {
+    key: 'station',
+    label: '车站出行',
+    emoji: '🚉',
+    keywords: ['轻便', '好走', '出行'],
+    img: '/static/images/scene/station.jpg',
+    from: '#e0ecf5',
+    to: '#94b6cf',
+  },
+  {
+    key: 'desk',
+    label: '工位日常',
+    emoji: '💻',
+    keywords: ['久坐', '舒适', '得体'],
+    img: '/static/images/scene/desk.jpg',
+    from: '#eef0e8',
+    to: '#b3bda0',
+  },
+  {
+    key: 'meeting',
+    label: '会议室',
+    emoji: '📊',
+    keywords: ['正式', '利落', '专业'],
+    img: '/static/images/scene/meeting.jpg',
+    from: '#dde3ec',
+    to: '#8b9bb5',
+  },
+  {
+    key: 'restaurant',
+    label: '西餐厅',
+    emoji: '🍽️',
+    keywords: ['精致', '约会', '浪漫'],
+    img: '/static/images/scene/restaurant.jpg',
+    from: '#f5e2dd',
+    to: '#c99a92',
+  },
+  {
+    key: 'lobby',
+    label: '酒店大厅',
+    emoji: '🏨',
+    keywords: ['商务', '社交', '体面'],
+    img: '/static/images/scene/lobby.jpg',
+    from: '#f0e8dc',
+    to: '#bfa889',
+  },
+  {
+    key: 'cafe',
+    label: '咖啡厅',
+    emoji: '☕',
+    keywords: ['休闲', '松弛', '百搭'],
+    img: '/static/images/scene/cafe.jpg',
     from: '#f3ead6',
     to: '#cbb488',
   },
   {
-    key: 'business',
-    label: '商务正装',
-    emoji: '💼',
-    keywords: ['通勤', '利落', '正式'],
-    img: '/static/images/scene/business.jpg',
-    from: '#d6e4f0',
-    to: '#8fa9c9',
+    key: 'terrace',
+    label: '露天餐厅',
+    emoji: '🌿',
+    keywords: ['度假', '轻盈', '户外'],
+    img: '/static/images/scene/terrace.jpg',
+    from: '#e2efe4',
+    to: '#93bfa0',
   },
   {
-    key: 'date',
-    label: '约会聚会',
-    emoji: '💕',
-    keywords: ['浪漫', '精致', '社交'],
-    img: '/static/images/scene/date.jpg',
-    from: '#ffd6e8',
-    to: '#d6a0ff',
-  },
-  {
-    key: 'travel',
-    label: '旅行度假',
-    emoji: '🏝️',
-    keywords: ['轻便', '防晒', '度假'],
-    img: '/static/images/scene/travel.jpg',
-    from: '#d9ece6',
-    to: '#7fc0b0',
-  },
-  {
-    key: 'academy',
-    label: '学院风',
-    emoji: '🎓',
-    keywords: ['复古', '学院', '减龄'],
-    img: '/static/images/scene/academy.jpg',
+    key: 'banquet',
+    label: '宴会厅',
+    emoji: '🥂',
+    keywords: ['隆重', '礼服', '晚宴'],
+    img: '/static/images/scene/banquet.jpg',
     from: '#efe0f0',
-    to: '#c29ad6',
+    to: '#b98fc4',
   },
   {
-    key: 'cosplay',
-    label: 'cosplay',
-    emoji: '🎭',
-    keywords: ['造型', '戏剧', '个性'],
-    img: '/static/images/scene/cosplay.jpg',
-    from: '#4a4a52',
-    to: '#8d8d9b',
+    key: 'bar',
+    label: '酒吧',
+    emoji: '🍸',
+    keywords: ['夜场', '个性', '吸睛'],
+    img: '/static/images/scene/bar.jpg',
+    from: '#2f2f3a',
+    to: '#6b5a7a',
   },
 ]
 

@@ -139,17 +139,23 @@ export const OUTFIT_RECOS: OutfitReco[] = OUTFIT_RECOS_RAW.map((r) => ({
 /* ----------------------------- 场景 / 模式 / 工具 ----------------------------- */
 
 /*
- * 六个场景，key 必须和 static/images/scene/ 下的文件名一一对应。
+ * 十个场景，key 必须和 static/images/scene/ 下的文件名一一对应。
  * 之前这里是 play/work/sport/party，磁盘上根本没有这四张图，
- * SCENES 一旦被渲染就是四个裂图。改成规格 §10.2 的六场景，和素材对齐。
+ * SCENES 一旦被渲染就是四个裂图。后来改成规格 §10.2 的六场景，
+ * 现在跟着客户实拍素材重建为十个具体地点 —— 唯一来源是
+ * @/constants/scene 的 SCENE_OPTIONS，别在这里另立一套 key。
  */
 const SCENES_RAW: Omit<Scene, 'img'>[] = [
-  { key: 'daily', label: '日常休闲', emoji: '☕' },
-  { key: 'business', label: '商务正装', emoji: '💼' },
-  { key: 'date', label: '约会聚会', emoji: '💕' },
-  { key: 'travel', label: '旅行度假', emoji: '🧳' },
-  { key: 'academy', label: '学院风', emoji: '🎓' },
-  { key: 'cosplay', label: 'cosplay', emoji: '🎭' },
+  { key: 'subway', label: '地铁通勤', emoji: '🚇' },
+  { key: 'station', label: '车站出行', emoji: '🚉' },
+  { key: 'desk', label: '工位日常', emoji: '💻' },
+  { key: 'meeting', label: '会议室', emoji: '📊' },
+  { key: 'restaurant', label: '西餐厅', emoji: '🍽️' },
+  { key: 'lobby', label: '酒店大厅', emoji: '🏨' },
+  { key: 'cafe', label: '咖啡厅', emoji: '☕' },
+  { key: 'terrace', label: '露天餐厅', emoji: '🌿' },
+  { key: 'banquet', label: '宴会厅', emoji: '🥂' },
+  { key: 'bar', label: '酒吧', emoji: '🍸' },
 ]
 export const SCENES: Scene[] = SCENES_RAW.map((s) => ({
   ...s,
