@@ -57,7 +57,20 @@ const modelSrc = computed(() => {
   if (viewMode.value === 'back') return props.frames.back || props.src || props.frames.front || ''
   return props.src || props.frames.front || ''
 })
-const displayLabel = computed(() => (viewMode.value === 'back' ? `${props.label} · 背面演示` : props.label))
+/*
+ * 只有真的没有背面素材时才标「背面演示」。
+ *
+ * 背面图长期缺位，这里以前无条件加后缀 —— 现在 model/back.jpg 到位了，
+ * 真背面还挂着「演示」是在骗自己。判据是 back 存在且不等于正面那张：
+ * 调用方传 { front: x, back: x } 顶替时仍然算没有背面。
+ */
+const hasRealBack = computed(() => {
+  const back = props.frames.back
+  return Boolean(back) && back !== (props.src || props.frames.front)
+})
+const displayLabel = computed(() =>
+  viewMode.value === 'back' && !hasRealBack.value ? `${props.label} · 背面演示` : props.label,
+)
 
 /*
  * 试戴素材缺图时退回 emoji（规格 §4.3 §14）。

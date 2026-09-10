@@ -40,8 +40,8 @@ function seasonNow(month = new Date().getMonth() + 1) {
 
 /** 每个演示账号预置两套场景模板，让「我的搭配」一进去就有东西（§8.11 §10.10） */
 const SCENE_TEMPLATES = [
-  { sceneKey: 'daily', filterKey: 'day', mode: 'mixed' },
-  { sceneKey: 'business', filterKey: 'indoor', mode: 'pure' },
+  { sceneKey: 'desk', filterKey: 'day', mode: 'mixed' },
+  { sceneKey: 'meeting', filterKey: 'indoor', mode: 'pure' },
 ]
 
 async function seedSceneOutfits(userId, label) {

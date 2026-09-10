@@ -99,6 +99,28 @@ export async function ensureSceneCatalog() {
          emoji = VALUES(emoji)`,
       [rows],
     )
+
+    /*
+     * 再删掉 seed 里已经没有的行 —— 上面那句 upsert 只覆盖同 id 的行，
+     * 光有它「目录和代码同源」是做不到的：seed 里删掉或改名一件商品，
+     * 表里的老行会原地留下来。
+     *
+     * 场景表从六个抽象场景换成十个具体地点那次就踩了：商品 id 从
+     * sc-daily-1 变成 sc-cafe-1，新行插进去、老行还在，商城直接变成
+     * 60 件，其中 30 件的 image_url 指向已经改名的文件（一片裂图）。
+     *
+     * cart_items.item_id 是软引用（没有外键），删了不会报错；购物车里
+     * 指向已删商品的历史行由 cartService 标成 available=false，本来就有降级。
+     *
+     * ⚠️ 这句必须用 conn.query，不能换成 conn.execute。mysql2 的 query 会把
+     * 数组参数展开成 IN ('a','b',...)，而 execute 走 prepared statement，
+     * 会把整个数组当成一个字符串值 —— 那样 NOT IN 对谁都成立，一句下去
+     * 整张表就空了。同理别用 db.mjs 里的 execute/getAll（它们都是 pool.execute）。
+     */
+    const [deleted] = await conn.query(`DELETE FROM scene_catalog WHERE id NOT IN (?)`, [items.map((item) => item.id)])
+    if (deleted.affectedRows) {
+      console.log(`[scene_catalog] 清掉 ${deleted.affectedRows} 行 seed 里已不存在的商品`)
+    }
   })
 
   return items.length

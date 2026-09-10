@@ -129,6 +129,7 @@ onMounted(async () => {
 const radar = computed(() => store.radar)
 const summary = computed(() => report.value?.summary || store.summary || '完成测试即可生成你的专属画像')
 const modelSrc = computed(() => (store.profile.gender === 'male' ? MODEL_IMAGES.frontMale : MODEL_IMAGES.front))
+const modelBackSrc = computed(() => (store.profile.gender === 'male' ? MODEL_IMAGES.backMale : MODEL_IMAGES.back))
 const viewerLabel = computed(() => (store.profile.gender === 'male' ? '男性虚拟形象' : '女性虚拟形象'))
 
 function formatDate(value: string) {
@@ -206,7 +207,7 @@ function goBack() {
       <view class="card avatar-card">
         <AvatarViewer
           :src="modelSrc"
-          :frames="{ front: modelSrc, back: modelSrc }"
+          :frames="{ front: modelSrc, back: modelBackSrc }"
           :label="viewerLabel"
           :shape="store.avatarShape"
         />
