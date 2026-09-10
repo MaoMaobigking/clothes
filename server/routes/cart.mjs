@@ -13,7 +13,7 @@
  */
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as cartService from '../services/cartService.mjs'
+import * as cartService from '../services/commerce/cart.mjs'
 
 const router = Router()
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)

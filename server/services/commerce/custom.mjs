@@ -4,7 +4,7 @@
  * 校验、VIP 限制、设计师分配和自动回复都在这里完成；
  * SQL 留在 repository，HTTP 细节留在 routes。
  */
-import * as repo from '../repositories/customRepo.mjs'
+import * as repo from '../../repositories/customRepo.mjs'
 
 export const SERVICE_TYPE_LABELS = {
   body: '身材特殊定制',

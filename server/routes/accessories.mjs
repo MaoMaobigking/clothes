@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
-import * as accessoryService from '../services/accessoryService.mjs'
+import * as accessoryService from '../services/wardrobe/accessory.mjs'
 
 const router = Router()
 router.use(authRequired)

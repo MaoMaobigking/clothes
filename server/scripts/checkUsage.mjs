@@ -15,7 +15,7 @@
  * ⚠️ 会真的调模型，花真钱（DeepSeek 很便宜，一轮几分之一分钱）。
  */
 import { getAiRuntime, aiChat, aiChatStream, aiChatWithTools, withAiLog } from '../services/ai/index.mjs'
-import { normalizeUsage, createUsageScope, reportUsage } from '../services/ai/usage.mjs'
+import { normalizeUsage, createUsageScope, reportUsage } from '../services/ai/telemetry/usage.mjs'
 import { getAll, closeDb } from '../db/mysql.mjs'
 
 let failed = 0

@@ -5,8 +5,8 @@
  * 每个用例都带规则兜底：没配 key、模型超时或返回不合 Schema 时走本地规则版，
  * 保证演示链路不会因为外部服务挂掉而断在半路。
  */
-import { API_KEY } from './provider.mjs'
-import { withTimeout, structuredComplete, aiCompleteText, aiComplete } from './client.mjs'
+import { API_KEY } from '../runtime/provider.mjs'
+import { withTimeout, structuredComplete, aiCompleteText, aiComplete } from '../runtime/client.mjs'
 import { fitContext } from './context.mjs'
 import {
   STYLE_REPORT_SCHEMA,
@@ -14,7 +14,7 @@ import {
   parseJson,
   validateSchema,
   normalizeStyleReport,
-} from './schemas.mjs'
+} from '../runtime/schemas.mjs'
 export async function generateReport(profile) {
   const p = profile || {}
   const b = p.body || {}

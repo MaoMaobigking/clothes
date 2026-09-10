@@ -4,17 +4,17 @@
  * 比赛版按需求第 9.4 节使用规则推荐：当前服装、季节、场合、用户画像、
  * 当前用户历史评分和少量聚合评分共同决定排序，并把每个来源转成可读理由。
  */
-import * as accessoryRepo from '../repositories/accessoryRepo.mjs'
-import * as cartService from './accessoryCartService.mjs'
-import * as profileRepo from '../repositories/profileRepo.mjs'
-import * as userRepo from '../repositories/userRepo.mjs'
+import * as accessoryRepo from '../../repositories/accessoryRepo.mjs'
+import * as cartService from '../accessoryCartService.mjs'
+import * as profileRepo from '../../repositories/profileRepo.mjs'
+import * as userRepo from '../../repositories/userRepo.mjs'
 import {
   ACCESSORY_CATEGORIES,
   CATEGORY_LABELS,
   GARMENT_CATEGORY_LABELS,
   BUDGET_RANGES,
   DEMO_RATINGS,
-} from '../constants/accessory.mjs'
+} from '../../constants/accessory.mjs'
 
 // 分类表原来定义在本文件并对外导出，迁走后在这里原样再导出，保持导入面不变
 // （routes/accessories.mjs 用 import * as accessoryService 取它）

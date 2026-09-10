@@ -8,8 +8,8 @@
  * 两边都在**读完流之后一次性上报**，而不是边读边累加 —— Anthropic 的 message_delta
  * 报的是累计值，边读边加会翻倍。
  */
-import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL, ANTHROPIC_MESSAGES_URL } from './provider.mjs'
-import { reportUsage } from './usage.mjs'
+import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL, ANTHROPIC_MESSAGES_URL } from '../runtime/provider.mjs'
+import { reportUsage } from '../telemetry/usage.mjs'
 import { fitContext } from './context.mjs'
 import { summarizeTranscript } from './usecases.mjs'
 /**

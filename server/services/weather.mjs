@@ -7,7 +7,7 @@
  *
  * 为什么从 services/scene/weather.mjs 提上来（2026-09-08）：
  * 现在有两个消费者 —— 场景页（services/scene/index.mjs）和 AI 工具层的
- * get_weather（services/ai/toolCore.mjs）。留在 scene/ 子目录下，
+ * get_weather（services/ai/tools/handlers.mjs）。留在 scene/ 子目录下，
  * services/ai/ 就得反向依赖 services/scene/，读代码的人会以为工具依赖场景功能。
  * 它本来就不是 scene 专属的，放到 services/ 顶层和 ragService / profileService 平级。
  */

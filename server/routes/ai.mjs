@@ -33,8 +33,8 @@ import {
   getReport,
   withAiLog,
 } from '../services/ai/index.mjs'
-import { searchRAG, buildRAGPrompt } from '../services/ragService.mjs'
-import { listGarments } from '../services/garmentService.mjs'
+import { searchRAG, buildRAGPrompt } from '../services/rag/index.mjs'
+import { listGarments } from '../services/wardrobe/garment.mjs'
 import { config } from '../config/env.mjs'
 
 const router = Router()

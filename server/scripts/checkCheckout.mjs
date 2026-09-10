@@ -13,9 +13,9 @@
  */
 import { closeDb, getAll, getOne, initDb } from '../db/mysql.mjs'
 import { wxLogin } from '../services/auth/index.mjs'
-import * as cartService from '../services/cartService.mjs'
-import * as orderService from '../services/orderService.mjs'
-import { ensureAccessories } from '../services/accessoryService.mjs'
+import * as cartService from '../services/commerce/cart.mjs'
+import * as orderService from '../services/commerce/order.mjs'
+import { ensureAccessories } from '../services/wardrobe/accessory.mjs'
 import { ensureSceneCatalog } from '../services/scene/index.mjs'
 
 let failed = 0

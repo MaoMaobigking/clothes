@@ -4,7 +4,7 @@
  * 暴露工具：search_garments / get_weather / get_user_profile / generate_style_report
  * 使用 @modelcontextprotocol/sdk 标准协议。
  *
- * 工具的 schema 和执行逻辑在 services/ai/toolCore.mjs（与手写 tool-calling 共用同一份），
+ * 工具的 schema 和执行逻辑在 services/ai/tools/handlers.mjs（与手写 tool-calling 共用同一份），
  * 本文件只负责三件事：确定身份、按需从库里取数据、把结果包成 MCP 的 content 格式。
  *
  * 启动：npm run mcp        （必须走 --env-file=.env，否则读不到数据库和 MCP_USER_ID）
@@ -13,9 +13,9 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
-import { TOOL_SPECS, toMcpTools, runTool } from '../services/ai/toolCore.mjs'
-import { listGarments } from '../services/garmentService.mjs'
-import { getLatestProfile } from '../services/profileService.mjs'
+import { TOOL_SPECS, toMcpTools, runTool } from '../services/ai/tools/handlers.mjs'
+import { listGarments } from '../services/wardrobe/garment.mjs'
+import { getLatestProfile } from '../services/wardrobe/bodyProfile.mjs'
 import { closeDb } from '../db/mysql.mjs'
 
 // ── 身份 ─────────────────────────────────────────────────────

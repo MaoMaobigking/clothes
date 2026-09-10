@@ -244,8 +244,8 @@ export async function findSceneOutfit(userId, id) {
 /**
  * 场景购物车读写 —— 已移除，统一到 cart_items 单一数据域（规格 §4.5 §13）。
  *
- * 写：services/cartService.mjs 的 addCatalogItems()，item_type='catalog'。
- * 读：services/cartService.mjs 的 listCart()。
+ * 写：services/commerce/cart.mjs 的 addCatalogItems()，item_type='catalog'。
+ * 读：services/commerce/cart.mjs 的 listCart()。
  *
  * 原实现以 item_type='garment' 写 scene_catalog 的 id，而功能三按 garment
  * 去 garments 查明细查不到，那些行会被 .filter(Boolean) 静默丢掉 ——

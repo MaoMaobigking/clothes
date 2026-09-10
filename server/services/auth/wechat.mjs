@@ -7,7 +7,7 @@
 import { createHash } from 'node:crypto'
 import { signToken, verifyToken } from '../../middleware/auth.mjs'
 import { findOrCreateByOpenid } from '../../repositories/userRepo.mjs'
-import { ensureSeeded } from '../garmentService.mjs'
+import { ensureSeeded } from '../wardrobe/garment.mjs'
 import { config } from '../../config/env.mjs'
 const WX_APPID = config.auth.wxAppId
 const WX_SECRET = config.auth.wxSecret

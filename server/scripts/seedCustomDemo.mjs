@@ -10,7 +10,7 @@ import {
   ensureDesigners,
   listRequests,
   upgradeMembership,
-} from '../services/customService.mjs'
+} from '../services/commerce/custom.mjs'
 
 await initDb()
 await ensureDesigners()

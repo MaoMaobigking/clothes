@@ -14,11 +14,11 @@
  */
 import { closeDb, execute, getAll, getOne, initDb, migrateCartForCheck } from '../db/mysql.mjs'
 import { wxLogin } from '../services/auth/index.mjs'
-import * as garmentService from '../services/garmentService.mjs'
-import * as cartService from '../services/cartService.mjs'
-import { ensureAccessories } from '../services/accessoryService.mjs'
+import * as garmentService from '../services/wardrobe/garment.mjs'
+import * as cartService from '../services/commerce/cart.mjs'
+import { ensureAccessories } from '../services/wardrobe/accessory.mjs'
 import { ensureSceneCatalog } from '../services/scene/index.mjs'
-import { generateOutfits } from '../services/outfitService.mjs'
+import { generateOutfits } from '../services/wardrobe/outfit.mjs'
 
 let failed = 0
 function check(label, ok, extra = '') {

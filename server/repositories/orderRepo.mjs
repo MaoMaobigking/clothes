@@ -2,7 +2,7 @@
  * 演示结算的数据访问层：收货地址 + 订单 + 订单行。
  *
  * 三张表都是 §4.5 之后新增的（schema.sql 26–29），和 cart_items 一样按 user_id 隔离。
- * 这一层只做 SQL，金额怎么算、优惠券怎么选在 services/orderService.mjs。
+ * 这一层只做 SQL，金额怎么算、优惠券怎么选在 services/commerce/order.mjs。
  */
 import { getAll, getOne, execute, withTransaction } from '../db/mysql.mjs'
 

@@ -16,7 +16,7 @@
  *   5. 功能五演示申请：独立的 dev-tag 账号，和上面互不影响
  */
 import { closeDb, initDb } from '../db/mysql.mjs'
-import { ensureAccessories } from '../services/accessoryService.mjs'
+import { ensureAccessories } from '../services/wardrobe/accessory.mjs'
 import { ensureSceneCatalog, generateScenePlans, listSceneOutfits, saveOutfit } from '../services/scene/index.mjs'
 import {
   advanceRequest,
@@ -24,9 +24,9 @@ import {
   ensureDesigners,
   listRequests,
   upgradeMembership,
-} from '../services/customService.mjs'
-import { ensureDemoData } from '../services/demoSeedService.mjs'
-import { seedCommunityIfNeeded } from '../services/communitySeedService.mjs'
+} from '../services/commerce/custom.mjs'
+import { ensureDemoData } from '../services/demoSeed.mjs'
+import { seedCommunityIfNeeded } from '../services/community/index.mjs'
 import { DEMO_ACCOUNTS, demoPasswordOf, wxLogin } from '../services/auth/index.mjs'
 
 const reset = process.argv.includes('--reset')

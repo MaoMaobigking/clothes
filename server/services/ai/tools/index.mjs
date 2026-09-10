@@ -9,11 +9,11 @@
  * executeTool 的数据仍然全部由调用方经 context 传入（context.garments / context.profile），
  * 这一层不 import 任何 repository —— 保持无依赖，也就不会引入循环引用。
  */
-import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL } from './provider.mjs'
-import { TOOL_SPECS, toOpenAiTools, runTool } from './toolCore.mjs'
-import { reportUsage } from './usage.mjs'
-import { fitContext } from './context.mjs'
-import { summarizeTranscript } from './usecases.mjs'
+import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL } from '../runtime/provider.mjs'
+import { TOOL_SPECS, toOpenAiTools, runTool } from './handlers.mjs'
+import { reportUsage } from '../telemetry/usage.mjs'
+import { fitContext } from '../chat/context.mjs'
+import { summarizeTranscript } from '../chat/usecases.mjs'
 
 /**
  * 工具定义（OpenAI Chat Completions 格式）。
@@ -61,7 +61,7 @@ export async function executeTool(name, args, context = {}) {
  *    （思考块和产出它的模型绑定，改历史会让它失效）。所以这里先拷一份本地数组，
  *    整个循环只往本地数组末尾追加，原数组一个字节都不碰。
  *
- * 2. **进循环前先把上下文压进预算**（services/ai/context.mjs）。
+ * 2. **进循环前先把上下文压进预算**（services/ai/chat/context.mjs）。
  *    这条链路是全项目最烧 token 的：实测 tool-calling 的 prompt token 是普通对话的
  *    20 倍（1055 vs 53），因为工具定义和上一轮的工具结果每轮都要重发。
  * ────────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
     const err = new Error(
       '工具调用目前只实现了 OpenAI 兼容协议（含 DeepSeek）。' +
         'Anthropic 的 tool_use / tool_result 协议尚未接入，请改用 AI_PROVIDER=deepseek 或 openai。' +
-        '各 provider 的能力支持情况见 services/ai/provider.mjs 顶部的能力矩阵。',
+        '各 provider 的能力支持情况见 services/ai/runtime/provider.mjs 顶部的能力矩阵。',
     )
     err.code = 'TOOL_CALLING_UNSUPPORTED_PROVIDER'
     err.status = 501

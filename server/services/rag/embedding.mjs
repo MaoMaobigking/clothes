@@ -15,7 +15,7 @@
  *
  * 环境变量：DASHSCOPE_API_KEY（北京地域）/ DASHSCOPE_BASE_URL（可选）
  */
-import { config } from '../config/env.mjs'
+import { config } from '../../config/env.mjs'
 
 const BASE_URL = config.bailian.baseUrl
 const API_KEY = config.bailian.apiKey

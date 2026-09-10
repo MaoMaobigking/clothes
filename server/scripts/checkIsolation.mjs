@@ -12,7 +12,7 @@
  * 而且能顺手断言数据库里的真实行数 —— 接口返回值可以骗人，行数不会。
  */
 import { wxLogin } from '../services/auth/index.mjs'
-import * as garmentService from '../services/garmentService.mjs'
+import * as garmentService from '../services/wardrobe/garment.mjs'
 import { getOne, getAll, closeDb, initDb } from '../db/mysql.mjs'
 
 let failed = 0

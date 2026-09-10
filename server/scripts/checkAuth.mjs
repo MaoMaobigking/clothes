@@ -20,11 +20,11 @@ import {
   passwordLogin,
   wxLogin,
 } from '../services/auth/index.mjs'
-import { ensureDemoData } from '../services/demoSeedService.mjs'
-import { ensureAccessories } from '../services/accessoryService.mjs'
-import * as garmentService from '../services/garmentService.mjs'
-import * as profileService from '../services/profileService.mjs'
-import * as outfitService from '../services/outfitService.mjs'
+import { ensureDemoData } from '../services/demoSeed.mjs'
+import { ensureAccessories } from '../services/wardrobe/accessory.mjs'
+import * as garmentService from '../services/wardrobe/garment.mjs'
+import * as bodyProfile from '../services/wardrobe/bodyProfile.mjs'
+import * as outfitService from '../services/wardrobe/outfit.mjs'
 import * as aiRepo from '../repositories/aiRepo.mjs'
 
 let failed = 0
@@ -67,7 +67,7 @@ try {
 
   console.log('\n【3】演示数据与空白账号')
   const femaleGarments = await garmentService.listGarments(femaleLogin.userId)
-  const femaleProfile = await profileService.getLatestProfile(femaleLogin.userId)
+  const femaleProfile = await bodyProfile.getLatestProfile(femaleLogin.userId)
   const femaleReports = await aiRepo.listStyleReports(femaleLogin.userId, 5)
   const femaleOutfits = await outfitService.listOutfits(femaleLogin.userId, {})
   check('演示女性有真实衣橱', femaleGarments.length > 0, `${femaleGarments.length} 件`)
@@ -77,13 +77,13 @@ try {
 
   const male = DEMO_ACCOUNTS.find((item) => item.kind === 'male')
   const maleLogin = await passwordLogin(male.account, demoPasswordOf(male))
-  const maleProfile = await profileService.getLatestProfile(maleLogin.userId)
+  const maleProfile = await bodyProfile.getLatestProfile(maleLogin.userId)
   check('演示男性画像性别为 male', maleProfile?.gender === 'male')
   check('演示男性有真实衣橱', (await garmentService.listGarments(maleLogin.userId)).length > 0)
 
   const blank = DEMO_ACCOUNTS.find((item) => item.kind === 'blank')
   const blankLogin = await passwordLogin(blank.account, demoPasswordOf(blank))
-  check('空白账号无画像', (await profileService.getLatestProfile(blankLogin.userId)) === null)
+  check('空白账号无画像', (await bodyProfile.getLatestProfile(blankLogin.userId)) === null)
   check('空白账号无历史搭配', (await outfitService.listOutfits(blankLogin.userId, {})).length === 0)
 
   console.log('\n【4】微信一键注册与再次登录')

@@ -132,7 +132,7 @@ export async function initDb() {
   } finally {
     await conn.end()
   }
-  const { seedCommunityIfNeeded } = await import('../services/communitySeedService.mjs')
+  const { seedCommunityIfNeeded } = await import('../services/community/index.mjs')
   await seedCommunityIfNeeded()
 }
 
@@ -352,7 +352,7 @@ async function migrateCart(conn) {
  *
  * 表和 prompt_tokens / completion_tokens 两列早就在，但底层调用从不透出 provider 的
  * usage，所以那两列长期固定是 0 —— 「我做了 token 成本统计」这句话当时是不能说的。
- * 接上 services/ai/usage.mjs 之后补三列：
+ * 接上 services/ai/telemetry/usage.mjs 之后补三列：
  *   cache_hit_tokens / cache_write_tokens —— 缓存命中情况，算真实成本要用
  *   model_calls                          —— 一次逻辑调用底下的模型往返次数（tool-calling > 1）
  */

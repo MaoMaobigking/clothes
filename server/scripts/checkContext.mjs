@@ -12,8 +12,14 @@
  * ⚠️ 后半段会真调模型，花真钱（DeepSeek 很便宜）。
  */
 import { getAiRuntime, aiChatWithTools, withAiLog } from '../services/ai/index.mjs'
-import { fitContext, clearOldToolResults, slideWindow, estimateTokens, totalTokens } from '../services/ai/context.mjs'
-import { rememberPreference, getLatestProfile } from '../services/profileService.mjs'
+import {
+  fitContext,
+  clearOldToolResults,
+  slideWindow,
+  estimateTokens,
+  totalTokens,
+} from '../services/ai/chat/context.mjs'
+import { rememberPreference, getLatestProfile } from '../services/wardrobe/bodyProfile.mjs'
 import { updatePreferences } from '../repositories/profileRepo.mjs'
 import { getAll, closeDb } from '../db/mysql.mjs'
 

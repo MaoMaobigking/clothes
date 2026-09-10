@@ -4,9 +4,9 @@
  * 内容、演示用户和少量真实互动在启动时幂等写入。
  * 数据本身在 seeds/community.mjs —— 这一层只管「怎么写进库」，不存内容。
  */
-import { execute, getOne } from '../db/mysql.mjs'
-import { findOrCreateByOpenid } from '../repositories/userRepo.mjs'
-import { DEMO_USERS, CONTENTS, INTERACTIONS, COMMENTS } from '../seeds/community.mjs'
+import { execute, getOne } from '../../db/mysql.mjs'
+import { findOrCreateByOpenid } from '../../repositories/userRepo.mjs'
+import { DEMO_USERS, CONTENTS, INTERACTIONS, COMMENTS } from '../../seeds/community.mjs'
 
 async function ensureUser(key, profile) {
   const { user } = await findOrCreateByOpenid(profile.openid, {

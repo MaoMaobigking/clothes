@@ -4,8 +4,8 @@
  * 这一层负责三件事：日期校验、outfit 归属校验、字段合并。
  * 仓库层只管读写，不做判断。
  */
-import * as diaryRepo from '../repositories/diaryRepo.mjs'
-import { getOutfit } from '../repositories/outfitRepo.mjs'
+import * as diaryRepo from '../../repositories/diaryRepo.mjs'
+import { getOutfit } from '../../repositories/outfitRepo.mjs'
 
 const NOTE_MAX = 255
 

@@ -16,7 +16,7 @@
  *   BAILIAN_TRYON_MODEL  可选，aitryon（默认）或 aitryon-plus，两者调用完全兼容
  */
 
-import { config } from '../config/env.mjs'
+import { config } from '../../config/env.mjs'
 
 const BASE_URL = config.bailian.baseUrl
 const API_KEY = config.bailian.apiKey

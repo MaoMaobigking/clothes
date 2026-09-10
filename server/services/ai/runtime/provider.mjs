@@ -27,7 +27,7 @@
  * 不会伪装成网络错误。
  * ────────────────────────────────────────────────────────────────
  */
-import { config } from '../../config/env.mjs'
+import { config } from '../../../config/env.mjs'
 const PROVIDER_PRESETS = {
   deepseek: {
     label: 'DeepSeek',

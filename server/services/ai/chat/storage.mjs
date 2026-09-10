@@ -15,7 +15,7 @@
  * 少一次 findChatSession，别人就能往你的会话里插话、或读走你的历史 ——
  * 会话 id 是自增整数，是最容易被改 URL 试出来的那种。
  */
-import * as aiRepo from '../../repositories/aiRepo.mjs'
+import * as aiRepo from '../../../repositories/aiRepo.mjs'
 
 /** 标题长度。数据库列是 VARCHAR(120)，这里留点余量 */
 const TITLE_MAX = 40

@@ -7,7 +7,7 @@
  * 每个方法都要求 userId：service 层不允许存在「不带用户的衣橱操作」，
  * 从签名上就堵死漏传的可能。
  */
-import * as repo from '../repositories/garmentRepo.mjs'
+import * as repo from '../../repositories/garmentRepo.mjs'
 import { unlink } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -81,7 +81,8 @@ export async function deleteGarment(userId, id) {
   if (!item) return false
   await repo.deleteGarment(userId, id)
   if (item.img?.startsWith('/uploads/')) {
-    const target = join(dirname(fileURLToPath(import.meta.url)), '..', item.img.slice(1))
+    // 两段回退到 server/：本文件在 services/wardrobe/ 下，单个 '..' 只到 services/
+    const target = join(dirname(fileURLToPath(import.meta.url)), '..', '..', item.img.slice(1))
     //如果删除文件时报错了（比如图片文件本来就不存在、或者已经被删了），就什么都不要做、不要让程序崩溃报错
     unlink(target).catch(() => {})
   }

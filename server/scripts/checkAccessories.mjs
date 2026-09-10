@@ -12,14 +12,14 @@
  */
 import { closeDb, getOne, initDb } from '../db/mysql.mjs'
 import { wxLogin } from '../services/auth/index.mjs'
-import * as garmentService from '../services/garmentService.mjs'
+import * as garmentService from '../services/wardrobe/garment.mjs'
 import {
   ACCESSORY_CATEGORIES,
   ensureAccessories,
   getHotCombos,
   rateAccessory,
   recommend,
-} from '../services/accessoryService.mjs'
+} from '../services/wardrobe/accessory.mjs'
 import { addBatch, hasOutfitInCart, listCart, removeItem } from '../services/accessoryCartService.mjs'
 
 let failed = 0

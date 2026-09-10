@@ -12,8 +12,8 @@
  * 为什么不是把返回形状改成 `{ text, usage }`，见 usage.mjs 顶部的两条理由
  * （一次逻辑调用底下可能有 5 次往返 / 中间层返回的是业务对象）。
  */
-import { logAiCall } from '../../repositories/aiRepo.mjs'
-import { getAiRuntime } from './provider.mjs'
+import { logAiCall } from '../../../repositories/aiRepo.mjs'
+import { getAiRuntime } from '../runtime/provider.mjs'
 import { createUsageScope } from './usage.mjs'
 
 /**
