@@ -17,7 +17,7 @@
 | [分层与数据访问.md](./分层与数据访问.md) | `services/` `repositories/` `db/`                          | 1.5 1.6 2.3 2.6 2.7 |
 | [路由与鉴权.md](./路由与鉴权.md)         | `routes/` `middleware/` `index.mjs`                        | 2.1 2.2             |
 | [AI与RAG.md](./AI与RAG.md)               | `services/ai/` `ragService` `embeddingService` `rag-docs/` | 1.1 1.2 2.4 2.5     |
-| [MCP.md](./MCP.md)                       | `mcp/`                                                     | 1.3 1.4             |
+| [MCP.md](./MCP.md)                       | `mcp/`                                                     | 1.3 1.4 1.7 1.8     |
 | [环境与工具链.md](./环境与工具链.md)     | 跨切面（Docker / git / Windows）                           | 3.1–3.4             |
 | [能力矩阵与待办.md](./能力矩阵与待办.md) | —（面试口径 + 行动清单）                                   | 四、待办            |
 
@@ -42,6 +42,7 @@
 | 被问「为什么不用 LangChain」              | [AI与RAG §1.1](./AI与RAG.md#11-为什么不用-langchain851-行手写代码值得吗)            |
 | MCP 工具里拿不到 userId                   | [MCP §1.3](./MCP.md#13-mcp-进程里没有-userid身份从哪来)                             |
 | IDE 提示 MCP 的 `Server` 类已弃用         | [MCP §1.4](./MCP.md#14-为什么还在用已弃用的-server-类)                              |
+| 听说 MCP 发了新规范，要不要跟             | [MCP §1.7](./MCP.md#17-mcp-2026-07-28-修订差距核对结论是一条都没踩到)               |
 | `ECONNREFUSED 127.0.0.1:3308`             | [环境与工具链 §3.1](./环境与工具链.md#31-mysql-在-3308但-docker-desktop-不自启)     |
 | `git push` 连不上代理端口                 | [环境与工具链 §3.2](./环境与工具链.md#32-git-代理端口clash-verge-是-7897-不是-7890) |
 | 改了代码重启后行为没变                    | [环境与工具链 §3.3](./环境与工具链.md#33-windows-下-pkill-杀不掉-node要按端口杀)    |
@@ -59,6 +60,8 @@
 - [1.4 为什么还在用已弃用的 Server 类](./MCP.md#14-为什么还在用已弃用的-server-类)
 - [1.5 什么该放 repo，什么该放 service](./分层与数据访问.md#15-什么该放-repo什么该放-service)
 - [1.6 转换层缺失：同一个职责，两个方向的错位](./分层与数据访问.md#16-转换层缺失同一个职责两个方向的错位)
+- [1.7 MCP 2026-07-28 修订：差距核对（结论是「一条都没踩到」）](./MCP.md#17-mcp-2026-07-28-修订差距核对结论是一条都没踩到)
+- [1.8 requestState 给了「身份怎么传」的第四个答案](./MCP.md#18-requeststate-给了身份怎么传的第四个答案13-的续)
 
 ### 真踩过的坑
 
