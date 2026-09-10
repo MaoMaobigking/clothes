@@ -11,7 +11,10 @@ import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const serverDir = join(here, '..')
-const imagePath = join(here, '..', '..', 'miniapp', 'src', 'static', 'images', 'model', 'front.png')
+// 2026-09-10：素材在「接入 108 张真实素材」那次提交里统一转成了 jpg，
+// 这里原本硬编码 front.png，之后就一直 ENOENT。断言别绑死实现细节，
+// 同 docs/后端踩坑/AI与RAG.md §2.5 的教训。
+const imagePath = join(here, '..', '..', 'miniapp', 'src', 'static', 'images', 'model', 'front.jpg')
 const base = 'http://127.0.0.1:8791/api'
 
 let failed = 0
@@ -84,7 +87,7 @@ try {
 
   console.log('\n【1】图片上传与静态访问')
   const form = new FormData()
-  form.append('file', new Blob([readFileSync(imagePath)], { type: 'image/png' }), 'front.png')
+  form.append('file', new Blob([readFileSync(imagePath)], { type: 'image/jpeg' }), 'front.jpg')
   const uploaded = await request('/custom/upload', {
     method: 'POST',
     token: A.token,
