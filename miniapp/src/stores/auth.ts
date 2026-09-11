@@ -19,6 +19,7 @@ import { LOGIN_PAGE, clearToken, getToken, setAuthToken } from '@/utils/request'
 import { useProfileStore } from './profile'
 import { useWardrobeStore } from './wardrobe'
 import { useCartStore } from './cart'
+import { useWishlistStore } from './wishlist'
 
 const SESSION_KEY = 'ai-fashion-session'
 
@@ -63,6 +64,17 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => session.value.role === 'admin')
   const displayName = computed(() => session.value.nickname || session.value.account || '时尚探索家')
 
+  /*
+   * 换人时要清掉的两类东西：本地缓存键，和**活在内存里的 pinia store**。
+   *
+   * 第二类才是容易漏的：`uni.reLaunch` 会重建页面栈，但 pinia store 是模块级单例，
+   * 页面重建后拿到的还是同一个实例、同一份数据。所以「清了缓存 + 换了页面」
+   * 看起来很干净，上一个人的数据其实一条没少。
+   *
+   * ⚠️ 这里必须**穷举所有装了用户数据的 store**。少写一个就是一条跨账号数据泄漏，
+   * 而且它不会报错、不会白屏 —— 表现是新用户看到上一个人的东西，
+   * 只有真的换号点进去才发现。新增 store 时记得回来加一行。
+   */
   function purgeUserScopedCaches() {
     USER_SCOPED_STORAGE_KEYS.forEach((key) => {
       try {
@@ -77,6 +89,13 @@ export const useAuthStore = defineStore('auth', () => {
       useWardrobeStore().reset()
       // 购物车按人落库，不清会让新账号先看到上一个人的车再被刷新覆盖
       useCartStore().reset()
+      /*
+       * 心愿单是**纯内存**的（stores/wishlist.ts，没有后端表）。
+       * 正因为它不落库、不发请求，换人之后也**没有任何东西会把它刷新掉** ——
+       * 上一个人标的爱心会原样留在新账号的商城页上，而且会一直留到进程结束。
+       * 落库的购物车至少还会被下一次拉取覆盖，它连这个兜底都没有，反而更该清。
+       */
+      useWishlistStore().clear()
     } catch {
       // store 尚未初始化时忽略
     }
