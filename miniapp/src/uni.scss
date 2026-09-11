@@ -51,12 +51,17 @@ $show-hover: true;
  * ------------------------------------------------------------
  * dark / disabled / light 三档按 uv-ui 自己的推导比例算：
  * 它的 #3c9cff → dark #398ade（各通道 ×0.95/0.885/0.871）、disabled 混 50% 白、
- * light 是极浅底色。照同一比例套到 #ff5c9d 上，保证按压态和禁用态的对比度关系一致。
+ * light 是极浅底色。照同一比例套到主色上，保证按压态和禁用态的对比度关系一致。
+ *
+ * ⚠️ 2026-09-11 主色从 #ff5c9d 压暗到 #b84271，**必须和 tokens.css 的 --pink-deep 同值**。
+ * 原因是可访问性：原色作为文字在三种底上是 2.52~2.89:1，作为主按钮底时白字同样是
+ * 2.89:1，都达不到 WCAG AA 的 4.5:1。详细比值和取值依据见 tokens.css 那边的注释。
+ * dark / disabled 按原比例重算；light 是底色不动（主色落上去 4.52:1，过 AA）。
  */
-$uv-primary: #ff5c9d;
-$uv-primary-dark: #f25189; /* 按压态 */
-$uv-primary-disabled: #ffadce; /* 禁用态：混 50% 白 */
-$uv-primary-light: #ffeaf3; /* 极浅底：标签底、选中底 */
+$uv-primary: #b84271;
+$uv-primary-dark: #af3f6b; /* 按压态 */
+$uv-primary-disabled: #dca1b8; /* 禁用态：混 50% 白 */
+$uv-primary-light: #ffeaf3; /* 极浅底：标签底、选中底（不变） */
 
 /* ------------------------------------------------------------
  *  2. 中性色 —— 直接沿用 uv-ui 的冷灰体系，不改

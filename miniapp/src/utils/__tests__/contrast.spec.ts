@@ -64,6 +64,12 @@ describe('设计令牌 · 文字对比度（WCAG 2.1 AA）', () => {
     ['text-1', '标题 / 正文'],
     ['text-2', '次要说明 / 右侧值'],
     ['text-3', '占位符 / 辅助文字'],
+    ['pink-deep', '主色当强调文字（104 处 color）'],
+    ['purple-deep', '主色别名'],
+    ['price', '价格'],
+    ['danger', '错误提示文案'],
+    ['success', '成功提示'],
+    ['warning', '警告提示'],
   ])('--%s（%s）在卡片底和页面底上都 ≥ 4.5:1', (token) => {
     const onCard = contrastRatio(color(token), color('surface'))
     const onPage = contrastRatio(color(token), color('bg-page'))
@@ -71,10 +77,55 @@ describe('设计令牌 · 文字对比度（WCAG 2.1 AA）', () => {
     expect(onPage, `${color(token)} on ${color('bg-page')}`).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
   })
 
-  it('--text-3 是本次自查唯一改动的值：原 uv-ui 值 #909193 确实不达标', () => {
-    // 保留这条是为了让「为什么偏离 uv-ui 原值」有据可查，而不是凭印象
-    expect(contrastRatio('#909193', color('bg-page'))).toBeLessThan(WCAG_AA_NORMAL)
-    expect(contrastRatio(color('text-3'), color('bg-page'))).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
+  it('主色落在 chip 的浅粉底上也要达标 —— 这是三个底里最紧的一个', () => {
+    // .chip 是 color:--pink-deep + background:--pink-soft，别只测白底就以为过了
+    expect(contrastRatio(color('pink-deep'), color('pink-soft'))).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
+  })
+
+  it('主按钮的白字：.btn-primary 是 --text-on-brand on --brand-gradient', () => {
+    /*
+     * 对比度是对称的 —— 同一个比值既决定「粉色文字读不读得了」，
+     * 也决定「按钮上的白字读不读得了」。原来两边都是 2.89:1。
+     */
+    expect(contrastRatio(color('text-on-brand'), color('brand-gradient'))).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
+  })
+
+  it('主色和它的三个别名必须同值 —— 分叉了全站会同时出现两支粉', () => {
+    for (const alias of ['purple-deep', 'purple', 'pink', 'price', 'brand-gradient']) {
+      expect(color(alias), `--${alias}`).toBe(color('pink-deep'))
+    }
+  })
+
+  it('tabBar 的选中色必须跟着主色走 —— 它在 pages.json 里，CSS 变量够不着', () => {
+    /*
+     * 改主色时最容易漏的就是这类**读不到 CSS 变量的地方**：
+     * tabBar 配置、canvas 画海报、ECharts 的 option、uni.showModal 的 confirmColor。
+     * 它们只能写死 hex，改色时漏一个就是全站两支粉，而且 CSS 那边的测试查不到。
+     * 这条只钉住最显眼的 tabBar，其余靠 tokens.css 顶部的同步提醒。
+     */
+    const pagesJson = readFileSync(fileURLToPath(new URL('../../pages.json', import.meta.url)), 'utf8')
+    const selected = /"selectedColor"\s*:\s*"(#[0-9a-fA-F]{3,8})"/.exec(pagesJson)?.[1]
+    expect(selected?.toLowerCase()).toBe(color('pink-deep').toLowerCase())
+  })
+
+  it('tabBar 的未选中色也要跟着 --text-3 走，且在白色 tabBar 底上达标', () => {
+    // 原来写死的是 --text-3 的旧值 #909193（3.15:1），--text-3 改了它没跟上
+    const pagesJson = readFileSync(fileURLToPath(new URL('../../pages.json', import.meta.url)), 'utf8')
+    const unselected = /"color"\s*:\s*"(#[0-9a-fA-F]{3,8})"/.exec(pagesJson)?.[1]
+    expect(unselected?.toLowerCase()).toBe(color('text-3').toLowerCase())
+    expect(contrastRatio(unselected!, '#ffffff')).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
+  })
+
+  it.each([
+    ['text-3', '#909193'],
+    ['pink-deep', '#ff5c9d'],
+    ['danger', '#f56c6c'],
+    ['success', '#5ac725'],
+    ['warning', '#f9ae3d'],
+  ])('--%s 偏离上游原值 %s 是有据的：原值确实不达标', (token, original) => {
+    // 保留这组是为了让「为什么不照抄 uv-ui / 为什么动品牌色」有据可查，而不是凭印象
+    expect(contrastRatio(original, color('surface'))).toBeLessThan(WCAG_AA_NORMAL)
+    expect(contrastRatio(color(token), color('surface'))).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
   })
 })
 
@@ -82,7 +133,7 @@ describe('设计令牌 · 文字对比度（WCAG 2.1 AA）', () => {
  * ── 已知不达标、且**决定不改**的几组 ──
  *
  * 用测试把它们钉住，而不是写在文档里等人忘记。断言方向是「仍然不达标」：
- * 哪天有人把主色调深了，这里会红，提醒回来把豁免说明一起删掉。
+ * 哪天有人把它们调深了，这里会红，提醒回来把豁免说明一起删掉。
  */
 describe('设计令牌 · 已知不达标（记录在案，非回归）', () => {
   it('--text-4 禁用态 1.75:1 —— WCAG 1.4.3 明确豁免禁用控件，不改', () => {
@@ -93,28 +144,9 @@ describe('设计令牌 · 已知不达标（记录在案，非回归）', () => 
     expect(contrastRatio(color('line'), color('surface'))).toBeLessThan(WCAG_AA_NON_TEXT)
   })
 
-  /*
-   * 这三条是**真问题**，不是豁免：
-   *   主色当文字用（--purple-deep 别名，54 处 color 调用点）  2.89:1
-   *   主色按钮上的白字（全站主 CTA）                          2.89:1
-   *   语义色当文字用（danger / success / warning）            1.88 ~ 2.90:1
-   *
-   * 不在这一批改，原因是改主色是**设计决策**不是修 bug：它会动到全站观感，
-   * 而 tokens.css 的注释记录了这套配色已经过两轮换皮定稿。
-   * 记在这里 + 测试钉住精确比值，等设计侧拍板。
-   * 若要改：主色压到 #c24677（原值的 76%）可得 4.73:1 过 AA。
-   */
-  it.each([
-    ['purple-deep', 'surface', '主色当强调文字（54 处）'],
-    ['text-on-brand', 'pink-deep', '主色按钮上的白字（全站主 CTA）'],
-    ['danger', 'surface', '错误提示文字'],
-    ['success', 'surface', '成功提示文字'],
-    ['warning', 'surface', '警告提示文字'],
-  ])('%s on %s 仍不达标 —— %s', (fg, bg) => {
-    expect(contrastRatio(color(fg), color(bg))).toBeLessThan(WCAG_AA_NORMAL)
-  })
-
-  it('参考值：主色压到 #c24677 就能过 AA（给设计侧的备选，非当前值）', () => {
-    expect(contrastRatio('#c24677', '#fff')).toBeGreaterThanOrEqual(WCAG_AA_NORMAL)
+  it('--info 3.08:1 —— 只到 AA-large，调用点都是大字号且不承载操作，暂不改', () => {
+    const r = contrastRatio(color('info'), color('surface'))
+    expect(r).toBeLessThan(WCAG_AA_NORMAL)
+    expect(r).toBeGreaterThanOrEqual(WCAG_AA_NON_TEXT)
   })
 })

@@ -52,7 +52,7 @@ function go(key: string) {
 
 /* 和 uni.scss 的 $uv-primary / $uv-tips-color 同值。
    这里必须写字面色值：uv-tabbar 把它们拼进 inline style，CSS 变量传不进去。 */
-const ACTIVE_COLOR = '#ff5c9d'
+const ACTIVE_COLOR = '#b84271'
 const INACTIVE_COLOR = '#909193'
 </script>
 

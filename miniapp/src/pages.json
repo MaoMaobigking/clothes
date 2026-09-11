@@ -51,8 +51,8 @@
     { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
   ],
   "tabBar": {
-    "color": "#909193",
-    "selectedColor": "#ff5c9d",
+    "color": "#6d6e70",
+    "selectedColor": "#b84271",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [

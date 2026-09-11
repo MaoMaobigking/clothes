@@ -29,7 +29,7 @@ function onChange(index: number) {
 
 /* 必须是字面色值：uv-subsection 把它们拼进 inline style，CSS 变量传不进去。
    和 uni.scss 的 $uv-primary / $uv-content-color 同值。 */
-const ACTIVE_COLOR = '#ff5c9d'
+const ACTIVE_COLOR = '#b84271'
 const INACTIVE_COLOR = '#606266'
 </script>
 

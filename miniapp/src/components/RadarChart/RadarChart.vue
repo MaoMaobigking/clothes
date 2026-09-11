@@ -9,7 +9,7 @@
  *
  * ── 颜色为什么写字面值 ──
  * canvas 画的是像素，取不到 CSS 变量。这里的色值必须和 tokens.css 手工对齐：
- * #ff5c9d = --brand / $uv-primary，#606266 = --text-2，#c0c4cc = --text-4。
+ * #b84271 = --brand / $uv-primary，#606266 = --text-2，#c0c4cc = --text-4。
  * 改主题色时这里要一起改（和 BottomNav 里 ACTIVE_COLOR 同样的理由）。
  */
 import { watch } from 'vue'
@@ -22,7 +22,7 @@ import type { RadarDimension } from '@/types'
 
 echarts.use([RadarSeries, RadarComponent, CanvasRenderer])
 
-const ACCENT = '#ff5c9d'
+const ACCENT = '#b84271'
 const ACCENT_FILL = 'rgba(255, 143, 192, 0.25)'
 const LABEL = '#606266'
 const LABEL_WEAK = '#c0c4cc'
