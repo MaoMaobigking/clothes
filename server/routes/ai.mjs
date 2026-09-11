@@ -208,6 +208,9 @@ router.post('/chat/tools', authRequired, async (req, res, next) => {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive',
+    // 和 /chat/stream 一致：不加这条，nginx 会把步骤事件攒起来一起发，
+    // 「过程可视化」就退化成「等半天一次性出现」，等于没做
+    'X-Accel-Buffering': 'no',
   })
   res.write(`data: ${JSON.stringify({ sessionId, delta: '', done: false })}\n\n`)
 
@@ -234,6 +237,18 @@ router.post('/chat/tools', authRequired, async (req, res, next) => {
         },
         context,
         abortController.signal,
+        /*
+         * 每轮工具调用的状态事件（批次 3.1）。
+         *
+         * 注意这**不是**把这条路改成真流式 —— 最终文本仍然是一次性推的
+         * （见下面那个 onChunk：模型返回文本时整段来）。这里推的是「过程」：
+         * 模型要调哪个工具、参数是什么、第几轮、结果摘要。
+         * 前端据此渲染步骤条，用户在等待的那几秒里能看到发生了什么，
+         * 而不是盯着一个转圈。讲的时候要把这个边界说清楚。
+         */
+        (step) => {
+          res.write(`data: ${JSON.stringify({ step, done: false })}\n\n`)
+        },
       ),
     )
     await appendMessage(req.userId, sessionId, 'assistant', fullText)

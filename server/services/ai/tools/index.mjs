@@ -70,9 +70,10 @@ export async function executeTool(name, args, context = {}) {
  * @param {function} onChunk - 流式回调
  * @param {object} context - 工具执行上下文 { garments, profile, userId }
  * @param {AbortSignal} [signal]
+ * @param {function} [onStep] - 每轮工具调用的状态回调，见下方 emitStep 的说明
  * @returns {Promise<string>} 完整回复文本
  */
-export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
+export async function aiChatWithTools(messages, onChunk, context = {}, signal, onStep) {
   /*
    * 显式挡在门口，而不是让它带着 OpenAI 的形状往 Anthropic 的地址发。
    *
@@ -138,7 +139,19 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
         } catch {
           /* ignore */
         }
+        /*
+         * 先播报「要调什么」，再执行。顺序不能反 ——
+         * 工具可能跑好几百毫秒，先播报前端才有东西显示（「正在查你的衣橱…」），
+         * 执行完再补一条结果。反过来的话用户全程只看到一个转圈。
+         */
+        emitStep(onStep, { type: 'tool_start', round: round + 1, name: toolName, args })
         const result = await executeTool(toolName, args, context)
+        emitStep(onStep, {
+          type: 'tool_end',
+          round: round + 1,
+          name: toolName,
+          summary: summarizeToolResult(result),
+        })
         working.push({
           role: 'tool',
           tool_call_id: tc.id,
@@ -156,6 +169,40 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal) {
   }
 
   throw new Error('工具调用超出最大轮次')
+}
+
+/** 工具结果摘要的长度上限。步骤条是给人扫一眼的，不是给人读全文的 */
+const STEP_SUMMARY_MAX = 120
+
+/**
+ * 把工具结果压成一行摘要。
+ *
+ * 为什么不原样推给前端：工具结果可能是整个衣橱的 JSON（几十 KB）。
+ * 那是喂给模型的上下文，不是给人看的 —— 原样推一遍等于把最贵的那段数据
+ * 在 SSE 上再发一次，而界面上只显示一行。
+ */
+function summarizeToolResult(result) {
+  const text = String(result ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (text.length <= STEP_SUMMARY_MAX) return text
+  return `${text.slice(0, STEP_SUMMARY_MAX)}…`
+}
+
+/**
+ * 推一条步骤事件。
+ *
+ * 包一层是为了**把回调的异常隔离掉**：onStep 是调用方给的（实际是往 SSE 里 write），
+ * 连接已经断开时 write 会抛。让它冒出去会中断整个工具循环 ——
+ * 但用户早就走了，模型这一轮该不该跑完是另一回事，不该由「播报失败」来决定。
+ */
+function emitStep(onStep, step) {
+  if (typeof onStep !== 'function') return
+  try {
+    onStep(step)
+  } catch {
+    /* 播报失败不影响主流程 */
+  }
 }
 
 function normalizeOpenAiMessage(message) {
