@@ -28,6 +28,18 @@ const redirect = ref<string>(ROUTES.home)
 const demoAccounts = ref<DemoAccount[]>([])
 const demoLoading = ref(false)
 const demoError = ref('')
+/**
+ * 演示账号列表默认折叠，点开才拉。
+ *
+ * 2026-09-11 性能基线（docs/perf-baseline.md）测出来的：原来在 onMounted 里直接拉，
+ * 那个请求实测 1988ms + 449ms CORS 预检，而列表里的 description 文字正好是首屏
+ * **最大的可见元素** —— 于是 LCP 被它锁死在 2.3s（FCP 只有 0.5s，得分 52 分）。
+ *
+ * 改成按需加载不是为了刷分，是产品逻辑本来就该这样：演示账号是 §5.4 的**兜底入口**，
+ * 主路径是上面的账号密码登录。兜底入口不该在首屏发一个两秒的请求、
+ * 更不该是首屏最重的内容。代价是评委现场多点一下，换首屏立刻可用。
+ */
+const demoExpanded = ref(false)
 
 // 演示账号选择器只在 H5 兜底入口出现，小程序端不暴露
 let showDemoPicker = false
@@ -117,6 +129,14 @@ async function loadDemoAccounts() {
   }
 }
 
+/** 展开演示账号。只在第一次展开时请求，收起再展开不重复拉。 */
+function toggleDemo() {
+  demoExpanded.value = !demoExpanded.value
+  if (demoExpanded.value && !demoAccounts.value.length && !demoLoading.value) {
+    loadDemoAccounts()
+  }
+}
+
 onMounted(() => {
   const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
   const options = (pages[pages.length - 1] as any)?.options || {}
@@ -128,7 +148,7 @@ onMounted(() => {
     }
   }
   if (options.reason === 'expired') notice.value = '登录状态已失效，请重新登录'
-  loadDemoAccounts()
+  // 这里**刻意不再**调 loadDemoAccounts() —— 首屏不发这个请求，理由见 demoExpanded 的注释
 })
 </script>
 
@@ -173,34 +193,41 @@ onMounted(() => {
         </view>
       </view>
 
-      <!-- 演示账号（§5.4，仅 H5 兜底入口） -->
+      <!-- 演示账号（§5.4，仅 H5 兜底入口）。默认折叠，点开才拉列表 —— 理由见 script 里 demoExpanded 的注释 -->
       <view v-if="showDemoPicker" class="card">
-        <text class="card-title">演示账号</text>
-        <text class="card-sub">评委现场可直接选，数据已提前预置</text>
-
-        <text v-if="demoLoading" class="hint">加载中…</text>
-        <text v-else-if="demoError" class="error">{{ demoError }}</text>
-        <text v-else-if="!demoAccounts.length" class="hint">暂无演示账号，可在后端执行 npm run seed:demo</text>
-
-        <view
-          v-for="item in demoAccounts"
-          :key="item.account"
-          class="demo-item"
-          hover-class="demo-item-hover"
-          @tap="useDemo(item)"
-        >
-          <view class="demo-text">
-            <text class="demo-label">
-              {{ item.label }}
-              <text v-if="item.role === 'admin'" class="demo-tag">管理员</text>
-            </text>
-            <text class="demo-desc">{{ item.description }}</text>
-            <text class="demo-account">账号 {{ item.account }}</text>
+        <view class="demo-head" hover-class="demo-item-hover" @tap="toggleDemo">
+          <view class="demo-head-text">
+            <text class="card-title">演示账号</text>
+            <text class="card-sub">评委现场可直接选，数据已提前预置</text>
           </view>
-          <text class="demo-arrow">›</text>
+          <text class="demo-arrow" :class="{ 'demo-arrow-open': demoExpanded }">›</text>
         </view>
 
-        <text class="dev-entry" @tap="submitDev">或创建一个临时开发身份</text>
+        <template v-if="demoExpanded">
+          <text v-if="demoLoading" class="hint">加载中…</text>
+          <text v-else-if="demoError" class="error">{{ demoError }}</text>
+          <text v-else-if="!demoAccounts.length" class="hint">暂无演示账号，可在后端执行 npm run seed:demo</text>
+
+          <view
+            v-for="item in demoAccounts"
+            :key="item.account"
+            class="demo-item"
+            hover-class="demo-item-hover"
+            @tap="useDemo(item)"
+          >
+            <view class="demo-text">
+              <text class="demo-label">
+                {{ item.label }}
+                <text v-if="item.role === 'admin'" class="demo-tag">管理员</text>
+              </text>
+              <text class="demo-desc">{{ item.description }}</text>
+              <text class="demo-account">账号 {{ item.account }}</text>
+            </view>
+            <text class="demo-arrow">›</text>
+          </view>
+
+          <text class="dev-entry" @tap="submitDev">或创建一个临时开发身份</text>
+        </template>
       </view>
     </view>
   </view>
@@ -352,6 +379,26 @@ onMounted(() => {
 .demo-arrow {
   font-size: 40rpx;
   color: var(--text-3);
+}
+
+/* 折叠头：标题与副标题左，箭头右。整块可点 */
+.demo-head {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.demo-head-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+/* 展开时箭头朝下。只动 transform，不触发重排 */
+.demo-arrow-open {
+  transform: rotate(90deg);
 }
 
 .dev-entry {

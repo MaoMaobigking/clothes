@@ -19,6 +19,11 @@ dist-ssr
 # UI 截图产物（scripts/ui-shot.mjs）
 .uishot
 
+# Lighthouse 原始报告（生成物，单个 500 KB）。
+# 结论、复现命令和三次采样的原始数字都记在 docs/perf-baseline.md 里，
+# 要核对就照那里的命令重跑一次，不必把几 MB 的 JSON 永久留在 git 历史里。
+docs/perf/*.json
+
 # 本地数据库文件（已切 MySQL，保留以防旧文件残留）
 server/data.db
 server/*.db

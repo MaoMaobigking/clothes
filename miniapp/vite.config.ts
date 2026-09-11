@@ -43,6 +43,40 @@ function rewriteStaticImages(base: string): Plugin {
 
 const IMG_BASE = process.env.VITE_CLOUD_IMG_BASE || ''
 
+/*
+ * 给 API 域名注入 <link rel="preconnect">。
+ *
+ * 2026-09-11 性能基线（docs/perf-baseline.md）里 Lighthouse 明确点名这一条，
+ * 估算能省 199 ms：跨域的第一个请求要先走 DNS 查询 + TCP 握手 + TLS 协商，
+ * 而这三步完全可以在 HTML 解析阶段就并行开始，不用等 JS 跑起来发请求时才做。
+ *
+ * 只在「API 和页面不同源」时才注入：
+ * H5 默认 VITE_API_BASE_URL 为空（同源走 Vite proxy），同源做 preconnect 毫无意义，
+ * 反而多一条浏览器要维护的连接。
+ *
+ * crossorigin 必须带 —— XHR/fetch 是 CORS 请求，不带这个属性预热的是
+ * 「非 CORS 连接」，实际请求时浏览器会另开一条，preconnect 就白做了。
+ * 这是这条优化最常见的写错方式。
+ */
+function preconnectApi(apiBase: string): Plugin {
+  return {
+    name: 'preconnect-api',
+    transformIndexHtml() {
+      let origin = ''
+      try {
+        origin = new URL(apiBase).origin
+      } catch {
+        return [] // 不是合法绝对地址（同源或没配），不注入
+      }
+      return [
+        { tag: 'link', attrs: { rel: 'preconnect', href: origin, crossorigin: '' }, injectTo: 'head' },
+        // DNS 预解析兜底：少数不支持 preconnect 的浏览器至少能省掉 DNS 那一段
+        { tag: 'link', attrs: { rel: 'dns-prefetch', href: origin }, injectTo: 'head' },
+      ]
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   /*
    * 取 VITE_CLOUD_IMG_BASE 的两条来源，都支持：
@@ -61,11 +95,18 @@ export default defineConfig(({ mode }) => {
   // 只在小程序端改写。H5 没有包体上限，图留在本地反而更快，
   // 而 cloud:// 在浏览器里根本加载不出来。
   const rewrite = imgBase && process.env.UNI_PLATFORM === 'mp-weixin'
+  // preconnect 只对 H5 有意义：小程序没有 HTML，也没有 DNS 预解析这回事
+  const apiBase = env.VITE_API_BASE_URL || ''
+  const wantPreconnect = process.env.UNI_PLATFORM !== 'mp-weixin' && apiBase
 
   return {
     // 插件放 uni() 前面：两个都是 enforce:'pre'，同级按数组顺序跑，
     // 必须赶在 vue 插件把 SFC 编译掉之前替换模板里的字符串
-    plugins: [...(rewrite ? [rewriteStaticImages(imgBase)] : []), uni()],
+    plugins: [
+      ...(rewrite ? [rewriteStaticImages(imgBase)] : []),
+      ...(wantPreconnect ? [preconnectApi(apiBase)] : []),
+      uni(),
+    ],
     server: {
       port: Number(process.env.H5_PORT || 5173),
       proxy: {
