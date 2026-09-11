@@ -10,6 +10,7 @@
  */
 import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL, ANTHROPIC_MESSAGES_URL } from '../runtime/provider.mjs'
 import { reportUsage } from '../telemetry/usage.mjs'
+import { createLineBuffer } from './sseLines.mjs'
 import { fitContext } from './context.mjs'
 import { summarizeTranscript } from './usecases.mjs'
 /**
@@ -63,31 +64,44 @@ async function streamOpenAI(system, messages, onChunk, signal) {
 
   const reader = r.body.getReader()
   const decoder = new TextDecoder()
+  const lines = createLineBuffer()
   let fullText = ''
   let usage = null
+
+  /** 处理一行。抽出来是为了让流末尾的 flush 走同一条路，不用把逻辑写两遍 */
+  const handleLine = (line) => {
+    if (!line.startsWith('data: ')) return
+    const data = line.slice(6).trim()
+    if (data === '[DONE]') return
+    try {
+      const json = JSON.parse(data)
+      // include_usage 的用量分片：choices 为空数组，只有 usage
+      if (json.usage) usage = json.usage
+      const delta = json.choices?.[0]?.delta?.content || ''
+      if (delta) {
+        fullText += delta
+        onChunk(delta)
+      }
+    } catch {
+      /*
+       * 走到这里说明这一行**本身**就不是合法 JSON，不再是「被分片切断」了
+       * —— 那种情况已经由 createLineBuffer 兜住。保留 catch 是为了
+       * provider 偶尔混进非 JSON 的心跳/注释行时不中断整条流。
+       */
+    }
+  }
 
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
-    const chunk = decoder.decode(value, { stream: true })
-    for (const line of chunk.split('\n')) {
-      if (!line.startsWith('data: ')) continue
-      const data = line.slice(6).trim()
-      if (data === '[DONE]') continue
-      try {
-        const json = JSON.parse(data)
-        // include_usage 的用量分片：choices 为空数组，只有 usage
-        if (json.usage) usage = json.usage
-        const delta = json.choices?.[0]?.delta?.content || ''
-        if (delta) {
-          fullText += delta
-          onChunk(delta)
-        }
-      } catch {
-        /* 忽略解析错误的行 */
-      }
+    // decoder 复用同一个实例挡字节边界，lines 挡行边界 —— 两层都要，少一层都会丢内容
+    for (const line of lines.push(decoder.decode(value, { stream: true }))) {
+      handleLine(line)
     }
   }
+  // 最后一行可能没有换行符收尾
+  for (const line of lines.flush()) handleLine(line)
+
   reportUsage(usage)
   return fullText
 }
@@ -138,32 +152,37 @@ async function streamAnthropic(system, messages, onChunk, signal) {
 
   const reader = r.body.getReader()
   const decoder = new TextDecoder()
+  const lines = createLineBuffer()
   let fullText = ''
   let startUsage = null
   let latestOutput
 
+  const handleLine = (line) => {
+    if (!line.startsWith('data: ')) return
+    const data = line.slice(6).trim()
+    try {
+      const json = JSON.parse(data)
+      if (json.type === 'content_block_delta' && json.delta?.text) {
+        fullText += json.delta.text
+        onChunk(json.delta.text)
+      } else if (json.type === 'message_start' && json.message?.usage) {
+        startUsage = json.message.usage
+      } else if (json.type === 'message_delta' && typeof json.usage?.output_tokens === 'number') {
+        latestOutput = json.usage.output_tokens
+      }
+    } catch {
+      // 同 streamOpenAI：分片切断已由 createLineBuffer 兜住，这里只兜非 JSON 行
+    }
+  }
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
-    const chunk = decoder.decode(value, { stream: true })
-    for (const line of chunk.split('\n')) {
-      if (!line.startsWith('data: ')) continue
-      const data = line.slice(6).trim()
-      try {
-        const json = JSON.parse(data)
-        if (json.type === 'content_block_delta' && json.delta?.text) {
-          fullText += json.delta.text
-          onChunk(json.delta.text)
-        } else if (json.type === 'message_start' && json.message?.usage) {
-          startUsage = json.message.usage
-        } else if (json.type === 'message_delta' && typeof json.usage?.output_tokens === 'number') {
-          latestOutput = json.usage.output_tokens
-        }
-      } catch {
-        /* ignore */
-      }
+    for (const line of lines.push(decoder.decode(value, { stream: true }))) {
+      handleLine(line)
     }
   }
+  for (const line of lines.flush()) handleLine(line)
 
   if (startUsage) {
     reportUsage({ ...startUsage, output_tokens: latestOutput ?? startUsage.output_tokens })
