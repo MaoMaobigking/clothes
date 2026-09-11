@@ -10,6 +10,7 @@ import {
   type ToolStep,
 } from '@/api/ai'
 import { activateOnKey } from '@/utils/a11y'
+import { renderStreamingMarkdown } from '@/utils/markdown'
 
 interface Msg extends ChatMessage {
   id: number
@@ -175,7 +176,12 @@ async function sendStreaming(history: ChatMessage[]) {
             @toggle="m.stepsOpen = !m.stepsOpen"
           />
           <view v-if="m.content || !m.steps?.length" class="bubble" :class="{ streaming: m.streaming }">
-            {{ m.content }}
+            <!--
+              AI 的回答走 Markdown 渲染（rich-text 两端都支持）；
+              用户自己发的原样显示 —— 用户输入不该被当成标记语言解析。
+            -->
+            <rich-text v-if="m.role === 'assistant'" :nodes="renderStreamingMarkdown(m.content)" />
+            <text v-else>{{ m.content }}</text>
           </view>
         </view>
       </view>
