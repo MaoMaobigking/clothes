@@ -203,7 +203,7 @@ function remove() {
   uni.showModal({
     title: '删除这天的记录？',
     content: `${editTitle.value} 的穿搭记录将被删除`,
-    confirmColor: '#ff5c9d',
+    confirmColor: '#b84271',
     success: async (res) => {
       if (!res.confirm) return
       saving.value = true

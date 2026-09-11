@@ -109,7 +109,7 @@ const bmiTip = (bmi: number) => {
             :max="f.max"
             :step="f.step"
             :value="store.profile.body[f.key]"
-            :activeColor="f.key === 'height' || f.key === 'weight' ? '#ff5c9d' : '#b892ff'"
+            :activeColor="f.key === 'height' || f.key === 'weight' ? '#b84271' : '#b892ff'"
             backgroundColor="#ece7f5"
             block-color="#ffffff"
             :block-size="22"

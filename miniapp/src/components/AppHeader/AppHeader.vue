@@ -17,7 +17,7 @@ const emit = defineEmits<{
 const percent = computed(() => (props.total > 0 ? (props.current / props.total) * 100 : 0))
 
 /* 必须是字面色值：uv-line-progress 把它们拼进 inline style，CSS 变量传不进去 */
-const ACTIVE_COLOR = '#ff5c9d'
+const ACTIVE_COLOR = '#b84271'
 const TRACK_COLOR = '#ececec'
 </script>
 

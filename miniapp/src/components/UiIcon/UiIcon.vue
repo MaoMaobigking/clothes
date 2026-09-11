@@ -59,12 +59,12 @@ const TONE_COLORS: Record<Tone, string> = {
   soft: '#606266', // --text-2
   muted: '#909193', // --text-3
   light: '#c0c4cc', // --text-4
-  brand: '#ff5c9d', // --pink-deep
+  brand: '#b84271', // --pink-deep
   /*
    * purple 已退役：紫色在第二轮里被收敛进主色（tokens.css 的 --purple-deep 同样是别名）。
    * 保留这个 tone 名是因为页面里还有调用点传 tone="purple"，改成主色即可，不用去改调用点。
    */
-  purple: '#ff5c9d',
+  purple: '#b84271',
   white: '#ffffff',
   /* 与 tokens.css 的 --macaron-*-ink 三个字色同值，改一边记得改另一边 */
   'macaron-pink': '#b82a5f',

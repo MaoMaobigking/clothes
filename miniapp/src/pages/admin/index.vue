@@ -18,7 +18,7 @@ const dashboard = ref<AdminDashboard | null>(null)
  * canvas 画的是像素，取不到 CSS 变量，色值必须和 tokens.css 手工对齐 ——
  * 和 RadarChart 里那组常量同样的理由。
  */
-const BRAND = '#ff5c9d'
+const BRAND = '#b84271'
 const BRAND_SOFT = 'rgba(255, 92, 157, 0.18)'
 const PURPLE = '#8b6ee8'
 const AXIS = '#c0c4cc'

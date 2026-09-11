@@ -155,7 +155,7 @@ async function draw(): Promise<void> {
       title: dark ? '#ffffff' : '#303133',
       sub: dark ? 'rgba(255,255,255,0.82)' : '#606266',
       item: dark ? 'rgba(255,255,255,0.9)' : '#4a4360',
-      accent: dark ? '#ffd9f0' : '#ff5c9d',
+      accent: dark ? '#ffd9f0' : '#b84271',
       foot: dark ? 'rgba(255,255,255,0.66)' : '#909193',
     }
 
