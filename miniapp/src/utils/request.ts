@@ -236,6 +236,20 @@ export async function ensureToken(): Promise<string> {
   throw makeError('请先登录', 401, 'NO_AUTH')
 }
 
+/**
+ * 身份被服务端拒了之后的统一收尾：清 token、提示一次、回登录页，并造出要抛的错。
+ *
+ * 抽出来是因为现在有三条路会撞上 401（request / uploadFile / SSE 流式对话），
+ * 三处各写一遍迟早会漏掉其中一步 —— 漏掉 clearToken 就会拿着废 token 反复重试，
+ * 漏掉 redirectToLogin 就停在一个永远加载不出来的页面上。
+ */
+export function handleUnauthorized(): ApiError {
+  clearToken()
+  notifySessionExpired()
+  redirectToLogin()
+  return makeError('登录状态已失效，请重新登录', 401, 'NO_AUTH')
+}
+
 export async function request<T>(options: RequestOptions): Promise<T> {
   await ensureToken()
   try {
@@ -243,10 +257,7 @@ export async function request<T>(options: RequestOptions): Promise<T> {
   } catch (error) {
     if ((error as ApiError)?.statusCode !== 401) throw error
     // token 过期或被服务端拒绝：清掉并回登录页，不再静默换一个身份继续跑
-    clearToken()
-    notifySessionExpired()
-    redirectToLogin()
-    throw makeError('登录状态已失效，请重新登录', 401, 'NO_AUTH')
+    throw handleUnauthorized()
   }
 }
 
@@ -277,10 +288,7 @@ export async function uploadFile<T>(options: {
         }
         if (res.statusCode >= 400) {
           if (res.statusCode === 401) {
-            clearToken()
-            notifySessionExpired()
-            redirectToLogin()
-            reject(makeError('登录状态已失效，请重新登录', 401, 'NO_AUTH'))
+            reject(handleUnauthorized())
             return
           }
           const message = payload?.message || payload?.error || `上传失败（${res.statusCode}）`
