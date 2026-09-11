@@ -9,7 +9,9 @@
     "build:h5": "uni build",
     "build:mp-weixin": "uni build -p mp-weixin",
     "check:types": "vue-tsc --noEmit",
-    "check:nav": "node navaudit.cjs"
+    "check:nav": "node navaudit.cjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@climblee/uv-ui": "^1.1.20",
@@ -30,6 +32,7 @@
     "sass": "^1.77.8",
     "typescript": "^5.4.0",
     "vite": "5.2.8",
+    "vitest": "^3.2.7",
     "vue-tsc": "^2.0.6"
   }
 }
