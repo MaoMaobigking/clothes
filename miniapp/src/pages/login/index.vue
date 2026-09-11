@@ -13,6 +13,7 @@ import setting from '@/setting'
 import { onMounted, ref } from 'vue'
 import { fetchDemoAccounts, type DemoAccount } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { activateOnKey } from '@/utils/a11y'
 import { ROUTES } from '@/constants/routes'
 
 const auth = useAuthStore()
@@ -137,6 +138,19 @@ function toggleDemo() {
   }
 }
 
+/*
+ * 键盘激活处理器（可访问性）。
+ *
+ * 这几个 <view> 是自定义按钮：鼠标走 @tap，键盘走这里。
+ * 在这里一次性建好，不在模板里内联 —— 内联每次渲染都新建一个函数，
+ * 等于每次渲染都换一个事件监听。
+ */
+const onLoginKey = activateOnKey(submitPassword, () => auth.loading)
+const onWechatKey = activateOnKey(submitWechat, () => auth.loading)
+const onToggleDemoKey = activateOnKey(toggleDemo)
+const onDevKey = activateOnKey(submitDev, () => auth.loading)
+const demoItemKey = (item: DemoAccount) => activateOnKey(() => useDemo(item))
+
 onMounted(() => {
   const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
   const options = (pages[pages.length - 1] as any)?.options || {}
@@ -165,7 +179,19 @@ onMounted(() => {
       <!-- 账号密码 -->
       <view class="card">
         <text class="card-title">账号密码登录</text>
-        <input v-model="account" class="field" maxlength="64" placeholder="账号" placeholder-class="field-ph" />
+        <!--
+          aria-label 不能省：placeholder 一旦开始输入就消失，读屏器也未必念它，
+          「用 placeholder 当标签」是最典型的 a11y 反模式。这里视觉上不加可见 label，
+          所以标签只能挂在 aria-label 上。
+        -->
+        <input
+          v-model="account"
+          class="field"
+          maxlength="64"
+          placeholder="账号"
+          placeholder-class="field-ph"
+          aria-label="账号"
+        />
         <input
           v-model="password"
           class="field"
@@ -173,34 +199,57 @@ onMounted(() => {
           maxlength="64"
           placeholder="密码"
           placeholder-class="field-ph"
+          aria-label="密码"
           @confirm="submitPassword"
         />
 
-        <text v-if="errorText" class="error">{{ errorText }}</text>
-        <text v-else-if="notice" class="notice">{{ notice }}</text>
+        <!-- 错误和提示要让读屏器在出现时主动播报，否则键盘用户按下登录后毫无反馈 -->
+        <text v-if="errorText" class="error" role="alert">{{ errorText }}</text>
+        <text v-else-if="notice" class="notice" role="status">{{ notice }}</text>
 
         <view
           class="btn btn-primary"
           :class="{ 'btn-disabled': auth.loading }"
           hover-class="btn-hover"
+          role="button"
+          :tabindex="auth.loading ? -1 : 0"
+          :aria-disabled="auth.loading ? 'true' : undefined"
+          @keydown="onLoginKey"
           @tap="submitPassword"
         >
           {{ auth.loading ? '登录中…' : '登录' }}
         </view>
 
-        <view v-if="showWechat" class="btn btn-ghost wx-btn" hover-class="btn-hover" @tap="submitWechat">
+        <view
+          v-if="showWechat"
+          class="btn btn-ghost wx-btn"
+          hover-class="btn-hover"
+          role="button"
+          tabindex="0"
+          @keydown="onWechatKey"
+          @tap="submitWechat"
+        >
           微信一键注册 / 登录
         </view>
       </view>
 
       <!-- 演示账号（§5.4，仅 H5 兜底入口）。默认折叠，点开才拉列表 —— 理由见 script 里 demoExpanded 的注释 -->
       <view v-if="showDemoPicker" class="card">
-        <view class="demo-head" hover-class="demo-item-hover" @tap="toggleDemo">
+        <view
+          class="demo-head"
+          hover-class="demo-item-hover"
+          role="button"
+          tabindex="0"
+          :aria-label="demoExpanded ? '收起演示账号' : '展开演示账号'"
+          :aria-expanded="demoExpanded ? 'true' : 'false'"
+          @keydown="onToggleDemoKey"
+          @tap="toggleDemo"
+        >
           <view class="demo-head-text">
             <text class="card-title">演示账号</text>
             <text class="card-sub">评委现场可直接选，数据已提前预置</text>
           </view>
-          <text class="demo-arrow" :class="{ 'demo-arrow-open': demoExpanded }">›</text>
+          <text class="demo-arrow" :class="{ 'demo-arrow-open': demoExpanded }" aria-hidden="true">›</text>
         </view>
 
         <template v-if="demoExpanded">
@@ -213,6 +262,10 @@ onMounted(() => {
             :key="item.account"
             class="demo-item"
             hover-class="demo-item-hover"
+            role="button"
+            tabindex="0"
+            :aria-label="`使用演示账号 ${item.label}`"
+            @keydown="demoItemKey(item)"
             @tap="useDemo(item)"
           >
             <view class="demo-text">
@@ -223,10 +276,12 @@ onMounted(() => {
               <text class="demo-desc">{{ item.description }}</text>
               <text class="demo-account">账号 {{ item.account }}</text>
             </view>
-            <text class="demo-arrow">›</text>
+            <text class="demo-arrow" aria-hidden="true">›</text>
           </view>
 
-          <text class="dev-entry" @tap="submitDev">或创建一个临时开发身份</text>
+          <text class="dev-entry" role="button" tabindex="0" @keydown="onDevKey" @tap="submitDev">
+            或创建一个临时开发身份
+          </text>
         </template>
       </view>
     </view>
