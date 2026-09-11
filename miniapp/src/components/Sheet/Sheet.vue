@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useFocusTrap } from '@/composables/useFocusTrap'
 /*
  * 底部抽屉 / 居中弹窗。
  *
@@ -59,12 +60,29 @@ const emit = defineEmits<{ close: [] }>()
 function onMaskTap(closable: boolean) {
   if (closable) emit('close')
 }
+
+/*
+ * 可访问性（仅 H5 生效，小程序没有键盘焦点模型）。
+ *
+ * 放在这个组件里，5 个调用点一次全好 —— 这正是当初把弹层收敛成组件的回报。
+ * 三件事见 composables/useFocusTrap.ts：焦点移进来、Tab 不逃逸、关闭时还回去。
+ */
+const { trapRef } = useFocusTrap({ onEscape: () => emit('close') })
 </script>
 
 <template>
   <view class="mask" :class="{ 'mask-center': center }" @tap="onMaskTap(maskClosable)">
     <!-- @tap.stop 是这个组件存在的主要理由，别删 -->
-    <view class="sheet" :class="{ 'sheet-center': center }" @tap.stop>
+    <view
+      ref="trapRef"
+      class="sheet"
+      :class="{ 'sheet-center': center }"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="title || undefined"
+      tabindex="-1"
+      @tap.stop
+    >
       <slot name="header">
         <view v-if="title" class="sheet-title">{{ title }}</view>
       </slot>
@@ -72,3 +90,14 @@ function onMaskTap(closable: boolean) {
     </view>
   </view>
 </template>
+
+<style scoped>
+/*
+ * 面板本身带 tabindex="-1" 是为了在「弹层里没有任何可聚焦元素」时也能接住焦点，
+ * 但它不是用户主动点出来的焦点，描边反而像是个 bug。
+ * 只去掉面板自己的，**不碰内部元素的焦点环** —— 那是键盘用户唯一的位置指示。
+ */
+.sheet:focus {
+  outline: none;
+}
+</style>
