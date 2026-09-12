@@ -13,7 +13,7 @@ import setting from '@/setting'
 import { onMounted, ref } from 'vue'
 import { fetchDemoAccounts, type DemoAccount } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
-import { activateOnKey } from '@/utils/a11y'
+import { activateOnKey, linkVisibleLabels } from '@/utils/a11y'
 import { ROUTES } from '@/constants/routes'
 
 const auth = useAuthStore()
@@ -163,6 +163,9 @@ onMounted(() => {
   }
   if (options.reason === 'expired') notice.value = '登录状态已失效，请重新登录'
   // 这里**刻意不再**调 loadDemoAccounts() —— 首屏不发这个请求，理由见 demoExpanded 的注释
+
+  // 把可见标签补到 uni-input 内层真正的 <input> 上，理由见 utils/a11y.ts
+  linkVisibleLabels()
 })
 </script>
 
@@ -180,26 +183,31 @@ onMounted(() => {
       <view class="card">
         <text class="card-title">账号密码登录</text>
         <!--
-          aria-label 不能省：placeholder 一旦开始输入就消失，读屏器也未必念它，
-          「用 placeholder 当标签」是最典型的 a11y 反模式。这里视觉上不加可见 label，
-          所以标签只能挂在 aria-label 上。
+          可见标签，不是 aria-label。
+          第一版给 <input> 加的是 aria-label，Lighthouse 实测**仍然报 label 失败** ——
+          uni-app 的 <input> 是个组件，透传属性落在外层 <uni-input> 上，
+          真正的 <input class="uni-input-input"> 上什么都没有，读屏器照样读不到。
+          «框架吞掉了无障碍属性» 这件事不实测发现不了。
+
+          改成可见 <text> 标签之后既绕开了这个问题，本身也是更好的做法：
+          placeholder 一输入就消失，而标签要一直在。
         -->
+        <text class="field-label">账号</text>
         <input
           v-model="account"
           class="field"
           maxlength="64"
-          placeholder="账号"
+          placeholder="如 demo_female"
           placeholder-class="field-ph"
-          aria-label="账号"
         />
+        <text class="field-label">密码</text>
         <input
           v-model="password"
           class="field"
           password
           maxlength="64"
-          placeholder="密码"
+          placeholder="请输入密码"
           placeholder-class="field-ph"
-          aria-label="密码"
           @confirm="submitPassword"
         />
 
@@ -235,12 +243,18 @@ onMounted(() => {
 
       <!-- 演示账号（§5.4，仅 H5 兜底入口）。默认折叠，点开才拉列表 —— 理由见 script 里 demoExpanded 的注释 -->
       <view v-if="showDemoPicker" class="card">
+        <!--
+          这里**故意不写 aria-label**。第一版写的是 aria-label="展开演示账号"，
+          Lighthouse 报 label-content-name-mismatch：WCAG 2.5.3 要求可访问名必须
+          包含可见文字，而这个按钮的可见文字是「演示账号 / 评委现场可直接选…」。
+          aria-label 会**覆盖**可见文字，导致语音用户说「点击演示账号」却点不动。
+          展开状态交给 aria-expanded 表达就够了 —— 那才是它该待的地方。
+        -->
         <view
           class="demo-head"
           hover-class="demo-item-hover"
           role="button"
           tabindex="0"
-          :aria-label="demoExpanded ? '收起演示账号' : '展开演示账号'"
           :aria-expanded="demoExpanded ? 'true' : 'false'"
           @keydown="onToggleDemoKey"
           @tap="toggleDemo"
@@ -257,6 +271,7 @@ onMounted(() => {
           <text v-else-if="demoError" class="error">{{ demoError }}</text>
           <text v-else-if="!demoAccounts.length" class="hint">暂无演示账号，可在后端执行 npm run seed:demo</text>
 
+          <!-- 同上：可见文字已经够当名字了，aria-label 反而会盖掉它 -->
           <view
             v-for="item in demoAccounts"
             :key="item.account"
@@ -264,7 +279,6 @@ onMounted(() => {
             hover-class="demo-item-hover"
             role="button"
             tabindex="0"
-            :aria-label="`使用演示账号 ${item.label}`"
             @keydown="demoItemKey(item)"
             @tap="useDemo(item)"
           >
@@ -344,6 +358,14 @@ onMounted(() => {
 }
 
 /* 输入框 */
+
+/* 输入框的可见标签。为什么不是 aria-label，见模板里那段注释 */
+.field-label {
+  margin-bottom: -8rpx;
+  font-size: var(--fs-md);
+  color: var(--text-2);
+}
+
 .field {
   height: 92rpx;
   padding: 0 28rpx;

@@ -3,12 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <script>
+      /*
+       * uni-app 默认模板这里是 `maximum-scale=1.0,user-scalable=no`（禁止缩放）。
+       * 2026-09-12 去掉了那两项 —— Lighthouse a11y 审计明确点名，它违反 WCAG 1.4.4
+       * (Resize Text)：低视力用户放大页面是最基本的自助手段，禁掉它等于把人挡在门外。
+       *
+       * 当初加这两项是为了防「双击/双指缩放导致布局错位」和 iOS 聚焦输入框时的自动放大。
+       * 前者本项目用的是响应式 rpx 布局，缩放不会错位；后者的正解是把输入框字号
+       * 提到 16px 以上，而不是禁用整页缩放。
+       *
+       * viewport-fit=cover 保留 —— 它和缩放无关，是刘海屏安全区要用的。
+       */
       var coverSupport =
         'CSS' in window &&
         typeof CSS.supports === 'function' &&
         (CSS.supports('top: env(a)') || CSS.supports('top: constant(a)'))
       document.write(
-        '<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1.0' +
           (coverSupport ? ',viewport-fit=cover' : '') +
           '" />',
       )
