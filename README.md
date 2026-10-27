@@ -4,7 +4,7 @@
 
 从身形与风格档案出发，用户可以管理衣橱、获取搭配建议、与 AI 顾问对话，再通过阿里百炼生成试衣图片。档案、搭配、对话和试衣结果保存在数据库中，按登录用户隔离。
 
-[在线体验](https://maomaobigking.github.io/) · [项目介绍](docs/项目介绍.md) · [验收报告](docs/20261027-项目验收报告.md) · [部署状态](deploy/当前上线状态.md)
+[在线体验](https://maomaobigking.github.io/) · [项目介绍](PROJECT.md)
 
 ## 可以做什么
 
@@ -20,7 +20,7 @@
 
 ### 试衣记录示例
 
-<img src="docs/images/tryon-history.png" width="300" alt="手机宽度下的试衣记录：已完成结果和生成中任务" />
+<img src="assets/readme/tryon-history.png" width="300" alt="手机宽度下的试衣记录：已完成结果和生成中任务" />
 
 页面示例使用公开演示素材和隔离记录；图中的试衣结果来自真实百炼调用。真实环境另外验证了生成、保存、重新登录读回及用户权限。
 
@@ -56,7 +56,7 @@ server/           Express 接口、业务服务、数据仓库与测试
 cloudfunctions/   微信小程序使用的云函数转发
 scripts/          构建、浏览器验收与真实环境检查
 deploy/           Dockerfile、云托管打包与部署说明
-docs/             项目介绍、验收记录和开发文档
+assets/readme/    公开展示截图
 .github/          GitHub Actions 自动检查
 ```
 
@@ -137,15 +137,9 @@ node --env-file=server/.env server/scripts/checkTryon.mjs
 - **模型验证**：DeepSeek 和百炼已真实调用验证；Anthropic 流式工具协议有测试，尚未使用真实账号验收。
 - **未包含**：真实支付、真实物流接入、可用的拍照换脸模型、自动部署流水线。
 
-当前功能与部署以 [上线状态](deploy/当前上线状态.md) 为准；旧规划文档保留历史演进。
+当前功能与部署边界见本节。个人规划、内部验收和会话记录仅在本机维护。
 
 ## 文档
 
-- [项目介绍](docs/项目介绍.md)：产品功能、技术实现与边界。
-- [2026-10-27 验收报告](docs/20261027-项目验收报告.md)：真实调用、权限与发布结果。
-- [开发手册](docs/开发手册.md)：开发和部署细节。
-- [后端决策记录](docs/后端踩坑/INDEX.md)：架构调整与问题复盘。
-- [性能埋点说明](docs/performance-instrumentation.md)：采样、指标口径及验证限制。
-- [项目总纲](docs/项目总纲.md)：历史规划与演进。
-
-作者：朱力鹏 · 浙江工业大学软件工程 2027 届。
+- [项目介绍](PROJECT.md)：产品功能、技术实现与边界。
+- [微信开发者工具指南](miniapp/DEVTOOLS.md)：本地开发与构建配置。
