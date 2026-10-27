@@ -87,8 +87,23 @@ scroll-view {
 
 /* ---------------- 滚动 ---------------- */
 
+/*
+ * -webkit-overflow-scrolling: touch 开惯性滚动。
+ *
+ * 安卓本来就带惯性，iOS 必须显式声明才有 —— 不写的话滚动是「粘手」的：
+ * 手指一松立即停住，没有滑行减速。体验评分把这条列为 w=8 的考核项
+ * （「滚动区域没有开启惯性滚动」），一次性点名 8 个滚动容器。
+ *
+ * ⚠️ 两个历史坑，别顺手删：
+ *  1. 早期 iOS 上它和 position:fixed 子元素一起用会让 fixed 失效（Safari 的
+ *     合成层 bug）。本项目的固定元素（BottomNav、PageHeader）都挂在页面外层、
+ *     不在 .scroll-y 里面，所以不受影响。将来若在滚动区内放 fixed 元素要重新验。
+ *  2. -webkit-overflow-scrolling 在 iOS 13+ 已是默认行为，写上属于兼容老版本，
+ *     不是错。现代浏览器会忽略它，无副作用。
+ */
 .scroll-y {
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 藏滚动条。小程序的 scroll-view 用 :show-scrollbar="false"，这个管 H5 和普通 view */

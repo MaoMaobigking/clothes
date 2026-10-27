@@ -46,19 +46,35 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
   const loaded = ref(false)
   const loadError = ref('')
 
-  async function load() {
-    try {
-      items.value = await apiListGarments()
-      loadError.value = ''
-    } catch (error) {
-      items.value = []
-      loadError.value =
-        error instanceof Error && error.message
-          ? `衣橱加载失败：${error.message}`
-          : '衣橱加载失败，请检查网络或稍后重试'
-    } finally {
-      loaded.value = true
-    }
+  let pendingLoad: Promise<void> | undefined
+  let generation = 0
+
+  // 同时进入的读取共享请求；完成后的刷新仍然重新请求。
+  function load(): Promise<void> {
+    if (pendingLoad) return pendingLoad
+    const current = generation
+    const task = (async () => {
+      try {
+        const result = await apiListGarments()
+        if (current !== generation) return
+        items.value = result
+        loadError.value = ''
+      } catch (error) {
+        if (current !== generation) return
+        items.value = []
+        loadError.value =
+          error instanceof Error && error.message
+            ? `衣橱加载失败：${error.message}`
+            : '衣橱加载失败，请检查网络或稍后重试'
+      } finally {
+        if (current === generation) loaded.value = true
+      }
+    })()
+    pendingLoad = task
+    void task.finally(() => {
+      if (pendingLoad === task) pendingLoad = undefined
+    })
+    return task
   }
 
   const garments = computed(() => items.value)
@@ -113,6 +129,8 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
    * 上一个人的衣橱会留在内存里，下一个人进衣橱页会先看到别人的衣服。
    */
   function reset() {
+    generation += 1
+    pendingLoad = undefined
     items.value = []
     activeCategory.value = 'all'
     loaded.value = false

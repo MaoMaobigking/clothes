@@ -2,10 +2,19 @@
   "easycom": {
     "autoscan": true,
     "custom": {
-      "^(CreateBasicInfo|CreateToolRail)$": "@/pages/create/$1.vue",
+      "^(CreateBasicInfo|CreateToolRail)$": "@/pages-sub/profile/create/$1.vue",
       "^MallDetailSheet$": "@/pages/mall/MallDetailSheet.vue",
-      "^SceneWeather$": "@/pages/scene/SceneWeather.vue",
-      "^(StyleStep|SkinStep|FaceStep|BodyStep|PrefStep)$": "@/pages/test/$1.vue",
+      "^SceneWeather$": "@/pages-sub/wardrobe/scene/SceneWeather.vue",
+      "^(StyleStep|SkinStep|FaceStep|BodyStep|PrefStep)$": "@/pages-sub/profile/test/$1.vue",
+      /*
+       * 图表组件刻意放在 profile 分包里，不留在共享 components/。
+       *
+       * 它们唯一依赖 echarts，而 echarts 约 428 KB。留在共享目录时，
+       * 分包页引用共享组件会让「组件 + echarts」一起被提升回主包公共 vendor，
+       * 主包白扛 45% 的体积 —— 分包就白拆了。只有这两个页面用图表，
+       * 所以放进它们所在的分包，echarts 才会跟着进分包。
+       */
+      "^(RadarChart|MetricChart)$": "@/pages-sub/profile/components/$1/$1.vue",
       "^uv-(.*)": "@climblee/uv-ui/components/uv-$1/uv-$1.vue",
       "^(?!z-|transition|scroll-view|view|text|image|button|input)[A-Z](.*)": "@/components/$1/$1.vue"
     }
@@ -16,40 +25,79 @@
     { "path": "pages/ai/ai", "style": { "navigationStyle": "custom" } },
     { "path": "pages/closet/closet", "style": { "navigationStyle": "custom" } },
     { "path": "pages/mall/mall", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/cart/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/me/me", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/profile-edit/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/body-create/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/create/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/test/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/result/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/free-match/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/scene/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/wardrobe-upload/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/wardrobe-match/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/outfit-result/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/accessory/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/outfits/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/magazine/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/community/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/custom/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/custom/category", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/custom/orders", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/custom/order", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/magazine-detail/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/teach-detail/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/share-editor/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/share-detail/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/my-favorites/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/diary/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/achievements/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/admin/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/verify/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/checkout/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/orders/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/order-detail/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/stylist/index", "style": { "navigationStyle": "custom" } }
+    { "path": "pages/me/me", "style": { "navigationStyle": "custom" } }
   ],
+  "subPackages": [
+    {
+      "root": "pages-sub/profile",
+      "name": "profile",
+      "pages": [
+        { "path": "body-create/index", "style": { "navigationStyle": "custom" } },
+        { "path": "create/index", "style": { "navigationStyle": "custom" } },
+        { "path": "test/index", "style": { "navigationStyle": "custom" } },
+        { "path": "result/index", "style": { "navigationStyle": "custom" } },
+        { "path": "stylist/index", "style": { "navigationStyle": "custom" } },
+        { "path": "admin/index", "style": { "navigationStyle": "custom" } },
+        { "path": "verify/index", "style": { "navigationStyle": "custom" } },
+        { "path": "profile-edit/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "pages-sub/wardrobe",
+      "name": "wardrobe",
+      "pages": [
+        { "path": "wardrobe-upload/index", "style": { "navigationStyle": "custom" } },
+        { "path": "wardrobe-match/index", "style": { "navigationStyle": "custom" } },
+        { "path": "free-match/index", "style": { "navigationStyle": "custom" } },
+        { "path": "outfit-result/index", "style": { "navigationStyle": "custom" } },
+        { "path": "outfits/index", "style": { "navigationStyle": "custom" } },
+        { "path": "scene/index", "style": { "navigationStyle": "custom" } },
+        { "path": "accessory/index", "style": { "navigationStyle": "custom" } },
+        { "path": "diary/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "pages-sub/trade",
+      "name": "trade",
+      "pages": [
+        { "path": "cart/index", "style": { "navigationStyle": "custom" } },
+        { "path": "checkout/index", "style": { "navigationStyle": "custom" } },
+        { "path": "orders/index", "style": { "navigationStyle": "custom" } },
+        { "path": "order-detail/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "pages-sub/custom",
+      "name": "custom",
+      "pages": [
+        { "path": "custom/index", "style": { "navigationStyle": "custom" } },
+        { "path": "custom/category", "style": { "navigationStyle": "custom" } },
+        { "path": "custom/orders", "style": { "navigationStyle": "custom" } },
+        { "path": "custom/order", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "pages-sub/content",
+      "name": "content",
+      "pages": [
+        { "path": "community/index", "style": { "navigationStyle": "custom" } },
+        { "path": "magazine/index", "style": { "navigationStyle": "custom" } },
+        { "path": "magazine-detail/index", "style": { "navigationStyle": "custom" } },
+        { "path": "teach-detail/index", "style": { "navigationStyle": "custom" } },
+        { "path": "share-editor/index", "style": { "navigationStyle": "custom" } },
+        { "path": "share-detail/index", "style": { "navigationStyle": "custom" } },
+        { "path": "my-favorites/index", "style": { "navigationStyle": "custom" } },
+        { "path": "achievements/index", "style": { "navigationStyle": "custom" } }
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/home/home": { "network": "all", "packages": ["content", "wardrobe"] },
+    "pages/closet/closet": { "network": "all", "packages": ["wardrobe", "profile"] },
+    "pages/mall/mall": { "network": "all", "packages": ["trade", "content"] },
+    "pages/me/me": { "network": "all", "packages": ["profile", "content", "trade"] },
+    "pages/ai/ai": { "network": "all", "packages": ["profile", "wardrobe"] }
+  },
   "tabBar": {
     "color": "#6d6e70",
     "selectedColor": "#b84271",

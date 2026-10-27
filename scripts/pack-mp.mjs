@@ -53,8 +53,15 @@ function findLocalRefs(dir, hits = []) {
       continue
     }
     if (!/\.(js|wxml|wxss|json)$/.test(entry.name)) continue
-    // cloud.js 里的 assetUrl 自己要拿这个前缀做判断，不算引用
-    if (full.endsWith(join('api', 'cloud.js'))) continue
+    /*
+     * utils/cloud.js 里的 assetUrl 自己要拿这个前缀做判断（`path.startsWith('/static/images/')`），
+     * 那是判断用的字面量，不是真引用 —— vite.config.ts 的 rewriteStaticImages 也刻意跳过这个文件。
+     *
+     * ⚠️ 这里原来写的是 api/cloud.js。源码实际在 src/utils/cloud.ts，产物就是 utils/cloud.js，
+     * 所以这个跳过判断从来没生效过：脚本每次都在下面 process.exit(1) 走人，
+     * static/images 从来没被删掉过，主包白扛 11 MB。改引用位置时记得回来对这条路径。
+     */
+    if (full.endsWith(join('utils', 'cloud.js'))) continue
     if (readFileSync(full, 'utf8').includes('/static/images')) hits.push(full)
   }
   return hits

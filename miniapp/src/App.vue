@@ -16,6 +16,7 @@
  * 排查只能靠猜。这三个钩子把错误直接弹到屏幕上，白屏至少变成「白屏 + 一句话原因」。
  */
 import { fetchMe } from '@/api/auth'
+import { pausePerf, resumePerf } from '@/utils/performance'
 import { getToken, redirectToLogin } from '@/utils/request'
 
 // 同一条错误只弹一次，否则渲染循环里抛错会把弹窗刷爆
@@ -66,8 +67,12 @@ export default {
       // 401 由 request() 统一清 token 并跳登录页，这里不重复跳，避免和它抢路由
     })
   },
-  onShow() {},
-  onHide() {},
+  onShow() {
+    resumePerf()
+  },
+  onHide() {
+    pausePerf()
+  },
 
   // 小程序运行时抛出的未捕获异常（含各页面 setup / 渲染阶段）
   onError(err) {
@@ -98,4 +103,31 @@ export default {
 @import './styles/tokens.css';
 @import './styles/base.css';
 @import './styles/components.css';
+
+/* #ifdef H5 */
+
+/* H5 的 uni-page-body 高度随内容增长，不能用百分比约束内部滚动区。 */
+.page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+@media (width >= 700px) {
+  body {
+    background: #e9eaf0;
+  }
+
+  #app {
+    position: relative;
+    width: 430px;
+    min-height: 100vh;
+    margin: 0 auto;
+    overflow: hidden;
+    background: var(--bg-page);
+    box-shadow: 0 12px 48px rgb(31 41 55 / 12%);
+  }
+}
+
+/* #endif */
 </style>

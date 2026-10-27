@@ -550,3 +550,15 @@ CREATE TABLE IF NOT EXISTS shop_order_items (
     FOREIGN KEY (order_id) REFERENCES shop_orders(id) ON DELETE CASCADE,
   INDEX idx_shop_order_item_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 试衣结果保存在已有数据库中；读取需登录且 user_id 匹配。
+CREATE TABLE IF NOT EXISTS ai_result_images (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id INT NOT NULL,
+  task_id VARCHAR(128) NOT NULL,
+  mime VARCHAR(32) NOT NULL,
+  content LONGBLOB NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_result_task (task_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

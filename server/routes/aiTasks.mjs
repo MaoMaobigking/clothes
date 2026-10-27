@@ -13,10 +13,22 @@
 import { Router } from 'express'
 import { authRequired } from '../middleware/auth.mjs'
 import * as aiTaskService from '../services/vision/tasks.mjs'
+import { findResultImage } from '../repositories/resultImageRepo.mjs'
 
 export function createAiTaskRouter(capability) {
   const router = Router()
   router.use(authRequired)
+  router.get('/images/:id', async (req, res, next) => {
+    try {
+      if (!/^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(req.params.id)) return res.sendStatus(404)
+      const image = await findResultImage(req.userId, req.params.id)
+      if (!image) return res.sendStatus(404)
+      res.set('Cache-Control', 'no-store')
+      res.json({ dataUrl: `data:${image.mime};base64,${image.content.toString('base64')}` })
+    } catch (err) {
+      next(err)
+    }
+  })
 
   router.post('/', async (req, res, next) => {
     try {

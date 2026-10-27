@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, ref, nextTick } from 'vue'
+import { startSpan } from '@/utils/performance'
 import setting from '@/setting'
 import { AI_FEATURES, MODEL_IMAGES } from '@/constants/ui'
-import { OUTFIT_RECOS, WEATHER } from '@/mocks/demo'
-import { iconForEmoji } from '@/utils/icons'
+import { useHomeFeed } from '@/composables/useHomeFeed'
 import { fetchMallProducts, type MallProduct } from '@/api/mall'
 import { isAuthError } from '@/utils/request'
 import { useProfileStore } from '@/stores/profile'
@@ -13,18 +13,21 @@ import { go } from '@/utils/nav'
 const profile = useProfileStore()
 const wishlist = useWishlistStore()
 
-/** 天气数据里存的还是 emoji，查表换成线性图标 */
-const weatherIcon = computed(() => iconForEmoji(WEATHER.icon) ?? 'w-cloud')
+const { recommendations, loading, error, load, temperature, weatherLabel, loadWeather } = useHomeFeed(true)
 
 // 「为你精选」取真实商城目录（scene_catalog），不再是 mock 商品，
 // 点进去看到的价格和淘口令与商城页一致（规格 §4.4）
 const picks = ref<MallProduct[]>([])
 
 onMounted(async () => {
+  const end = startSpan('home_data_ready')
   try {
     const data = await fetchMallProducts()
     picks.value = data.items.slice(0, 4)
+    await nextTick()
+    end()
   } catch (error) {
+    end(false, { outcome: isAuthError(error) ? 'abandoned' : 'error' })
     // 未登录时请求层已跳登录页，首页安静留白即可
     if (!isAuthError(error)) picks.value = []
   }
@@ -68,9 +71,10 @@ function goMall() {
             <view class="brand">AI 服装 · 私人穿搭官</view>
           </view>
         </view>
-        <view class="weather">
-          <UiIcon :name="weatherIcon" :size="36" tone="soft" />
-          <text class="w-temp">{{ WEATHER.temp }}°</text>
+        <view class="weather" role="button" @tap="loadWeather">
+          <UiIcon name="w-cloud" :size="36" tone="soft" />
+          <text v-if="temperature !== null" class="w-temp">{{ temperature }}°</text>
+          <text>{{ weatherLabel }}</text>
         </view>
       </view>
 
@@ -98,7 +102,7 @@ function goMall() {
       <view>
         <SectionTitle title="AI 工作流" />
         <view class="features">
-          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="goFeature(f)">
+          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" hover-class="feature-hover" @tap="goFeature(f)">
             <view class="f-ico">
               <UiIcon :name="f.icon" :size="44" tone="soft" />
             </view>
@@ -111,13 +115,16 @@ function goMall() {
       <!-- 今日 AI 搭配推荐（横滑） -->
       <view>
         <SectionTitle title="今日搭配推荐" more="情景模拟" @more="goScene" />
+        <view v-if="loading">正在读取你的衣橱…</view>
+        <view v-else-if="error" role="button" @tap="load">{{ error }}</view>
+        <view v-else-if="!recommendations.length" @tap="go('closet')">衣橱暂无可推荐的搭配，先添加衣物吧</view>
         <view class="recos hide-scrollbar">
-          <view v-for="o in OUTFIT_RECOS" :key="o.id" class="reco">
+          <view v-for="o in recommendations" :key="o.id" class="reco" @tap="goScene">
             <view class="reco-pieces">
               <TileImage
-                v-for="(p, i) in o.pieces.slice(0, 4)"
+                v-for="(p, i) in o.items.slice(0, 4)"
                 :key="i"
-                :src="p.img"
+                :src="p.imageUrl"
                 :from="p.from"
                 :to="p.to"
                 :emoji="p.emoji"
@@ -281,7 +288,8 @@ function goMall() {
   transition: transform 0.15s ease;
 }
 
-.feature:active {
+/* 按压态用 hover-class（体验评分 w=8：小程序端 :active 在滑动时不会消失） */
+.feature-hover {
   transform: scale(0.95);
 }
 
@@ -317,6 +325,7 @@ function goMall() {
   padding-bottom: 8rpx;
   margin-top: 24rpx;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .reco {

@@ -164,12 +164,23 @@ export function rewriteAssetPaths<T>(payload: T): T {
   return walk(payload) as T
 }
 
+function apiAssetUrl(path: string): string {
+  // #ifdef H5
+  // API 数据可能引用服务端新增的图片，这些文件未必包含在 H5 构建产物中。
+  // 生产环境配置了图片域名时，从服务端加载 API 返回的图片。
+  if (/^https?:\/\//.test(CLOUD_IMG_BASE)) {
+    return CLOUD_IMG_BASE.replace(/\/$/, '') + path.slice('/static/images'.length)
+  }
+  // #endif
+  return assetUrl(path)
+}
+
 function walk(node: any): any {
   if (typeof node === 'string') {
-    if (node.startsWith('/static/images/')) return assetUrl(node)
+    if (node.startsWith('/static/images/')) return apiAssetUrl(node)
     // seed.json 里有一批老数据写成 /images/xxx，漏了 /static 前缀。
     // 顺手兜住：已经入库的行不会因为改了 JSON 就自动更新。
-    if (node.startsWith('/images/')) return assetUrl(`/static${node}`)
+    if (node.startsWith('/images/')) return apiAssetUrl(`/static${node}`)
     return node
   }
   if (Array.isArray(node)) return node.map(walk)

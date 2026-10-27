@@ -95,7 +95,7 @@ export interface StreamChatOptions extends ChatStreamHandlers {
  * 用 `fetch` 而不是浏览器内置的 `EventSource`，两个原因缺一不可：
  * 1. EventSource 只能发 GET，而这个接口要 POST 一整段对话历史（URL 塞不下）；
  * 2. EventSource 不能自定义请求头，带不了 `Authorization`。
- * 代价是断线自动重连要自己做 —— 目前没做，所以简历里也不写「异常重连」。
+ * 网络中断时使用请求编号和事件游标续接，不重新提交生成。
  */
 export async function streamChat(options: StreamChatOptions): Promise<StreamChatResult> {
   return postSseChat(API.CHAT_STREAM_URL, options)
@@ -104,12 +104,7 @@ export async function streamChat(options: StreamChatOptions): Promise<StreamChat
 /**
  * 带工具调用的流式对话（批次 3）。
  *
- * ⚠️ **这条路不是真流式。** 后端的 `aiChatWithTools` 在模型给出最终文本时
- * 是 `onChunk(整段)` 一次性吐的，不是逐 token。真正逐条推的是**过程事件**：
- * 模型要调哪个工具、参数、第几轮、结果摘要 —— 也就是 onStep。
- * 讲的时候必须带上这个边界，别说成「工具调用也是流式的」。
- *
- * 另外后端只实现了 OpenAI 兼容协议；provider 切到 Anthropic 会显式抛 501。
+ * 同时推送模型文本增量和工具执行过程；支持 OpenAI 兼容与 Anthropic 协议。
  */
 export async function streamChatWithTools(options: StreamChatOptions): Promise<StreamChatResult> {
   return postSseChat(API.CHAT_TOOLS_URL, options)
@@ -119,25 +114,69 @@ export async function streamChatWithTools(options: StreamChatOptions): Promise<S
 async function postSseChat(url: string, options: StreamChatOptions): Promise<StreamChatResult> {
   const { messages, sessionId, onDelta, onSession, onStep, signal } = options
   const token = await ensureToken()
-
-  const res = await fetch(`${API_BASE_URL}${url}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ messages, sessionId }),
-    signal,
-  })
-
-  if (res.status === 401) throw handleUnauthorized()
-  if (!res.ok) {
-    /*
-     * 会话归属校验失败（404）、provider 不支持工具调用（501）之类的错误
-     * 发生在写 SSE 头**之前**，所以这里拿到的是正常的 JSON 错误体，不是事件流。
-     * 这是服务端特意排的顺序。
-     */
-    const payload = await res.json().catch(() => null as { message?: string; error?: string } | null)
-    throw new Error(payload?.message || payload?.error || `请求失败（${res.status}）`)
+  const requestId = crypto.randomUUID()
+  let sequence = 0
+  let text = ''
+  let currentSession = sessionId
+  const cancel = () => {
+    void fetch(`${API_BASE_URL}/api/chat/requests/${requestId}/cancel`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      keepalive: true,
+    }).catch(() => {})
   }
-  if (!res.body) throw new Error('当前环境不支持流式读取响应')
-
-  return readChatStream(res.body, { onDelta, onSession, onStep }, { sessionId, signal })
+  signal?.addEventListener('abort', cancel, { once: true })
+  try {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (signal?.aborted) return { text, sessionId: currentSession, aborted: true }
+      try {
+        const res = await fetch(`${API_BASE_URL}${url}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ messages, sessionId, requestId, resumeFrom: sequence, resume: attempt > 0 }),
+          signal,
+        })
+        if (res.status === 401) throw Object.assign(handleUnauthorized(), { retryable: false })
+        if (!res.ok) {
+          const payload = await res.json().catch(() => null)
+          throw Object.assign(new Error(payload?.message || payload?.error || `请求失败（${res.status}）`), {
+            retryable: res.status >= 500,
+          })
+        }
+        if (!res.body) throw Object.assign(new Error('当前环境不支持流式读取响应'), { retryable: false })
+        const result = await readChatStream(
+          res.body,
+          {
+            onDelta: (delta) => {
+              text += delta
+              onDelta(delta)
+            },
+            onSession: (id) => {
+              currentSession = id
+              onSession?.(id)
+            },
+            onStep,
+          },
+          {
+            sessionId: currentSession,
+            signal,
+            afterSequence: sequence,
+            onSequence: (id) => {
+              sequence = id
+            },
+          },
+        )
+        if (result.aborted) return { text, sessionId: currentSession, aborted: true }
+        if (result.completed) return result
+        throw new Error('连接中断')
+      } catch (err) {
+        if (signal?.aborted) return { text, sessionId: currentSession, aborted: true }
+        if ((err as { retryable?: boolean }).retryable === false || attempt === 3) throw err
+        await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt))
+      }
+    }
+    throw new Error('续接失败，请查看会话记录')
+  } finally {
+    signal?.removeEventListener('abort', cancel)
+  }
 }

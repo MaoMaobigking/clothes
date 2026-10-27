@@ -1,20 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/login', name: 'login', component: () => import('../views/Login.vue') },
+  { path: '/login', name: 'login', component: () => import('../views/AdminLogin.vue') },
   {
     path: '/',
     component: () => import('../views/Layout.vue'),
     children: [
-      { path: '', name: 'dashboard', component: () => import('../views/Dashboard.vue') },
-      { path: 'garments', name: 'garments', component: () => import('../views/Garments.vue') },
-      { path: 'users', name: 'users', component: () => import('../views/Users.vue') },
-      { path: 'ai-stats', name: 'aiStats', component: () => import('../views/AiStats.vue') },
+      { path: '', name: 'dashboard', component: () => import('../views/Overview.vue') },
+      ...['garments', 'users', 'ai-stats', 'orders'].map((kind) => ({
+        path: kind,
+        name: kind,
+        component: () => import('../views/DataPage.vue'),
+        props: { kind },
+      })),
     ],
   },
 ]
 
-const router = createRouter({ history: createWebHistory(), routes })
+const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes })
 
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('admin_token')

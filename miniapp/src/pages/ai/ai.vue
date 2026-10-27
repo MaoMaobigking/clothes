@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { AI_FEATURES } from '@/constants/ui'
-import { OUTFIT_RECOS } from '@/mocks/demo'
+import { useHomeFeed } from '@/composables/useHomeFeed'
 import { go } from '@/utils/nav'
+const { recommendations, loading, error, load } = useHomeFeed()
 </script>
 
 <template>
@@ -14,11 +15,11 @@ import { go } from '@/utils/nav'
       </view>
 
       <!-- 主推 banner -->
-      <view class="banner" @tap="go('bodyCreate')">
+      <view class="banner" hover-class="banner-hover" @tap="go('bodyCreate')">
         <UiIcon class="banner-emoji" name="me" :size="80" tone="white" :stroke-width="1.3" />
         <view class="banner-text">
           <text class="banner-title">打造你的专属虚拟形象</text>
-          <text class="banner-desc">上传信息，AI 生成会动的你</text>
+          <text class="banner-desc">完善身形档案，获取专属穿搭建议</text>
         </view>
         <text class="banner-go">开始 →</text>
       </view>
@@ -27,7 +28,13 @@ import { go } from '@/utils/nav'
       <view>
         <SectionTitle title="全部功能" />
         <view class="features">
-          <view v-for="f in AI_FEATURES" :key="f.key" class="feature" @tap="go(f.route, f.query)">
+          <view
+            v-for="f in AI_FEATURES"
+            :key="f.key"
+            class="feature"
+            hover-class="feature-hover"
+            @tap="go(f.route, f.query)"
+          >
             <text class="f-ico" :style="{ background: `linear-gradient(140deg, ${f.from}, ${f.to})` }">
               <UiIcon :name="f.icon" :size="44" tone="dark" />
             </text>
@@ -40,13 +47,16 @@ import { go } from '@/utils/nav'
       <!-- 最近灵感（横滑） -->
       <view>
         <SectionTitle title="最近灵感" more="情景模拟" @more="go('scene')" />
+        <view v-if="loading">正在读取你的衣橱…</view>
+        <view v-else-if="error" role="button" @tap="load">{{ error }}</view>
+        <view v-else-if="!recommendations.length" @tap="go('closet')">添加衣物后，为你推荐搭配</view>
         <view class="recos hide-scrollbar">
-          <view v-for="o in OUTFIT_RECOS" :key="o.id" class="reco">
+          <view v-for="o in recommendations" :key="o.id" class="reco" @tap="go('scene')">
             <view class="reco-pieces">
               <TileImage
-                v-for="(p, i) in o.pieces.slice(0, 4)"
+                v-for="(p, i) in o.items.slice(0, 4)"
                 :key="i"
-                :src="p.img"
+                :src="p.imageUrl"
                 :from="p.from"
                 :to="p.to"
                 :emoji="p.emoji"
@@ -104,7 +114,7 @@ import { go } from '@/utils/nav'
   transition: transform 0.15s ease;
 }
 
-.banner:active {
+.banner-hover {
   transform: scale(0.98);
 }
 
@@ -159,7 +169,8 @@ import { go } from '@/utils/nav'
   transition: transform 0.15s ease;
 }
 
-.feature:active {
+/* 按压态用 hover-class（体验评分 w=8：小程序端 :active 在滑动时不会消失） */
+.feature-hover {
   transform: scale(0.96);
 }
 
@@ -190,6 +201,7 @@ import { go } from '@/utils/nav'
   padding-bottom: 8rpx;
   margin-top: 24rpx;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .reco {

@@ -15,16 +15,13 @@
  * | 普通对话        | ✅ 已实测                  | ⚠️ 已实现，未实测   |
  * | 结构化输出      | ✅ 已实测                  | ⚠️ 已实现，未实测   |
  * | SSE 流式        | ✅ 已实测                  | ⚠️ 已实现，未实测   |
- * | 工具调用        | ✅ 已实测                  | ❌ 未实现（待接入） |
+ * | 工具调用        | ✅ 流式已实测              | ⚠️ 协议测试通过，未连真实账号 |
  *
  * 「已实现，未实测」= 代码按官方 API 形状写了（client.mjs 的 structuredAnthropic /
  * callAnthropic、stream.mjs 的 streamAnthropic），但手上没有 Anthropic key，
  * 一次都没真跑过，不能当成"支持"来讲。
  *
- * 「未实现」= tools.mjs 的 aiChatWithTools 只写了 OpenAI 兼容协议。
- * Anthropic 的工具协议形状不同（tool_use / tool_result 内容块 + stop_reason 判定），
- * 需要单独一条分支。该函数已在入口显式抛 TOOL_CALLING_UNSUPPORTED_PROVIDER，
- * 不会伪装成网络错误。
+ * 工具调用已分别实现 OpenAI tool_calls 与 Anthropic tool_use / tool_result 流式协议。
  * ────────────────────────────────────────────────────────────────
  */
 import { config } from '../../../config/env.mjs'

@@ -41,7 +41,7 @@ describe('readChatStream · 正常完成', () => {
     const result = await readChatStream(streamOf([OPEN, D1, D2, DONE]), { onDelta })
 
     expect(deltas).toEqual(['约会', '可以穿浅色'])
-    expect(result).toEqual({ text: '约会可以穿浅色', sessionId: 12, aborted: false })
+    expect(result).toEqual({ text: '约会可以穿浅色', sessionId: 12, aborted: false, completed: true })
   })
 
   it('开场事件里的 sessionId 只回调一次，后续同号不重复通知', async () => {
@@ -193,7 +193,7 @@ describe('readChatStream · 异常', () => {
 
   it('流正常结束却没收到 done（服务端被掐断）→ 已生成的部分照样算数', async () => {
     const result = await readChatStream(streamOf([OPEN, D1, D2]), { onDelta: () => {} })
-    expect(result).toEqual({ text: '约会可以穿浅色', sessionId: 12, aborted: false })
+    expect(result).toEqual({ text: '约会可以穿浅色', sessionId: 12, aborted: false, completed: false })
   })
 
   it('收到 done 后立刻返回，不再读后面的内容', async () => {

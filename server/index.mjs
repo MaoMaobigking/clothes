@@ -12,6 +12,7 @@
  */
 import express from 'express'
 import cors from 'cors'
+import { createPerformanceRouter } from './routes/performance.mjs'
 import { mkdirSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
@@ -34,6 +35,7 @@ import customRoutes from './routes/custom.mjs'
 import { ensureDesigners } from './services/commerce/custom.mjs'
 import communityRoutes from './routes/community.mjs'
 import orderRoutes from './routes/orders.mjs'
+import adminRoutes from './routes/admin.mjs'
 import { createAiTaskRouter } from './routes/aiTasks.mjs'
 import { ensureDemoData } from './services/demoSeed.mjs'
 import { getAiRuntime } from './services/ai/index.mjs'
@@ -51,6 +53,8 @@ const bailian = getBailianRuntime()
 const PORT = config.runtime.port
 
 app.use(cors())
+// Mount before the general 12 MB JSON parser: telemetry is capped at 32 KB.
+app.use('/api/telemetry/performance', createPerformanceRouter())
 app.use(express.json({ limit: '12mb' }))
 app.use(logger)
 app.use('/uploads', express.static(uploadDir))
@@ -77,6 +81,11 @@ const imagesDir = (() => {
 })()
 // immutable：这些图文件名固定、内容不变，让微信/浏览器长期缓存，别每次演示都重下
 app.use('/images', express.static(imagesDir, { maxAge: '30d', immutable: true }))
+const adminDir = join(here, 'admin-public')
+if (existsSync(join(adminDir, 'index.html'))) {
+  app.use('/admin', express.static(adminDir))
+  app.get('/admin/*', (_req, res) => res.sendFile(join(adminDir, 'index.html')))
+}
 
 /* ============ 健康检查 ============ */
 /*
@@ -99,6 +108,22 @@ app.get('/api/health', (_req, res) => {
 })
 
 /* ============ 路由挂载 ============ */
+app.get('/api/ready', async (_req, res) => {
+  try {
+    await ping()
+    res.json({
+      ok: true,
+      database: 'ready',
+      aiConfigured: ai.hasKey,
+      bailianConfigured: bailian.enabled,
+      wechatConfigured: Boolean(config.auth.wxAppId && config.auth.wxSecret),
+      weatherConfigured: Boolean(config.weather.openWeatherKey),
+    })
+  } catch {
+    res.status(503).json({ ok: false, database: 'unavailable' })
+  }
+})
+
 app.use('/api/garments', garmentRoutes)
 app.use('/api', aiRoutes) // /api/style-report, /api/scene-outfits, /api/chat
 app.use('/api/auth', authRoutes)
@@ -114,6 +139,7 @@ app.use('/api/custom', customRoutes)
 app.use('/api/community', communityRoutes)
 // 演示结算：收货地址 + 订单（无支付，状态由演示按钮推进，见 services/commerce/order.mjs）
 app.use('/api/orders', orderRoutes)
+app.use('/api/admin', adminRoutes)
 // 阿里百炼异步任务。加新能力（换脸 / 场景生成）= services/vision/bailian.mjs 的 CAPABILITIES
 // 加一条 + 这里加一行，路由和服务层都不用改。
 app.use('/api/tryon', createAiTaskRouter('tryon'))

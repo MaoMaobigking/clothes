@@ -2,10 +2,13 @@ import { createSSRApp } from 'vue'
 import * as Pinia from 'pinia'
 import uvUI from '@climblee/uv-ui'
 import App from './App.vue'
+import { installPerformance } from './utils/performance'
+import { sendPerformance } from './utils/performance/transport'
 
 export function createApp() {
   const app = createSSRApp(App)
   app.use(Pinia.createPinia())
+  installPerformance(app, sendPerformance)
 
   /*
    * uv-ui 组件库。

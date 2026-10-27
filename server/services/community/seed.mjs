@@ -7,6 +7,16 @@
 import { execute, getOne } from '../../db/mysql.mjs'
 import { findOrCreateByOpenid } from '../../repositories/userRepo.mjs'
 import { DEMO_USERS, CONTENTS, INTERACTIONS, COMMENTS } from '../../seeds/community.mjs'
+import { buildBulkShares, buildBulkInteractions, buildBulkComments } from '../../seeds/communityBulk.mjs'
+
+/*
+ * 批量补充内容的条数。
+ *
+ * 300 是「长列表渲染压力」的下限，不是上限 —— 见 seeds/communityBulk.mjs 的说明。
+ * 想压更狠的测试（比如看虚拟滚动在 1000 条时的内存曲线）改这一个数即可，
+ * 数据是确定性生成的，改完前后仍可对比。
+ */
+const BULK_SHARE_COUNT = 300
 
 async function ensureUser(key, profile) {
   const { user } = await findOrCreateByOpenid(profile.openid, {
@@ -93,10 +103,29 @@ export async function seedCommunityIfNeeded() {
   for (const content of CONTENTS) {
     await upsertContent(content, userIds)
   }
+
+  /*
+   * 批量补充内容（默认 300 条 share）。
+   *
+   * 幂等性与手写那批一致：id 是 `share-bulk-001` 这种稳定字符串，
+   * 走 ON DUPLICATE KEY UPDATE，重复启动只更新同一批记录，不清用户数据。
+   * 所以这个循环虽然要写 300 次，但每次启动都跑得下去，不会越堆越多。
+   */
+  for (const content of buildBulkShares(BULK_SHARE_COUNT)) {
+    await upsertContent(content, userIds)
+  }
+
   for (const interaction of INTERACTIONS) {
     await upsertInteraction(interaction, userIds)
   }
   for (const comment of COMMENTS) {
+    await upsertComment(comment, userIds)
+  }
+
+  for (const interaction of buildBulkInteractions(BULK_SHARE_COUNT)) {
+    await upsertInteraction(interaction, userIds)
+  }
+  for (const comment of buildBulkComments(BULK_SHARE_COUNT)) {
     await upsertComment(comment, userIds)
   }
 

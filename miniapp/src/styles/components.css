@@ -254,9 +254,17 @@
   background: var(--macaron-violet);
 }
 
-/* 按下 / 忙碌态：压扁内发光，果冻被按下去的感觉。不改颜色，改的是光 */
+/*
+ * 按下 / 忙碌态：压扁内发光，果冻被按下去的感觉。不改颜色，改的是光。
+ *
+ * ⚠️ 2026-09-27 按下态从 `:active` 改为 hover-class（体验评分 w=8 项）：
+ * 小程序端 `:active` 在手指滑动时不会取消，按压态会一直挂着；
+ * 官方推荐 hover-class，由框架按真实 touch 事件管理。
+ * 使用方要在元素上写 `hover-class="pill-macaron-hover"`。
+ * .busy 保持原样 —— 它是业务状态（定位中），不是按压态，不该用 hover-class。
+ */
 .pill-macaron.busy,
-.pill-macaron:active {
+.pill-macaron-hover {
   box-shadow: inset 0 2rpx 4rpx rgb(0 0 0 / 6%);
 }
 

@@ -32,6 +32,12 @@ async function resolveOpenid(code) {
     }
     return data.openid
   }
+  if (config.runtime.isProduction) {
+    const err = new Error('微信登录暂不可用，请配置 WX_APPID 和 WX_SECRET，或使用账号密码登录')
+    err.status = 503
+    err.code = 'WX_NOT_CONFIGURED'
+    throw err
+  }
   // 开发态：对 code 取 sha256。
   //
   // 这里踩过一个坑，值得记：原来写的是 hex(code).slice(0, 16)，

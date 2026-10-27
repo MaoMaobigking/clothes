@@ -36,6 +36,7 @@ import {
 import { searchRAG, buildRAGPrompt } from '../services/rag/index.mjs'
 import { listGarments } from '../services/wardrobe/garment.mjs'
 import { config } from '../config/env.mjs'
+import { createReplayStore, attachReplay } from '../services/ai/chat/resumable.mjs'
 
 const router = Router()
 
@@ -67,6 +68,71 @@ function requireKey(_req, res) {
 }
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+
+const replay = createReplayStore()
+router.post('/chat/requests/:id/cancel', authRequired, (req, res) => {
+  replay.cancel(req.userId, req.params.id)
+  res.json({ ok: true })
+})
+
+// 新客户端带 requestId。短暂断网时保留生成任务，重连仅回放未消费事件。
+router.post(
+  ['/chat/stream', '/chat/tools'],
+  authRequired,
+  asyncHandler(async (req, res, next) => {
+    if (!req.body?.requestId) return next()
+    if (!requireKey(req, res)) return
+    const { messages, sessionId: requestedSession, requestId, resumeFrom = 0, resume = false } = req.body
+    if (!Array.isArray(messages) || !messages.length || !Number.isInteger(resumeFrom) || resumeFrom < 0) {
+      return res.status(400).json({ error: 'INVALID_CHAT_REQUEST' })
+    }
+    if (JSON.stringify(messages).length > 100000) return res.status(413).json({ message: '对话内容过长，请开启新会话' })
+    const tools = req.path === '/chat/tools'
+    const { job, fresh } = replay.acquire(
+      req.userId,
+      requestId,
+      { messages, sessionId: requestedSession, tools, profile: req.body.profile },
+      resume,
+    )
+    if (resumeFrom > job.events.length) return res.status(400).json({ error: 'INVALID_CURSOR' })
+    attachReplay(res, job, resumeFrom)
+    if (!fresh) return
+    const timeout = setTimeout(() => {
+      job.controller.abort()
+      job.emit({ error: '生成超时，请稍后重试' })
+    }, 180000)
+    try {
+      const sessionId = await ensureSession(req.userId, requestedSession, messages.at(-1)?.content)
+      await appendMessage(req.userId, sessionId, 'user', messages.at(-1)?.content)
+      job.emit({ sessionId, delta: '', done: false })
+      const onChunk = (delta) => job.emit({ delta, done: false })
+      const fullText = await withAiLog(
+        { userId: req.userId, scene: tools ? 'chat_tools' : 'chat_stream' },
+        async () => {
+          if (!tools) return aiChatStream(messages, null, onChunk, job.controller.signal)
+          return aiChatWithTools(
+            messages,
+            onChunk,
+            {
+              garments: await listGarments(req.userId),
+              profile: req.body.profile || {},
+              userId: req.userId,
+            },
+            job.controller.signal,
+            (step) => job.emit({ step, done: false }),
+          )
+        },
+      )
+      job.controller.signal.throwIfAborted()
+      await appendMessage(req.userId, sessionId, 'assistant', fullText)
+      job.emit({ sessionId, delta: '', done: true, fullText })
+    } catch (err) {
+      job.emit({ error: err.message })
+    } finally {
+      clearTimeout(timeout)
+    }
+  }),
+)
 
 /* ============ 3.1 结构化输出 ============ */
 
@@ -240,11 +306,10 @@ router.post('/chat/tools', authRequired, async (req, res, next) => {
         /*
          * 每轮工具调用的状态事件（批次 3.1）。
          *
-         * 注意这**不是**把这条路改成真流式 —— 最终文本仍然是一次性推的
-         * （见下面那个 onChunk：模型返回文本时整段来）。这里推的是「过程」：
+         * 模型文本由 onChunk 逐片推送；这里推送独立的工具执行过程：
          * 模型要调哪个工具、参数是什么、第几轮、结果摘要。
          * 前端据此渲染步骤条，用户在等待的那几秒里能看到发生了什么，
-         * 而不是盯着一个转圈。讲的时候要把这个边界说清楚。
+         * 而不是盯着一个转圈。
          */
         (step) => {
           res.write(`data: ${JSON.stringify({ step, done: false })}\n\n`)

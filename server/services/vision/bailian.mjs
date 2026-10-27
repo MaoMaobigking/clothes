@@ -13,7 +13,7 @@
  * 环境变量：
  *   DASHSCOPE_API_KEY    百炼 API Key（**北京地域**，新加坡地域的 key 调不通这几个模型）
  *   DASHSCOPE_BASE_URL   可选，默认 https://dashscope.aliyuncs.com
- *   BAILIAN_TRYON_MODEL  可选，aitryon（默认）或 aitryon-plus，两者调用完全兼容
+ *   BAILIAN_TRYON_MODEL  可选，默认 qwen-image-2.1-turbo。旧 aitryon 系列已下线。
  */
 
 import { config } from '../../config/env.mjs'
@@ -48,22 +48,40 @@ export const CAPABILITIES = {
   /** AI 试衣：人像 + 平铺服装图 → 上身图 */
   tryon: {
     label: 'AI 试衣',
-    path: '/api/v1/services/aigc/image2image/image-synthesis/',
-    models: ['aitryon', 'aitryon-plus'],
-    defaultModel: config.bailian.tryonModel,
+    path: '/api/v1/services/aigc/image-generation/generation',
+    models: ['qwen-image-2.1-turbo'],
+    defaultModel: ['aitryon', 'aitryon-plus', 'qwen-image-2.0'].includes(config.bailian.tryonModel)
+      ? 'qwen-image-2.1-turbo'
+      : config.bailian.tryonModel,
     /** 需要用户提供的图片字段，交给上层做「公网可达」校验 */
     imageFields: ['personImageUrl', 'topGarmentUrl', 'bottomGarmentUrl'],
     buildInput(payload) {
-      const input = { person_image_url: payload.personImageUrl }
-      if (payload.topGarmentUrl) input.top_garment_url = payload.topGarmentUrl
-      if (payload.bottomGarmentUrl) input.bottom_garment_url = payload.bottomGarmentUrl
-      return input
+      const content = [{ image: payload.personImageUrl }]
+      const instructions = [
+        '生成真实自然的虚拟试衣照片。第1张图片是人物，保持该人物的脸部身份、发型、肤色、体型、姿势和背景不变。',
+      ]
+      for (const [field, label] of [
+        ['topGarmentUrl', '上装'],
+        ['bottomGarmentUrl', '下装'],
+      ]) {
+        if (!payload[field]) continue
+        content.push({ image: payload[field] })
+        instructions.push(
+          `第${content.length}张图片是${label}参考，将其穿到第1张人物身上，准确保留衣服颜色、材质、图案和剪裁。`,
+        )
+      }
+      instructions.push(
+        '仅替换指定衣物，保留其他衣物和配饰。不要改变人物身份，不增加文字或拼图，只输出一张完整试衣效果图。',
+      )
+      content.push({ text: instructions.join('') })
+      return { messages: [{ role: 'user', content }] }
     },
-    buildParameters(payload) {
+    buildParameters(_payload) {
       return {
-        // -1 = 跟随输入分辨率。文档默认值，别改成具体数字，否则窄图会被拉伸
-        resolution: -1,
-        restore_face: payload.restoreFace !== false,
+        n: 1,
+        size: '768*1024',
+        prompt_extend: false,
+        watermark: false,
       }
     },
     validate(payload) {
@@ -107,6 +125,8 @@ export function resolveModel(capabilityName, model) {
   const cap = getCapability(capabilityName)
   const want = String(model || '').trim()
   if (!want) return cap.defaultModel
+  // 兼容已安装的旧客户端，但不再向下线模型发起请求。
+  if (capabilityName === 'tryon' && ['aitryon', 'aitryon-plus'].includes(want)) return cap.defaultModel
   if (!cap.models.includes(want)) {
     throw bailianError(
       `${cap.label} 不支持模型 ${want}（可选：${cap.models.join(' / ')}）`,
@@ -233,6 +253,9 @@ export function extractImages(output = {}) {
   }
   push(output.image_url)
   push(output.result_url)
+  for (const choice of Array.isArray(output.choices) ? output.choices : []) {
+    for (const item of Array.isArray(choice?.message?.content) ? choice.message.content : []) push(item?.image)
+  }
   for (const item of Array.isArray(output.results) ? output.results : []) {
     if (typeof item === 'string') push(item)
     else if (item && typeof item === 'object') push(item.url || item.image_url)
@@ -264,7 +287,7 @@ export async function createTask(capabilityName, payload = {}, { model } = {}) {
   }
 
   // 只要有一张图是临时空间的 oss:// 地址，就得开这个头，否则百炼把它当成非法 URL
-  const usesOss = Object.values(body.input).some((v) => typeof v === 'string' && v.startsWith('oss://'))
+  const usesOss = JSON.stringify(body.input).includes('oss://')
 
   const response = await fetch(`${BASE_URL}${cap.path}`, {
     method: 'POST',

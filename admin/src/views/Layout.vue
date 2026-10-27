@@ -25,6 +25,7 @@
           <el-icon><TrendCharts /></el-icon>
           AI 调用统计
         </el-menu-item>
+        <el-menu-item index="/orders">演示订单</el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

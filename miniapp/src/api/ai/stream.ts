@@ -22,12 +22,18 @@ export interface StreamChatResult {
   sessionId?: number
   /** 是否被用户中途停止。true 时 text 是已经生成的那部分，不是错误 */
   aborted: boolean
+  completed?: boolean
 }
 
 export async function readChatStream(
   body: ReadableStream<Uint8Array>,
   handlers: ChatStreamHandlers,
-  options: { sessionId?: number; signal?: AbortSignal } = {},
+  options: {
+    sessionId?: number
+    signal?: AbortSignal
+    afterSequence?: number
+    onSequence?: (sequence: number) => void
+  } = {},
 ): Promise<StreamChatResult> {
   const { onDelta, onSession, onStep } = handlers
   const { signal } = options
@@ -36,6 +42,7 @@ export async function readChatStream(
   const parser = createSseParser()
   let text = ''
   let session = options.sessionId
+  let cursor = options.afterSequence || 0
 
   try {
     for (;;) {
@@ -43,7 +50,7 @@ export async function readChatStream(
       if (done) break
 
       for (const event of parser.push(value)) {
-        let chunk: ChatStreamChunk
+        let chunk: ChatStreamChunk & { sequence?: number }
         try {
           chunk = JSON.parse(event.data)
         } catch {
@@ -51,7 +58,12 @@ export async function readChatStream(
           continue
         }
 
-        if (chunk.error) throw new Error(chunk.error)
+        if (chunk.error) throw Object.assign(new Error(chunk.error), { retryable: false })
+        if (chunk.sequence) {
+          if (chunk.sequence <= cursor) continue
+          cursor = chunk.sequence
+          options.onSequence?.(chunk.sequence)
+        }
         if (chunk.step) onStep?.(chunk.step)
         if (chunk.sessionId && chunk.sessionId !== session) {
           session = chunk.sessionId
@@ -63,7 +75,7 @@ export async function readChatStream(
         }
         if (chunk.done) {
           // 服务端给的 fullText 是权威值，拼出来的只是兜底
-          return { text: chunk.fullText ?? text, sessionId: session, aborted: false }
+          return { text: chunk.fullText ?? text, sessionId: session, aborted: false, completed: true }
         }
       }
     }
@@ -81,5 +93,5 @@ export async function readChatStream(
   }
 
   // 流结束了却没收到 done 事件（服务端被掐断），已生成的部分照样算数
-  return { text, sessionId: session, aborted: signal?.aborted ?? false }
+  return { text, sessionId: session, aborted: signal?.aborted ?? false, completed: false }
 }

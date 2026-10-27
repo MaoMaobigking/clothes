@@ -9,7 +9,8 @@
  * executeTool 的数据仍然全部由调用方经 context 传入（context.garments / context.profile），
  * 这一层不 import 任何 repository —— 保持无依赖，也就不会引入循环引用。
  */
-import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL } from '../runtime/provider.mjs'
+import { API_KEY, MODEL, API_STYLE, CHAT_COMPLETIONS_URL, ANTHROPIC_MESSAGES_URL } from '../runtime/provider.mjs'
+import { readToolRound } from './streamRound.mjs'
 import { TOOL_SPECS, toOpenAiTools, runTool } from './handlers.mjs'
 import { reportUsage } from '../telemetry/usage.mjs'
 import { fitContext } from '../chat/context.mjs'
@@ -49,8 +50,7 @@ export async function executeTool(name, args, context = {}) {
  * 2. 模型返回 tool_calls? → 执行工具 → 结果喂回模型
  * 3. 模型返回 text? → 流式输出给用户 → 结束
  *
- * ⚠️ 只实现了 OpenAI 兼容协议（DeepSeek 也走这套）。Anthropic 的工具协议不一样
- * （tool_use / tool_result 内容块 + stop_reason 判定），见 provider.mjs 的能力矩阵。
+ * OpenAI 兼容与 Anthropic 分别适配工具协议，文本增量立即发送。
  *
  * ────────────────────────────────────────────────────────────────
  * 两条 2026-09-10 的改动
@@ -74,25 +74,8 @@ export async function executeTool(name, args, context = {}) {
  * @returns {Promise<string>} 完整回复文本
  */
 export async function aiChatWithTools(messages, onChunk, context = {}, signal, onStep) {
-  /*
-   * 显式挡在门口，而不是让它带着 OpenAI 的形状往 Anthropic 的地址发。
-   *
-   * 补这个守卫之前：下面的 fetch 硬编码 CHAT_COMPLETIONS_URL + `Bearer`，
-   * AI_PROVIDER=anthropic 时会把 OpenAI 形状的请求发到
-   * https://api.anthropic.com/chat/completions 并带错认证头，
-   * 报出来是个让人摸不着头脑的 404/401 —— 看着像网络或密钥问题，
-   * 实际是「这条路根本没实现」。静默陷阱比明确不支持难查得多。
-   */
-  if (API_STYLE === 'anthropic') {
-    const err = new Error(
-      '工具调用目前只实现了 OpenAI 兼容协议（含 DeepSeek）。' +
-        'Anthropic 的 tool_use / tool_result 协议尚未接入，请改用 AI_PROVIDER=deepseek 或 openai。' +
-        '各 provider 的能力支持情况见 services/ai/runtime/provider.mjs 顶部的能力矩阵。',
-    )
-    err.code = 'TOOL_CALLING_UNSUPPORTED_PROVIDER'
-    err.status = 501
-    throw err
-  }
+  // 每套协议各自构造认证头、工具内容块和历史消息。
+  const anthropic = API_STYLE === 'anthropic'
 
   const system =
     '你是「灵犀」——一个亲切专业的中文穿搭顾问。你可以使用工具来查询用户的衣橱、天气和画像信息，从而给出更精准的建议。'
@@ -100,6 +83,7 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal, o
   // 压进预算 + 拷成本地数组。下面整个循环只往 working 末尾追加，不碰调用方的 messages。
   const { messages: fitted } = await fitContext(messages, { summarize: summarizeTranscript })
   const working = fitted.map(normalizeOpenAiMessage)
+  let fullText = ''
 
   // 最多循环 5 轮（防止无限循环）
   for (let round = 0; round < 5; round++) {
@@ -109,29 +93,82 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal, o
       messages: [{ role: 'system', content: system }, ...working],
       tools: TOOLS,
       tool_choice: 'auto',
+      stream: true,
+      stream_options: { include_usage: true },
     }
 
-    const r = await fetch(CHAT_COMPLETIONS_URL, {
+    const anthropicBody = {
+      model: MODEL,
+      max_tokens: 2000,
+      system,
+      stream: true,
+      messages: working.filter((m) => m.role !== 'system'),
+      tools: TOOLS.map(({ function: fn }) => ({
+        name: fn.name,
+        description: fn.description,
+        input_schema: fn.parameters,
+      })),
+    }
+    let r = await fetch(anthropic ? ANTHROPIC_MESSAGES_URL : CHAT_COMPLETIONS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
-      body: JSON.stringify(body),
+      headers: anthropic
+        ? { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' }
+        : { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
+      body: JSON.stringify(anthropic ? anthropicBody : body),
       signal,
     })
-    if (!r.ok) throw new Error(`OpenAI 接口 ${r.status}: ${await r.text()}`)
-    const data = await r.json()
+    if (!anthropic && r.status === 400) {
+      const reason = await r.text()
+      if (!/stream_options|include_usage/i.test(reason)) throw new Error(`模型接口 400: ${reason.slice(0, 300)}`)
+      delete body.stream_options
+      r = await fetch(CHAT_COMPLETIONS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
+        body: JSON.stringify(body),
+        signal,
+      })
+    }
+    const msg = await readToolRound(
+      r,
+      (delta) => {
+        fullText += delta
+        onChunk?.(delta)
+      },
+      anthropic,
+    )
     // 每轮各报一次，由 usage.mjs 的累加器求和 —— 这条链路一次对话最多 5 次往返，
     // 「这次对话花了多少」问的是总和，不是最后一轮。
-    reportUsage(data.usage)
-    const msg = data.choices?.[0]?.message
-    if (!msg) throw new Error('模型返回为空')
+    reportUsage(msg.usage)
 
     // 检查是否有 tool_calls
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       // 追加到本地数组（不是调用方的 messages）
-      working.push({ role: 'assistant', content: null, tool_calls: msg.tool_calls })
+      if (anthropic) {
+        working.push({
+          role: 'assistant',
+          content: [
+            ...(msg.content ? [{ type: 'text', text: msg.content }] : []),
+            ...msg.tool_calls.map((tc) => ({
+              type: 'tool_use',
+              id: tc.id,
+              name: tc.function.name,
+              input: JSON.parse(tc.function.arguments),
+            })),
+          ],
+        })
+      } else {
+        working.push({
+          role: 'assistant',
+          content: msg.content || null,
+          tool_calls: msg.tool_calls,
+          ...(msg.reasoning_content ? { reasoning_content: msg.reasoning_content } : {}),
+        })
+      }
+      const results = []
 
       // 执行每个工具并添加结果
       for (const tc of msg.tool_calls) {
+        signal?.throwIfAborted()
         const toolName = tc.function.name
         let args = {}
         try {
@@ -152,20 +189,16 @@ export async function aiChatWithTools(messages, onChunk, context = {}, signal, o
           name: toolName,
           summary: summarizeToolResult(result),
         })
-        working.push({
-          role: 'tool',
-          tool_call_id: tc.id,
-          content: result,
-        })
+        if (anthropic) results.push({ type: 'tool_result', tool_use_id: tc.id, content: result })
+        else working.push({ role: 'tool', tool_call_id: tc.id, content: result })
       }
+      if (anthropic) working.push({ role: 'user', content: results })
       // 继续循环，把工具结果喂回模型
       continue
     }
 
     // 普通文本回复 → 返回
-    const content = msg.content || ''
-    if (onChunk) onChunk(content)
-    return content
+    return fullText
   }
 
   throw new Error('工具调用超出最大轮次')

@@ -339,6 +339,7 @@ function goFreeMatch() {
   gap: 16rpx;
   padding: 12rpx 32rpx 20rpx;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cat {

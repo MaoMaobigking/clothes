@@ -45,7 +45,7 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
     全局的 .card 在这个组件里永远不生效）—— 功能上没坏，但很误导，
     css-audit 也会把它算成一处「.card 的重复定义」。
   -->
-  <view class="opt-card" :class="{ selected }" @tap="emit('select', option.id)">
+  <view class="opt-card" :class="{ selected }" hover-class="opt-card-hover" @tap="emit('select', option.id)">
     <!-- 优先真实小图预览，缺素材时回落到占位 -->
     <view class="preview" :class="{ 'preview-plain': !isSwatch }" :style="{ ...swatchStyle, height: previewHeight }">
       <uv-image
@@ -99,7 +99,7 @@ const fallbackIcon = computed(() => iconForEmoji(props.option.emoji) ?? 'image')
 }
 
 /* 按压反馈用透明度，对齐 uv-ui 的 .uv-hover-class { opacity: 0.7 } */
-.opt-card:active {
+.opt-card-hover {
   opacity: 0.7;
 }
 

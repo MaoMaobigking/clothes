@@ -1,305 +1,151 @@
-# AI 服装（灵犀）· 智能穿搭系统
+# 灵犀 · AI 穿搭助手
 
-> **一个微信小程序 AI 穿搭助手**，包含 C 端小程序、B 端管理后台、Node 后端、AI 工程化层。
-> 涵盖身形测试、AI 风格报告、智能衣橱、虚拟搭配、AI 顾问对话、商城、社群等完整功能。
+基于 **uni-app、Vue 3、TypeScript、Node.js 和 MySQL** 的穿搭应用，提供 H5 与微信小程序双端体验，以及独立的管理后台。
 
-**技术栈**：uni-app + Vue3 + TypeScript + Pinia + Node.js + Express + MySQL + AI 工程化（结构化输出/流式/工具调用/MCP/RAG）
+从身形与风格档案出发，用户可以管理衣橱、获取搭配建议、与 AI 顾问对话，再通过阿里百炼生成试衣图片。档案、搭配、对话和试衣结果保存在数据库中，按登录用户隔离。
 
----
+[在线体验](https://maomaobigking.github.io/) · [项目介绍](docs/项目介绍.md) · [验收报告](docs/20261027-项目验收报告.md) · [部署状态](deploy/当前上线状态.md)
 
-## 📁 项目结构（Monorepo）
+## 可以做什么
 
+| 模块           | 当前能力                                                                 |
+| -------------- | ------------------------------------------------------------------------ |
+| 身形与风格档案 | 分步填写风格、肤色、脸型、体型与偏好，生成并保存风格报告                 |
+| 智能衣橱       | 衣物上传、分类、收藏、搭配保存；首页与 AI 页推荐读取本人衣橱             |
+| AI 穿搭顾问    | DeepSeek 对话、流式文本、工具调用、会话历史与 H5 断线续接                |
+| AI 试衣        | 百炼 `qwen-image-2.1-turbo` 异步出图，支持公网图与本地素材上传           |
+| 试衣记录       | 结果转存 MySQL，通过鉴权接口读取；查看最近 20 条记录、刷新进度与图片预览 |
+| 管理后台       | 独立管理员登录、用户与订单列表、衣物增删改查、运营概览与 AI 调用统计     |
+| 内容与交易演示 | 穿搭分享、教学内容、商品、购物车与订单流程；不接真实支付                 |
+
+### 试衣记录示例
+
+<img src="docs/images/tryon-history.png" width="300" alt="手机宽度下的试衣记录：已完成结果和生成中任务" />
+
+页面示例使用公开演示素材和隔离记录；图中的试衣结果来自真实百炼调用。真实环境另外验证了生成、保存、重新登录读回及用户权限。
+
+## 实现与架构
+
+```text
+miniapp/（H5 / 微信小程序）      admin/（Vue 3 + Element Plus）
+                │                           │
+                └──────── HTTP API ─────────┘
+                                  │
+                  Express：routes → services → repositories
+                       │                         │
+               AI / 图片任务服务               MySQL 8
+                 │          │              用户、衣橱、会话、
+              DeepSeek   阿里百炼           试衣任务与结果图片
 ```
-ai-fashion-studio/
-├── miniapp/          # C 端微信小程序（uni-app）
-├── admin/            # B 端管理后台（Vue3 + Element Plus）
-├── server/           # Node 后端（Express + AI 工程化层）
-├── cloudfunctions/   # 云函数
-├── deploy/           # 部署脚本
-└── docs/             # 项目文档
+
+- **AI 调用层**：统一超时、重试、结构化输出校验与用量记录，支持 DeepSeek、OpenAI 兼容接口及 Anthropic 协议。
+- **流式工具调用**：处理文本增量和跨分片工具参数；通过请求编号、事件游标续接 H5 对话，避免重放时重复执行工具。
+- **试衣生命周期**：提交任务 → 轮询 → 下载结果 → 数据库保存 → 本人鉴权读取。小程序为不同结果使用独立缓存文件。
+- **RAG 与 MCP**：百炼 `text-embedding-v3` 语义向量、余弦相似度与阈值过滤；通过 stdio MCP 暴露业务工具。
+- **权限**：JWT 登录，业务查询按用户过滤；管理接口查询数据库角色；私有试衣图禁止匿名与跨用户读取。
+- **前端工程**：小程序分包、瀑布流、衣橱并发请求合并、图片按需加载；性能采集默认关闭，按开关和采样率启用。
+
+代码入口：[AI 服务](server/services/ai/) · [试衣服务](server/services/vision/) · [RAG](server/services/rag/) · [MCP](server/mcp/) · [数据表](server/schema.sql)
+
+## 目录
+
+```text
+miniapp/          uni-app 客户端；pages 为主包，pages-sub 为业务分包
+admin/            Vue 3 + Element Plus 管理后台
+server/           Express 接口、业务服务、数据仓库与测试
+cloudfunctions/   微信小程序使用的云函数转发
+scripts/          构建、浏览器验收与真实环境检查
+deploy/           Dockerfile、云托管打包与部署说明
+docs/             项目介绍、验收记录和开发文档
+.github/          GitHub Actions 自动检查
 ```
 
----
+## 本地运行
 
-## 🚀 快速开始
-
-### 1. 环境要求
-
-- Node.js >= 16
-- MySQL >= 5.7
-- 微信开发者工具（小程序开发）
-
-### 2. 安装依赖
+需要 **Node.js 22.12+、npm、MySQL 8**；小程序开发另需微信开发者工具。以下命令均从仓库根目录执行。
 
 ```bash
-# 根目录安装
-npm install
-
-# 或分别安装各模块
-cd miniapp && npm install
-cd ../server && npm install
-cd ../admin && npm install
+npm ci
+npm ci --prefix miniapp
+npm ci --prefix admin
 ```
 
-### 3. 配置环境变量
+将 [server/.env.example](server/.env.example) 复制为 `server/.env`，填写配置。PowerShell 示例：
 
-在 `server/` 目录创建 `.env` 文件：
+```powershell
+Copy-Item server/.env.example server/.env
+```
+
+| 配置                                                | 用途                                                           |
+| --------------------------------------------------- | -------------------------------------------------------------- |
+| `MYSQL_HOST / PORT / USER / PASSWORD / DATABASE`    | 连接 MySQL；模板端口 3308 对应本机 Docker 映射，按实际环境修改 |
+| `JWT_SECRET`                                        | 登录签名密钥，至少 16 位随机值                                 |
+| `AI_PROVIDER / AI_API_KEY / AI_MODEL / AI_BASE_URL` | AI 顾问，模板使用 DeepSeek                                     |
+| `DASHSCOPE_API_KEY`                                 | 阿里百炼试衣与向量化                                           |
+| `BAILIAN_TRYON_MODEL`                               | 默认 `qwen-image-2.1-turbo`                                    |
+| `ADMIN_PASSWORD`                                    | 管理员独立密码；生产环境必须配置                               |
+| `WX_APPID / WX_SECRET`                              | 微信真实登录；生产环境缺失会明确报错                           |
+| `OPENWEATHER_API_KEY`                               | 可选实时天气数据源                                             |
+| `MCP_USER_ID`                                       | 独立 MCP 进程的用户身份                                        |
+
+环境变量和密钥不要提交到仓库。数据库初始化与启动：
 
 ```bash
-# 数据库配置
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=ai_fashion
-
-# JWT
-JWT_SECRET=your-secret-key-here
-
-# AI 配置（DeepSeek / OpenAI / Anthropic）
-AI_PROVIDER=deepseek
-DEEPSEEK_API_KEY=your-deepseek-key
-# OPENAI_API_KEY=your-openai-key
-# ANTHROPIC_API_KEY=your-anthropic-key
-
-# 阿里云百炼（RAG 向量化）
-DASHSCOPE_API_KEY=your-dashscope-key
-
-# OpenWeather（天气工具）
-OPENWEATHER_API_KEY=your-openweather-key
+npm run db:init --workspace=ai-fashion-server
+npm run server
 ```
 
-### 4. 初始化数据库
+在另一个终端选择客户端：
 
 ```bash
-cd server
-# 运行建表脚本
-mysql -u root -p ai_fashion < schema.sql
+npm run h5:dev       # H5
+npm run mp:dev       # 微信小程序
+npm run admin:dev    # 管理后台
 ```
 
-### 5. 启动服务
+开发小程序时，用微信开发者工具打开 `miniapp/dist/dev/mp-weixin`。生产配置参考 [miniapp/.env.production.example](miniapp/.env.production.example)。
+
+## 检查与构建
 
 ```bash
-# 启动后端
-cd server
-npm run dev
-
-# 启动小程序（H5 模式）
-cd miniapp
-npm run dev:h5
-
-# 启动小程序（微信小程序模式）
-cd miniapp
-npm run dev:mp-weixin
-# 然后用微信开发者工具打开 miniapp/dist/dev/mp-weixin
-
-# 启动管理后台
-cd admin
-npm run dev
+node scripts/verify-project.mjs
+npx playwright install chromium
+node scripts/check-ui.mjs
+node scripts/check-tryon-history.mjs
 ```
 
----
+一键检查覆盖后端测试、前端测试、类型检查及 H5 / 小程序 / 后台构建。浏览器验收使用隔离 API 数据，覆盖首页、对话续接、后台及试衣记录；不会调用付费模型。
 
-## 📱 功能模块
+[GitHub Actions](.github/workflows/checks.yml) 在 push 和 PR 时执行上述自动检查。[查看运行记录](https://github.com/MaoMaobigking/clothes/actions/workflows/checks.yml)。
 
-### C 端小程序（miniapp/）
-
-| 页面       | 路由                      | 功能                                 |
-| ---------- | ------------------------- | ------------------------------------ |
-| 首页       | `/pages/home/home`        | 品牌落地页 + 功能入口                |
-| AI 工作流  | `/pages/ai/ai`            | AI 功能聚合（测试/顾问/搭配）        |
-| 我的衣橱   | `/pages/closet/closet`    | 衣物管理（CRUD/收藏/分类）           |
-| 商城       | `/pages/mall/mall`        | 商品浏览 + 购买                      |
-| 我的       | `/pages/me/me`            | 个人中心 + 订单 + 收藏               |
-| 个性化创建 | `/pages/create/index`     | 创建虚拟形象                         |
-| 身形测试   | `/pages/test/index`       | 5 步测试（风格/肤色/脸型/体型/偏好） |
-| 风格报告   | `/pages/result/index`     | AI 分析结果（雷达图 + 推荐）         |
-| 自由搭配   | `/pages/free-match/index` | 手动选衣搭配                         |
-| 情景模拟   | `/pages/scene/index`      | 虚拟试穿 + AI 推荐                   |
-| 时尚杂志   | `/pages/magazine/index`   | 内容浏览                             |
-| 时尚社群   | `/pages/community/index`  | 用户分享 + 互动                      |
-| AI 顾问    | `/pages/stylist/index`    | 对话式穿搭建议（流式 SSE）           |
-
-### B 端管理后台（admin/）
-
-- 用户管理
-- 衣物库管理
-- 订单管理
-- AI 调用监控（可观测性看板）
-- 数据统计
-
-### Node 后端（server/）
-
-**分层架构**：routes → services → repositories
-
-**核心能力**：
-
-- ✅ JWT 登录鉴权 + 用户隔离
-- ✅ 结构化输出（JSON Schema 约束 + 校验兜底）
-- ✅ SSE 流式输出（AI 对话打字机效果）
-- ✅ 工具调用（手写 tool-calling 循环）
-- ✅ MCP Server（stdio 协议）
-- ✅ RAG 向量检索（embedding + 余弦相似度 + 阈值过滤）
-- ✅ 多厂商适配（OpenAI / Anthropic / DeepSeek）
-
----
-
-## 🗄️ 数据库设计
-
-7 张核心表：
-
-```
-users              # 用户表
-├── body_profiles     # 身形档案
-├── style_reports     # ★ AI 风格报告（持久化）
-├── garments          # 衣橱
-├── outfits           # 搭配方案
-│   └── outfit_items      # 搭配明细
-└── chat_sessions     # ★ AI 顾问会话
-    └── chat_messages     # ★ 对话消息
-```
-
-**关键设计**：
-
-- 所有业务表带 `user_id` 外键 → 支持用户隔离
-- AI 生成结果持久化到数据库（标 ★）
-- 高频查询字段建索引
-
-完整建表 SQL 见 [server/schema.sql](server/schema.sql)
-
----
-
-## 🤖 AI 工程化亮点
-
-### 1. 结构化输出
-
-- JSON Schema 约束模型输出
-- ajv 校验 + 三级兜底（重试/正则修复/默认值）
-- 代码：[server/services/aiService.mjs:20-159](server/services/aiService.mjs#L20-L159)
-
-### 2. 流式输出（SSE）
-
-- 真流式推送（逐 token）
-- 流式结束后完整消息存库
-- 代码：[server/services/aiService.mjs:457-547](server/services/aiService.mjs#L457-L547)
-
-### 3. 工具调用
-
-- 手写 tool-calling 循环（非 SDK 封装）
-- 支持多轮工具调用
-- 工具：查衣橱/查天气/获取画像/记录偏好/RAG 检索
-- 代码：[server/services/aiService.mjs:656-714](server/services/aiService.mjs#L656-L714)
-
-### 4. MCP（Model Context Protocol）
-
-- stdio 协议 MCP Server
-- 5 个工具动态发现调用
-- 对齐字节 AIDP 技术栈
-- 代码：[server/mcp/server.mjs](server/mcp/server.mjs)
-
-### 5. RAG 向量检索
-
-- 阿里云百炼 text-embedding-v3（1024 维）
-- 余弦相似度 + 阈值过滤（0.50）
-- 手写切块/检索/拼 prompt
-- 代码：[server/services/ragService.mjs](server/services/ragService.mjs)
-
----
-
-## 📚 文档导航
-
-| 文档                                            | 说明                                   |
-| ----------------------------------------------- | -------------------------------------- |
-| [项目总纲](docs/项目总纲.md)                    | **必读**：架构、战略、路线图、面试话术 |
-| [开发手册](docs/开发手册.md)                    | 部署上线、页面规范、图片清单           |
-| [后端踩坑记录](docs/后端踩坑/INDEX.md)          | 架构决策、bug 根因、能力矩阵           |
-| [补强清单](docs/阿里前端全栈岗-项目补强清单.md) | 功能完成度、验收标准                   |
-| [图片清单](docs/图片素材清单.md)                | 所需图片列表（尺寸/位置/内容）         |
-
----
-
-## 🔧 开发命令
-
-### 小程序（miniapp/）
+真实数据库与模型检查需自行配置环境，单独运行：
 
 ```bash
-npm run dev:h5              # H5 开发
-npm run dev:mp-weixin       # 小程序开发
-npm run build:h5            # H5 打包
-npm run build:mp-weixin     # 小程序打包
-npm run check:types         # 类型检查
-npm test                    # 运行测试
+node --env-file=server/.env scripts/check-persistence.mjs
+node --env-file=server/.env server/scripts/checkTryon.mjs
 ```
 
-### 后端（server/）
+前者创建并清理独立验收库；后者调用真实百炼模型，会产生出图费用。自动测试、真实接口验收与手机操作验收分别记录，不能互相替代。
 
-```bash
-npm run dev                 # 开发模式
-npm start                   # 生产模式
-npm test                    # 运行测试
-```
+## 部署与当前边界
 
-### 管理后台（admin/）
+- **网页**：已发布到 GitHub Pages，入口为 [在线体验](https://maomaobigking.github.io/)。
+- **后端和后台**：部署在现有微信云托管服务，管理页面由 `/admin/` 提供。
+- **小程序**：1.0.3 已上传；体验版状态及新试衣记录的真机验收待确认，尚未提审或正式发布。
+- **天气**：目前缺少 OpenWeather 密钥。首页没有实况时不显示温度；其他场景的估算天气带有 `fallback` 标记，不能作为实时天气。
+- **对话续接**：当前使用单进程缓存；容器重启或切换实例后不能无损续接。
+- **模型验证**：DeepSeek 和百炼已真实调用验证；Anthropic 流式工具协议有测试，尚未使用真实账号验收。
+- **未包含**：真实支付、真实物流接入、可用的拍照换脸模型、自动部署流水线。
 
-```bash
-npm run dev                 # 开发模式
-npm run build               # 生产打包
-npm run preview             # 预览打包结果
-```
+当前功能与部署以 [上线状态](deploy/当前上线状态.md) 为准；旧规划文档保留历史演进。
 
----
+## 文档
 
-## 🎯 项目定位
+- [项目介绍](docs/项目介绍.md)：产品功能、技术实现与边界。
+- [2026-10-27 验收报告](docs/20261027-项目验收报告.md)：真实调用、权限与发布结果。
+- [开发手册](docs/开发手册.md)：开发和部署细节。
+- [后端决策记录](docs/后端踩坑/INDEX.md)：架构调整与问题复盘。
+- [性能埋点说明](docs/performance-instrumentation.md)：采样、指标口径及验证限制。
+- [项目总纲](docs/项目总纲.md)：历史规划与演进。
 
-**一句话**：一个**双端（小程序 + 后台）、真数据库、有登录鉴权、有 AI 工程化深度、真上过线**的完整系统。
-
-**技能叠加**：
-
-- 前端：Vue3 + TypeScript + Pinia + uni-app + Element Plus
-- 后端：Node.js + Express + 三层架构 + JWT
-- 数据库：MySQL（表设计/索引/事务）
-- AI 工程化：结构化输出/流式/工具调用/MCP/RAG（**护城河**）
-- 工程化：TypeScript + ESLint + Prettier + Vitest + CI/CD
-
-**面试亮点**：
-
-- ✅ 用户隔离 + 越权控制（SQL 层 `user_id` 隔离，404 防枚举）
-- ✅ AI 结果持久化（存了才是产品，不存只是调 API）
-- ✅ 手写 AI 逻辑（不用 LangChain，能讲原理）
-- ✅ 多模态能力（图片自动打标签、虚拟试衣）
-- ✅ 可观测性（调用日志/成本统计/性能监控）
-
----
-
-## 📝 开发规范
-
-- 提交规范：Conventional Commits
-- 代码风格：ESLint + Prettier
-- 类型检查：TypeScript strict mode
-- 测试覆盖：Vitest 单元测试 + E2E
-- Git 工作流：功能分支 + PR review
-
----
-
-## 🚢 部署
-
-- 小程序：微信开发者工具 → 上传代码 → 提审发布
-- 后端：Docker + docker-compose + PM2
-- 数据库：MySQL 云数据库
-- 域名：HTTPS（Nginx + Let's Encrypt）
-
-详细部署指南见 [docs/开发手册.md](docs/开发手册.md)
-
----
-
-## 📄 License
-
-MIT
-
----
-
-## 👤 作者
-
-朱力鹏 · 浙江工业大学软件工程 2027 届
-
-**联系方式**：见个人简历
+作者：朱力鹏 · 浙江工业大学软件工程 2027 届。

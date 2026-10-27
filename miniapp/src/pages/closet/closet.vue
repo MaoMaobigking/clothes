@@ -244,6 +244,7 @@ function goAccessory(item: WardrobeItem) {
             <view v-for="item in filtered" :key="item.id" class="cell">
               <TileImage
                 :src="item.img"
+                observe-lazy-load
                 :from="item.primaryColor || item.from"
                 :to="item.secondaryColors?.[0] || item.to"
                 :emoji="item.emoji"

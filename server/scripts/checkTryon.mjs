@@ -17,6 +17,7 @@ import { DEMO_ACCOUNTS, demoPasswordOf } from '../services/auth/index.mjs'
 
 const BASE = process.env.CHECK_BASE_URL || 'http://127.0.0.1:8787'
 const SKIP_REMOTE = process.env.CHECK_TRYON_SKIP_REMOTE === '1'
+const TEST_MODEL = process.env.CHECK_TRYON_MODEL || undefined
 
 const SAMPLE = {
   person: 'https://help-static-aliyun-doc.aliyuncs.com/file-manage-files/zh-CN/20250626/ubznva/model_person.png',
@@ -189,6 +190,7 @@ async function main() {
       personImageUrl: SAMPLE.person,
       topGarmentUrl: SAMPLE.top,
       bottomGarmentUrl: SAMPLE.bottom,
+      model: TEST_MODEL,
     },
   })
   assert(created.status === 200, '提交成功', created.data?.message || '')
@@ -210,12 +212,16 @@ async function main() {
   if (!last) return
 
   assert(last.status === 'SUCCEEDED', `任务终态是 SUCCEEDED`, `${last.status} ${last.errorMessage || ''}`)
-  assert(/^https?:\/\//.test(last.imageUrl || ''), '出图 URL 已落库', last.imageUrl?.slice(0, 90) || '(空)')
+  assert(/^\/api\/tryon\/images\//.test(last.imageUrl || ''), '出图已保存为私有数据库图片', last.imageUrl || '(空)')
 
   if (last.imageUrl) {
-    // 出图链接是 OSS 临时地址（24h），真下一下确认不是 403/过期
-    const head = await fetch(last.imageUrl, { method: 'GET', headers: { Range: 'bytes=0-1023' } })
-    assert(head.ok, '出图 URL 可下载', `HTTP ${head.status}`)
+    const ownImage = await api(token, last.imageUrl)
+    assert(
+      ownImage.status === 200 && /^data:image\/(png|jpeg|webp);base64,/.test(ownImage.data?.dataUrl || ''),
+      '本人可读取持久化图片',
+    )
+    assert((await api(other, last.imageUrl)).status === 404, '其他用户不能读取图片')
+    assert((await api(null, last.imageUrl)).status === 401, '未登录不能读取图片')
   }
 
   /* ---- 终态后不该再打上游 ---- */
@@ -238,7 +244,7 @@ async function main() {
   console.log('\n提交本地素材试衣任务（验证 oss:// 直传通道）…')
   const localTask = await api(token, '/api/tryon', {
     method: 'POST',
-    body: { personImageUrl: LOCAL.person, topGarmentUrl: LOCAL.top },
+    body: { personImageUrl: LOCAL.person, topGarmentUrl: LOCAL.top, model: TEST_MODEL },
   })
   assert(localTask.status === 200, '本地路径提交成功', localTask.data?.message?.slice(0, 120) || '')
   if (localTask.data?.task?.taskId) {

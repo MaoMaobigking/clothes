@@ -10,6 +10,7 @@
 
 import { USE_CLOUD, cloudRequest, rewriteAssetPaths } from './cloud'
 import { ROUTES } from '@/constants/routes'
+import { measurePerf, routeKey } from './performance'
 
 /*
  * 接口根地址。打包时用 VITE_API_BASE_URL 注入，不注入则退回开发地址。
@@ -173,6 +174,13 @@ function notifySessionExpired() {
 }
 
 function rawRequest<T>(options: RequestOptions): Promise<T> {
+  return measurePerf('api_request', () => executeRequest<T>(options), {
+    endpoint: routeKey(options.url),
+    method: options.method || 'GET',
+  })
+}
+
+function executeRequest<T>(options: RequestOptions): Promise<T> {
   const header = {
     'Content-Type': 'application/json',
     ...(options.withAuth === false ? {} : { Authorization: `Bearer ${getToken()}` }),
@@ -261,7 +269,19 @@ export async function request<T>(options: RequestOptions): Promise<T> {
   }
 }
 
-export async function uploadFile<T>(options: {
+export function uploadFile<T>(options: {
+  url: string
+  filePath: string
+  name?: string
+  formData?: Record<string, string>
+}): Promise<T> {
+  return measurePerf('file_upload', () => executeUpload<T>(options), {
+    endpoint: routeKey(options.url),
+    method: 'POST',
+  })
+}
+
+async function executeUpload<T>(options: {
   url: string
   filePath: string
   name?: string

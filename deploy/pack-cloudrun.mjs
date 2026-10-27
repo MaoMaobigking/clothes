@@ -130,6 +130,11 @@ const imagesSrc = join(root, 'miniapp', 'src', 'static', 'images')
 if (!existsSync(imagesSrc)) throw new Error(`找不到演示素材目录: ${imagesSrc}`)
 
 copyServer()
+const adminBuild = join(root, 'admin', 'dist')
+if (!existsSync(join(adminBuild, 'index.html'))) {
+  throw new Error('请先运行 npm run build --prefix admin，再打包云托管版本')
+}
+cpSync(adminBuild, join(stage, 'server', 'admin-public'), { recursive: true })
 cpSync(imagesSrc, join(stage, 'images'), { recursive: true })
 cpSync(join(here, 'Dockerfile'), join(stage, 'Dockerfile'))
 cpSync(join(root, 'package.json'), join(stage, 'package.json'))

@@ -16,6 +16,7 @@ import { dirname, join, resolve, extname, sep } from 'node:path'
 import * as aiTaskRepo from '../../repositories/aiTaskRepo.mjs'
 import * as bailian from './bailian.mjs'
 import { config } from '../../config/env.mjs'
+import { archiveResult } from './archive.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -229,13 +230,17 @@ export async function syncTask(userId, taskId) {
     throw err
   }
 
-  const imageUrl = remote.images[0] || ''
+  // 转存成功才落终态；转存失败保留任务供下次查询重试。
+  const imageUrl =
+    remote.status === 'SUCCEEDED' && remote.images[0]
+      ? await archiveResult(remote.images[0], userId, record.taskId)
+      : ''
   const errorMessage = remote.status === 'SUCCEEDED' && !imageUrl ? '任务成功但没有返回图片地址' : remote.errorMessage
   return aiTaskRepo.updateStatus(userId, record.taskId, {
     status: remote.status,
     imageUrl,
     errorMessage,
-    result: remote.status === 'SUCCEEDED' ? { images: remote.images, usage: remote.usage } : null,
+    result: remote.status === 'SUCCEEDED' ? { images: imageUrl ? [imageUrl] : [], usage: remote.usage } : null,
   })
 }
 

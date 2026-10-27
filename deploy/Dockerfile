@@ -34,6 +34,11 @@ FROM ${NODE_IMAGE}
 # 装 tzdata 要在构建期访问 dl-cdn.alpinelinux.org，凭空多一个能让构建挂掉的外网依赖，
 # 换来的东西 Node 根本不用。
 ENV TZ=Asia/Shanghai
+ENV NODE_ENV=production
+# 微信云托管代理微信 HTTPS 接口时使用此专用根证书。
+ENV NODE_EXTRA_CA_CERTS=/app/cert/certificate.crt
+# 镜像中的演示素材位于 /app/images。
+ENV MINIAPP_STATIC_DIR=/app
 
 WORKDIR /app
 

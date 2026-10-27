@@ -9,8 +9,27 @@
 const fs = require('fs'),
   path = require('path')
 
-const pj = JSON.parse(fs.readFileSync('src/pages.json', 'utf8').replace(/\/\/.*$/gm, ''))
-const routes = new Set(pj.pages.map((p) => '/' + p.path))
+/*
+ * pages.json 是 JSONC（uni-app 允许注释），JSON.parse 前要剥掉注释。
+ * 行注释和块注释都要剥 —— 只剥 `//` 的话，pages.json 里写一段 /* ... *\/ 就会
+ * 让这个校验脚本直接崩掉，而崩掉的校验脚本比没有校验更危险：CI 里看起来是红的，
+ * 实际什么都没查。
+ */
+const stripJsonComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+
+const pj = JSON.parse(stripJsonComments(fs.readFileSync('src/pages.json', 'utf8')))
+
+/*
+ * 路由全集 = 主包 pages + 所有分包 pages。
+ *
+ * ⚠️ 分包页在 pages.json 里是「root + 相对 path」两段拼出来的，
+ * 漏掉 subPackages 就会让分包页的路由全部从集合里消失 ——
+ * 校验器反而会把**正确的**分包路径报成「返回目标不存在」，
+ * 变成一屏假告警，真问题淹在里面。改 pages.json 结构时记得同步这里。
+ */
+const mainRoutes = pj.pages.map((p) => '/' + p.path)
+const subRoutes = (pj.subPackages || []).flatMap((sub) => (sub.pages || []).map((p) => '/' + sub.root + '/' + p.path))
+const routes = new Set([...mainRoutes, ...subRoutes])
 const tabs = new Set((pj.tabBar?.list || []).map((t) => '/' + t.pagePath))
 
 const files = []

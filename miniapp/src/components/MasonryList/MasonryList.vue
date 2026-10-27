@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends MasonryItem">
 /*
  * 瀑布流 + 虚拟滚动列表。
  *
@@ -7,6 +7,12 @@
  * 列平衡与可视区间计算全在 @/utils/masonry.ts（纯函数，有 27 个测试）。
  * 这么切的理由：布局是「一堆数字算另一堆数字」，和渲染无关；
  * 抽开之后不用挂载组件就能测，也不会出现「组件里一套坐标、别处另一套」。
+ *
+ * 泛型 T：调用方的列表项通常比 MasonryItem 多一堆字段
+ * （社区页要拿 coverUrl / title / likeCount 渲染卡片）。
+ * 不写泛型的话插槽里的 item 会被收窄成 MasonryItem，调用方只能 as 断言或
+ * 把整份数据再查一遍 —— 断言是错的来源，重查是浪费。所以这里把 T 透传下去，
+ * 调用方传什么类型，插槽里就是什么类型。默认值让老调用方不用改。
  *
  * ⚠️ 本文件不写任何显式组件 import —— 组件一律靠 easycom 注册。
  * 混用显式 import 和 easycom 会让编译产物里的路径 marker 生成错误，
@@ -19,7 +25,7 @@ import { getVisibleItems, layoutMasonry, type MasonryItem, type PositionedItem }
 const props = withDefaults(
   defineProps<{
     /** 数据源。每项必须有 id 与 aspectRatio（宽/高，由服务端下发） */
-    items: MasonryItem[]
+    items: T[]
     /** 列数。默认 2 —— 移动端两列是瀑布流的常规密度 */
     columnCount?: number
     /** 列间距与行间距（px） */
@@ -32,6 +38,8 @@ const props = withDefaults(
     hasMore?: boolean
     /** 正在加载中，用于去重触发 */
     loading?: boolean
+    /** 底部「没有更多了」那行提示在列表为空时是否显示 */
+    emptyTip?: string
   }>(),
   {
     columnCount: 2,
@@ -40,6 +48,7 @@ const props = withDefaults(
     lowerThreshold: 200,
     hasMore: false,
     loading: false,
+    emptyTip: '',
   },
 )
 

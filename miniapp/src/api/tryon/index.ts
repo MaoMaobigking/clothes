@@ -10,6 +10,8 @@
  */
 import { API_BASE_URL, request, publicRequest } from '@/utils/request'
 import type { AiTask, AiTaskStatus, TryonPayload } from './type'
+import { resolveImageUrl } from '@/api/wardrobe'
+import { measurePerf, newTraceId } from '@/utils/performance'
 
 enum API {
   /** 健康检查，用来判断服务端有没有配百炼的 key */
@@ -65,17 +67,40 @@ export async function apiSubmitTryon(payload: TryonPayload): Promise<AiTask> {
       ...(payload.model ? { model: payload.model } : {}),
     },
   })
-  return d.task
+  return { ...d.task, imageUrl: resolveImageUrl(d.task.imageUrl) || '' }
 }
 
 export async function apiGetTryon(taskId: string): Promise<AiTask> {
   const d = await request<{ task: AiTask }>({ url: API.TRYON_TASK_URL + taskId })
-  return d.task
+  if (d.task.imageUrl?.startsWith('/api/tryon/images/')) {
+    const image = await request<{ dataUrl: string }>({ url: d.task.imageUrl })
+    let imageUrl = image.dataUrl
+    // #ifdef MP-WEIXIN
+    const match = /^data:image\/(png|jpeg|webp);base64,(.+)$/.exec(image.dataUrl)
+    if (!match) throw new Error('试衣图片格式错误')
+    const wechat = (globalThis as unknown as { wx: { env: { USER_DATA_PATH: string } } }).wx
+    const imageId = d.task.imageUrl.split('/').pop() || ''
+    if (!/^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(imageId)) throw new Error('试衣图片地址错误')
+    const filePath = `${wechat.env.USER_DATA_PATH}/tryon-${imageId}`
+    await new Promise<void>((resolve, reject) => {
+      uni.getFileSystemManager().writeFile({
+        filePath,
+        data: match[2],
+        encoding: 'base64',
+        success: () => resolve(),
+        fail: reject,
+      })
+    })
+    imageUrl = filePath
+    // #endif
+    return { ...d.task, imageUrl }
+  }
+  return { ...d.task, imageUrl: resolveImageUrl(d.task.imageUrl) || '' }
 }
 
 export async function apiListTryon(limit = 20): Promise<AiTask[]> {
   const d = await request<{ tasks: AiTask[] }>({ url: `${API.TRYON_URL}?limit=${limit}` })
-  return d.tasks || []
+  return (d.tasks || []).map((task) => ({ ...task, imageUrl: resolveImageUrl(task.imageUrl) || '' }))
 }
 
 /**
@@ -111,12 +136,26 @@ export async function pollTryon(
 }
 
 /** 提交 + 等结果，返回出图地址。失败时抛错，错误文案直接可展示。 */
-export async function runTryon(payload: TryonPayload, onTick?: (task: AiTask) => void): Promise<string> {
-  const created = await apiSubmitTryon(payload)
-  const done = await pollTryon(created.taskId, { onTick })
-  if (done.status !== 'SUCCEEDED') {
-    throw new Error(done.errorMessage || `试衣失败（${done.status}）`)
-  }
-  if (!done.imageUrl) throw new Error('试衣成功但没拿到图片地址')
-  return done.imageUrl
+export async function runTryon(
+  payload: TryonPayload,
+  onTick?: (task: AiTask) => void,
+  traceId = newTraceId(),
+): Promise<string> {
+  return measurePerf(
+    'tryon_generate',
+    async () => {
+      const created = await measurePerf('tryon_submit', () => apiSubmitTryon(payload), { traceId })
+      return measurePerf(
+        'tryon_wait',
+        async () => {
+          const done = await pollTryon(created.taskId, { onTick })
+          if (done.status !== 'SUCCEEDED') throw new Error(done.errorMessage || `试衣失败（${done.status}）`)
+          if (!done.imageUrl) throw new Error('试衣成功但没拿到图片地址')
+          return resolveImageUrl(done.imageUrl) || done.imageUrl
+        },
+        { traceId },
+      )
+    },
+    { traceId },
+  )
 }

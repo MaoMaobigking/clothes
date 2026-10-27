@@ -134,7 +134,7 @@ export const config = Object.freeze({
   bailian: Object.freeze({
     baseUrl: (trimmed('DASHSCOPE_BASE_URL') || 'https://dashscope.aliyuncs.com').replace(/\/+$/, ''),
     apiKey: trimmed('DASHSCOPE_API_KEY'),
-    tryonModel: trimmed('BAILIAN_TRYON_MODEL') || 'aitryon',
+    tryonModel: trimmed('BAILIAN_TRYON_MODEL') || 'qwen-image-2.1-turbo',
   }),
 
   weather: Object.freeze({

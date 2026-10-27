@@ -31,7 +31,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="pcard" @tap="emit('click')">
+  <view class="pcard" hover-class="pcard-hover" @tap="emit('click')">
     <view class="thumb">
       <TileImage :from="from" :to="to" :emoji="emoji" :ratio="ratio" :src="src" />
       <text v-if="tag" class="tag">{{ tag }}</text>
@@ -65,8 +65,14 @@ const emit = defineEmits<{
  * 按压反馈从 transform: scale(0.97) 改成透明度。
  * uv-ui 全库的按压态就是 .uv-hover-class { opacity: 0.7 }，没有缩放动效；
  * 而且缩放会让发丝边在动画中出现锯齿。
+ *
+ * ⚠️ 2026-09-27 从 `.pcard:active` 改成 hover-class（体验评分 w=8 项）：
+ * 小程序端 `:active` 伪类在滚动/滑动时不会消失，手指已经移开了按压态还挂着，
+ * 而且很容易被误触发。官方推荐用 hover-class —— 它由框架按真实的
+ * touchstart/touchend 管理，滚动时会自动取消。
+ * 选 .pcard-hover 而不是 uv-ui 的 .uv-hover-class：见下一条注释。
  */
-.pcard:active {
+.pcard-hover {
   opacity: 0.7;
 }
 

@@ -34,6 +34,8 @@ const props = withDefaults(
     rounded?: string
     /** 真实图片路径 */
     src?: string
+    /** 按可见区域加载图片，供滚动列表使用（包括 H5）。 */
+    observeLazyLoad?: boolean
     /** 图片填充方式 */
     fit?: 'cover' | 'contain'
     alt?: string
@@ -57,6 +59,7 @@ const props = withDefaults(
     label: '',
     rounded: 'var(--radius)',
     src: '',
+    observeLazyLoad: false,
     fit: 'cover',
     alt: '',
     fill: false,
@@ -65,7 +68,12 @@ const props = withDefaults(
 )
 
 //当换一张图片的时候，把旧的错误状态清空，给新图片一次重新加载的机会
+const emit = defineEmits<{ load: [src: string]; error: [src: string] }>()
 const failed = ref(false)
+function onImageError() {
+  failed.value = true
+  emit('error', props.src)
+}
 watch(
   () => props.src,
   () => {
@@ -136,11 +144,13 @@ const tileStyle = computed(() => ({
         <uv-image
           v-if="!showPlaceholder"
           :src="src"
+          :observe-lazy-load="observeLazyLoad"
           :mode="fit === 'contain' ? 'aspectFit' : 'aspectFill'"
           width="100%"
           height="100%"
           :show-error="false"
-          @error="failed = true"
+          @load="emit('load', src)"
+          @error="onImageError"
         >
           <template #loading>
             <UiIcon :name="placeholderIcon" :size="56" tone="muted" :stroke-width="1.4" />

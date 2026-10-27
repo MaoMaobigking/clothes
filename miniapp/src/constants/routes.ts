@@ -23,48 +23,48 @@ export const ROUTES = {
 
   // —— 账号 ——
   login: '/pages/login/index',
-  verify: '/pages/verify/index',
-  profileEdit: '/pages/profile-edit/index',
-  admin: '/pages/admin/index',
+  verify: '/pages-sub/profile/verify/index',
+  profileEdit: '/pages-sub/profile/profile-edit/index',
+  admin: '/pages-sub/profile/admin/index',
 
   // —— 形象 / 测试 ——
-  create: '/pages/create/index',
-  bodyCreate: '/pages/body-create/index',
-  test: '/pages/test/index',
-  result: '/pages/result/index',
-  stylist: '/pages/stylist/index',
+  create: '/pages-sub/profile/create/index',
+  bodyCreate: '/pages-sub/profile/body-create/index',
+  test: '/pages-sub/profile/test/index',
+  result: '/pages-sub/profile/result/index',
+  stylist: '/pages-sub/profile/stylist/index',
 
   // —— 衣橱 / 搭配 ——
-  wardrobeUpload: '/pages/wardrobe-upload/index',
-  wardrobeMatch: '/pages/wardrobe-match/index',
-  freeMatch: '/pages/free-match/index',
-  outfitResult: '/pages/outfit-result/index',
-  outfits: '/pages/outfits/index',
-  scene: '/pages/scene/index',
-  accessory: '/pages/accessory/index',
-  diary: '/pages/diary/index',
+  wardrobeUpload: '/pages-sub/wardrobe/wardrobe-upload/index',
+  wardrobeMatch: '/pages-sub/wardrobe/wardrobe-match/index',
+  freeMatch: '/pages-sub/wardrobe/free-match/index',
+  outfitResult: '/pages-sub/wardrobe/outfit-result/index',
+  outfits: '/pages-sub/wardrobe/outfits/index',
+  scene: '/pages-sub/wardrobe/scene/index',
+  accessory: '/pages-sub/wardrobe/accessory/index',
+  diary: '/pages-sub/wardrobe/diary/index',
 
   // —— 商城 / 交易 ——
-  cart: '/pages/cart/index',
-  checkout: '/pages/checkout/index',
-  orders: '/pages/orders/index',
-  orderDetail: '/pages/order-detail/index',
+  cart: '/pages-sub/trade/cart/index',
+  checkout: '/pages-sub/trade/checkout/index',
+  orders: '/pages-sub/trade/orders/index',
+  orderDetail: '/pages-sub/trade/order-detail/index',
 
   // —— 定制 ——
-  custom: '/pages/custom/index',
-  customCategory: '/pages/custom/category',
-  customOrders: '/pages/custom/orders',
-  customOrder: '/pages/custom/order',
+  custom: '/pages-sub/custom/custom/index',
+  customCategory: '/pages-sub/custom/custom/category',
+  customOrders: '/pages-sub/custom/custom/orders',
+  customOrder: '/pages-sub/custom/custom/order',
 
   // —— 社区 ——
-  community: '/pages/community/index',
-  magazine: '/pages/magazine/index',
-  magazineDetail: '/pages/magazine-detail/index',
-  teachDetail: '/pages/teach-detail/index',
-  shareEditor: '/pages/share-editor/index',
-  shareDetail: '/pages/share-detail/index',
-  myFavorites: '/pages/my-favorites/index',
-  achievements: '/pages/achievements/index',
+  community: '/pages-sub/content/community/index',
+  magazine: '/pages-sub/content/magazine/index',
+  magazineDetail: '/pages-sub/content/magazine-detail/index',
+  teachDetail: '/pages-sub/content/teach-detail/index',
+  shareEditor: '/pages-sub/content/share-editor/index',
+  shareDetail: '/pages-sub/content/share-detail/index',
+  myFavorites: '/pages-sub/content/my-favorites/index',
+  achievements: '/pages-sub/content/achievements/index',
 } as const
 
 export type RouteKey = keyof typeof ROUTES
